@@ -36,7 +36,7 @@ jobs:
   production:
     if: github.ref == 'refs/heads/web-scenarios'
     runs-on: ubuntu-latest
-    defaults:
+    defaults: 
       run:
         working-directory: webshops-demo
     steps:
