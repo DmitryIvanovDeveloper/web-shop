@@ -1,5 +1,5 @@
 import ScenarioRunner from '../../shared/ui/ScenarioRunner';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Step } from '../../shared/ui/ScenarioRunner';
 import { useAppStore } from '../../app/store/AppStore';
 import { useScenario } from '../../app/store/ScenarioContext';
@@ -13,7 +13,7 @@ const steps: Step[] = [
 
 export default function RewardsModulePage() {
   const { state, dispatch } = useAppStore();
-  const { selectedScenario } = useScenario();
+  const { selectedScenario, setSelectedScenario } = useScenario();
   const [claim, setClaim] = useState({ playerId: '', agree: false, success: false });
   const [showPopup, setShowPopup] = useState(false);
   const triggerRewardPopup = (): void => {
@@ -25,13 +25,25 @@ export default function RewardsModulePage() {
     { title: 'Claim Daily Reward', steps: [steps[1]] },
   ];
 
+  // Guard selectedScenario to avoid out-of-range access when switching modules
+  const safeIndex = selectedScenario !== null && (selectedScenario < 0 || selectedScenario >= scenarios.length)
+    ? 0
+    : selectedScenario;
+
+  useEffect(() => {
+    if (selectedScenario !== null && (selectedScenario < 0 || selectedScenario >= scenarios.length)) {
+      setSelectedScenario(0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedScenario, scenarios.length]);
+
   // Filter scenarios based on selection
-  const displayScenarios = selectedScenario !== null ? [scenarios[selectedScenario]] : scenarios;
+  const displayScenarios = safeIndex !== null ? [scenarios[safeIndex]] : scenarios;
 
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: '100%', overflow: 'hidden' }}>
       {displayScenarios.map((sc, i) => {
-        const realIndex = selectedScenario !== null ? selectedScenario : i;
+        const realIndex = safeIndex !== null ? safeIndex : i;
         return (
         <div id={`sc-${realIndex + 1}`} key={realIndex} style={{ border: '1px solid #1b2536', borderRadius: 8, padding: 12 }}>
           {realIndex === 0 ? (

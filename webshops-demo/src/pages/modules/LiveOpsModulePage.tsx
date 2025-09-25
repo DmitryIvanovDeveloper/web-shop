@@ -1,4 +1,5 @@
 import { useScenario } from '../../app/store/ScenarioContext';
+import { useEffect } from 'react';
 import { useState } from 'react';
 
 type NodeKind = 'Trigger' | 'Condition' | 'Action' | 'Schedule' | 'Cap';
@@ -6,12 +7,21 @@ type GraphNode = { id: string; kind: NodeKind; label: string; x: number; y: numb
 type Edge = { from: string; to: string };
 
 export default function LiveOpsModulePage() {
-  const { selectedScenario } = useScenario();
+  const { selectedScenario, setSelectedScenario } = useScenario();
   const scenarios = [
     { title: 'Graph Builder' },
     { title: 'Event Simulator' },
   ];
-  const displayScenarios = selectedScenario !== null ? [scenarios[selectedScenario]] : scenarios;
+  const safeIndex = selectedScenario !== null && (selectedScenario < 0 || selectedScenario >= scenarios.length)
+    ? 0
+    : selectedScenario;
+  useEffect(() => {
+    if (selectedScenario !== null && (selectedScenario < 0 || selectedScenario >= scenarios.length)) {
+      setSelectedScenario(0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedScenario, scenarios.length]);
+  const displayScenarios = safeIndex !== null ? [scenarios[safeIndex]] : scenarios;
 
   const [nodes, setNodes] = useState<GraphNode[]>([
     { id: 't1', kind: 'Trigger', label: 'session_start', x: 40, y: 60 },

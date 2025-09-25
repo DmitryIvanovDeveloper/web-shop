@@ -1,6 +1,7 @@
 // import ScenarioRunner from '../../shared/ui/ScenarioRunner';
 import type { Step } from '../../shared/ui/ScenarioRunner';
 import { useScenario } from '../../app/store/ScenarioContext';
+import { useEffect } from 'react';
 import { useState } from 'react';
 
 const steps: Step[] = [
@@ -24,7 +25,7 @@ const steps: Step[] = [
 ];
 
 export default function SDKModulePage() {
-  const { selectedScenario } = useScenario();
+  const { selectedScenario, setSelectedScenario } = useScenario();
   const [provider, setProvider] = useState<'stripe'|'paypal'>('stripe');
   const [apiKey, setApiKey] = useState<string>('');
   const [trackingId, setTrackingId] = useState<string>('');
@@ -38,7 +39,16 @@ export default function SDKModulePage() {
   ];
 
   // Filter scenarios based on selection
-  const displayScenarios = selectedScenario !== null ? [scenarios[selectedScenario]] : scenarios;
+  const safeIndex = selectedScenario !== null && (selectedScenario < 0 || selectedScenario >= scenarios.length)
+    ? 0
+    : selectedScenario;
+  useEffect(() => {
+    if (selectedScenario !== null && (selectedScenario < 0 || selectedScenario >= scenarios.length)) {
+      setSelectedScenario(0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedScenario, scenarios.length]);
+  const displayScenarios = safeIndex !== null ? [scenarios[safeIndex]] : scenarios;
 
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: '100%', overflow: 'hidden' }}>

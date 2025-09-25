@@ -1,10 +1,11 @@
 import { useScenario } from '../../app/store/ScenarioContext';
+import { useEffect } from 'react';
 import { useAppStore } from '../../app/store/AppStore';
 import { useState } from 'react';
 
 export default function LoyaltyModulePage() {
   const { state, dispatch } = useAppStore();
-  const { selectedScenario } = useScenario();
+  const { selectedScenario, setSelectedScenario } = useScenario();
 
   const [earn, setEarn] = useState<string>('');
   const [redeem, setRedeem] = useState<string>('');
@@ -16,7 +17,16 @@ export default function LoyaltyModulePage() {
     { title: 'Redeem Options' },
   ];
 
-  const displayScenarios = selectedScenario !== null ? [scenarios[selectedScenario]] : scenarios;
+  const safeIndex = selectedScenario !== null && (selectedScenario < 0 || selectedScenario >= scenarios.length)
+    ? 0
+    : selectedScenario;
+  useEffect(() => {
+    if (selectedScenario !== null && (selectedScenario < 0 || selectedScenario >= scenarios.length)) {
+      setSelectedScenario(0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedScenario, scenarios.length]);
+  const displayScenarios = safeIndex !== null ? [scenarios[safeIndex]] : scenarios;
 
   const tiers = [
     { name: 'Bronze', min: 0, max: 999, color: '#9ca3af' },

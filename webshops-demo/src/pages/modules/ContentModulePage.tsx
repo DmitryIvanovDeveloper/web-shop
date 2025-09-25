@@ -1,5 +1,6 @@
 import type { Step } from '../../shared/ui/ScenarioRunner';
 import { useScenario } from '../../app/store/ScenarioContext';
+import { useEffect } from 'react';
 import { useState } from 'react';
 
 const steps: Step[] = [
@@ -21,7 +22,7 @@ const steps: Step[] = [
 ];
 
 export default function ContentModulePage() {
-  const { selectedScenario } = useScenario();
+  const { selectedScenario, setSelectedScenario } = useScenario();
   const [post, setPost] = useState<{ title: string; category: string; cover?: string }>({ title: '', category: '' });
   const [media] = useState<Array<{ name: string; type: 'image' | 'video' }>>([
     { name: 'banner.jpg', type: 'image' },
@@ -41,7 +42,16 @@ export default function ContentModulePage() {
   ];
 
   // Filter scenarios based on selection
-  const displayScenarios = selectedScenario !== null ? [scenarios[selectedScenario]] : scenarios;
+  const safeIndex = selectedScenario !== null && (selectedScenario < 0 || selectedScenario >= scenarios.length)
+    ? 0
+    : selectedScenario;
+  useEffect(() => {
+    if (selectedScenario !== null && (selectedScenario < 0 || selectedScenario >= scenarios.length)) {
+      setSelectedScenario(0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedScenario, scenarios.length]);
+  const displayScenarios = safeIndex !== null ? [scenarios[safeIndex]] : scenarios;
 
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: '100%', overflow: 'hidden' }}>

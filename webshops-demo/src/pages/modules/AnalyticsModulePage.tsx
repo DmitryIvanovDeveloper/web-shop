@@ -3,10 +3,11 @@ import { Input, Select, Button, DateRange as DateRangeCmp } from '../../shared/u
 import type { Step } from '../../shared/ui/ScenarioRunner';
 import { useAppStore } from '../../app/store/AppStore';
 import { useScenario } from '../../app/store/ScenarioContext';
+import { useEffect } from 'react';
 
 export default function AnalyticsModulePage() {
   const { state } = useAppStore();
-  const { selectedScenario } = useScenario();
+  const { selectedScenario, setSelectedScenario } = useScenario();
 
   const scenarios: { title: string; intro?: string; steps: Step[] }[] = [
     {
@@ -102,13 +103,22 @@ export default function AnalyticsModulePage() {
     },
   ];
 
-  // Filter scenarios based on selection
-  const displayScenarios = selectedScenario !== null ? [scenarios[selectedScenario]] : scenarios;
+  // Guard index
+  const safeIndex = selectedScenario !== null && (selectedScenario < 0 || selectedScenario >= scenarios.length)
+    ? 0
+    : selectedScenario;
+  useEffect(() => {
+    if (selectedScenario !== null && (selectedScenario < 0 || selectedScenario >= scenarios.length)) {
+      setSelectedScenario(0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedScenario, scenarios.length]);
+  const displayScenarios = safeIndex !== null ? [scenarios[safeIndex]] : scenarios;
 
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: '100%', overflow: 'hidden' }}>
         {displayScenarios.map((s, i) => {
-          const realIndex = selectedScenario !== null ? selectedScenario : i;
+          const realIndex = safeIndex !== null ? safeIndex : i;
           return (
             <div id={`sc-${realIndex + 1}`} key={realIndex} style={{ border: '1px solid #1b2536', borderRadius: 8, padding: 12, background: 'transparent' }}>
           {realIndex === 0 ? (
