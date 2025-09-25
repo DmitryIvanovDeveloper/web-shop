@@ -13,14 +13,17 @@ export function ScenarioProvider({ children }: { children: React.ReactNode }) {
   const [selectedScenario, setSelectedScenario] = useState<number | null>(null);
   const { pathname } = useLocation();
 
-  // When route changes to module page, auto-select the first scenario (index 0).
+  // When route changes to module page, auto-select the first scenario (index 0) only if no scenario is selected.
   useEffect(() => {
     if (pathname.startsWith('/modules/')) {
-      setSelectedScenario(0);
+      // Only auto-select first scenario if no scenario is currently selected
+      if (selectedScenario === null) {
+        setSelectedScenario(0);
+      }
     } else {
       setSelectedScenario(null);
     }
-  }, [pathname]);
+  }, [pathname, selectedScenario]);
 
   const showAllScenarios = () => {
     setSelectedScenario(null);
