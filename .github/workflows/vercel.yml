@@ -20,12 +20,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: yarn
-          cache-dependency-path: webshops-demo/yarn.lock
+          cache: npm
+          cache-dependency-path: webshops-demo/package-lock.json
       - name: Install Vercel CLI
         run: npm i -g vercel@latest
       - name: Install deps
-        run: yarn --frozen-lockfile
+        run: npm ci
       - name: Pull Vercel env (preview)
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
       - name: Build
@@ -44,12 +44,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: yarn
-          cache-dependency-path: webshops-demo/yarn.lock
+          cache: npm
+          cache-dependency-path: webshops-demo/package-lock.json
       - name: Install Vercel CLI
         run: npm i -g vercel@latest
       - name: Install deps
-        run: yarn --frozen-lockfile
+        run: npm ci
       - name: Pull Vercel env (production)
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
       - name: Build (prod)
