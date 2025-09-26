@@ -9,7 +9,6 @@ type Props = {
 
 export default function SpecLinkButton({ moduleName, scenarioTitle }: Props) {
   const [loading, setLoading] = useState(false);
-  const [url, setUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const cfg = (window as any).__SPEC_LINKS_CFG__ as {
@@ -31,7 +30,6 @@ export default function SpecLinkButton({ moduleName, scenarioTitle }: Props) {
         parentFolderId,
         scenarioQuery: scenarioTitle,
       });
-      setUrl(link);
       if (link) window.open(link, '_blank', 'noopener');
       else setError('Spec not found');
     } catch (e: any) {
@@ -42,9 +40,14 @@ export default function SpecLinkButton({ moduleName, scenarioTitle }: Props) {
   };
 
   return (
-    <button onClick={onClick} disabled={loading} style={{ background:'#2e68ff', color:'#fff', border:'none', borderRadius:6, padding:'6px 10px', fontWeight:700, cursor: loading ? 'wait' : 'pointer' }}>
-      {loading ? 'Opening…' : 'Open spec'}
-    </button>
+    <span style={{ display:'inline-flex', alignItems:'center', gap:6 }}>
+      <button onClick={onClick} disabled={loading} style={{ background:'#2e68ff', color:'#fff', border:'none', borderRadius:6, padding:'6px 10px', fontWeight:700, cursor: loading ? 'wait' : 'pointer' }}>
+        {loading ? 'Opening…' : 'Open spec'}
+      </button>
+      {error && (
+        <span style={{ color:'#fca5a5', fontSize:12 }}>{error}</span>
+      )}
+    </span>
   );
 }
 
