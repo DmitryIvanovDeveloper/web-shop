@@ -14,6 +14,7 @@ export default function SpecLinkButton({ moduleName, scenarioTitle }: Props) {
   const cfg = (window as any).__SPEC_LINKS_CFG__ as {
     driveId?: string;
     folders?: Record<string, string>;
+    aliases?: Record<string, Record<string, string[]>>; // moduleName -> scenarioTitle -> alt queries
   } | undefined;
 
   const onClick = async () => {
@@ -24,12 +25,20 @@ export default function SpecLinkButton({ moduleName, scenarioTitle }: Props) {
       const parentFolderId = cfg?.folders?.[moduleName] || (import.meta.env as any)[`VITE_GDRIVE_${moduleName.toUpperCase()}_FOLDER_ID`];
       if (!driveId) throw new Error('Drive ID is not configured');
       const { accessToken } = await requestDriveAccessToken();
-      const link = await findSpecWebViewLink({
-        accessToken,
-        driveId,
-        parentFolderId,
-        scenarioQuery: scenarioTitle,
-      });
+      const alt = cfg?.aliases?.[moduleName]?.[scenarioTitle] || [];
+      const candidates = [scenarioTitle, ...alt];
+      let link: string | null = null;
+      for (const q of candidates) {
+        link = await findSpecWebViewLink({ accessToken, driveId, parentFolderId, scenarioQuery: q });
+        if (link) break;
+      }
+      // As a last resort, try without folder scope
+      if (!link) {
+        for (const q of candidates) {
+          link = await findSpecWebViewLink({ accessToken, driveId, scenarioQuery: q });
+          if (link) break;
+        }
+      }
       if (link) window.open(link, '_blank', 'noopener');
       else setError('Spec not found');
     } catch (e: any) {
