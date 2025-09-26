@@ -5,9 +5,10 @@ import { findSpecWebViewLink } from '../google/drive';
 type Props = {
   moduleName: string;
   scenarioTitle: string;
+  onUpdateCheck?: (result: {scenario: string, isOutdated: boolean, lastChecked: Date}) => void;
 };
 
-export default function SpecLinkButton({ moduleName, scenarioTitle }: Props) {
+export default function SpecLinkButton({ moduleName, scenarioTitle, onUpdateCheck }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [outdated, setOutdated] = useState(false);
@@ -84,7 +85,16 @@ export default function SpecLinkButton({ moduleName, scenarioTitle }: Props) {
     
     try {
       // Always check for updates first
-      await checkDocumentUpdate();
+      const isOutdated = await checkDocumentUpdate();
+      
+      // Show result if callback provided
+      if (onUpdateCheck) {
+        onUpdateCheck({
+          scenario: scenarioTitle,
+          isOutdated,
+          lastChecked: new Date()
+        });
+      }
 
       const driveId = cfg?.driveId || import.meta.env.VITE_GDRIVE_ID;
       const env = import.meta.env as any;

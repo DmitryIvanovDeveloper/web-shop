@@ -57,6 +57,17 @@ export function useDocumentUpdateCheck(moduleName: string, scenarioTitle: string
     isChecking,
     isOutdated,
     lastChecked,
-    checkUpdate
+    checkUpdate,
+    showResult: (callback: (result: {scenario: string, isOutdated: boolean, lastChecked: Date}) => void) => {
+      if (moduleName && scenarioTitle) {
+        checkUpdate().then(() => {
+          callback({
+            scenario: scenarioTitle,
+            isOutdated,
+            lastChecked: new Date()
+          });
+        });
+      }
+    }
   };
 }

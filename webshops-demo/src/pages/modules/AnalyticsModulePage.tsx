@@ -126,40 +126,6 @@ export default function AnalyticsModulePage() {
 
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: '100%', overflow: 'hidden' }}>
-      {/* Simple scenario navigation */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-        {scenarios.map((s, i) => (
-          <button
-            key={i}
-            onClick={async () => {
-              setSelectedScenario(i);
-              // Trigger update check for the selected scenario
-              const updateCheck = scenarioUpdateChecks[i];
-              if (updateCheck?.checkUpdate) {
-                await updateCheck.checkUpdate();
-                // Show result after check
-                setShowUpdateResult({
-                  scenario: s.title,
-                  isOutdated: updateCheck.isOutdated,
-                  lastChecked: new Date()
-                });
-              }
-            }}
-            style={{
-              padding: '6px 10px',
-              border: selectedScenario === i ? '1px solid #2e68ff' : '1px solid #2b3952',
-              background: selectedScenario === i ? '#1e3a8a' : 'transparent',
-              color: selectedScenario === i ? '#fff' : '#9fb3d9',
-              borderRadius: 4,
-              cursor: 'pointer',
-              fontSize: 12
-            }}
-          >
-            {s.title}
-          </button>
-        ))}
-      </div>
-      
       {/* Update check result */}
       {showUpdateResult && (
         <div style={{ 
@@ -222,7 +188,11 @@ export default function AnalyticsModulePage() {
                   </span>
                 )}
                 <span style={{ marginLeft:'auto' }} />
-                <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
+                <SpecLinkButton 
+                  moduleName="Analytics" 
+                  scenarioTitle={s.title} 
+                  onUpdateCheck={setShowUpdateResult}
+                />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Live metrics with mock data. Auto-refresh disabled in demo.</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
@@ -241,7 +211,11 @@ export default function AnalyticsModulePage() {
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
                 <span style={{ marginLeft:'auto' }} />
-                <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
+                <SpecLinkButton 
+                  moduleName="Analytics" 
+                  scenarioTitle={s.title} 
+                  onUpdateCheck={setShowUpdateResult}
+                />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
               <AlertCard title="Unusual spike in purchases detected" time="16:45 UTC" delta="+524% last hour" />
@@ -256,7 +230,11 @@ export default function AnalyticsModulePage() {
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
                 <span style={{ marginLeft:'auto' }} />
-                <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
+                <SpecLinkButton 
+                  moduleName="Analytics" 
+                  scenarioTitle={s.title} 
+                  onUpdateCheck={setShowUpdateResult}
+                />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
@@ -281,7 +259,11 @@ export default function AnalyticsModulePage() {
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
                 <span style={{ marginLeft:'auto' }} />
-                <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
+                <SpecLinkButton 
+                  moduleName="Analytics" 
+                  scenarioTitle={s.title} 
+                  onUpdateCheck={setShowUpdateResult}
+                />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr 1fr' }}>
@@ -305,7 +287,11 @@ export default function AnalyticsModulePage() {
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
                 <span style={{ marginLeft:'auto' }} />
-                <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
+                <SpecLinkButton 
+                  moduleName="Analytics" 
+                  scenarioTitle={s.title} 
+                  onUpdateCheck={setShowUpdateResult}
+                />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr 1fr' }}>
@@ -321,7 +307,11 @@ export default function AnalyticsModulePage() {
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
                 <span style={{ marginLeft:'auto' }} />
-                <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
+                <SpecLinkButton 
+                  moduleName="Analytics" 
+                  scenarioTitle={s.title} 
+                  onUpdateCheck={setShowUpdateResult}
+                />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
@@ -344,7 +334,11 @@ export default function AnalyticsModulePage() {
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
                 <span style={{ marginLeft:'auto' }} />
-                <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
+                <SpecLinkButton 
+                  moduleName="Analytics" 
+                  scenarioTitle={s.title} 
+                  onUpdateCheck={setShowUpdateResult}
+                />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
@@ -364,7 +358,11 @@ export default function AnalyticsModulePage() {
             <div>
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
-                <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
+                <SpecLinkButton 
+                  moduleName="Analytics" 
+                  scenarioTitle={s.title} 
+                  onUpdateCheck={setShowUpdateResult}
+                />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr 1fr' }}>
