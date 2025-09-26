@@ -10,13 +10,6 @@ import { useEffect } from 'react';
 export default function AnalyticsModulePage() {
   const { state } = useAppStore();
   const { selectedScenario, setSelectedScenario } = useScenario();
-  
-  // Get current scenario for update checking
-  const currentScenario = scenarios.find((_, i) => i === selectedScenario);
-  const { isChecking, isOutdated } = useDocumentUpdateCheck(
-    'Analytics', 
-    currentScenario?.title || ''
-  );
 
   const scenarios: { title: string; intro?: string; steps: Step[] }[] = [
     {
@@ -112,6 +105,12 @@ export default function AnalyticsModulePage() {
     },
   ];
 
+  // Check updates for all scenarios
+  const scenarioUpdateChecks = scenarios.map(scenario => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    return useDocumentUpdateCheck('Analytics', scenario.title);
+  });
+
   // Guard index
   const safeIndex = selectedScenario !== null && (selectedScenario < 0 || selectedScenario >= scenarios.length)
     ? 0
@@ -128,18 +127,19 @@ export default function AnalyticsModulePage() {
     <div style={{ display: 'grid', gap: 16, maxWidth: '100%', overflow: 'hidden' }}>
         {displayScenarios.map((s, i) => {
           const realIndex = safeIndex !== null ? safeIndex : i;
+          const updateCheck = scenarioUpdateChecks[realIndex];
           return (
             <div id={`sc-${realIndex + 1}`} key={realIndex} style={{ border: '1px solid #1b2536', borderRadius: 8, padding: 12, background: 'transparent' }}>
           {realIndex === 0 ? (
             <div>
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
-                {isChecking && (
+                {updateCheck?.isChecking && (
                   <span style={{ color: '#fbbf24', fontSize: 12, border: '1px solid #92400e', background: '#451a03', padding: '2px 6px', borderRadius: 6 }}>
                     Checking…
                   </span>
                 )}
-                {isOutdated && !isChecking && (
+                {updateCheck?.isOutdated && !updateCheck?.isChecking && (
                   <span style={{ color: '#fca5a5', fontSize: 12, border: '1px solid #7f1d1d', background: '#3f1d1d', padding: '2px 6px', borderRadius: 6 }}>
                     Outdated
                   </span>
