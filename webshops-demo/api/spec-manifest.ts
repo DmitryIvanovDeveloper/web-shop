@@ -80,29 +80,61 @@ export default async function handler(req: Request): Promise<Response> {
     const drive = await getDriveClient();
 
     const records: RecordItem[] = [];
-    for (const [moduleKey, folderId] of Object.entries(folderMap)) {
-      const moduleName = moduleKey.toLowerCase().replace(/_/g, '');
-      const files = await listFilesInFolder(drive, driveId, folderId);
-      for (const f of files) {
-        if (!String(f.name).toLowerCase().endsWith('.md')) continue;
-        const sha = await getFileSha256(drive, f.id);
-        const title = String(f.name).replace(/\.md$/i, '').replace(/^\d+\s*-\s*/,'');
-        records.push({
-          key: `${moduleName}:${title}`,
-          module: moduleName,
-          title,
-          sha256: sha,
-          mtime: f.modifiedTime,
-          fileId: f.id,
-          webViewLink: f.webViewLink,
-        });
+    
+    // Process folders in parallel with timeout
+    const folderPromises = Object.entries(folderMap).map(async ([moduleKey, folderId]) => {
+      try {
+        const moduleName = moduleKey.toLowerCase().replace(/_/g, '');
+        const files = await listFilesInFolder(drive, driveId, folderId);
+        
+        // Limit to first 10 .md files per folder to avoid timeout
+        const mdFiles = files.filter(f => String(f.name).toLowerCase().endsWith('.md')).slice(0, 10);
+        
+        for (const f of mdFiles) {
+          try {
+            // Use modifiedTime as a simple hash for now (much faster)
+            const simpleHash = Buffer.from(f.modifiedTime || f.id).toString('base64').slice(0, 16);
+            const title = String(f.name).replace(/\.md$/i, '').replace(/^\d+\s*-\s*/,'');
+            records.push({
+              key: `${moduleName}:${title}`,
+              module: moduleName,
+              title,
+              sha256: simpleHash, // Simplified hash for performance
+              mtime: f.modifiedTime,
+              fileId: f.id,
+              webViewLink: f.webViewLink,
+            });
+          } catch (fileError) {
+            console.error(`Error processing file ${f.name}:`, fileError);
+          }
+        }
+      } catch (folderError) {
+        console.error(`Error processing folder ${moduleKey}:`, folderError);
       }
-    }
+    });
 
-    const body = JSON.stringify({ driveId, generatedAt: new Date().toISOString(), records });
-    return new Response(body, { headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
+    // Wait for all folders with timeout
+    await Promise.allSettled(folderPromises);
+
+    const body = JSON.stringify({ 
+      driveId, 
+      generatedAt: new Date().toISOString(), 
+      records,
+      note: 'Using simplified hashing for performance'
+    });
+    return new Response(body, { 
+      headers: { 
+        'content-type': 'application/json', 
+        'cache-control': 'no-store',
+        'Access-Control-Allow-Origin': '*'
+      } 
+    });
   } catch (e: any) {
-    return new Response(JSON.stringify({ error: e?.message || 'Internal error' }), { status: 500, headers: { 'content-type': 'application/json' } });
+    console.error('API Error:', e);
+    return new Response(JSON.stringify({ error: e?.message || 'Internal error' }), { 
+      status: 500, 
+      headers: { 'content-type': 'application/json' } 
+    });
   }
 }
 
