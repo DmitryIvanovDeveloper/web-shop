@@ -11,6 +11,7 @@ export default function SpecLinkButton({ moduleName, scenarioTitle }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [outdated, setOutdated] = useState(false);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
 
   const cfg = (window as any).__SPEC_LINKS_CFG__ as {
     driveId?: string;
@@ -35,10 +36,65 @@ export default function SpecLinkButton({ moduleName, scenarioTitle }: Props) {
       .catch(() => void 0);
   }, [moduleName, scenarioTitle]);
 
+  // Function to check if document is outdated
+  const checkDocumentUpdate = async () => {
+    setCheckingUpdate(true);
+    try {
+      const normModule = moduleName.toLowerCase().replace(/_/g, '');
+      const key = `${normModule}:${scenarioTitle}`;
+      const localVersions = (window as any).__SPEC_VERSIONS__ as Record<string, string> | undefined;
+      const localSha = localVersions?.[key];
+      
+      if (!localSha) {
+        setCheckingUpdate(false);
+        return false; // No local version to compare
+      }
+
+      const response = await fetch('/api/spec-manifest', { cache: 'no-store' });
+      if (!response.ok) {
+        setCheckingUpdate(false);
+        return false;
+      }
+
+      const manifest = await response.json();
+      const remoteRecord = manifest.records?.find((r: any) => r?.key === key);
+      
+      if (remoteRecord && remoteRecord.sha256 !== localSha) {
+        setOutdated(true);
+        setCheckingUpdate(false);
+        return true; // Document is outdated
+      }
+      
+      setOutdated(false);
+      setCheckingUpdate(false);
+      return false; // Document is up to date
+    } catch (e) {
+      console.error('Failed to check document update:', e);
+      setCheckingUpdate(false);
+      return false;
+    }
+  };
+
   const onClick = async () => {
     setError(null);
     setLoading(true);
+    
     try {
+      // First, check if document is outdated
+      const isOutdated = await checkDocumentUpdate();
+      
+      // Show notification if document is outdated
+      if (isOutdated) {
+        const shouldContinue = confirm(
+          `⚠️ Document "${scenarioTitle}" has been updated in Google Drive.\n\n` +
+          `Do you want to open the latest version?`
+        );
+        if (!shouldContinue) {
+          setLoading(false);
+          return;
+        }
+      }
+
       const driveId = cfg?.driveId || import.meta.env.VITE_GDRIVE_ID;
       const env = import.meta.env as any;
       const exactKey = `VITE_GDRIVE_${moduleName.toUpperCase()}_FOLDER_ID`;
@@ -75,8 +131,23 @@ export default function SpecLinkButton({ moduleName, scenarioTitle }: Props) {
       {outdated && (
         <span style={{ color:'#fca5a5', fontSize:12, border:'1px solid #7f1d1d', background:'#3f1d1d', padding:'2px 6px', borderRadius:6 }}>Outdated</span>
       )}
-      <button onClick={onClick} disabled={loading} style={{ background:'#2e68ff', color:'#fff', border:'none', borderRadius:6, padding:'6px 10px', fontWeight:700, cursor: loading ? 'wait' : 'pointer' }}>
-        {loading ? 'Opening…' : 'Open spec'}
+      {checkingUpdate && (
+        <span style={{ color:'#fbbf24', fontSize:12, border:'1px solid #92400e', background:'#451a03', padding:'2px 6px', borderRadius:6 }}>Checking…</span>
+      )}
+      <button 
+        onClick={onClick} 
+        disabled={loading || checkingUpdate} 
+        style={{ 
+          background: loading || checkingUpdate ? '#6b7280' : '#2e68ff', 
+          color:'#fff', 
+          border:'none', 
+          borderRadius:6, 
+          padding:'6px 10px', 
+          fontWeight:700, 
+          cursor: (loading || checkingUpdate) ? 'wait' : 'pointer' 
+        }}
+      >
+        {loading ? 'Opening…' : checkingUpdate ? 'Checking…' : 'Open spec'}
       </button>
       {error && (
         <span style={{ color:'#fca5a5', fontSize:12 }}>{error}</span>
