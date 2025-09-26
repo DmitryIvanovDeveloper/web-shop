@@ -39,37 +39,40 @@ export default function SpecLinkButton({ moduleName, scenarioTitle }: Props) {
   // Function to check if document is outdated
   const checkDocumentUpdate = async () => {
     setCheckingUpdate(true);
+    console.log('🔍 Checking document update for:', scenarioTitle);
+    
     try {
       const normModule = moduleName.toLowerCase().replace(/_/g, '');
       const key = `${normModule}:${scenarioTitle}`;
-      const localVersions = (window as any).__SPEC_VERSIONS__ as Record<string, string> | undefined;
-      const localSha = localVersions?.[key];
       
-      if (!localSha) {
-        setCheckingUpdate(false);
-        return false; // No local version to compare
-      }
-
+      console.log('📡 Fetching manifest from API...');
       const response = await fetch('/api/spec-manifest', { cache: 'no-store' });
+      
       if (!response.ok) {
+        console.error('❌ Failed to fetch manifest:', response.status);
         setCheckingUpdate(false);
         return false;
       }
 
       const manifest = await response.json();
-      const remoteRecord = manifest.records?.find((r: any) => r?.key === key);
+      console.log('📋 Manifest received:', manifest);
       
-      if (remoteRecord && remoteRecord.sha256 !== localSha) {
+      const remoteRecord = manifest.records?.find((r: any) => r?.key === key);
+      console.log('🔍 Remote record for key', key, ':', remoteRecord);
+      
+      if (remoteRecord) {
+        // For now, just show that we found the document
+        console.log('✅ Document found in manifest');
+        setOutdated(false); // Reset outdated status
+      } else {
+        console.log('⚠️ Document not found in manifest');
         setOutdated(true);
-        setCheckingUpdate(false);
-        return true; // Document is outdated
       }
       
-      setOutdated(false);
       setCheckingUpdate(false);
-      return false; // Document is up to date
+      return false; // Always return false since we removed the confirmation dialog
     } catch (e) {
-      console.error('Failed to check document update:', e);
+      console.error('❌ Failed to check document update:', e);
       setCheckingUpdate(false);
       return false;
     }
@@ -80,20 +83,8 @@ export default function SpecLinkButton({ moduleName, scenarioTitle }: Props) {
     setLoading(true);
     
     try {
-      // First, check if document is outdated
-      const isOutdated = await checkDocumentUpdate();
-      
-      // Show notification if document is outdated
-      if (isOutdated) {
-        const shouldContinue = confirm(
-          `⚠️ Document "${scenarioTitle}" has been updated in Google Drive.\n\n` +
-          `Do you want to open the latest version?`
-        );
-        if (!shouldContinue) {
-          setLoading(false);
-          return;
-        }
-      }
+      // Always check for updates first
+      await checkDocumentUpdate();
 
       const driveId = cfg?.driveId || import.meta.env.VITE_GDRIVE_ID;
       const env = import.meta.env as any;
