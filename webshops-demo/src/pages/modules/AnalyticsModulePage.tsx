@@ -1,6 +1,6 @@
 import ScenarioRunner from '../../shared/ui/ScenarioRunner';
 import SpecLinkButton from '../../shared/ui/SpecLinkButton';
-import { ScenariosSidebar, type ScenarioInfo } from '../../shared/ui/ScenariosSidebar';
+import { ScenariosTable, type ScenarioTableItem } from '../../shared/ui/ScenariosTable';
 import { Input, Select, Button, DateRange as DateRangeCmp } from '../../shared/ui/universal';
 import type { Step } from '../../shared/ui/ScenarioRunner';
 import { useAppStore } from '../../app/store/AppStore';
@@ -125,17 +125,23 @@ export default function AnalyticsModulePage() {
   }, [selectedScenario, scenarios.length]);
   const displayScenarios = safeIndex !== null ? [scenarios[safeIndex]] : scenarios;
 
-  // Convert scenarios to ScenarioInfo format for sidebar
-  const scenarioInfos: ScenarioInfo[] = scenarios.map((scenario, index) => ({
+  // Convert scenarios to ScenarioTableItem format for table
+  const scenarioTableItems: ScenarioTableItem[] = scenarios.map((scenario, index) => ({
     id: `scenario-${index}`,
     title: scenario.title,
-    preconditions: ['User is logged in', 'Module is accessible'],
-    context: scenario.intro || 'Interactive scenario demonstration',
-    goal: 'Complete the scenario workflow'
+    description: scenario.intro
   }));
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 16, maxWidth: '100%', overflow: 'hidden' }}>
+    <div style={{ display: 'grid', gap: 16, maxWidth: '100%', overflow: 'hidden' }}>
+      {/* Scenarios Table */}
+      <ScenariosTable 
+        scenarios={scenarioTableItems}
+        moduleName="Analytics"
+        selectedScenario={selectedScenario}
+        onScenarioSelect={setSelectedScenario}
+      />
+      
       <div style={{ display: 'grid', gap: 16 }}>
       {/* Update check result */}
       {showUpdateResult && (
@@ -401,9 +407,6 @@ export default function AnalyticsModulePage() {
         })}
         <div style={{ marginTop: 8, color: '#9fb3d9' }}>Active campaigns: {state.campaigns.length}</div>
       </div>
-      
-      {/* Scenarios Sidebar */}
-      <ScenariosSidebar items={scenarioInfos} moduleName="Analytics" />
     </div>
   );
 }
