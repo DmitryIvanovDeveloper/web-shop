@@ -125,6 +125,27 @@ export default function AnalyticsModulePage() {
 
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: '100%', overflow: 'hidden' }}>
+      {/* Scenario Navigation */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+        {scenarios.map((s, i) => (
+          <button
+            key={i}
+            onClick={() => setSelectedScenario(i)}
+            style={{
+              padding: '8px 12px',
+              border: selectedScenario === i ? '1px solid #2e68ff' : '1px solid #2b3952',
+              background: selectedScenario === i ? '#1e3a8a' : 'transparent',
+              color: selectedScenario === i ? '#fff' : '#9fb3d9',
+              borderRadius: 6,
+              cursor: 'pointer',
+              fontSize: 14
+            }}
+          >
+            {s.title}
+          </button>
+        ))}
+      </div>
+      
         {displayScenarios.map((s, i) => {
           const realIndex = safeIndex !== null ? safeIndex : i;
           const updateCheck = scenarioUpdateChecks[realIndex];
