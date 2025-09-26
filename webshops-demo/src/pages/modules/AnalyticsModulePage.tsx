@@ -4,11 +4,19 @@ import { Input, Select, Button, DateRange as DateRangeCmp } from '../../shared/u
 import type { Step } from '../../shared/ui/ScenarioRunner';
 import { useAppStore } from '../../app/store/AppStore';
 import { useScenario } from '../../app/store/ScenarioContext';
+import { useDocumentUpdateCheck } from '../../shared/hooks/useDocumentUpdateCheck';
 import { useEffect } from 'react';
 
 export default function AnalyticsModulePage() {
   const { state } = useAppStore();
   const { selectedScenario, setSelectedScenario } = useScenario();
+  
+  // Get current scenario for update checking
+  const currentScenario = scenarios.find((_, i) => i === selectedScenario);
+  const { isChecking, isOutdated } = useDocumentUpdateCheck(
+    'Analytics', 
+    currentScenario?.title || ''
+  );
 
   const scenarios: { title: string; intro?: string; steps: Step[] }[] = [
     {
@@ -126,6 +134,16 @@ export default function AnalyticsModulePage() {
             <div>
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
+                {isChecking && (
+                  <span style={{ color: '#fbbf24', fontSize: 12, border: '1px solid #92400e', background: '#451a03', padding: '2px 6px', borderRadius: 6 }}>
+                    Checking…
+                  </span>
+                )}
+                {isOutdated && !isChecking && (
+                  <span style={{ color: '#fca5a5', fontSize: 12, border: '1px solid #7f1d1d', background: '#3f1d1d', padding: '2px 6px', borderRadius: 6 }}>
+                    Outdated
+                  </span>
+                )}
                 <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
               </h3>
