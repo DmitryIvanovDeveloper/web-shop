@@ -125,33 +125,11 @@ export default function AnalyticsModulePage() {
 
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: '100%', overflow: 'hidden' }}>
-      {/* Scenario Navigation */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-        {scenarios.map((s, i) => (
-          <button
-            key={i}
-            onClick={() => setSelectedScenario(i)}
-            style={{
-              padding: '8px 12px',
-              border: selectedScenario === i ? '1px solid #2e68ff' : '1px solid #2b3952',
-              background: selectedScenario === i ? '#1e3a8a' : 'transparent',
-              color: selectedScenario === i ? '#fff' : '#9fb3d9',
-              borderRadius: 6,
-              cursor: 'pointer',
-              fontSize: 14
-            }}
-          >
-            {s.title}
-          </button>
-        ))}
-      </div>
-      
-        {displayScenarios.map((s, i) => {
-          const realIndex = safeIndex !== null ? safeIndex : i;
-          const updateCheck = scenarioUpdateChecks[realIndex];
+        {scenarios.map((s, i) => {
+          const updateCheck = scenarioUpdateChecks[i];
           return (
-            <div id={`sc-${realIndex + 1}`} key={realIndex} style={{ border: '1px solid #1b2536', borderRadius: 8, padding: 12, background: 'transparent' }}>
-          {realIndex === 0 ? (
+            <div id={`sc-${i + 1}`} key={i} style={{ border: '1px solid #1b2536', borderRadius: 8, padding: 12, background: 'transparent' }}>
+          {i === 0 ? (
             <div>
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
@@ -180,7 +158,7 @@ export default function AnalyticsModulePage() {
                 <TrendCard title="Active Players by Hour" points={[800,820,790,900,1020,1100,1200,1300,1500,1700,1600,1550,1800,1900,1750,1650]} />
               </div>
             </div>
-          ) : realIndex === 2 ? (
+          ) : i === 2 ? (
             <div>
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
@@ -195,7 +173,7 @@ export default function AnalyticsModulePage() {
                 <BreakdownCard title="By Segment" rows={[['New players','+89%'],['VIP','+12%']]} />
               </div>
             </div>
-          ) : realIndex === 1 ? (
+          ) : i === 1 ? (
             <div>
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
@@ -220,7 +198,7 @@ export default function AnalyticsModulePage() {
                 </div>
               </div>
             </div>
-          ) : realIndex === 3 ? (
+          ) : i === 3 ? (
             <div>
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
@@ -244,7 +222,7 @@ export default function AnalyticsModulePage() {
                 </div>
               </div>
             </div>
-          ) : realIndex === 4 ? (
+          ) : i === 4 ? (
             <div>
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
@@ -260,7 +238,7 @@ export default function AnalyticsModulePage() {
                 <Button size="sm">Deploy Variant B</Button>
               </div>
             </div>
-          ) : realIndex === 5 ? (
+          ) : i === 5 ? (
             <div>
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
@@ -283,7 +261,7 @@ export default function AnalyticsModulePage() {
                 </ul>
               </div>
             </div>
-          ) : realIndex === 6 ? (
+          ) : i === 6 ? (
             <div>
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
@@ -304,7 +282,7 @@ export default function AnalyticsModulePage() {
                 </div>
               </div>
             </div>
-          ) : realIndex === 7 ? (
+          ) : i === 7 ? (
             <div>
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
