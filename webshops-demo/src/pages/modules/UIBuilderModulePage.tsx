@@ -39,6 +39,7 @@ export default function UIBuilderModulePage() {
             <div>
               <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                 <span>{title}</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="UIBuilder" scenarioTitle={title} />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Drag and drop interface mock: palette and canvas preview.</p>
@@ -66,6 +67,7 @@ export default function UIBuilderModulePage() {
             <div>
               <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                 <span>{title}</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="UIBuilder" scenarioTitle={title} />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Define base theme settings (mock).</p>
@@ -79,6 +81,7 @@ export default function UIBuilderModulePage() {
             <div>
               <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                 <span>{title}</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="UIBuilder" scenarioTitle={title} />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Add components to layout (mock).</p>

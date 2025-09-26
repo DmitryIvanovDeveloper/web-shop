@@ -140,12 +140,14 @@ export default function MerchantModulePage() {
         const realIndex = safeIndex !== null ? safeIndex : idx;
         return (
         <div id={`sc-${realIndex + 1}`} key={realIndex} style={{ border: '1px solid #1b2536', borderRadius: 8, padding: 12 }}>
+          {/* Common header with Open spec button for every scenario */}
+          <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+            <span>{title}</span>
+            <span style={{ marginLeft:'auto' }} />
+            <SpecLinkButton moduleName="Merchant" scenarioTitle={title} />
+          </h3>
           {realIndex === 0 ? (
             <div>
-              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
-                <span>{title}</span>
-                <SpecLinkButton moduleName="Merchant" scenarioTitle={title} />
-              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Overview of campaign performance (mock): active/scheduled, avg. discount, CTR trend.</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
                 <Metric label="Active campaigns" value={String(state.campaigns.filter(c => c.status === 'active').length)} />
@@ -159,10 +161,6 @@ export default function MerchantModulePage() {
             </div>
           ) : title === 'Export Tools' ? (
             <div>
-              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
-                <span>{title}</span>
-                <SpecLinkButton moduleName="Merchant" scenarioTitle={title} />
-              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Download CSV snapshots of campaigns and users. Excel opens CSV.</p>
               <div style={{ display: 'flex', gap: 12 }}>
                 <button onClick={() => { downloadCsv('campaigns.csv', toCsv(state.campaigns)); setExportStatus('Campaigns exported'); }} style={btn()}>Export Campaigns (CSV)</button>
@@ -172,10 +170,6 @@ export default function MerchantModulePage() {
             </div>
           ) : title === 'User Management' ? (
             <div>
-              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
-                <span>{title}</span>
-                <SpecLinkButton moduleName="Merchant" scenarioTitle={title} />
-              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Switch user roles between admin and viewer.</p>
               <div style={{ display: 'grid', gap: 8 }}>
                 {state.users.map(u => (
@@ -192,10 +186,6 @@ export default function MerchantModulePage() {
             </div>
           ) : title === 'Activity Tracker' ? (
             <div>
-              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
-                <span>{title}</span>
-                <SpecLinkButton moduleName="Merchant" scenarioTitle={title} />
-              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Recent actions:</p>
               <div style={{ display: 'grid', gap: 8 }}>
                 {state.activity.slice(0, 12).map(a => (
@@ -209,7 +199,6 @@ export default function MerchantModulePage() {
             </div>
           ) : title === 'Create Ticket' ? (
             <div>
-              <h3 style={{ margin: 0, marginBottom: 8 }}>{title}</h3>
               <TicketForm onCreate={(subject, priority) => dispatch({ type: 'CREATE_TICKET', payload: { subject, priority } })} />
               <div style={{ marginTop: 12, color: '#9fb3d9' }}>Latest tickets:</div>
               <div style={{ display: 'grid', gap: 8, marginTop: 6 }}>
@@ -227,7 +216,6 @@ export default function MerchantModulePage() {
             </div>
           ) : title === 'Consent Management' ? (
             <div>
-              <h3 style={{ margin: 0, marginBottom: 8 }}>{title}</h3>
               <div style={{ display: 'grid', gap: 10 }}>
                 {(['marketing','analytics','personalization'] as const).map(key => (
                   <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #2b3952', borderRadius: 8, padding: 10 }}>
@@ -239,7 +227,6 @@ export default function MerchantModulePage() {
             </div>
           ) : title === 'Age Verification' ? (
             <div>
-              <h3 style={{ margin: 0, marginBottom: 8 }}>{title}</h3>
               <div style={{ display: 'grid', gap: 10 }}>
                 <div style={{ color: '#9fb3d9' }}>Required: <strong style={{ color: '#fff' }}>{String(state.ageGate.required)}</strong> · Verified: <strong style={{ color: '#fff' }}>{String(state.ageGate.verified)}</strong></div>
                 <div style={{ display: 'flex', gap: 8 }}>

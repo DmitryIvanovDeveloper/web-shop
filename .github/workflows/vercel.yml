@@ -33,10 +33,14 @@ jobs:
             echo "VITE_GDRIVE_ID=${{ secrets.VITE_GDRIVE_ID }}";
             echo "VITE_GDRIVE_ANALYTICS_FOLDER_ID=${{ secrets.VITE_GDRIVE_ANALYTICS_FOLDER_ID }}";
             echo "VITE_GDRIVE_MERCHANT_FOLDER_ID=${{ secrets.VITE_GDRIVE_MERCHANT_FOLDER_ID }}";
+            echo "VITE_GDRIVE_REWARDS_FOLDER_ID=${{ secrets.VITE_GDRIVE_REWARDS_FOLDER_ID }}";
             echo "VITE_GDRIVE_CONTENT_FOLDER_ID=${{ secrets.VITE_GDRIVE_CONTENT_FOLDER_ID }}";
             echo "VITE_GDRIVE_LOCALIZATION_FOLDER_ID=${{ secrets.VITE_GDRIVE_LOCALIZATION_FOLDER_ID }}";
             echo "VITE_GDRIVE_PERSONALIZATION_FOLDER_ID=${{ secrets.VITE_GDRIVE_PERSONALIZATION_FOLDER_ID }}";
             echo "VITE_GDRIVE_LIVEOPS_FOLDER_ID=${{ secrets.VITE_GDRIVE_LIVEOPS_FOLDER_ID }}";
+            echo "VITE_GDRIVE_SDK_FOLDER_ID=${{ secrets.VITE_GDRIVE_SDK_FOLDER_ID }}";
+            echo "VITE_GDRIVE_UIBUILDER_FOLDER_ID=${{ secrets.VITE_GDRIVE_UIBUILDER_FOLDER_ID }}";
+            echo "VITE_GDRIVE_WEBSHOP_FOLDER_ID=${{ secrets.VITE_GDRIVE_WEBSHOP_FOLDER_ID }}";
           } > .env
       - name: Pull Vercel env (preview)
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
@@ -69,10 +73,14 @@ jobs:
             echo "VITE_GDRIVE_ID=${{ secrets.VITE_GDRIVE_ID }}";
             echo "VITE_GDRIVE_ANALYTICS_FOLDER_ID=${{ secrets.VITE_GDRIVE_ANALYTICS_FOLDER_ID }}";
             echo "VITE_GDRIVE_MERCHANT_FOLDER_ID=${{ secrets.VITE_GDRIVE_MERCHANT_FOLDER_ID }}";
+            echo "VITE_GDRIVE_REWARDS_FOLDER_ID=${{ secrets.VITE_GDRIVE_REWARDS_FOLDER_ID }}";
             echo "VITE_GDRIVE_CONTENT_FOLDER_ID=${{ secrets.VITE_GDRIVE_CONTENT_FOLDER_ID }}";
             echo "VITE_GDRIVE_LOCALIZATION_FOLDER_ID=${{ secrets.VITE_GDRIVE_LOCALIZATION_FOLDER_ID }}";
             echo "VITE_GDRIVE_PERSONALIZATION_FOLDER_ID=${{ secrets.VITE_GDRIVE_PERSONALIZATION_FOLDER_ID }}";
             echo "VITE_GDRIVE_LIVEOPS_FOLDER_ID=${{ secrets.VITE_GDRIVE_LIVEOPS_FOLDER_ID }}";
+            echo "VITE_GDRIVE_SDK_FOLDER_ID=${{ secrets.VITE_GDRIVE_SDK_FOLDER_ID }}";
+            echo "VITE_GDRIVE_UIBUILDER_FOLDER_ID=${{ secrets.VITE_GDRIVE_UIBUILDER_FOLDER_ID }}";
+            echo "VITE_GDRIVE_WEBSHOP_FOLDER_ID=${{ secrets.VITE_GDRIVE_WEBSHOP_FOLDER_ID }}";
           } > .env
       - name: Pull Vercel env (production)
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}

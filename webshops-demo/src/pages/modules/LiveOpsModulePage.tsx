@@ -58,6 +58,7 @@ export default function LiveOpsModulePage() {
               <div>
                 <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                   <span>Graph Builder</span>
+                  <span style={{ marginLeft:'auto' }} />
                   <SpecLinkButton moduleName="LiveOps" scenarioTitle="Graph Builder" />
                 </h3>
                 <div style={{ display: 'flex', gap: 12 }}>
@@ -93,6 +94,7 @@ export default function LiveOpsModulePage() {
               <div>
                 <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                   <span>Event Simulator</span>
+                  <span style={{ marginLeft:'auto' }} />
                   <SpecLinkButton moduleName="LiveOps" scenarioTitle="Event Simulator" />
                 </h3>
                 <div style={{ display:'grid', gap: 8, gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))' }}>

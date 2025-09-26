@@ -64,6 +64,7 @@ export default function ContentModulePage() {
               <div>
                 <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                   <span>Create Post</span>
+                  <span style={{ marginLeft:'auto' }} />
                   <SpecLinkButton moduleName="Content" scenarioTitle="Create Post" />
                 </h3>
                 <div style={{ display: 'grid', gap: 12 }}>
@@ -103,6 +104,7 @@ export default function ContentModulePage() {
               <div>
               <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                 <span>Upload Media</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="Content" scenarioTitle="Upload Media" />
               </h3>
                 <div style={{ display: 'grid', gap: 12 }}>
@@ -126,6 +128,7 @@ export default function ContentModulePage() {
               <div>
               <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                 <span>Schedule Publish</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="Content" scenarioTitle="Schedule Publish" />
               </h3>
                 <div style={{ display: 'grid', gap: 12 }}>
@@ -162,6 +165,7 @@ export default function ContentModulePage() {
               <div>
                 <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                   <span>Moderation</span>
+                  <span style={{ marginLeft:'auto' }} />
                   <SpecLinkButton moduleName="Content" scenarioTitle="Moderation" />
                 </h3>
                 <div style={{ display: 'grid', gap: 12 }}>

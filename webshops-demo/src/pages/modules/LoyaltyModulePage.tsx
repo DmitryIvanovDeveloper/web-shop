@@ -2,6 +2,7 @@ import { useScenario } from '../../app/store/ScenarioContext';
 import { useEffect } from 'react';
 import { useAppStore } from '../../app/store/AppStore';
 import { useState } from 'react';
+import SpecLinkButton from '../../shared/ui/SpecLinkButton';
 
 export default function LoyaltyModulePage() {
   const { state, dispatch } = useAppStore();
@@ -49,7 +50,11 @@ export default function LoyaltyModulePage() {
           <div id={`sc-${realIndex + 1}`} key={realIndex} style={{ border: '1px solid #1b2536', borderRadius: 8, padding: 12 }}>
             {realIndex === 0 ? (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Earn Points</h3>
+                <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                  <span>Earn Points</span>
+                  <span style={{ marginLeft:'auto' }} />
+                  <SpecLinkButton moduleName="Loyalty" scenarioTitle="Earn Points" />
+                </h3>
                 <p style={{ color:'#9fb3d9', marginTop:0 }}>Visual progress to next tier and quick earn actions.</p>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))' }}>
                   <div style={{ padding:12, border:'1px solid #2b3952', borderRadius:8 }}>
@@ -80,7 +85,11 @@ export default function LoyaltyModulePage() {
               </div>
             ) : realIndex === 1 ? (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Tiers Overview</h3>
+                <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                  <span>Tiers Overview</span>
+                  <span style={{ marginLeft:'auto' }} />
+                  <SpecLinkButton moduleName="Loyalty" scenarioTitle="Tiers Overview" />
+                </h3>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))' }}>
                   {tiers.map(t => (
                     <div key={t.name} style={{ padding:12, border:'1px solid #2b3952', borderRadius:8, background:'#0f1829' }}>
@@ -97,7 +106,11 @@ export default function LoyaltyModulePage() {
               </div>
             ) : realIndex === 2 ? (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Rules Explainer</h3>
+                <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                  <span>Rules Explainer</span>
+                  <span style={{ marginLeft:'auto' }} />
+                  <SpecLinkButton moduleName="Loyalty" scenarioTitle="Rules Explainer" />
+                </h3>
                 <div style={{ padding:12, border:'1px solid #2b3952', borderRadius:8, background:'#0f1829' }}>
                   <div style={{ color:'#9fb3d9', marginBottom:8 }}>How you earn points</div>
                   <ul style={{ margin:0 }}>
@@ -116,7 +129,11 @@ export default function LoyaltyModulePage() {
               </div>
             ) : (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Redeem Options</h3>
+                <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                  <span>Redeem Options</span>
+                  <span style={{ marginLeft:'auto' }} />
+                  <SpecLinkButton moduleName="Loyalty" scenarioTitle="Redeem Options" />
+                </h3>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))' }}>
                   <div style={{ padding:12, border:'1px solid #2b3952', borderRadius:8 }}>
                     <div style={{ color:'#9fb3d9', marginBottom:8 }}>Choose reward</div>

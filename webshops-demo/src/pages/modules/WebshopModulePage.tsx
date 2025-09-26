@@ -56,9 +56,14 @@ export default function WebshopModulePage() {
 
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: '100%', overflow: 'hidden' }}>
-      {/* Only show Hit Sales when viewing all scenarios or Browse Shop scenario */}
+      {/* Top header for Browse Shop with Open spec */}
       {(selectedScenario === null || selectedScenario === 0) && (
         <div style={{ padding: 16, border: '1px solid #2b3952', background: '#0f1829', borderRadius: 8 }}>
+          <h3 style={{ margin: 0, marginBottom: 12, display:'flex', alignItems:'center', gap:8, color: '#fff' }}>
+            <span>Browse Shop</span>
+            <span style={{ marginLeft:'auto' }} />
+            <SpecLinkButton moduleName="Webshop" scenarioTitle="Browse Shop" />
+          </h3>
           <h3 style={{ margin: 0, marginBottom: 16, color: '#fff' }}>Hit Sales - Limited Time Offers</h3>
 
           {/* Featured Deal */}
@@ -151,20 +156,15 @@ export default function WebshopModulePage() {
         const realIndex = selectedScenario !== null ? selectedScenario : i;
         return (
           <div id={`sc-${realIndex + 1}`} key={realIndex} style={{ border: '1px solid #1b2536', borderRadius: 8, padding: 12 }}>
+            {realIndex !== 0 && (
+              <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
+                <span>{sc.title}</span>
+                <span style={{ marginLeft:'auto' }} />
+                <SpecLinkButton moduleName="Webshop" scenarioTitle={sc.title} />
+              </h3>
+            )}
           {realIndex === 2 ? (
             <div>
-              <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
-                <span>{sc.title}</span>
-                <SpecLinkButton moduleName="Webshop" scenarioTitle={sc.title} />
-              </h3>
-              <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
-                <span>{sc.title}</span>
-                <SpecLinkButton moduleName="Webshop" scenarioTitle={sc.title} />
-              </h3>
-              <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
-                <span>{sc.title}</span>
-                <SpecLinkButton moduleName="Webshop" scenarioTitle={sc.title} />
-              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Complete your purchase with product details and payment information.</p>
 
                 <div style={{ display: 'grid', gap: 16, gridTemplateColumns: '1fr 1fr' }}>

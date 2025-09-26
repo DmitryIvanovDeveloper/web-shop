@@ -61,6 +61,7 @@ export default function SDKModulePage() {
               <div>
               <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                 <span>Configure Payments</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="SDK" scenarioTitle="Configure Payments" />
               </h3>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))' }}>
@@ -89,6 +90,7 @@ export default function SDKModulePage() {
               <div>
               <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                 <span>Setup Analytics (GA4)</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="SDK" scenarioTitle="Setup Analytics (GA4)" />
               </h3>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns:'repeat(auto-fit, minmax(260px, 1fr))' }}>
@@ -112,6 +114,7 @@ export default function SDKModulePage() {
               <div>
               <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                 <span>Initialize Overlay</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="SDK" scenarioTitle="Initialize Overlay" />
               </h3>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))' }}>
@@ -134,6 +137,7 @@ export default function SDKModulePage() {
               <div>
               <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                 <span>Handle Deep Link</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="SDK" scenarioTitle="Handle Deep Link" />
               </h3>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns:'repeat(auto-fit, minmax(260px, 1fr))' }}>

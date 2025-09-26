@@ -126,6 +126,7 @@ export default function AnalyticsModulePage() {
             <div>
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Live metrics with mock data. Auto-refresh disabled in demo.</p>
@@ -144,6 +145,7 @@ export default function AnalyticsModulePage() {
             <div>
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
@@ -158,6 +160,7 @@ export default function AnalyticsModulePage() {
             <div>
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
@@ -182,6 +185,7 @@ export default function AnalyticsModulePage() {
             <div>
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
@@ -205,6 +209,7 @@ export default function AnalyticsModulePage() {
             <div>
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
@@ -220,6 +225,7 @@ export default function AnalyticsModulePage() {
             <div>
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
@@ -242,6 +248,7 @@ export default function AnalyticsModulePage() {
             <div>
               <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
                 <span>{s.title}</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>

@@ -83,6 +83,7 @@ export default function PersonalizationModulePage() {
               <div>
                 <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                   <span>Decision Simulator</span>
+                  <span style={{ marginLeft:'auto' }} />
                   <SpecLinkButton moduleName="Personalization" scenarioTitle="Decision Simulator" />
                 </h3>
                 <p style={{ color:'#9fb3d9', marginTop:0 }}>Simulate user features and see selected offer with explainability.</p>
@@ -174,6 +175,7 @@ export default function PersonalizationModulePage() {
               <div>
               <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                 <span>Create Rule</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="Personalization" scenarioTitle="Create Rule" />
               </h3>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
@@ -205,6 +207,7 @@ export default function PersonalizationModulePage() {
               <div>
               <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                 <span>Segment Users</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="Personalization" scenarioTitle="Segment Users" />
               </h3>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
@@ -230,6 +233,7 @@ export default function PersonalizationModulePage() {
               <div>
               <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                 <span>Generate Offer</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="Personalization" scenarioTitle="Generate Offer" />
               </h3>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
@@ -256,6 +260,7 @@ export default function PersonalizationModulePage() {
               <div>
               <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                 <span>Execute Automation</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="Personalization" scenarioTitle="Execute Automation" />
               </h3>
                 <div style={{ padding:12, border:'1px solid #2b3952', borderRadius:8, background:'#0f1829' }}>

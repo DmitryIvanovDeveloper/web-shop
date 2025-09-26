@@ -60,6 +60,7 @@ export default function LocalizationModulePage() {
               <div>
                 <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                   <span>Detect Language</span>
+                  <span style={{ marginLeft:'auto' }} />
                   <SpecLinkButton moduleName="Localization" scenarioTitle="Detect Language" />
                 </h3>
                 <p style={{ color: '#9fb3d9', marginTop: 0 }}>Mock detection based on browser settings and geo.</p>
@@ -91,6 +92,7 @@ export default function LocalizationModulePage() {
               <div>
               <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                 <span>Translate Content</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="Localization" scenarioTitle="Translate Content" />
               </h3>
                 <p style={{ color: '#9fb3d9', marginTop: 0 }}>Add key-value translations (mock). No backend calls.</p>
@@ -125,6 +127,7 @@ export default function LocalizationModulePage() {
               <div>
               <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                 <span>Update Locale</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="Localization" scenarioTitle="Update Locale" />
               </h3>
                 <p style={{ color: '#9fb3d9', marginTop: 0 }}>Switch application locale (mock state update).</p>
@@ -146,6 +149,7 @@ export default function LocalizationModulePage() {
               <div>
                 <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                   <span>Validation</span>
+                  <span style={{ marginLeft:'auto' }} />
                   <SpecLinkButton moduleName="Localization" scenarioTitle="Validation" />
                 </h3>
                 <div style={{ padding: 12, border: '1px solid #2b3952', background:'#0f1829', borderRadius: 8 }}>

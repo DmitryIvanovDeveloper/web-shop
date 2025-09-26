@@ -51,6 +51,7 @@ export default function RewardsModulePage() {
             <div>
               <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                 <span>{sc.title}</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="Rewards" scenarioTitle={sc.title} />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Daily rewards calendar showing available rewards for each day of the month.</p>
@@ -116,6 +117,7 @@ export default function RewardsModulePage() {
             <div>
               <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
                 <span>{sc.title}</span>
+                <span style={{ marginLeft:'auto' }} />
                 <SpecLinkButton moduleName="Rewards" scenarioTitle={sc.title} />
               </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Confirm your Player ID and claim today’s reward.</p>
