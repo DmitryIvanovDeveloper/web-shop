@@ -1,6 +1,7 @@
 import ScenarioRunner from '../../shared/ui/ScenarioRunner';
 import type { Step } from '../../shared/ui/ScenarioRunner';
 import { useAppStore } from '../../app/store/AppStore';
+import SpecLinkButton from '../../shared/ui/SpecLinkButton';
 import { useScenario } from '../../app/store/ScenarioContext';
 import { useState, useEffect } from 'react';
 
@@ -152,7 +153,18 @@ export default function WebshopModulePage() {
           <div id={`sc-${realIndex + 1}`} key={realIndex} style={{ border: '1px solid #1b2536', borderRadius: 8, padding: 12 }}>
           {realIndex === 2 ? (
             <div>
-              <h3 style={{ margin: '0 0 8px 0' }}>{sc.title}</h3>
+              <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
+                <span>{sc.title}</span>
+                <SpecLinkButton moduleName="Webshop" scenarioTitle={sc.title} />
+              </h3>
+              <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
+                <span>{sc.title}</span>
+                <SpecLinkButton moduleName="Webshop" scenarioTitle={sc.title} />
+              </h3>
+              <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
+                <span>{sc.title}</span>
+                <SpecLinkButton moduleName="Webshop" scenarioTitle={sc.title} />
+              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Complete your purchase with product details and payment information.</p>
 
                 <div style={{ display: 'grid', gap: 16, gridTemplateColumns: '1fr 1fr' }}>

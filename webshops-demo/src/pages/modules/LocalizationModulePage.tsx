@@ -1,4 +1,5 @@
 import type { Step } from '../../shared/ui/ScenarioRunner';
+import SpecLinkButton from '../../shared/ui/SpecLinkButton';
 import { useAppStore } from '../../app/store/AppStore';
 import { useScenario } from '../../app/store/ScenarioContext';
 import { useEffect } from 'react';
@@ -57,7 +58,10 @@ export default function LocalizationModulePage() {
           <div id={`sc-${realIndex + 1}`} key={realIndex} style={{ border: '1px solid #1b2536', borderRadius: 8, padding: 12 }}>
             {realIndex === 0 ? (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Detect Language</h3>
+                <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                  <span>Detect Language</span>
+                  <SpecLinkButton moduleName="Localization" scenarioTitle="Detect Language" />
+                </h3>
                 <p style={{ color: '#9fb3d9', marginTop: 0 }}>Mock detection based on browser settings and geo.</p>
                 <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
                   <Info label="Browser Accept-Language" value={navigator.language || 'en-US'} />
@@ -85,7 +89,10 @@ export default function LocalizationModulePage() {
               </div>
             ) : realIndex === 1 ? (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Translate Content</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>Translate Content</span>
+                <SpecLinkButton moduleName="Localization" scenarioTitle="Translate Content" />
+              </h3>
                 <p style={{ color: '#9fb3d9', marginTop: 0 }}>Add key-value translations (mock). No backend calls.</p>
                 <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))' }}>
                   <div style={{ padding: 12, border: '1px solid #2b3952', borderRadius: 8 }}>
@@ -116,7 +123,10 @@ export default function LocalizationModulePage() {
               </div>
             ) : realIndex === 2 ? (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Update Locale</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>Update Locale</span>
+                <SpecLinkButton moduleName="Localization" scenarioTitle="Update Locale" />
+              </h3>
                 <p style={{ color: '#9fb3d9', marginTop: 0 }}>Switch application locale (mock state update).</p>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
                   <div style={{ padding: 12, border: '1px solid #2b3952', borderRadius: 8 }}>
@@ -134,7 +144,10 @@ export default function LocalizationModulePage() {
               </div>
             ) : (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Validation</h3>
+                <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                  <span>Validation</span>
+                  <SpecLinkButton moduleName="Localization" scenarioTitle="Validation" />
+                </h3>
                 <div style={{ padding: 12, border: '1px solid #2b3952', background:'#0f1829', borderRadius: 8 }}>
                   <div style={{ color:'#9fb3d9', marginBottom: 8 }}>Summary (mock)</div>
                   <ul style={{ margin:0 }}>

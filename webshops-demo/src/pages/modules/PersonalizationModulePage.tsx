@@ -1,4 +1,5 @@
 import type { Step } from '../../shared/ui/ScenarioRunner';
+import SpecLinkButton from '../../shared/ui/SpecLinkButton';
 import { useScenario } from '../../app/store/ScenarioContext';
 import { useEffect } from 'react';
 import { useState } from 'react';
@@ -80,7 +81,10 @@ export default function PersonalizationModulePage() {
           <div id={`sc-${realIndex + 1}`} key={realIndex} style={{ border: '1px solid #1b2536', borderRadius: 8, padding: 12 }}>
             {realIndex === 0 ? (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Decision Simulator</h3>
+                <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                  <span>Decision Simulator</span>
+                  <SpecLinkButton moduleName="Personalization" scenarioTitle="Decision Simulator" />
+                </h3>
                 <p style={{ color:'#9fb3d9', marginTop:0 }}>Simulate user features and see selected offer with explainability.</p>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
                   <div style={{ padding:12, border:'1px solid #2b3952', borderRadius:8 }}>
@@ -168,7 +172,10 @@ export default function PersonalizationModulePage() {
               </div>
             ) : realIndex === 1 ? (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Create Rule</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>Create Rule</span>
+                <SpecLinkButton moduleName="Personalization" scenarioTitle="Create Rule" />
+              </h3>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
                   <div style={{ padding:12, border:'1px solid #2b3952', borderRadius:8 }}>
                     <label style={{ display:'block', color:'#9fb3d9', fontSize:12, marginBottom:6 }}>Trigger *</label>
@@ -196,7 +203,10 @@ export default function PersonalizationModulePage() {
               </div>
             ) : realIndex === 2 ? (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Segment Users</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>Segment Users</span>
+                <SpecLinkButton moduleName="Personalization" scenarioTitle="Segment Users" />
+              </h3>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
                   <div style={{ padding:12, border:'1px solid #2b3952', borderRadius:8 }}>
                     <label style={{ display:'block', color:'#9fb3d9', fontSize:12, marginBottom:6 }}>Criteria *</label>
@@ -218,7 +228,10 @@ export default function PersonalizationModulePage() {
               </div>
             ) : realIndex === 3 ? (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Generate Offer</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>Generate Offer</span>
+                <SpecLinkButton moduleName="Personalization" scenarioTitle="Generate Offer" />
+              </h3>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
                   <div style={{ padding:12, border:'1px solid #2b3952', borderRadius:8 }}>
                     <label style={{ display:'block', color:'#9fb3d9', fontSize:12, marginBottom:6 }}>Offer Type</label>
@@ -241,7 +254,10 @@ export default function PersonalizationModulePage() {
               </div>
             ) : (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Execute Automation</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>Execute Automation</span>
+                <SpecLinkButton moduleName="Personalization" scenarioTitle="Execute Automation" />
+              </h3>
                 <div style={{ padding:12, border:'1px solid #2b3952', borderRadius:8, background:'#0f1829' }}>
                   <div style={{ color:'#9fb3d9', marginBottom:6 }}>Summary (mock)</div>
                   <ul style={{ margin:0 }}>

@@ -1,4 +1,5 @@
 import type { Step } from '../../shared/ui/ScenarioRunner';
+import SpecLinkButton from '../../shared/ui/SpecLinkButton';
 import { useScenario } from '../../app/store/ScenarioContext';
 import { useEffect } from 'react';
 import { useState } from 'react';
@@ -61,7 +62,10 @@ export default function ContentModulePage() {
           <div id={`sc-${realIndex + 1}`} key={realIndex} style={{ border: '1px solid #1b2536', borderRadius: 8, padding: 12 }}>
             {realIndex === 0 ? (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Create Post</h3>
+                <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                  <span>Create Post</span>
+                  <SpecLinkButton moduleName="Content" scenarioTitle="Create Post" />
+                </h3>
                 <div style={{ display: 'grid', gap: 12 }}>
                   <div>
                     <label style={{ display: 'block', color: '#9fb3d9', fontSize: 12, marginBottom: 6 }}>Title *</label>
@@ -97,7 +101,10 @@ export default function ContentModulePage() {
               </div>
             ) : realIndex === 1 ? (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Upload Media</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>Upload Media</span>
+                <SpecLinkButton moduleName="Content" scenarioTitle="Upload Media" />
+              </h3>
                 <div style={{ display: 'grid', gap: 12 }}>
                   {/* Upload area */}
                   <div style={{ padding: 16, border: '2px dashed #2b3952', borderRadius: 8, background: '#0f1a2c', textAlign: 'center', color: '#9fb3d9' }}>
@@ -117,7 +124,10 @@ export default function ContentModulePage() {
               </div>
             ) : realIndex === 2 ? (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Schedule Publish</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>Schedule Publish</span>
+                <SpecLinkButton moduleName="Content" scenarioTitle="Schedule Publish" />
+              </h3>
                 <div style={{ display: 'grid', gap: 12 }}>
                   <div>
                     <label style={{ display: 'block', color: '#9fb3d9', fontSize: 12, marginBottom: 6 }}>Publish at (ISO) *</label>
@@ -150,7 +160,10 @@ export default function ContentModulePage() {
               </div>
             ) : (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Moderation</h3>
+                <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                  <span>Moderation</span>
+                  <SpecLinkButton moduleName="Content" scenarioTitle="Moderation" />
+                </h3>
                 <div style={{ display: 'grid', gap: 12 }}>
                   {moderation.map((m) => (
                     <div key={m.id} style={{ display: 'grid', gap: 8, padding: 12, border: '1px solid #2b3952', borderRadius: 8, background: '#0f1a2c' }}>

@@ -2,6 +2,7 @@ import ScenarioRunner from '../../shared/ui/ScenarioRunner';
 import type { Step } from '../../shared/ui/ScenarioRunner';
 import { useAppStore } from '../../app/store/AppStore';
 import { useScenario } from '../../app/store/ScenarioContext';
+import SpecLinkButton from '../../shared/ui/SpecLinkButton';
 import { useEffect } from 'react';
 import { useState } from 'react';
 
@@ -141,7 +142,10 @@ export default function MerchantModulePage() {
         <div id={`sc-${realIndex + 1}`} key={realIndex} style={{ border: '1px solid #1b2536', borderRadius: 8, padding: 12 }}>
           {realIndex === 0 ? (
             <div>
-              <h3 style={{ margin: 0, marginBottom: 8 }}>{title}</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>{title}</span>
+                <SpecLinkButton moduleName="Merchant" scenarioTitle={title} />
+              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Overview of campaign performance (mock): active/scheduled, avg. discount, CTR trend.</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
                 <Metric label="Active campaigns" value={String(state.campaigns.filter(c => c.status === 'active').length)} />
@@ -155,7 +159,10 @@ export default function MerchantModulePage() {
             </div>
           ) : title === 'Export Tools' ? (
             <div>
-              <h3 style={{ margin: 0, marginBottom: 8 }}>{title}</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>{title}</span>
+                <SpecLinkButton moduleName="Merchant" scenarioTitle={title} />
+              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Download CSV snapshots of campaigns and users. Excel opens CSV.</p>
               <div style={{ display: 'flex', gap: 12 }}>
                 <button onClick={() => { downloadCsv('campaigns.csv', toCsv(state.campaigns)); setExportStatus('Campaigns exported'); }} style={btn()}>Export Campaigns (CSV)</button>
@@ -165,7 +172,10 @@ export default function MerchantModulePage() {
             </div>
           ) : title === 'User Management' ? (
             <div>
-              <h3 style={{ margin: 0, marginBottom: 8 }}>{title}</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>{title}</span>
+                <SpecLinkButton moduleName="Merchant" scenarioTitle={title} />
+              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Switch user roles between admin and viewer.</p>
               <div style={{ display: 'grid', gap: 8 }}>
                 {state.users.map(u => (
@@ -182,7 +192,10 @@ export default function MerchantModulePage() {
             </div>
           ) : title === 'Activity Tracker' ? (
             <div>
-              <h3 style={{ margin: 0, marginBottom: 8 }}>{title}</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>{title}</span>
+                <SpecLinkButton moduleName="Merchant" scenarioTitle={title} />
+              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Recent actions:</p>
               <div style={{ display: 'grid', gap: 8 }}>
                 {state.activity.slice(0, 12).map(a => (

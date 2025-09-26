@@ -3,6 +3,7 @@ import type { Step } from '../../shared/ui/ScenarioRunner';
 // import { useAppStore } from '../../app/store/AppStore';
 import { useScenario } from '../../app/store/ScenarioContext';
 import { Input, Select, Button } from '../../shared/ui/universal';
+import SpecLinkButton from '../../shared/ui/SpecLinkButton';
 
 const steps: Step[] = [
   { kind: 'info', title: 'Open UI Builder', description: 'Drag & drop interface (mock)' },
@@ -36,7 +37,10 @@ export default function UIBuilderModulePage() {
         <div id={`sc-${realIndex + 1}`} key={realIndex} style={{ border: '1px solid #1b2536', borderRadius: 8, padding: 12 }}>
           {realIndex === 0 ? (
             <div>
-              <h3 style={{ margin: 0, marginBottom: 8 }}>{title}</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>{title}</span>
+                <SpecLinkButton moduleName="UIBuilder" scenarioTitle={title} />
+              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Drag and drop interface mock: palette and canvas preview.</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '240px 1fr' }}>
                 <div style={{ padding: 12, border: '1px solid #2b3952', borderRadius: 8 }}>
@@ -60,7 +64,10 @@ export default function UIBuilderModulePage() {
             </div>
           ) : realIndex === 1 ? (
             <div>
-              <h3 style={{ margin: 0, marginBottom: 8 }}>{title}</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>{title}</span>
+                <SpecLinkButton moduleName="UIBuilder" scenarioTitle={title} />
+              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Define base theme settings (mock).</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
                 <Input label="Primary Color *" placeholder="#2e68ff" />
@@ -70,7 +77,10 @@ export default function UIBuilderModulePage() {
             </div>
           ) : realIndex === 2 ? (
             <div>
-              <h3 style={{ margin: 0, marginBottom: 8 }}>{title}</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>{title}</span>
+                <SpecLinkButton moduleName="UIBuilder" scenarioTitle={title} />
+              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Add components to layout (mock).</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
                 <Select label="Add Component" defaultValue="button" options={[{label:'Button', value:'button'},{label:'Card', value:'card'},{label:'Banner', value:'banner'}]} />

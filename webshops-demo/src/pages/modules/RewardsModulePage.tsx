@@ -1,4 +1,5 @@
 import ScenarioRunner from '../../shared/ui/ScenarioRunner';
+import SpecLinkButton from '../../shared/ui/SpecLinkButton';
 import { useEffect, useState } from 'react';
 import type { Step } from '../../shared/ui/ScenarioRunner';
 import { useAppStore } from '../../app/store/AppStore';
@@ -48,7 +49,10 @@ export default function RewardsModulePage() {
         <div id={`sc-${realIndex + 1}`} key={realIndex} style={{ border: '1px solid #1b2536', borderRadius: 8, padding: 12 }}>
           {realIndex === 0 ? (
             <div>
-              <h3 style={{ margin: 0, marginBottom: 8 }}>{sc.title}</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>{sc.title}</span>
+                <SpecLinkButton moduleName="Rewards" scenarioTitle={sc.title} />
+              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Daily rewards calendar showing available rewards for each day of the month.</p>
               
               <h4 style={{ color: '#fff', margin: '16px 0 12px 0' }}>Daily Rewards Calendar</h4>
@@ -110,7 +114,10 @@ export default function RewardsModulePage() {
             </div>
           ) : realIndex === 1 ? (
             <div>
-              <h3 style={{ margin: 0, marginBottom: 8 }}>{sc.title}</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>{sc.title}</span>
+                <SpecLinkButton moduleName="Rewards" scenarioTitle={sc.title} />
+              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Confirm your Player ID and claim today’s reward.</p>
               <div style={{ display: 'grid', gap: 16, gridTemplateColumns: '1fr 1fr' }}>
                 {/* Left: Today reward preview */}

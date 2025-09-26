@@ -1,5 +1,6 @@
 // import ScenarioRunner from '../../shared/ui/ScenarioRunner';
 import type { Step } from '../../shared/ui/ScenarioRunner';
+import SpecLinkButton from '../../shared/ui/SpecLinkButton';
 import { useScenario } from '../../app/store/ScenarioContext';
 import { useEffect } from 'react';
 import { useState } from 'react';
@@ -58,7 +59,10 @@ export default function SDKModulePage() {
           <div id={`sc-${realIndex + 1}`} key={realIndex} style={{ border: '1px solid #1b2536', borderRadius: 8, padding: 12 }}>
             {realIndex === 0 ? (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Configure Payments</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>Configure Payments</span>
+                <SpecLinkButton moduleName="SDK" scenarioTitle="Configure Payments" />
+              </h3>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))' }}>
                   <div style={{ padding:12, border:'1px solid #2b3952', borderRadius:8 }}>
                     <label style={{ display:'block', color:'#9fb3d9', fontSize:12, marginBottom:6 }}>Provider *</label>
@@ -83,7 +87,10 @@ export default function SDKModulePage() {
               </div>
             ) : realIndex === 1 ? (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Setup Analytics (GA4)</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>Setup Analytics (GA4)</span>
+                <SpecLinkButton moduleName="SDK" scenarioTitle="Setup Analytics (GA4)" />
+              </h3>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns:'repeat(auto-fit, minmax(260px, 1fr))' }}>
                   <div style={{ padding:12, border:'1px solid #2b3952', borderRadius:8 }}>
                     <label style={{ display:'block', color:'#9fb3d9', fontSize:12, marginBottom:6 }}>Tracking ID *</label>
@@ -103,7 +110,10 @@ export default function SDKModulePage() {
               </div>
             ) : realIndex === 2 ? (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Initialize Overlay</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>Initialize Overlay</span>
+                <SpecLinkButton moduleName="SDK" scenarioTitle="Initialize Overlay" />
+              </h3>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))' }}>
                   <div style={{ padding:12, border:'1px solid #2b3952', borderRadius:8 }}>
                     <label style={{ display:'block', color:'#9fb3d9', fontSize:12, marginBottom:6 }}>Engine *</label>
@@ -122,7 +132,10 @@ export default function SDKModulePage() {
               </div>
             ) : (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Handle Deep Link</h3>
+              <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                <span>Handle Deep Link</span>
+                <SpecLinkButton moduleName="SDK" scenarioTitle="Handle Deep Link" />
+              </h3>
                 <div style={{ display:'grid', gap:12, gridTemplateColumns:'repeat(auto-fit, minmax(260px, 1fr))' }}>
                   <div style={{ padding:12, border:'1px solid #2b3952', borderRadius:8 }}>
                     <label style={{ display:'block', color:'#9fb3d9', fontSize:12, marginBottom:6 }}>Deep Link</label>

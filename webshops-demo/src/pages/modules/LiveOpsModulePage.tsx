@@ -1,5 +1,6 @@
 import { useScenario } from '../../app/store/ScenarioContext';
 import { useEffect } from 'react';
+import SpecLinkButton from '../../shared/ui/SpecLinkButton';
 import { useState } from 'react';
 
 type NodeKind = 'Trigger' | 'Condition' | 'Action' | 'Schedule' | 'Cap';
@@ -55,7 +56,10 @@ export default function LiveOpsModulePage() {
           <div id={`sc-${realIndex + 1}`} key={realIndex} style={{ border: '1px solid #1b2536', borderRadius: 8, padding: 12 }}>
             {realIndex === 0 ? (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Graph Builder</h3>
+                <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                  <span>Graph Builder</span>
+                  <SpecLinkButton moduleName="LiveOps" scenarioTitle="Graph Builder" />
+                </h3>
                 <div style={{ display: 'flex', gap: 12 }}>
                   <div style={{ width: 180 }}>
                     <div style={{ color:'#9fb3d9', marginBottom: 8 }}>Nodes</div>
@@ -87,7 +91,10 @@ export default function LiveOpsModulePage() {
               </div>
             ) : (
               <div>
-                <h3 style={{ margin: 0, marginBottom: 8 }}>Event Simulator</h3>
+                <h3 style={{ margin: 0, marginBottom: 8, display:'flex', alignItems:'center', gap:8 }}>
+                  <span>Event Simulator</span>
+                  <SpecLinkButton moduleName="LiveOps" scenarioTitle="Event Simulator" />
+                </h3>
                 <div style={{ display:'grid', gap: 8, gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))' }}>
                   {['session_start','no_login_3d','add_to_cart','purchase','level_up'].map(ev => (
                     <button key={ev} onClick={()=>alert(`Event '${ev}' processed (mock)`)} style={{ background:'#11253f', color:'#e7f0ff', border:'1px solid #2b3952', borderRadius:6, padding:'8px 12px', cursor:'pointer' }}>{ev}</button>
