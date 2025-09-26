@@ -1,4 +1,5 @@
 import ScenarioRunner from '../../shared/ui/ScenarioRunner';
+import SpecLinkButton from '../../shared/ui/SpecLinkButton';
 import { Input, Select, Button, DateRange as DateRangeCmp } from '../../shared/ui/universal';
 import type { Step } from '../../shared/ui/ScenarioRunner';
 import { useAppStore } from '../../app/store/AppStore';
@@ -123,7 +124,10 @@ export default function AnalyticsModulePage() {
             <div id={`sc-${realIndex + 1}`} key={realIndex} style={{ border: '1px solid #1b2536', borderRadius: 8, padding: 12, background: 'transparent' }}>
           {realIndex === 0 ? (
             <div>
-              <h3 style={{ margin: '0 0 8px 0' }}>{s.title}</h3>
+              <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
+                <span>{s.title}</span>
+                <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
+              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>Live metrics with mock data. Auto-refresh disabled in demo.</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
                 <MetricCard label="Active players" value="15,678" delta="↑12%" />
@@ -138,7 +142,10 @@ export default function AnalyticsModulePage() {
             </div>
           ) : realIndex === 2 ? (
             <div>
-              <h3 style={{ margin: '0 0 8px 0' }}>{s.title}</h3>
+              <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
+                <span>{s.title}</span>
+                <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
+              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
               <AlertCard title="Unusual spike in purchases detected" time="16:45 UTC" delta="+524% last hour" />
               <div style={{ marginTop: 12, display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
@@ -149,7 +156,10 @@ export default function AnalyticsModulePage() {
             </div>
           ) : realIndex === 1 ? (
             <div>
-              <h3 style={{ margin: '0 0 8px 0' }}>{s.title}</h3>
+              <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
+                <span>{s.title}</span>
+                <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
+              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
                 <div style={{ padding: 12, border: '1px solid #2b3952', background: '#0f1829', borderRadius: 8 }}>
@@ -170,7 +180,10 @@ export default function AnalyticsModulePage() {
             </div>
           ) : realIndex === 3 ? (
             <div>
-              <h3 style={{ margin: '0 0 8px 0' }}>{s.title}</h3>
+              <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
+                <span>{s.title}</span>
+                <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
+              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr 1fr' }}>
                 <div style={{ padding: 12, border: '1px solid #2b3952', background: '#0f1829', borderRadius: 8 }}>
@@ -190,7 +203,10 @@ export default function AnalyticsModulePage() {
             </div>
           ) : realIndex === 4 ? (
             <div>
-              <h3 style={{ margin: '0 0 8px 0' }}>{s.title}</h3>
+              <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
+                <span>{s.title}</span>
+                <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
+              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr 1fr' }}>
                 <ABVariant title="Variant A (30% off)" conv="3.2%" rpu="$12.50" color="#9fb3d9" />
@@ -202,7 +218,10 @@ export default function AnalyticsModulePage() {
             </div>
           ) : realIndex === 5 ? (
             <div>
-              <h3 style={{ margin: '0 0 8px 0' }}>{s.title}</h3>
+              <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
+                <span>{s.title}</span>
+                <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
+              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
                 <MetricCard label="App sessions" value="45,230" delta="↑15%" />
@@ -221,7 +240,10 @@ export default function AnalyticsModulePage() {
             </div>
           ) : realIndex === 6 ? (
             <div>
-              <h3 style={{ margin: '0 0 8px 0' }}>{s.title}</h3>
+              <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
+                <span>{s.title}</span>
+                <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
+              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
                 <MetricCard label="EPS" value="2,347" delta="normal" />
@@ -238,7 +260,10 @@ export default function AnalyticsModulePage() {
             </div>
           ) : realIndex === 7 ? (
             <div>
-              <h3 style={{ margin: '0 0 8px 0' }}>{s.title}</h3>
+              <h3 style={{ margin: '0 0 8px 0', display:'flex', alignItems:'center', gap:8 }}>
+                <span>{s.title}</span>
+                <SpecLinkButton moduleName="Analytics" scenarioTitle={s.title} />
+              </h3>
               <p style={{ color: '#9fb3d9', marginTop: 0 }}>{s.intro}</p>
               <div style={{ display: 'grid', gap: 12, gridTemplateColumns: '1fr 1fr' }}>
                 <div style={{ padding: 12, border: '1px solid #2b3952', background: '#0f1829', borderRadius: 8 }}>
