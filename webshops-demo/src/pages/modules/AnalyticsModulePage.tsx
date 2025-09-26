@@ -5,11 +5,12 @@ import type { Step } from '../../shared/ui/ScenarioRunner';
 import { useAppStore } from '../../app/store/AppStore';
 import { useScenario } from '../../app/store/ScenarioContext';
 import { useDocumentUpdateCheck } from '../../shared/hooks/useDocumentUpdateCheck';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function AnalyticsModulePage() {
   const { state } = useAppStore();
   const { selectedScenario, setSelectedScenario } = useScenario();
+  const [showUpdateResult, setShowUpdateResult] = useState<{scenario: string, isOutdated: boolean, lastChecked: Date} | null>(null);
 
   const scenarios: { title: string; intro?: string; steps: Step[] }[] = [
     {
@@ -125,6 +126,82 @@ export default function AnalyticsModulePage() {
 
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: '100%', overflow: 'hidden' }}>
+      {/* Simple scenario navigation */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+        {scenarios.map((s, i) => (
+          <button
+            key={i}
+            onClick={async () => {
+              setSelectedScenario(i);
+              // Trigger update check for the selected scenario
+              const updateCheck = scenarioUpdateChecks[i];
+              if (updateCheck?.checkUpdate) {
+                await updateCheck.checkUpdate();
+                // Show result after check
+                setShowUpdateResult({
+                  scenario: s.title,
+                  isOutdated: updateCheck.isOutdated,
+                  lastChecked: new Date()
+                });
+              }
+            }}
+            style={{
+              padding: '6px 10px',
+              border: selectedScenario === i ? '1px solid #2e68ff' : '1px solid #2b3952',
+              background: selectedScenario === i ? '#1e3a8a' : 'transparent',
+              color: selectedScenario === i ? '#fff' : '#9fb3d9',
+              borderRadius: 4,
+              cursor: 'pointer',
+              fontSize: 12
+            }}
+          >
+            {s.title}
+          </button>
+        ))}
+      </div>
+      
+      {/* Update check result */}
+      {showUpdateResult && (
+        <div style={{ 
+          padding: 12, 
+          border: '1px solid #2b3952', 
+          borderRadius: 8, 
+          background: '#0f1829',
+          marginBottom: 16
+        }}>
+          <h4 style={{ margin: '0 0 8px 0', color: '#fff' }}>Document Update Check</h4>
+          <div style={{ color: '#9fb3d9', marginBottom: 4 }}>
+            <strong>Scenario:</strong> {showUpdateResult.scenario}
+          </div>
+          <div style={{ color: '#9fb3d9', marginBottom: 4 }}>
+            <strong>Status:</strong> 
+            <span style={{ 
+              color: showUpdateResult.isOutdated ? '#fca5a5' : '#4ade80',
+              marginLeft: 8
+            }}>
+              {showUpdateResult.isOutdated ? 'Outdated' : 'Up to date'}
+            </span>
+          </div>
+          <div style={{ color: '#9fb3d9', marginBottom: 8 }}>
+            <strong>Checked:</strong> {showUpdateResult.lastChecked.toLocaleTimeString()}
+          </div>
+          <button 
+            onClick={() => setShowUpdateResult(null)}
+            style={{
+              padding: '4px 8px',
+              border: '1px solid #2b3952',
+              background: 'transparent',
+              color: '#9fb3d9',
+              borderRadius: 4,
+              cursor: 'pointer',
+              fontSize: 12
+            }}
+          >
+            Close
+          </button>
+        </div>
+      )}
+      
         {displayScenarios.map((s, i) => {
           const realIndex = safeIndex !== null ? safeIndex : i;
           const updateCheck = scenarioUpdateChecks[realIndex];
