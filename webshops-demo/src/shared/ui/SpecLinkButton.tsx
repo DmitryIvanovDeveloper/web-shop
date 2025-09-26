@@ -22,7 +22,11 @@ export default function SpecLinkButton({ moduleName, scenarioTitle }: Props) {
     setLoading(true);
     try {
       const driveId = cfg?.driveId || import.meta.env.VITE_GDRIVE_ID;
-      const parentFolderId = cfg?.folders?.[moduleName] || (import.meta.env as any)[`VITE_GDRIVE_${moduleName.toUpperCase()}_FOLDER_ID`];
+      const env = import.meta.env as any;
+      const exactKey = `VITE_GDRIVE_${moduleName.toUpperCase()}_FOLDER_ID`;
+      // Alias: Loyalty module may be mapped to REWARDS folder in env
+      const aliasKey = moduleName === 'Loyalty' ? 'VITE_GDRIVE_REWARDS_FOLDER_ID' : undefined;
+      const parentFolderId = cfg?.folders?.[moduleName] || env[exactKey] || (aliasKey ? env[aliasKey] : undefined);
       if (!driveId) throw new Error('Drive ID is not configured');
       const { accessToken } = await requestDriveAccessToken();
       const alt = cfg?.aliases?.[moduleName]?.[scenarioTitle] || [];
