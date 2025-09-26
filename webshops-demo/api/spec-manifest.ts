@@ -32,8 +32,8 @@ async function getDriveClient() {
     credentials: creds,
     scopes: ['https://www.googleapis.com/auth/drive.readonly'],
   });
-  const client = await auth.getClient();
-  return google.drive({ version: 'v3', auth: client });
+  const authClient = await auth.getClient();
+  return google.drive({ version: 'v3', auth: authClient as any });
 }
 
 async function listFilesInFolder(drive: any, driveId: string, folderId: string) {
