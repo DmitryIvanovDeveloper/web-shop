@@ -11,17 +11,57 @@ export type ScenarioInfo = {
 
 export function ScenariosSidebar({ items, moduleName }: { items: ScenarioInfo[], moduleName: string }) {
   const [selected, setSelected] = React.useState<string | null>(null);
+  const [outdatedScenarios, setOutdatedScenarios] = React.useState<{title: string, isOutdated: boolean}[]>([]);
   const current = items.find((i) => i.id === selected);
   
+  // Check document updates for all scenarios
+  const scenarioUpdateChecks = items.map(item => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    return useDocumentUpdateCheck(moduleName, item.title);
+  });
+
   // Check document updates for the selected scenario
   const { isChecking, isOutdated, lastChecked } = useDocumentUpdateCheck(
     moduleName, 
     current?.title || ''
   );
 
+  // Collect outdated scenarios
+  React.useEffect(() => {
+    const outdated = items.map((item, index) => ({
+      title: item.title,
+      isOutdated: scenarioUpdateChecks[index]?.isOutdated || false
+    })).filter(s => s.isOutdated);
+    
+    setOutdatedScenarios(outdated);
+  }, [items, scenarioUpdateChecks]);
+
   return (
     <aside style={{ position: 'sticky', top: 12, height: 'fit-content', border: '1px solid #1b2536', borderRadius: 8, padding: 12, minWidth: 320, maxWidth: 320, textAlign: 'left' }}>
       <div style={{ fontWeight: 700, marginBottom: 8, textAlign: 'left' }}>Scenarios</div>
+      
+      {/* Outdated scenarios table */}
+      {outdatedScenarios.length > 0 && (
+        <div style={{ 
+          marginBottom: 12, 
+          padding: 8, 
+          border: '1px solid #7f1d1d', 
+          borderRadius: 6, 
+          background: '#3f1d1d' 
+        }}>
+          <div style={{ color: '#fca5a5', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
+            ⚠️ Outdated Scenarios ({outdatedScenarios.length})
+          </div>
+          <div style={{ fontSize: 11, color: '#9fb3d9' }}>
+            {outdatedScenarios.map((scenario, idx) => (
+              <div key={idx} style={{ marginBottom: 2 }}>
+                • {scenario.title}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
       <ul style={{ paddingLeft: 0, marginTop: 0, listStyle: 'none' }}>
         {items.map((s) => (
           <li key={s.id} style={{ marginBottom: 6 }}>

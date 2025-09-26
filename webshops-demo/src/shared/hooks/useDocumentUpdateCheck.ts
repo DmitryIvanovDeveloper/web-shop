@@ -6,7 +6,7 @@ export function useDocumentUpdateCheck(moduleName: string, scenarioTitle: string
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
 
   const checkUpdate = async () => {
-    if (!moduleName || !scenarioTitle) return;
+    if (!moduleName || !scenarioTitle) return false;
     
     setIsChecking(true);
     console.log('🔍 Checking document update for:', scenarioTitle);
@@ -21,7 +21,7 @@ export function useDocumentUpdateCheck(moduleName: string, scenarioTitle: string
       if (!response.ok) {
         console.error('❌ Failed to fetch manifest:', response.status);
         setIsChecking(false);
-        return;
+        return false;
       }
 
       const manifest = await response.json();
@@ -39,8 +39,10 @@ export function useDocumentUpdateCheck(moduleName: string, scenarioTitle: string
       }
       
       setLastChecked(new Date());
+      return isOutdated;
     } catch (e) {
       console.error('❌ Failed to check document update:', e);
+      return false;
     } finally {
       setIsChecking(false);
     }
