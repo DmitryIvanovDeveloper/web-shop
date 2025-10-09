@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Link from "next/link";
 
 type SidebarProps = {
   children?: React.ReactNode;
@@ -7,9 +8,9 @@ type SidebarProps = {
   onSelect?: (key: string) => void;
 };
 
-const menuItems: Array<{ key: string; label: string; icon: string }> = [
-  { key: "home", label: "Home", icon: "🏠" },
-  { key: "analytics-dashboard", label: "Analytics\nDashboard", icon: "📈" },
+const menuItems: Array<{ key: string; label: string; icon: string; href: string }> = [
+  { key: "home", label: "Home", icon: "🏠", href: "/" },
+  { key: "analytics-dashboard", label: "Analytics\nDashboard", icon: "📈", href: "/dashboard" },
 ];
 
 export function Sidebar({ children, widthClassName = "w-64", title = "Navigation", onSelect }: SidebarProps): JSX.Element {
@@ -74,12 +75,11 @@ export function Sidebar({ children, widthClassName = "w-64", title = "Navigation
           </div>
           <nav style={listStyle}>
             {menuItems.map((item) => (
-              <a
+              <Link
                 key={item.key}
-                href="#"
+                href={item.href}
                 style={{ ...itemStyle(item.key === activeKey), transition: "background-color .15s ease" }}
-                onClick={(e) => {
-                  e.preventDefault();
+                onClick={() => {
                   handleSelect(item.key);
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = item.key === activeKey ? "#3B3F4A" : "#1B1E26")}
@@ -89,7 +89,7 @@ export function Sidebar({ children, widthClassName = "w-64", title = "Navigation
                   {item.icon}
                 </span>
                 <span style={{ whiteSpace: "pre-line" }}>{item.label}</span>
-              </a>
+              </Link>
             ))}
           </nav>
         </>
