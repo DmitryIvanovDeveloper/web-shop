@@ -1,0 +1,78 @@
+{
+  "presets": [
+    {
+      "id": "preset-1",
+      "name": "Last Week Overview",
+      "filterSet": {
+        "dateRange": {
+          "preset": "last7days",
+          "granularity": "day"
+        },
+        "geo": {
+          "countries": []
+        },
+        "payment": {
+          "methods": []
+        },
+        "source": {
+          "sources": []
+        },
+        "currency": {
+          "currency": "USD"
+        }
+      },
+      "createdAt": "2025-10-01T10:00:00.000Z",
+      "updatedAt": "2025-10-01T10:00:00.000Z"
+    },
+    {
+      "id": "preset-2",
+      "name": "US & UK Markets",
+      "filterSet": {
+        "dateRange": {
+          "preset": "last30days",
+          "granularity": "week"
+        },
+        "geo": {
+          "countries": ["US", "UK"]
+        },
+        "payment": {
+          "methods": ["card", "paypal"]
+        },
+        "source": {
+          "sources": ["organic", "paid"]
+        },
+        "currency": {
+          "currency": "USD"
+        }
+      },
+      "createdAt": "2025-10-02T12:00:00.000Z",
+      "updatedAt": "2025-10-02T12:00:00.000Z"
+    },
+    {
+      "id": "preset-3",
+      "name": "Organic Traffic Only",
+      "filterSet": {
+        "dateRange": {
+          "preset": "last30days",
+          "granularity": "day"
+        },
+        "geo": {
+          "countries": []
+        },
+        "payment": {
+          "methods": []
+        },
+        "source": {
+          "sources": ["organic"]
+        },
+        "currency": {
+          "currency": "USD"
+        }
+      },
+      "createdAt": "2025-10-03T14:00:00.000Z",
+      "updatedAt": "2025-10-03T14:00:00.000Z"
+    }
+  ]
+}
+
+

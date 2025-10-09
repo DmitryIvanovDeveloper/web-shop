@@ -1,46 +1,23 @@
-import { Logger, LogLevel } from '../../application/ports/logger.port';
+import { Logger } from '../../application/ports/logger.port';
 
+/**
+ * Console Logger implementation
+ * Simple console-based logging for development
+ */
 export class ConsoleLogger implements Logger {
-  debug(message: string, context?: Record<string, any>): void {
-    this.log(LogLevel.DEBUG, message, context);
+  info(message: string, meta?: any): void {
+    console.log(`[INFO] ${message}`, meta || '');
   }
 
-  info(message: string, context?: Record<string, any>): void {
-    this.log(LogLevel.INFO, message, context);
+  error(message: string, error?: Error | any): void {
+    console.error(`[ERROR] ${message}`, error || '');
   }
 
-  warn(message: string, context?: Record<string, any>): void {
-    this.log(LogLevel.WARN, message, context);
+  warn(message: string, meta?: any): void {
+    console.warn(`[WARN] ${message}`, meta || '');
   }
 
-  error(message: string, error?: Error, context?: Record<string, any>): void {
-    this.log(LogLevel.ERROR, message, { ...context, error: error?.message, stack: error?.stack });
-  }
-
-  private log(level: LogLevel, message: string, context?: Record<string, any>): void {
-    const timestamp = new Date().toISOString();
-    const logEntry = {
-      timestamp,
-      level,
-      message,
-      ...context
-    };
-
-    const logMessage = `[${timestamp}] [${level.toUpperCase()}] ${message}`;
-    
-    switch (level) {
-      case LogLevel.DEBUG:
-        console.debug(logMessage, context);
-        break;
-      case LogLevel.INFO:
-        console.info(logMessage, context);
-        break;
-      case LogLevel.WARN:
-        console.warn(logMessage, context);
-        break;
-      case LogLevel.ERROR:
-        console.error(logMessage, context);
-        break;
-    }
+  debug(message: string, meta?: any): void {
+    console.debug(`[DEBUG] ${message}`, meta || '');
   }
 }

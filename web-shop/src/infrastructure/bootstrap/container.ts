@@ -1,9 +1,13 @@
 import { EventBus } from '../../application/ports/event-bus.port';
 import { HttpClient } from '../../application/ports/http-client.port';
 import { Logger } from '../../application/ports/logger.port';
+import { RealtimeClientPort } from '../../application/ports/realtime-client.port';
 import { InMemoryEventBus } from '../event-bus/event-bus';
 import { AxiosHttpClient } from '../http/http-client';
+import { HttpClientMock } from '../http/http-client.mock';
+import { HttpClientMode, resolveHttpClientMode } from './types';
 import { ConsoleLogger } from '../logging/console-logger';
+import { MockRealtimeClient } from '../realtime/mock-realtime-client';
 
 export class Container {
   private static instance: Container;
@@ -22,9 +26,21 @@ export class Container {
 
   private initializeServices(): void {
     // Register core services
-    this.services.set('logger', new ConsoleLogger());
-    this.services.set('httpClient', new AxiosHttpClient());
+    const logger = new ConsoleLogger();
+    this.services.set('logger', logger);
+    
+    // Переключение клиента по enum/ENV
+    const mode = resolveHttpClientMode();
+    this.services.set('httpClient',
+      mode === HttpClientMode.Mock
+        ? new HttpClientMock('/mocks')
+        : new AxiosHttpClient()
+    );
+    
     this.services.set('eventBus', new InMemoryEventBus());
+    
+    // Register realtime client (mock for now)
+    this.services.set('realtimeClient', new MockRealtimeClient(logger));
   }
 
   public get<T>(serviceName: string): T {
@@ -49,5 +65,9 @@ export class Container {
 
   public getEventBus(): EventBus {
     return this.get<EventBus>('eventBus');
+  }
+
+  public getRealtimeClient(): RealtimeClientPort {
+    return this.get<RealtimeClientPort>('realtimeClient');
   }
 }

@@ -30,3 +30,16 @@ export interface LoggingConfig {
   output: 'console' | 'file' | 'both';
   filePath?: string;
 }
+// Http client selection mode
+export enum HttpClientMode {
+  Axios = 'axios',
+  Mock = 'mock',
+}
+
+export function resolveHttpClientMode(): HttpClientMode {
+  // Читаем из env (Next.js runtime env с префиксом NEXT_PUBLIC_)
+  const value = process.env.NEXT_PUBLIC_HTTP_CLIENT?.toLowerCase();
+  if (value === HttpClientMode.Mock) return HttpClientMode.Mock;
+  return HttpClientMode.Axios;
+}
+

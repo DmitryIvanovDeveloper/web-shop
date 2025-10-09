@@ -1,0 +1,10 @@
+{
+  "regions": [
+    { "country": "US", "percentage": 45.0 },
+    { "country": "EU", "percentage": 30.0 },
+    { "country": "Asia", "percentage": 15.0 },
+    { "country": "LATAM", "percentage": 7.0 },
+    { "country": "Other", "percentage": 3.0 }
+  ]
+}
+

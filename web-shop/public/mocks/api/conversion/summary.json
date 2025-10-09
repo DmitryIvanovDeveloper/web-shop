@@ -1,0 +1,13 @@
+{
+  "kpi": {
+    "conversionRate":  6.5,
+    "refundRate": 18.5
+  },
+  "channels": [
+    { "name": "Organic", "value": 45200, "percentage": 36.0 },
+    { "name": "Paid", "value": 53030, "percentage": 42.3 },
+    { "name": "Social", "value": 18900, "percentage": 15.1 },
+    { "name": "Email", "value": 8300, "percentage": 6.6 }
+  ]
+}
+
