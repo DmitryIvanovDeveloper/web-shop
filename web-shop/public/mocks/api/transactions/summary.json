@@ -1,0 +1,15 @@
+{
+  "transactions": [
+    { "id": "tx-001", "createdAt": "2025-10-09T10:15:00Z", "user": "user-1234", "amount": 45.99, "currency": "USD", "country": "USA", "method": "Card", "status": "success" },
+    { "id": "tx-002", "createdAt": "2025-10-09T10:20:00Z", "user": "user-5678", "amount": 89.50, "currency": "USD", "country": "Canada", "method": "PayPal", "status": "success" },
+    { "id": "tx-003", "createdAt": "2025-10-09T10:25:00Z", "user": "user-9101", "amount": 120.00, "currency": "EUR", "country": "Germany", "method": "Card", "status": "success" },
+    { "id": "tx-004", "createdAt": "2025-10-09T10:30:00Z", "user": "user-1121", "amount": 35.00, "currency": "GBP", "country": "UK", "method": "Carrier Billing", "status": "success" },
+    { "id": "tx-005", "createdAt": "2025-10-09T10:35:00Z", "user": "user-3141", "amount": 55.00, "currency": "USD", "country": "USA", "method": "Card", "status": "refunded" },
+    { "id": "tx-006", "createdAt": "2025-10-09T10:40:00Z", "user": "user-5161", "amount": 99.99, "currency": "USD", "country": "Australia", "method": "PayPal", "status": "success" },
+    { "id": "tx-007", "createdAt": "2025-10-09T10:45:00Z", "user": "user-7181", "amount": 75.00, "currency": "EUR", "country": "France", "method": "Card", "status": "chargeback" },
+    { "id": "tx-008", "createdAt": "2025-10-09T10:50:00Z", "user": "user-9202", "amount": 60.00, "currency": "USD", "country": "USA", "method": "Card", "status": "success" },
+    { "id": "tx-009", "createdAt": "2025-10-09T10:55:00Z", "user": "user-1222", "amount": 110.00, "currency": "USD", "country": "Canada", "method": "PayPal", "status": "success" },
+    { "id": "tx-010", "createdAt": "2025-10-09T11:00:00Z", "user": "user-3242", "amount": 85.00, "currency": "GBP", "country": "UK", "method": "Card", "status": "failed" }
+  ]
+}
+

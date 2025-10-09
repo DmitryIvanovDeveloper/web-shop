@@ -1,0 +1,10 @@
+{
+  "cohorts": [
+    { "channel": "Organic", "users": 15000, "revenue": 450000, "retention": 32 },
+    { "channel": "Paid Search", "users": 8500, "revenue": 280000, "retention": 28 },
+    { "channel": "Social Media", "users": 12000, "revenue": 320000, "retention": 25 },
+    { "channel": "Email", "users": 6000, "revenue": 180000, "retention": 40 },
+    { "channel": "Referral", "users": 4500, "revenue": 150000, "retention": 38 }
+  ]
+}
+

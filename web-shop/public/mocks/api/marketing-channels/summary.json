@@ -1,0 +1,50 @@
+{
+  "timeSeries": [
+    {
+      "label": "Jan 1",
+      "segments": [
+        { "id": "organic", "name": "Organic", "color": "#3b82f6", "value": 12000 },
+        { "id": "paid", "name": "Paid Search", "color": "#10b981", "value": 8000 },
+        { "id": "social", "name": "Social Media", "color": "#f59e0b", "value": 6000 },
+        { "id": "email", "name": "Email", "color": "#ec4899", "value": 4000 }
+      ]
+    },
+    {
+      "label": "Jan 2",
+      "segments": [
+        { "id": "organic", "name": "Organic", "color": "#3b82f6", "value": 13500 },
+        { "id": "paid", "name": "Paid Search", "color": "#10b981", "value": 9200 },
+        { "id": "social", "name": "Social Media", "color": "#f59e0b", "value": 7100 },
+        { "id": "email", "name": "Email", "color": "#ec4899", "value": 4800 }
+      ]
+    },
+    {
+      "label": "Jan 3",
+      "segments": [
+        { "id": "organic", "name": "Organic", "color": "#3b82f6", "value": 14200 },
+        { "id": "paid", "name": "Paid Search", "color": "#10b981", "value": 8800 },
+        { "id": "social", "name": "Social Media", "color": "#f59e0b", "value": 7500 },
+        { "id": "email", "name": "Email", "color": "#ec4899", "value": 5200 }
+      ]
+    },
+    {
+      "label": "Jan 4",
+      "segments": [
+        { "id": "organic", "name": "Organic", "color": "#3b82f6", "value": 15000 },
+        { "id": "paid", "name": "Paid Search", "color": "#10b981", "value": 9500 },
+        { "id": "social", "name": "Social Media", "color": "#f59e0b", "value": 8200 },
+        { "id": "email", "name": "Email", "color": "#ec4899", "value": 5600 }
+      ]
+    },
+    {
+      "label": "Jan 5",
+      "segments": [
+        { "id": "organic", "name": "Organic", "color": "#3b82f6", "value": 16500 },
+        { "id": "paid", "name": "Paid Search", "color": "#10b981", "value": 10200 },
+        { "id": "social", "name": "Social Media", "color": "#f59e0b", "value": 8800 },
+        { "id": "email", "name": "Email", "color": "#ec4899", "value": 6000 }
+      ]
+    }
+  ]
+}
+

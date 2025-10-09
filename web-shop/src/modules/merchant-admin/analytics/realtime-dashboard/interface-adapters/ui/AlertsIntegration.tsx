@@ -26,7 +26,6 @@ export const AlertsIntegration: React.FC<AlertsIntegrationProps> = ({ metrics })
   const notificationService = new NotificationServiceMock(logger);
 
   const evaluateAlertsUseCase = new EvaluateAlertsUseCase(
-    alertRepository,
     alertRuleRepository,
     logger
   );

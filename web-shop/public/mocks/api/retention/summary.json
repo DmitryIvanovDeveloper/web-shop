@@ -1,0 +1,34 @@
+{
+  "curves": [
+    {
+      "cohortId": "d1",
+      "cohortName": "D1 Retention",
+      "points": [
+        { "day": 0, "retention": 100 },
+        { "day": 1, "retention": 45 },
+        { "day": 7, "retention": 28 },
+        { "day": 14, "retention": 22 },
+        { "day": 30, "retention": 18 }
+      ]
+    },
+    {
+      "cohortId": "d7",
+      "cohortName": "D7 Retention",
+      "points": [
+        { "day": 0, "retention": 100 },
+        { "day": 7, "retention": 32 },
+        { "day": 14, "retention": 25 },
+        { "day": 30, "retention": 20 }
+      ]
+    },
+    {
+      "cohortId": "d30",
+      "cohortName": "D30 Retention",
+      "points": [
+        { "day": 0, "retention": 100 },
+        { "day": 30, "retention": 22 }
+      ]
+    }
+  ]
+}
+

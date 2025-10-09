@@ -21,6 +21,14 @@ import { Portal } from '../../../../../../shared/ui/Portal';
 import { FocusTrap } from '../../../../../../shared/ui/FocusTrap';
 import { ToastContainer } from '../../../../../../shared/ui/Toast';
 import { useToast } from '../../../../../../shared/hooks/useToast';
+import { RetentionPanel } from './RetentionPanel';
+import { PaymentMethodsPanel } from './PaymentMethodsPanel';
+import { MarketingChannelsStackedPanel } from './MarketingChannelsStackedPanel';
+import { CohortsPanel } from './CohortsPanel';
+import { MetricsOverviewPanel } from './MetricsOverviewPanel';
+import { LineSeries } from '../../../../../../shared/ui/charts/MultiLineChart';
+import { TransactionsTable, TransactionRow } from '../../../../../../shared/ui/TransactionsTable';
+import { RefundsTable, RefundRow } from '../../../../../../shared/ui/RefundsTable';
 
 interface DashboardViewProps {
   viewModel: DashboardViewModel;
@@ -377,6 +385,62 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         )}
       </div>
 
+      {/* Advanced Metrics Overview */}
+      <MetricsOverviewPanel
+        ltv={285}
+        arppu={95}
+        activePayingUsers={12450}
+        refundRate={2.3}
+        chargebackRate={0.8}
+        currency={viewModel.dashboard.salesSummary?.currency || 'USD'}
+      />
+
+      {/* Advanced analytics panels */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {/* Retention curves from retention summary */}
+        {viewModel.dashboard.retentionSummary && (
+          <ErrorBoundary>
+            <RetentionPanel
+              series={(viewModel.dashboard.retentionSummary.curves || []).map(curve => ({
+                id: curve.cohortId,
+                name: curve.cohortName,
+                color: curve.cohortId === 'd1' ? '#3b82f6' : curve.cohortId === 'd7' ? '#10b981' : '#f59e0b',
+                data: curve.points.map(p => ({ label: `D${p.day}`, value: p.retention })),
+              }))}
+            />
+          </ErrorBoundary>
+        )}
+
+        {/* Payment methods split from dedicated summary */}
+        {viewModel.dashboard.paymentMethodsSummary && (
+          <ErrorBoundary>
+            <PaymentMethodsPanel
+              items={(viewModel.dashboard.paymentMethodsSummary.methods || []).map((m, idx) => ({
+                name: m.method,
+                value: m.revenue,
+                color: ['#3b82f6', '#10b981', '#f59e0b'][idx % 3],
+              }))}
+            />
+          </ErrorBoundary>
+        )}
+
+        {/* Cohorts by acquisition channel */}
+        {viewModel.dashboard.cohortSummary && (
+          <ErrorBoundary>
+            <CohortsPanel cohorts={viewModel.dashboard.cohortSummary.cohorts || []} />
+          </ErrorBoundary>
+        )}
+      </div>
+
+      {/* Marketing Channels Stacked Area */}
+      {viewModel.dashboard.marketingChannelsSummary && (
+        <div className="mt-6">
+          <ErrorBoundary>
+            <MarketingChannelsStackedPanel data={viewModel.dashboard.marketingChannelsSummary.timeSeries || []} />
+          </ErrorBoundary>
+        </div>
+      )}
+
       {/* Realtime Status & Controls */}
       <div className={`mt-6 p-4 rounded-lg border ${
         viewModel.realtimeConnected 
@@ -421,6 +485,35 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </ErrorBoundary>
         </div>
       )}
+
+      {/* Detail tables */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl p-4 border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Recent Transactions</h3>
+          <TransactionsTable rows={(viewModel.dashboard.transactionsSummary?.transactions || []).slice(0, 10).map(t => ({
+            id: t.id,
+            createdAt: t.createdAt,
+            user: t.user,
+            amount: t.amount,
+            currency: t.currency,
+            country: t.country,
+            method: t.method,
+            status: t.status,
+          }))} />
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">Refunds & Chargebacks</h3>
+          <RefundsTable rows={(viewModel.dashboard.refundsSummary?.refunds || []).map(r => ({
+            id: r.id,
+            transactionId: r.transactionId,
+            createdAt: r.createdAt,
+            amount: r.amount,
+            currency: r.currency,
+            reason: r.reason,
+            type: r.type,
+          }))} />
+        </div>
+      </div>
 
       {/* Drill-Down Modal */}
       <DrillDownModal

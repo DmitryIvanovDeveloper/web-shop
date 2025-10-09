@@ -4,6 +4,12 @@ import { SalesRepository } from '../repositories/sales.repository';
 import { RevenueRepository } from '../repositories/revenue.repository';
 import { GeographyRepository } from '../repositories/geography.repository';
 import { ConversionRepository } from '../repositories/conversion.repository';
+import { RetentionRepository } from '../repositories/retention.repository';
+import { CohortRepository } from '../repositories/cohort.repository';
+import { PaymentMethodsRepository } from '../repositories/payment-methods.repository';
+import { TransactionsRepository } from '../repositories/transactions.repository';
+import { RefundsRepository } from '../repositories/refunds.repository';
+import { MarketingChannelsRepository } from '../repositories/marketing-channels.repository';
 import { FilterPresetRepository } from '../repositories/filter-preset.repository';
 import { LoadDashboardUseCase } from '../../application/use-cases/load-dashboard.use-case';
 import { SubscribeRealtimeUseCase } from '../../application/use-cases/subscribe-realtime.use-case';
@@ -24,6 +30,12 @@ export class RealtimeDashboardBootstrap {
     container.register('realtimeDashboard.revenueRepository', new RevenueRepository(container.getHttpClient()));
     container.register('realtimeDashboard.geographyRepository', new GeographyRepository(container.getHttpClient()));
     container.register('realtimeDashboard.conversionRepository', new ConversionRepository(container.getHttpClient()));
+    container.register('realtimeDashboard.retentionRepository', new RetentionRepository(container.getHttpClient()));
+    container.register('realtimeDashboard.cohortRepository', new CohortRepository(container.getHttpClient()));
+    container.register('realtimeDashboard.paymentMethodsRepository', new PaymentMethodsRepository(container.getHttpClient()));
+    container.register('realtimeDashboard.transactionsRepository', new TransactionsRepository(container.getHttpClient()));
+    container.register('realtimeDashboard.refundsRepository', new RefundsRepository(container.getHttpClient()));
+    container.register('realtimeDashboard.marketingChannelsRepository', new MarketingChannelsRepository(container.getHttpClient()));
     container.register('realtimeDashboard.filterPresetRepository', new FilterPresetRepository(container.getHttpClient()));
     
     // Register use cases
@@ -32,7 +44,13 @@ export class RealtimeDashboardBootstrap {
       container.get('realtimeDashboard.salesRepository'),
       container.get('realtimeDashboard.revenueRepository'),
       container.get('realtimeDashboard.geographyRepository'),
-      container.get('realtimeDashboard.conversionRepository')
+      container.get('realtimeDashboard.conversionRepository'),
+      container.get('realtimeDashboard.retentionRepository'),
+      container.get('realtimeDashboard.cohortRepository'),
+      container.get('realtimeDashboard.paymentMethodsRepository'),
+      container.get('realtimeDashboard.transactionsRepository'),
+      container.get('realtimeDashboard.refundsRepository'),
+      container.get('realtimeDashboard.marketingChannelsRepository')
     ));
     
     container.register('realtimeDashboard.subscribeRealtimeUseCase', new SubscribeRealtimeUseCase(
