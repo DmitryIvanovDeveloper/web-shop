@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { DataTable, TableColumn } from '@/shared/ui/DataTable';
-import { MetricSelector, MetricOption } from '@/modules/realtime-dashboard/interface-adapters/ui/MetricSelector';
-import { RatioBuilder } from '@/modules/realtime-dashboard/interface-adapters/ui/RatioBuilder';
+import { MetricSelector, MetricOption } from '@/modules/merchant-admin/analytics/realtime-dashboard/interface-adapters/ui/MetricSelector';
+import { RatioBuilder } from '@/modules/merchant-admin/analytics/realtime-dashboard/interface-adapters/ui/RatioBuilder';
 import { DrillDownModal, DrillDownBreadcrumb } from '@/shared/ui/DrillDownModal';
 
 interface SampleData {

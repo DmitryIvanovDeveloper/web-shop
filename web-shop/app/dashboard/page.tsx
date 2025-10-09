@@ -2,17 +2,17 @@
 
 import React, { useEffect, useState } from 'react';
 import { Container } from '@/infrastructure/bootstrap/container';
-import { DashboardPresenter, DashboardView, RealtimeDashboardBootstrap } from '@/modules/realtime-dashboard';
-import { LoadDashboardUseCase } from '@/modules/realtime-dashboard/application/use-cases/load-dashboard.use-case';
-import { SubscribeRealtimeUseCase } from '@/modules/realtime-dashboard/application/use-cases/subscribe-realtime.use-case';
-import { UnsubscribeRealtimeUseCase } from '@/modules/realtime-dashboard/application/use-cases/unsubscribe-realtime.use-case';
-import { ApplySettingsUseCase } from '@/modules/realtime-dashboard/application/use-cases/apply-settings.use-case';
-import { ResetSettingsUseCase } from '@/modules/realtime-dashboard/application/use-cases/reset-settings.use-case';
-import { LoadSettingsUseCase } from '@/modules/realtime-dashboard/application/use-cases/load-settings.use-case';
-import { LoadPresetsUseCase } from '@/modules/realtime-dashboard/application/use-cases/load-presets.use-case';
-import { SavePresetUseCase } from '@/modules/realtime-dashboard/application/use-cases/save-preset.use-case';
-import { DashboardSettings } from '@/modules/realtime-dashboard/domain/value-objects/dashboard-settings.value-object';
-import { FilterSet } from '@/modules/realtime-dashboard/domain/value-objects/filter-set.value-object';
+import { DashboardPresenter, DashboardView, RealtimeDashboardBootstrap } from '@/modules/merchant-admin/analytics/realtime-dashboard';
+import { LoadDashboardUseCase } from '@/modules/merchant-admin/analytics/realtime-dashboard/application/use-cases/load-dashboard.use-case';
+import { SubscribeRealtimeUseCase } from '@/modules/merchant-admin/analytics/realtime-dashboard/application/use-cases/subscribe-realtime.use-case';
+import { UnsubscribeRealtimeUseCase } from '@/modules/merchant-admin/analytics/realtime-dashboard/application/use-cases/unsubscribe-realtime.use-case';
+import { ApplySettingsUseCase } from '@/modules/merchant-admin/analytics/realtime-dashboard/application/use-cases/apply-settings.use-case';
+import { ResetSettingsUseCase } from '@/modules/merchant-admin/analytics/realtime-dashboard/application/use-cases/reset-settings.use-case';
+import { LoadSettingsUseCase } from '@/modules/merchant-admin/analytics/realtime-dashboard/application/use-cases/load-settings.use-case';
+import { LoadPresetsUseCase } from '@/modules/merchant-admin/analytics/realtime-dashboard/application/use-cases/load-presets.use-case';
+import { SavePresetUseCase } from '@/modules/merchant-admin/analytics/realtime-dashboard/application/use-cases/save-preset.use-case';
+import { DashboardSettings } from '@/modules/merchant-admin/analytics/realtime-dashboard/domain/value-objects/dashboard-settings.value-object';
+import { FilterSet } from '@/modules/merchant-admin/analytics/realtime-dashboard/domain/value-objects/filter-set.value-object';
 
 export default function DashboardPage() {
   const [presenter, setPresenter] = useState<DashboardPresenter | null>(null);

@@ -9,7 +9,7 @@ type SidebarProps = {
 
 const menuItems: Array<{ key: string; label: string; icon: string }> = [
   { key: "home", label: "Home", icon: "🏠" },
-  { key: "dashboard", label: "Realtime Dashboard", icon: "📊" },
+  { key: "analytics-dashboard", label: "Analytics\nDashboard", icon: "📈" },
 ];
 
 export function Sidebar({ children, widthClassName = "w-64", title = "Navigation", onSelect }: SidebarProps): JSX.Element {
