@@ -6,7 +6,8 @@ export class SalesRepository implements SalesRepositoryPort {
   constructor(private readonly httpClient: HttpClient) {}
 
   public async getSalesSummary(): Promise<SalesSummary> {
-    const response = await this.httpClient.get<any>('/api/sales/summary');
+    // read from static JSON in public
+    const response = await this.httpClient.get<any>('/mocks/api/sales/summary.json');
     
     if (response.status !== 200) {
       throw new Error(`Failed to fetch sales data: ${response.statusText}`);

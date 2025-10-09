@@ -6,7 +6,7 @@ export class RevenueRepository implements RevenueRepositoryPort {
   constructor(private readonly httpClient: HttpClient) {}
 
   public async getRevenueSummary(): Promise<RevenueSummary> {
-    const response = await this.httpClient.get<any>('/api/revenue/summary');
+    const response = await this.httpClient.get<any>('/mocks/api/revenue/summary.json');
     
     if (response.status !== 200) {
       throw new Error(`Failed to fetch revenue data: ${response.statusText}`);

@@ -7,14 +7,12 @@ interface GeographyPanelProps {
 }
 
 export const GeographyPanel: React.FC<GeographyPanelProps> = ({ geographySummary }) => {
-  const chartData: DonutChartDataPoint[] = geographySummary.regions.map((region, index) => {
-    const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
-    return {
-      label: region.country,
-      value: region.percentage,
-      color: colors[index % colors.length],
-    };
-  });
+  const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
+  const chartData: DonutChartDataPoint[] = geographySummary.regions.map((region, index) => ({
+    label: region.country,
+    value: region.percentage,
+    color: colors[index % colors.length],
+  }));
 
   return (
     <div className="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200/60 rounded-xl p-6 shadow-lg">
@@ -41,7 +39,6 @@ export const GeographyPanel: React.FC<GeographyPanelProps> = ({ geographySummary
           size={250}
           innerRadius={0.6}
           showLegend={true}
-          showLabels={true}
         />
       </div>
     </div>

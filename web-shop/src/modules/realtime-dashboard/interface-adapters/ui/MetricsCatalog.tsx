@@ -217,8 +217,8 @@ export const MetricsCatalog: React.FC<MetricsCatalogProps> = ({ onSelectMetric }
 
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-200">
-      {/* Header */}
-      <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-10 p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-50/80 to-purple-50/80 backdrop-blur supports-[backdrop-filter]:bg-white/70">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <span className="text-3xl">📚</span>
@@ -235,10 +235,10 @@ export const MetricsCatalog: React.FC<MetricsCatalogProps> = ({ onSelectMetric }
         {/* Search */}
         <input
           type="text"
-          placeholder="Search metrics..."
+          placeholder="Search metrics… (Cmd/Ctrl + /)"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
         />
       </div>
 
@@ -262,7 +262,7 @@ export const MetricsCatalog: React.FC<MetricsCatalogProps> = ({ onSelectMetric }
       </div>
 
       {/* Metrics List */}
-      <div className="p-6 space-y-4 max-h-[600px] overflow-y-auto">
+      <div className="p-4 sm:p-6 space-y-3 max-h-[600px] overflow-y-auto">
         {filteredMetrics.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🔍</div>

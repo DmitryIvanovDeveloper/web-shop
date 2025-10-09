@@ -1,26 +1,18 @@
 import React, { useState } from 'react';
 import { DashboardViewModel } from '../presenters/dashboard.presenter';
-import { SalesPanel } from './SalesPanel';
-import { RevenuePanel } from './RevenuePanel';
-import { GeographyPanel } from './GeographyPanel';
-import { ConversionPanel } from './ConversionPanel';
-import { SettingsPanel } from './SettingsPanel';
-import { FilterPanel } from './FilterPanel';
+import { DashboardHeader } from './DashboardHeader';
+import { DashboardLayout } from './DashboardLayout';
+import { DashboardSidebar } from './DashboardSidebar';
 import { DashboardSettings } from '../../domain/value-objects/dashboard-settings.value-object';
 import { FilterSet } from '../../domain/value-objects/filter-set.value-object';
-import { ErrorBoundary } from '../../../../shared/ui/ErrorBoundary';
 import { ConnectionStatus, useConnectionStatus } from '../../../../shared/ui/ConnectionStatus';
 import { FallbackUI } from '../../../../shared/ui/FallbackUI';
-import { MetricSelector, MetricOption } from './MetricSelector';
+import { MetricSelector } from './MetricSelector';
 import { DrillDownModal } from '../../../../shared/ui/DrillDownModal';
-import { DataTable, TableColumn } from '../../../../shared/ui/DataTable';
 import { AlertsIntegration } from './AlertsIntegration';
-import { ExportDropdown } from '../../../../shared/ui/ExportButton';
 import { MetricsCatalog } from './MetricsCatalog';
-import { Portal } from '../../../../shared/ui/Portal';
-import { FocusTrap } from '../../../../shared/ui/FocusTrap';
-import { ToastContainer } from '../../../../shared/ui/Toast';
-import { useToast } from '../../../../shared/hooks/useToast';
+import { DataUpdateAnnouncer } from '../../../../shared/ui/DataUpdateAnnouncer';
+import { useKeyboardShortcuts } from '../../../../shared/hooks/useKeyboardShortcuts';
 
 interface DashboardViewProps {
   viewModel: DashboardViewModel;
@@ -38,6 +30,9 @@ interface DashboardViewProps {
   };
 }
 
+// Union type for sidebar panels
+type SidebarPanel = 'filters' | 'settings' | null;
+
 export const DashboardView: React.FC<DashboardViewProps> = ({ 
   viewModel, 
   onApplySettings, 
@@ -48,65 +43,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onSaveFilterPreset,
   labels 
 }) => {
-  const [showSettings, setShowSettings] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
+  // Simplified state management
+  const [activeSidebar, setActiveSidebar] = useState<SidebarPanel>(null);
   const [showMetricSelector, setShowMetricSelector] = useState(false);
   const [showMetricsCatalog, setShowMetricsCatalog] = useState(false);
-  const [selectedMetrics, setSelectedMetrics] = useState<string[]>(['sales', 'revenue']);
   const [drillDownData, setDrillDownData] = useState<any>(null);
-  const [isDrillDownOpen, setIsDrillDownOpen] = useState(false);
-  const { status, lastConnected, retryCount, updateStatus, retry } = useConnectionStatus();
-  const { toasts, toast, removeToast } = useToast();
-  const anyOverlayOpen = showFilters || showSettings || showMetricSelector || showMetricsCatalog;
-  const lastFocusedRef = React.useRef<HTMLElement | null>(null);
-
-  // Body scroll lock + Esc to close + focus restore
-  React.useEffect(() => {
-    if (anyOverlayOpen) {
-      lastFocusedRef.current = (document.activeElement as HTMLElement) || null;
-      const prevOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      const onKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          setShowFilters(false);
-          setShowSettings(false);
-          setShowMetricSelector(false);
-          setShowMetricsCatalog(false);
-        }
-      };
-      window.addEventListener('keydown', onKeyDown);
-      return () => {
-        document.body.style.overflow = prevOverflow;
-        window.removeEventListener('keydown', onKeyDown);
-        // restore focus
-        if (lastFocusedRef.current) {
-          lastFocusedRef.current.focus();
-          lastFocusedRef.current = null;
-        }
-      };
-    }
-  }, [anyOverlayOpen]);
-
-  // Available metrics for selection
-  const availableMetrics: MetricOption[] = [
-    { id: 'sales', label: 'Total Sales', category: 'Sales', color: '#3b82f6', description: 'Number of transactions' },
-    { id: 'revenue', label: 'Revenue', category: 'Finance', color: '#10b981', description: 'Total revenue' },
-    { id: 'arpu', label: 'ARPU', category: 'Sales', color: '#8b5cf6', description: 'Average revenue per user' },
-    { id: 'conversion', label: 'Conversion Rate', category: 'Marketing', color: '#f59e0b', description: 'Conversion percentage' },
-    { id: 'geography', label: 'Top Regions', category: 'Geography', color: '#06b6d4', description: 'Regional breakdown' },
-  ];
+  const { status, updateStatus, retry } = useConnectionStatus();
 
   // Handle panel click for drill-down
   const handlePanelClick = (panelType: 'sales' | 'revenue' | 'geography' | 'conversion') => {
-    const data = {
-      sales: viewModel.dashboard?.salesSummary,
-      revenue: viewModel.dashboard?.revenueSummary,
-      geography: viewModel.dashboard?.geographySummary,
-      conversion: viewModel.dashboard?.conversionSummary,
-    };
-
-    setDrillDownData({ type: panelType, data: data[panelType] });
-    setIsDrillDownOpen(true);
+    const data = viewModel.dashboard?.[`${panelType}Summary`];
+    setDrillDownData({ type: panelType, data });
   };
 
   // Update connection status based on realtime state
@@ -155,168 +102,109 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         onRetry={retry}
       />
 
-      <div className="mb-6">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="min-w-[240px]">
-            <h1 className="text-3xl font-bold mb-1">📊 {labels.title}</h1>
-            <p className="text-gray-600 text-sm">
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">📊 {labels.title}</h1>
+            <p className="text-gray-600">
               Realtime analytics dashboard с мониторингом метрик в реальном времени.
             </p>
           </div>
-          {/* Toolbar */}
-          <div role="toolbar" aria-label="Dashboard Actions" className="flex flex-wrap items-center justify-end gap-2">
-            {/* Primary group */}
-            <div className="flex items-center gap-2 bg-white/70 border border-gray-200 rounded-xl p-1 shadow-sm">
-              <button
-                onClick={() => setShowMetricSelector(true)}
-                className="px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center gap-2"
-                aria-pressed={showMetricSelector}
-                title="Select metrics (M)"
-              >
-                <span>📊</span>
-                <span className="hidden sm:inline">Select Metrics</span>
-              </button>
-              <button
-                onClick={() => setShowFilters(true)}
-                className="px-3 py-2 rounded-lg text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors flex items-center gap-2"
-                aria-pressed={showFilters}
-                title="Filters (Ctrl+F)"
-              >
-                <span>🔍</span>
-                <span className="hidden sm:inline">Filters</span>
-              </button>
-              <button
-                onClick={() => setShowSettings(true)}
-                className="px-3 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors flex items-center gap-2"
-                aria-pressed={showSettings}
-                title="Settings (Ctrl+S)"
-              >
-                <span>⚙️</span>
-                <span className="hidden sm:inline">Settings</span>
-              </button>
-            </div>
-            {/* Secondary group */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowMetricsCatalog(true)}
-                className="px-3 py-2 rounded-lg text-sm font-medium bg-pink-600 text-white hover:bg-pink-700 transition-colors flex items-center gap-2 shadow-sm"
-                aria-pressed={showMetricsCatalog}
-                title="Metrics Catalog (Ctrl+K)"
-              >
-                <span>📚</span>
-                <span className="hidden sm:inline">Catalog</span>
-              </button>
-              <ExportDropdown
-                data={{
-                  sales: viewModel.dashboard?.salesSummary,
-                  revenue: viewModel.dashboard?.revenueSummary,
-                  geography: viewModel.dashboard?.geographySummary,
-                  conversion: viewModel.dashboard?.conversionSummary,
-                  exportedAt: new Date().toISOString(),
-                }}
-                filename={`dashboard-export-${new Date().toISOString().split('T')[0]}`}
-              />
-            </div>
+          <div className="flex gap-3">
+            <ExportDropdown
+              data={{
+                sales: viewModel.dashboard?.salesSummary,
+                revenue: viewModel.dashboard?.revenueSummary,
+                geography: viewModel.dashboard?.geographySummary,
+                conversion: viewModel.dashboard?.conversionSummary,
+                exportedAt: new Date().toISOString(),
+              }}
+              filename={`dashboard-export-${new Date().toISOString().split('T')[0]}`}
+            />
+            <button
+              onClick={() => setShowMetricSelector(!showMetricSelector)}
+              className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-md"
+            >
+              <span>📊</span>
+              {showMetricSelector ? 'Hide Metrics' : 'Select Metrics'}
+            </button>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="px-4 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 shadow-md"
+            >
+              <span>🔍</span>
+              {showFilters ? 'Hide Filters' : 'Show Filters'}
+            </button>
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-md"
+            >
+              <span>⚙️</span>
+              {showSettings ? 'Hide Settings' : 'Show Settings'}
+            </button>
+            <button
+              onClick={() => setShowMetricsCatalog(!showMetricsCatalog)}
+              className="px-4 py-2 bg-pink-600 text-white font-medium rounded-lg hover:bg-pink-700 transition-colors flex items-center gap-2 shadow-md"
+            >
+              <span>📚</span>
+              {showMetricsCatalog ? 'Hide Catalog' : 'Metrics Catalog'}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Metric Selector Modal (Portal) */}
+      {/* Metric Selector */}
       {showMetricSelector && (
-        <Portal>
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setShowMetricSelector(false)} aria-hidden="true" />
-            <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-3xl max-h-[80vh] overflow-y-auto p-6">
-              <FocusTrap initialFocusSelector="input,button,select,textarea">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <span>📊</span>
-                <span>Select Metrics to Display</span>
-              </h3>
-              <MetricSelector
-                availableMetrics={availableMetrics}
-                selectedMetrics={selectedMetrics}
-                onSelect={setSelectedMetrics}
-                maxSelection={5}
-              />
-              <div className="mt-4 text-sm text-gray-600">
-                <strong>Selected:</strong> {selectedMetrics.map(id => availableMetrics.find(m => m.id === id)?.label).join(', ')}
-              </div>
-              <div className="mt-4 flex justify-end">
-                <button onClick={() => setShowMetricSelector(false)} className="px-4 py-2 bg-indigo-600 text-white rounded-lg">Done</button>
-              </div>
-              </FocusTrap>
-            </div>
+        <div className="mb-6 bg-white rounded-xl p-6 shadow-lg border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <span>📊</span>
+            <span>Select Metrics to Display</span>
+          </h3>
+          <MetricSelector
+            availableMetrics={availableMetrics}
+            selectedMetrics={selectedMetrics}
+            onSelect={setSelectedMetrics}
+            maxSelection={5}
+          />
+          <div className="mt-4 text-sm text-gray-600">
+            <strong>Selected:</strong> {selectedMetrics.map(id => availableMetrics.find(m => m.id === id)?.label).join(', ')}
           </div>
-        </Portal>
+        </div>
       )}
 
-      {/* Filter Panel Modal (Portal) */}
+      {/* Filter Panel */}
       {showFilters && onApplyFilters && onResetFilters && onLoadFilterPreset && onSaveFilterPreset && (
-        <Portal>
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setShowFilters(false)} aria-hidden="true" />
-            <div role="dialog" aria-modal="true" className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-4xl max-h-[85vh] overflow-y-auto p-6">
-              <FocusTrap initialFocusSelector="button,select,input">
-                <FilterPanel
-                  filterSet={viewModel.filterSet}
-                  presets={viewModel.filterPresets}
-                  currentPresetId={viewModel.currentPresetId}
-                  onApply={(fs) => { onApplyFilters(fs); setShowFilters(false); toast.success({ title: 'Filters applied', duration: 2000 }); }}
-                  onReset={onResetFilters}
-                  onLoadPreset={onLoadFilterPreset}
-                  onSavePreset={onSaveFilterPreset}
-                  isLoading={viewModel.isLoading}
-                />
-              </FocusTrap>
-            </div>
-          </div>
-        </Portal>
+        <div className="mb-6">
+          <FilterPanel
+            filterSet={viewModel.filterSet}
+            presets={viewModel.filterPresets}
+            currentPresetId={viewModel.currentPresetId}
+            onApply={onApplyFilters}
+            onReset={onResetFilters}
+            onLoadPreset={onLoadFilterPreset}
+            onSavePreset={onSaveFilterPreset}
+            isLoading={viewModel.isLoading}
+          />
+        </div>
       )}
 
-      {/* Settings Panel Modal (Portal) */}
+      {/* Settings Panel */}
       {showSettings && (
-        <Portal>
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setShowSettings(false)} aria-hidden="true" />
-            <div role="dialog" aria-modal="true" className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-3xl max-h-[85vh] overflow-y-auto p-6">
-              <FocusTrap initialFocusSelector="button,select,input">
-                <SettingsPanel
-                  settings={viewModel.settingsPreview || viewModel.settings}
-                  onApply={(s) => { onApplySettings(s); setShowSettings(false); toast.success({ title: 'Settings applied', duration: 2000 }); }}
-                  onReset={onResetSettings}
-                  isPreview={!!viewModel.settingsPreview}
-                />
-              </FocusTrap>
-            </div>
-          </div>
-        </Portal>
+        <div className="mb-6">
+          <SettingsPanel
+            settings={viewModel.settingsPreview || viewModel.settings}
+            onApply={onApplySettings}
+            onReset={onResetSettings}
+            isPreview={!!viewModel.settingsPreview}
+          />
+        </div>
       )}
 
-      {/* Metrics Catalog Drawer (Portal) */}
+      {/* Metrics Catalog */}
       {showMetricsCatalog && (
-        <Portal>
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setShowMetricsCatalog(false)} aria-hidden="true" />
-            <div role="dialog" aria-modal="true" className="relative bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-4xl max-h-[85vh] overflow-y-auto">
-              <div className="sticky top-0 z-10 flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-200 bg-white/90 backdrop-blur rounded-t-2xl">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <span>📚</span>
-                  <span>Metrics Catalog</span>
-                </h3>
-                <button onClick={() => setShowMetricsCatalog(false)} className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg">
-                  Close
-                </button>
-              </div>
-              <div className="p-4 sm:p-6">
-                <FocusTrap initialFocusSelector="input">
-                  <div className="mx-auto max-w-3xl">
-                    <MetricsCatalog />
-                  </div>
-                </FocusTrap>
-              </div>
-            </div>
-          </div>
-        </Portal>
+        <div className="mb-6">
+          <MetricsCatalog />
+        </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -432,7 +320,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       >
         {drillDownData && <DrillDownContent data={drillDownData} />}
       </DrillDownModal>
-      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 };
@@ -565,20 +452,36 @@ function DrillDownContent({ data }: { data: any }) {
 
   if (data.type === 'geography') {
     const geoData = data.data;
-    const tableData = (geoData?.regions || []).map((region: any) => ({
+    const tableData = geoData.topRegions.map((region: any) => ({
       id: region.country,
       country: region.country,
-      share: region.percentage,
+      sales: region.sales,
+      revenue: region.revenue,
+      share: region.share,
     }));
 
     const columns: TableColumn<any>[] = [
       { key: 'country', label: 'Country', sortable: true },
       { 
+        key: 'sales', 
+        label: 'Sales', 
+        sortable: true, 
+        align: 'right',
+        render: (value) => value.toLocaleString()
+      },
+      { 
+        key: 'revenue', 
+        label: 'Revenue ($)', 
+        sortable: true, 
+        align: 'right',
+        render: (value) => `$${value.toLocaleString()}`
+      },
+      { 
         key: 'share', 
         label: 'Market Share', 
         sortable: true, 
         align: 'right',
-        render: (value) => `${Number(value).toFixed(1)}%`
+        render: (value) => `${value.toFixed(1)}%`
       },
     ];
 
@@ -604,8 +507,8 @@ function DrillDownContent({ data }: { data: any }) {
   }
 
   if (data.type === 'conversion') {
-    const convData = data.data || {};
-    const funnelData = (convData.funnelSteps || []).map((step: any) => ({
+    const convData = data.data;
+    const funnelData = convData.funnelSteps.map((step: any) => ({
       id: step.stage,
       stage: step.stage,
       visitors: step.visitors,
@@ -644,13 +547,13 @@ function DrillDownContent({ data }: { data: any }) {
           <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
             <div className="text-sm text-orange-600 font-medium mb-1">Overall Rate</div>
             <div className="text-2xl font-bold text-orange-900">
-              {Number(convData.overallRate ?? 0).toFixed(2)}%
+              {convData.overallRate.toFixed(2)}%
             </div>
           </div>
           <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
             <div className="text-sm text-yellow-600 font-medium mb-1">Cart Abandonment</div>
             <div className="text-2xl font-bold text-yellow-900">
-              {Number(convData.cartAbandonment ?? 0).toFixed(2)}%
+              {convData.cartAbandonment.toFixed(2)}%
             </div>
           </div>
         </div>
@@ -675,3 +578,4 @@ function DrillDownContent({ data }: { data: any }) {
 
   return <div>No data available</div>;
 }
+    

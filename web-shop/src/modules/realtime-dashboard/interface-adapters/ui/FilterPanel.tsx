@@ -23,13 +23,41 @@ interface FilterPanelProps {
 
 const GEO_OPTIONS: MultiSelectOption[] = [
   { value: 'US', label: 'United States', icon: '🇺🇸' },
-  { value: 'UK', label: 'United Kingdom', icon: '🇬🇧' },
+  { value: 'GB', label: 'United Kingdom', icon: '🇬🇧' },
   { value: 'DE', label: 'Germany', icon: '🇩🇪' },
   { value: 'FR', label: 'France', icon: '🇫🇷' },
   { value: 'JP', label: 'Japan', icon: '🇯🇵' },
   { value: 'CN', label: 'China', icon: '🇨🇳' },
   { value: 'AU', label: 'Australia', icon: '🇦🇺' },
   { value: 'CA', label: 'Canada', icon: '🇨🇦' },
+  { value: 'BR', label: 'Brazil', icon: '🇧🇷' },
+  { value: 'IN', label: 'India', icon: '🇮🇳' },
+  { value: 'IT', label: 'Italy', icon: '🇮🇹' },
+  { value: 'ES', label: 'Spain', icon: '🇪🇸' },
+  { value: 'NL', label: 'Netherlands', icon: '🇳🇱' },
+  { value: 'SE', label: 'Sweden', icon: '🇸🇪' },
+  { value: 'NO', label: 'Norway', icon: '🇳🇴' },
+  { value: 'DK', label: 'Denmark', icon: '🇩🇰' },
+  { value: 'FI', label: 'Finland', icon: '🇫🇮' },
+  { value: 'PL', label: 'Poland', icon: '🇵🇱' },
+  { value: 'CZ', label: 'Czech Republic', icon: '🇨🇿' },
+  { value: 'AT', label: 'Austria', icon: '🇦🇹' },
+  { value: 'CH', label: 'Switzerland', icon: '🇨🇭' },
+  { value: 'PT', label: 'Portugal', icon: '🇵🇹' },
+  { value: 'IE', label: 'Ireland', icon: '🇮🇪' },
+  { value: 'BE', label: 'Belgium', icon: '🇧🇪' },
+  { value: 'GR', label: 'Greece', icon: '🇬🇷' },
+  { value: 'TR', label: 'Turkey', icon: '🇹🇷' },
+  { value: 'MX', label: 'Mexico', icon: '🇲🇽' },
+  { value: 'AR', label: 'Argentina', icon: '🇦🇷' },
+  { value: 'CL', label: 'Chile', icon: '🇨🇱' },
+  { value: 'ZA', label: 'South Africa', icon: '🇿🇦' },
+  { value: 'EG', label: 'Egypt', icon: '🇪🇬' },
+  { value: 'AE', label: 'United Arab Emirates', icon: '🇦🇪' },
+  { value: 'SG', label: 'Singapore', icon: '🇸🇬' },
+  { value: 'HK', label: 'Hong Kong', icon: '🇭🇰' },
+  { value: 'KR', label: 'South Korea', icon: '🇰🇷' },
+  { value: 'TW', label: 'Taiwan', icon: '🇹🇼' },
 ];
 
 const PAYMENT_OPTIONS: MultiSelectOption[] = [
@@ -170,7 +198,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   };
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-6 shadow-lg">
+    <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-6 shadow-lg pb-24">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -260,15 +288,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           </select>
         </div>
 
-        {/* Apply Button */}
-        <button
-          type="button"
-          onClick={handleApply}
-          disabled={isLoading}
-          className="w-full px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-lg hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02]"
-        >
-          {isLoading ? 'Applying...' : '✨ Apply Filters'}
-        </button>
+        {/* Spacer under content for sticky footer */}
+        <div className="h-2" />
 
         {/* Active Filters Summary */}
         {localFilterSet.hasActiveFilters() && (
@@ -293,6 +314,33 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             </div>
           </div>
         )}
+      </div>
+      {/* Sticky Footer: chips + Apply */}
+      <div className="fixed bottom-2 left-1/2 -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0 z-50">
+        <div className="flex items-center gap-3 bg-white/90 backdrop-blur border border-gray-200 rounded-xl shadow-lg px-3 py-2">
+          {/* Chips summary */}
+          <div className="hidden md:flex flex-wrap gap-2 max-w-[50vw]">
+            {!localFilterSet.geo.isEmpty() && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-gray-100 border border-gray-300 text-gray-700">🌍 {localFilterSet.geo.countries.length}</span>
+            )}
+            {!localFilterSet.payment.isEmpty() && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-gray-100 border border-gray-300 text-gray-700">💳 {localFilterSet.payment.methods.length}</span>
+            )}
+            {!localFilterSet.source.isEmpty() && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-gray-100 border border-gray-300 text-gray-700">📢 {localFilterSet.source.sources.length}</span>
+            )}
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-gray-100 border border-gray-300 text-gray-700">💰 {localFilterSet.currency.currency}</span>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleApply}
+            disabled={isLoading}
+            className="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+          >
+            {isLoading ? 'Applying…' : 'Apply'}
+          </button>
+        </div>
       </div>
     </div>
   );

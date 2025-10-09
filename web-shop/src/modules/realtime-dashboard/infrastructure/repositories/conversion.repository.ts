@@ -6,7 +6,7 @@ export class ConversionRepository implements ConversionRepositoryPort {
   constructor(private readonly httpClient: HttpClient) {}
 
   async getConversionSummary(): Promise<ConversionSummary> {
-    const response = await this.httpClient.get<any>('/api/conversion/summary');
+    const response = await this.httpClient.get<any>('/mocks/api/conversion/summary.json');
     return ConversionSummary.fromApiResponse(response.data);
   }
 }

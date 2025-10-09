@@ -6,7 +6,7 @@ export class GeographyRepository implements GeographyRepositoryPort {
   constructor(private readonly httpClient: HttpClient) {}
 
   public async getGeographySummary(): Promise<GeographySummary> {
-    const response = await this.httpClient.get<any>('/api/geography/summary');
+    const response = await this.httpClient.get<any>('/mocks/api/geography/summary.json');
     
     if (response.status !== 200) {
       throw new Error(`Failed to fetch geography data: ${response.statusText}`);
