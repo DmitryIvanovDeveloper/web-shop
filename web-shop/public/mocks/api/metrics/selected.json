@@ -1,0 +1,19 @@
+{
+  "selectedMetrics": [
+    "totalRevenue",
+    "totalSales",
+    "conversionRate",
+    "averageOrderValue"
+  ],
+  "visiblePanels": [
+    "sales",
+    "revenue",
+    "geography",
+    "conversion",
+    "retention",
+    "paymentMethods",
+    "transactions"
+  ],
+  "layout": "grid"
+}
+

@@ -1,0 +1,26 @@
+{
+  "dateRange": {
+    "start": "2025-10-03T00:00:00.000Z",
+    "end": "2025-10-10T23:59:59.999Z",
+    "preset": "last7days"
+  },
+  "geography": {
+    "countries": ["US", "GB", "DE", "FR", "CA"],
+    "regions": [],
+    "cities": []
+  },
+  "payment": {
+    "methods": ["card", "paypal", "carrier_billing"],
+    "providers": []
+  },
+  "acquisition": {
+    "sources": ["organic", "paid", "direct", "referral"],
+    "campaigns": [],
+    "channels": ["google", "facebook", "instagram", "tiktok"]
+  },
+  "currency": ["USD", "EUR", "GBP"],
+  "minAmount": null,
+  "maxAmount": null,
+  "userSegments": []
+}
+

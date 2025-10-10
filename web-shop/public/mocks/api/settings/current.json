@@ -1,0 +1,18 @@
+{
+  "theme": "dark",
+  "refreshInterval": 30000,
+  "timezone": "UTC",
+  "currency": "USD",
+  "language": "en",
+  "notifications": {
+    "enabled": true,
+    "sound": true,
+    "desktop": true
+  },
+  "display": {
+    "compactMode": false,
+    "showTrends": true,
+    "animationsEnabled": true
+  }
+}
+
