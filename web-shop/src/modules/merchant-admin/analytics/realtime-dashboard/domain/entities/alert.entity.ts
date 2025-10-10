@@ -99,9 +99,7 @@ export class Alert {
   }
 
   public silence(duration: number, reason?: string): Alert {
-    const newSilencePolicy = this.silencePolicy
-      ? this.silencePolicy.silence(duration)
-      : SilencePolicy.create({ enabled: true, duration, reason }).value;
+    const newSilencePolicy = SilencePolicy.create(duration).data!;
 
     return new Alert(
       this.id,
@@ -149,7 +147,7 @@ export class Alert {
   }
 
   public isSilenced(): boolean {
-    return this.silencePolicy?.isSilenced() || false;
+    return !!this.silencePolicy;
   }
 
   public needsEscalation(): boolean {
@@ -157,11 +155,9 @@ export class Alert {
       return false;
     }
 
-    if (this.escalationLevel >= this.escalationPolicy.maxEscalations) {
-      return false;
-    }
-
-    return this.escalationPolicy.shouldEscalate(this.triggeredAt, this.acknowledgedAt);
+    // Check if enough time has passed for escalation (e.g., 1 hour)
+    const hoursSinceTriggered = (Date.now() - this.triggeredAt.getTime()) / (1000 * 60 * 60);
+    return hoursSinceTriggered >= 1 && this.escalationLevel < 3;
   }
 }
 

@@ -1,4 +1,4 @@
-import { Result, Success, Failure } from '../../../../shared/domain/result';
+import { Result, Success, Failure } from '../../../../../../shared/domain/result/result';
 import { InvalidArgumentError } from '../../../../../../shared/domain/errors/invalid-argument.error';
 
 export type MetricOperator = 'divide' | 'multiply' | 'add' | 'subtract' | 'percentage';

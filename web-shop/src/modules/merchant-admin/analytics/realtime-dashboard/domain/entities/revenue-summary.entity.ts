@@ -1,7 +1,4 @@
-export interface TrendDataPoint {
-  timestamp: Date;
-  value: number;
-}
+import { TrendDataPoint } from '../types/trend.types';
 
 export class RevenueSummary {
   constructor(

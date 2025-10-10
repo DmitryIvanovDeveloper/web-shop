@@ -33,43 +33,37 @@ export class AlertRuleRepositoryMock implements AlertRuleRepositoryPort {
     // Rule 1: High refund rate
     const refundRateRule = AlertRule.create({
       id: 'rule-1',
-      name: 'High Refund Rate',
       metric: 'refundRate',
-      operator: 'GREATER_THAN',
+      operator: '>',
       threshold: 15, // 15%
-      scope: 'ALL',
     });
 
     if (refundRateRule.success) {
-      this.rules.set('rule-1', refundRateRule.data);
+      this.rules.set('rule-1', refundRateRule.data!);
     }
 
     // Rule 2: Low sales
     const lowSalesRule = AlertRule.create({
       id: 'rule-2',
-      name: 'Low Sales',
       metric: 'totalSales',
-      operator: 'LESS_THAN',
+      operator: '<',
       threshold: 100000,
-      scope: 'ALL',
     });
 
     if (lowSalesRule.success) {
-      this.rules.set('rule-2', lowSalesRule.data);
+      this.rules.set('rule-2', lowSalesRule.data!);
     }
 
     // Rule 3: High conversion rate
     const highConversionRule = AlertRule.create({
       id: 'rule-3',
-      name: 'Excellent Conversion',
       metric: 'conversionRate',
-      operator: 'GREATER_THAN',
+      operator: '>',
       threshold: 5, // 5%
-      scope: 'ALL',
     });
 
     if (highConversionRule.success) {
-      this.rules.set('rule-3', highConversionRule.data);
+      this.rules.set('rule-3', highConversionRule.data!);
     }
   }
 }

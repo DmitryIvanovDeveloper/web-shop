@@ -56,7 +56,6 @@ export const AlertsIntegration: React.FC<AlertsIntegrationProps> = ({ metrics })
   const handleAcknowledge = async (alertId: string) => {
     const result = await acknowledgeAlertUseCase.execute({
       alertId,
-      userId: 'current-user', // In real app, get from auth context
     });
 
     if (result.success) {

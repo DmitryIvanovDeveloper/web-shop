@@ -26,15 +26,16 @@ export class AlertRule {
 
   public evaluate(currentValue: number): boolean {
     switch (this.operator) {
-      case 'GREATER_THAN':
-        return currentValue > (this.threshold as number);
-      case 'LESS_THAN':
-        return currentValue < (this.threshold as number);
-      case 'EQUALS':
-        return currentValue === (this.threshold as number);
-      case 'BETWEEN':
-        const range = this.threshold as ThresholdRange;
-        return currentValue >= range.min && currentValue <= range.max;
+      case '>':
+        return currentValue > this.threshold;
+      case '>=':
+        return currentValue >= this.threshold;
+      case '<':
+        return currentValue < this.threshold;
+      case '<=':
+        return currentValue <= this.threshold;
+      case '==':
+        return currentValue === this.threshold;
       default:
         return false;
     }
@@ -44,15 +45,16 @@ export class AlertRule {
     const metricDisplay = this.metric.replace(/([A-Z])/g, ' $1').trim();
     
     switch (this.operator) {
-      case 'GREATER_THAN':
+      case '>':
         return `${metricDisplay} > ${this.threshold}`;
-      case 'LESS_THAN':
+      case '>=':
+        return `${metricDisplay} >= ${this.threshold}`;
+      case '<':
         return `${metricDisplay} < ${this.threshold}`;
-      case 'EQUALS':
+      case '<=':
+        return `${metricDisplay} <= ${this.threshold}`;
+      case '==':
         return `${metricDisplay} = ${this.threshold}`;
-      case 'BETWEEN':
-        const range = this.threshold as ThresholdRange;
-        return `${range.min} ≤ ${metricDisplay} ≤ ${range.max}`;
       default:
         return '';
     }
