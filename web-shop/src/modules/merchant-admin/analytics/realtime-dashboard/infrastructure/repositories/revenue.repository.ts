@@ -1,10 +1,16 @@
+import { injectable, inject } from 'inversify';
 import { RevenueRepositoryPort } from '../../application/ports/revenue-repository.port';
 import { RevenueSummary } from '../../domain/entities/revenue-summary.entity';
-import { HttpClient } from '../../../../../../application/ports/http-client.port';
+import type { HttpClient } from '../../../../../../application/ports/http-client.port';
 import { FilterApplier } from '../utils/filter-applier';
+import { ROOT_TYPES } from '../../../../../../infrastructure/bootstrap/types';
 
+@injectable()
 export class RevenueRepository implements RevenueRepositoryPort {
-  constructor(private readonly httpClient: HttpClient) {}
+  constructor(
+    @inject(ROOT_TYPES.HttpClient)
+    private readonly httpClient: HttpClient
+  ) {}
 
   public async getRevenueSummary(): Promise<RevenueSummary> {
     // Load current filters

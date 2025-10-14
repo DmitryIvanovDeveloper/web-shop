@@ -16,7 +16,8 @@ export * from './application/use-cases/load-dashboard.use-case';
 // Infrastructure
 export * from './infrastructure/repositories/dashboard.repository';
 export * from './infrastructure/repositories/sales.repository';
-export * from './infrastructure/bootstrap/realtime-dashboard.bootstrap';
+export * from './infrastructure/bootstrap/realtime-dashboard.container';
+export * from './infrastructure/bootstrap/realtime-dashboard.types';
 
 // Interface Adapters
 export * from './interface-adapters/presenters/dashboard.presenter';

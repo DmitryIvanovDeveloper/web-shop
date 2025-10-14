@@ -1,3 +1,4 @@
+import { injectable } from 'inversify';
 import { HttpClient, HttpRequest, HttpResponse } from '../../application/ports/http-client.port';
 
 /**
@@ -7,6 +8,7 @@ import { HttpClient, HttpRequest, HttpResponse } from '../../application/ports/h
  *         GET /api/metrics?id=123   -> /mocks/api/metrics.json (query игнорируется)
  *         GET /api/metrics/abc      -> /mocks/api/metrics/abc.json
  */
+@injectable()
 export class HttpClientMock implements HttpClient {
   constructor(private readonly publicBasePath: string = '/mocks') {}
 
@@ -39,8 +41,9 @@ export class HttpClientMock implements HttpClient {
       }
     }
     
-    // В браузере используем fetch
-    const res = await fetch(mockPath, { cache: 'no-store' });
+    // В браузере используем fetch с полным URL
+    const fullUrl = window.location.origin + mockPath;
+    const res = await fetch(fullUrl, { cache: 'no-store' });
     if (!res.ok) {
       return {
         data: ({} as unknown) as T,

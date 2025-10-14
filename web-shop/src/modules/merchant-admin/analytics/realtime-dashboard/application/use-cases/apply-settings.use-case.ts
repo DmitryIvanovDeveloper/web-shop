@@ -1,4 +1,6 @@
-import { DashboardSettings } from '../../domain/value-objects/dashboard-settings.value-object';
+import { injectable, inject } from 'inversify';
+import type { DashboardSettings } from '../../domain/value-objects/dashboard-settings.value-object';
+import { ROOT_TYPES } from '../../../../../../infrastructure/bootstrap/types';
 import { Result, Success } from '../../../../../../shared/domain/result/result';
 
 export interface ApplySettingsInput {
@@ -6,6 +8,7 @@ export interface ApplySettingsInput {
   userId: string;
 }
 
+@injectable()
 export class ApplySettingsUseCase {
   public execute(input: ApplySettingsInput): Result<void, Error> {
     // In a real implementation, this would persist settings

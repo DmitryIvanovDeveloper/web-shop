@@ -1,8 +1,10 @@
+import { injectable, inject } from 'inversify';
 import { Result, Success, Failure } from '../../../../../../shared/domain/result/result';
+import { TYPES } from '../../infrastructure/bootstrap/realtime-dashboard.types';
 import { InvalidArgumentError } from '../../../../../../shared/domain/errors/invalid-argument.error';
 import { FilterPreset } from '../../domain/entities/filter-preset.entity';
 import { FilterSet } from '../../domain/value-objects/filter-set.value-object';
-import { FilterPresetRepositoryPort } from '../ports/filter-preset-repository.port';
+import type { FilterPresetRepositoryPort } from '../ports/filter-preset-repository.port';
 
 export interface SavePresetInput {
   id?: string;
@@ -10,8 +12,12 @@ export interface SavePresetInput {
   filterSet: FilterSet;
 }
 
+@injectable()
 export class SavePresetUseCase {
-  constructor(private readonly filterPresetRepository: FilterPresetRepositoryPort) {}
+  constructor(
+    @inject(TYPES.FilterPresetRepository)
+    private readonly filterPresetRepository: FilterPresetRepositoryPort
+  ) {}
 
   private generateId(): string {
     // Use crypto.randomUUID() in browser, fallback for Node.js

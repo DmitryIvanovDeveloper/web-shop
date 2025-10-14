@@ -1,4 +1,6 @@
+import { injectable, inject } from 'inversify';
 import { DashboardSettings } from '../../domain/value-objects/dashboard-settings.value-object';
+import { ROOT_TYPES } from '../../../../../../infrastructure/bootstrap/types';
 import { Result, Success } from '../../../../../../shared/domain/result/result';
 
 export interface LoadSettingsInput {
@@ -6,6 +8,7 @@ export interface LoadSettingsInput {
   queryParams?: URLSearchParams;
 }
 
+@injectable()
 export class LoadSettingsUseCase {
   execute(input: LoadSettingsInput): Result<DashboardSettings, Error> {
     // First try to load from URL query params

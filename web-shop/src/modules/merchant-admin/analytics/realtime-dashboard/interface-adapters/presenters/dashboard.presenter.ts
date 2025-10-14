@@ -1,15 +1,17 @@
+import { injectable, inject } from 'inversify';
 import { Dashboard } from '../../domain/entities/dashboard.entity';
-import { LoadDashboardUseCase } from '../../application/use-cases/load-dashboard.use-case';
-import { SubscribeRealtimeUseCase } from '../../application/use-cases/subscribe-realtime.use-case';
-import { UnsubscribeRealtimeUseCase } from '../../application/use-cases/unsubscribe-realtime.use-case';
-import { ApplySettingsUseCase } from '../../application/use-cases/apply-settings.use-case';
-import { ResetSettingsUseCase } from '../../application/use-cases/reset-settings.use-case';
-import { LoadSettingsUseCase } from '../../application/use-cases/load-settings.use-case';
+import type { LoadDashboardUseCase } from '../../application/use-cases/load-dashboard.use-case';
+import type { SubscribeRealtimeUseCase } from '../../application/use-cases/subscribe-realtime.use-case';
+import type { UnsubscribeRealtimeUseCase } from '../../application/use-cases/unsubscribe-realtime.use-case';
+import type { ApplySettingsUseCase } from '../../application/use-cases/apply-settings.use-case';
+import type { ResetSettingsUseCase } from '../../application/use-cases/reset-settings.use-case';
+import type { LoadSettingsUseCase } from '../../application/use-cases/load-settings.use-case';
 import { DashboardSettings } from '../../domain/value-objects/dashboard-settings.value-object';
-import { LoadPresetsUseCase } from '../../application/use-cases/load-presets.use-case';
-import { SavePresetUseCase } from '../../application/use-cases/save-preset.use-case';
+import type { LoadPresetsUseCase } from '../../application/use-cases/load-presets.use-case';
+import type { SavePresetUseCase } from '../../application/use-cases/save-preset.use-case';
 import { FilterSet } from '../../domain/value-objects/filter-set.value-object';
 import { FilterPreset } from '../../domain/entities/filter-preset.entity';
+import { TYPES } from '../../infrastructure/bootstrap/realtime-dashboard.types';
 
 export interface DashboardViewModel {
   dashboard: Dashboard | null;
@@ -24,6 +26,7 @@ export interface DashboardViewModel {
   currentPresetId?: string;
 }
 
+@injectable()
 export class DashboardPresenter {
   private viewModel: DashboardViewModel = {
     dashboard: null,
@@ -47,13 +50,21 @@ export class DashboardPresenter {
   ];
 
   constructor(
+    @inject(TYPES.LoadDashboardUseCase)
     private readonly loadDashboardUseCase: LoadDashboardUseCase,
+    @inject(TYPES.SubscribeRealtimeUseCase)
     private readonly subscribeRealtimeUseCase: SubscribeRealtimeUseCase,
+    @inject(TYPES.UnsubscribeRealtimeUseCase)
     private readonly unsubscribeRealtimeUseCase: UnsubscribeRealtimeUseCase,
+    @inject(TYPES.ApplySettingsUseCase)
     private readonly applySettingsUseCase: ApplySettingsUseCase,
+    @inject(TYPES.ResetSettingsUseCase)
     private readonly resetSettingsUseCase: ResetSettingsUseCase,
+    @inject(TYPES.LoadSettingsUseCase)
     private readonly loadSettingsUseCase: LoadSettingsUseCase,
+    @inject(TYPES.LoadPresetsUseCase)
     private readonly loadPresetsUseCase: LoadPresetsUseCase,
+    @inject(TYPES.SavePresetUseCase)
     private readonly savePresetUseCase: SavePresetUseCase,
     onViewModelChanged: () => void
   ) {

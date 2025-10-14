@@ -7,7 +7,15 @@ export interface Event {
 }
 
 export interface EventBus {
+  // Асинхронная публикация (для фоновых операций)
   publish(event: Event): Promise<void>;
+  
+  // Синхронная публикация (для критических операций)
+  publishSync(event: Event): Promise<void>;
+  
+  // Подписка на события
   subscribe(eventType: string, handler: (event: Event) => Promise<void>): void;
+  
+  // Отписка от событий
   unsubscribe(eventType: string, handler: (event: Event) => Promise<void>): void;
 }

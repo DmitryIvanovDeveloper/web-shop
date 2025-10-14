@@ -195,7 +195,16 @@ export class FilterApplier {
    */
   static async loadCurrentFilters(): Promise<Filters> {
     try {
-      const response = await fetch('/mocks/api/filters/current.json');
+      // В браузере используем полный URL
+      const url = typeof window !== 'undefined' 
+        ? `${window.location.origin}/mocks/api/filters/current.json`
+        : '/mocks/api/filters/current.json';
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to load filters: ${response.status} ${response.statusText}`);
+      }
+      
       return await response.json();
     } catch (error) {
       console.error('Failed to load filters:', error);

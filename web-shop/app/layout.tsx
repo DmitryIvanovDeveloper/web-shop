@@ -1,4 +1,7 @@
 "use client";
+import 'reflect-metadata';
+import '../src/infrastructure/bootstrap/container';
+import '../src/modules/merchant-admin/analytics/realtime-dashboard/infrastructure/bootstrap/realtime-dashboard.container';
 import "./globals.css";
 import "./output.css";
 import Sidebar from "@/shared/ui/Sidebar";

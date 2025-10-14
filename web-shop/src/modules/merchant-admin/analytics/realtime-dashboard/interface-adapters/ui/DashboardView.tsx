@@ -14,7 +14,6 @@ import { FallbackUI } from '../../../../../../shared/ui/FallbackUI';
 import { MetricSelector, MetricOption } from './MetricSelector';
 import { DrillDownModal } from '../../../../../../shared/ui/DrillDownModal';
 import { DataTable, TableColumn } from '../../../../../../shared/ui/DataTable';
-import { AlertsIntegration } from './AlertsIntegration';
 import { ExportDropdown } from '../../../../../../shared/ui/ExportButton';
 import { MetricsCatalog } from './MetricsCatalog';
 import { Portal } from '../../../../../../shared/ui/Portal';
@@ -470,21 +469,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* Alerts & Notifications */}
-      {viewModel.dashboard && (
-        <div className="mt-6">
-          <ErrorBoundary>
-            <AlertsIntegration
-              metrics={{
-                refundRate: viewModel.dashboard.conversionSummary?.refundRate || 0,
-                totalSales: viewModel.dashboard.salesSummary?.totalSales || 0,
-                conversionRate: viewModel.dashboard.conversionSummary?.conversionRate || 0,
-                revenue: viewModel.dashboard.revenueSummary?.totalRevenue || 0,
-              }}
-            />
-          </ErrorBoundary>
-        </div>
-      )}
 
       {/* Detail tables */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

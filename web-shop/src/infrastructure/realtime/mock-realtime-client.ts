@@ -1,13 +1,19 @@
+import { injectable, inject } from 'inversify';
 import { RealtimeClientPort, RealtimeMessage } from '../../application/ports/realtime-client.port';
-import { Logger } from '../../application/ports/logger.port';
+import type { Logger } from '../../application/ports/logger.port';
+import { TYPES } from '../bootstrap/types';
 
+@injectable()
 export class MockRealtimeClient implements RealtimeClientPort {
   private connected: boolean = false;
   private subscriptions: Map<string, ((message: RealtimeMessage) => void)[]> = new Map();
   private connectionCallbacks: ((connected: boolean) => void)[] = [];
   private updateIntervals: Map<string, NodeJS.Timeout> = new Map();
 
-  constructor(private readonly logger: Logger) {}
+  constructor(
+    @inject(TYPES.Logger)
+    private readonly logger: Logger
+  ) {}
 
   async connect(): Promise<void> {
     this.logger.info('MockRealtimeClient: Connecting...');

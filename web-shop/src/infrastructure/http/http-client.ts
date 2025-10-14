@@ -1,5 +1,7 @@
+import { injectable } from 'inversify';
 import { HttpClient, HttpRequest, HttpResponse } from '../../application/ports/http-client.port';
 
+@injectable()
 export class AxiosHttpClient implements HttpClient {
   private baseURL: string;
 

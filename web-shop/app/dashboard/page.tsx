@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { Container } from '@/infrastructure/bootstrap/container';
-import { DashboardPresenter, DashboardView, RealtimeDashboardBootstrap } from '@/modules/merchant-admin/analytics/realtime-dashboard';
+import { container } from '@/infrastructure/bootstrap/container';
+import { DashboardPresenter, DashboardView } from '@/modules/merchant-admin/analytics/realtime-dashboard';
+import { TYPES } from '@/modules/merchant-admin/analytics/realtime-dashboard/infrastructure/bootstrap/realtime-dashboard.types';
 import { LoadDashboardUseCase } from '@/modules/merchant-admin/analytics/realtime-dashboard/application/use-cases/load-dashboard.use-case';
 import { SubscribeRealtimeUseCase } from '@/modules/merchant-admin/analytics/realtime-dashboard/application/use-cases/subscribe-realtime.use-case';
 import { UnsubscribeRealtimeUseCase } from '@/modules/merchant-admin/analytics/realtime-dashboard/application/use-cases/unsubscribe-realtime.use-case';
@@ -19,16 +20,15 @@ export default function DashboardPage() {
   const [, force] = useState<number>(0);
 
   useEffect(() => {
-    const container = Container.getInstance();
     const resolveDeps = () => {
-      const load = container.get<LoadDashboardUseCase>('realtimeDashboard.loadDashboardUseCase');
-      const subscribe = container.get<SubscribeRealtimeUseCase>('realtimeDashboard.subscribeRealtimeUseCase');
-      const unsubscribe = container.get<UnsubscribeRealtimeUseCase>('realtimeDashboard.unsubscribeRealtimeUseCase');
-      const applySettings = container.get<ApplySettingsUseCase>('realtimeDashboard.applySettingsUseCase');
-      const resetSettings = container.get<ResetSettingsUseCase>('realtimeDashboard.resetSettingsUseCase');
-      const loadSettings = container.get<LoadSettingsUseCase>('realtimeDashboard.loadSettingsUseCase');
-      const loadPresets = container.get<LoadPresetsUseCase>('realtimeDashboard.loadPresetsUseCase');
-      const savePreset = container.get<SavePresetUseCase>('realtimeDashboard.savePresetUseCase');
+      const load = container.get<LoadDashboardUseCase>(TYPES.LoadDashboardUseCase);
+      const subscribe = container.get<SubscribeRealtimeUseCase>(TYPES.SubscribeRealtimeUseCase);
+      const unsubscribe = container.get<UnsubscribeRealtimeUseCase>(TYPES.UnsubscribeRealtimeUseCase);
+      const applySettings = container.get<ApplySettingsUseCase>(TYPES.ApplySettingsUseCase);
+      const resetSettings = container.get<ResetSettingsUseCase>(TYPES.ResetSettingsUseCase);
+      const loadSettings = container.get<LoadSettingsUseCase>(TYPES.LoadSettingsUseCase);
+      const loadPresets = container.get<LoadPresetsUseCase>(TYPES.LoadPresetsUseCase);
+      const savePreset = container.get<SavePresetUseCase>(TYPES.SavePresetUseCase);
       
       const p = new DashboardPresenter(
         load,
@@ -54,13 +54,8 @@ export default function DashboardPage() {
 
     try {
       resolveDeps();
-    } catch {
-      try {
-        RealtimeDashboardBootstrap.initialize();
-        resolveDeps();
-      } catch (e) {
-        console.error(e);
-      }
+    } catch (e) {
+      console.error('Failed to resolve dependencies:', e);
     }
   }, []);
 

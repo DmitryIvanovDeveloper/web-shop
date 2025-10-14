@@ -1,3 +1,4 @@
+import { injectable, inject } from 'inversify';
 import { Result, Success, Failure } from '../../../../../../shared/domain/result/result';
 import { FilterPreset } from '../../domain/entities/filter-preset.entity';
 import { FilterPresetRepositoryPort } from '../../application/ports/filter-preset-repository.port';
@@ -7,7 +8,8 @@ import { GeoFilter } from '../../domain/value-objects/geo-filter.value-object';
 import { PaymentFilter } from '../../domain/value-objects/payment-filter.value-object';
 import { SourceFilter } from '../../domain/value-objects/source-filter.value-object';
 import { CurrencyFilter } from '../../domain/value-objects/currency-filter.value-object';
-import { HttpClient } from '../../../../../../application/ports/http-client.port';
+import type { HttpClient } from '../../../../../../application/ports/http-client.port';
+import { ROOT_TYPES } from '../../../../../../infrastructure/bootstrap/types';
 
 interface PresetDTO {
   id: string;
@@ -37,7 +39,10 @@ interface PresetDTO {
 }
 
 export class FilterPresetRepository implements FilterPresetRepositoryPort {
-  constructor(private readonly httpClient: HttpClient) {}
+  constructor(
+    @inject(ROOT_TYPES.HttpClient)
+    private readonly httpClient: HttpClient
+  ) {}
 
   public async findAll(): Promise<Result<FilterPreset[], Error>> {
     const response = await this.httpClient.get<{ presets: PresetDTO[] }>('/api/filters/presets');

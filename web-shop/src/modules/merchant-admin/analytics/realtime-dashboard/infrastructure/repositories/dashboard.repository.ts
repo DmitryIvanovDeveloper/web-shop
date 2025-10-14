@@ -1,3 +1,4 @@
+import { injectable, inject } from 'inversify';
 import { DashboardRepositoryPort } from '../../application/ports/dashboard-repository.port';
 import { Dashboard } from '../../domain/entities/dashboard.entity';
 import { SalesSummary } from '../../domain/entities/sales-summary.entity';
