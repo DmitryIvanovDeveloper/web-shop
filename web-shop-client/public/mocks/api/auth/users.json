@@ -1,0 +1,12 @@
+{
+  "game-123": {
+    "userId": "user-001",
+    "username": "GamePlayer1",
+    "appId": "game-123"
+  },
+  "app-456": {
+    "userId": "user-002",
+    "username": "AppUser2",
+    "appId": "app-456"
+  }
+}
