@@ -45,8 +45,6 @@ export const ROOT_TYPES = TYPES;
 export { AUTH_TYPES } from '../../modules/authentication/infrastructure/bootstrap/types';
 
 // Export SHOP_TYPES from shop module
-export { SHOP_TYPES } from '../../modules/shop/infrastructure/bootstrap/types';
-
 // Http client selection mode
 export enum HttpClientMode {
   Axios = 'axios',

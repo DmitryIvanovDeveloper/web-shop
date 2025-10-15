@@ -22,13 +22,21 @@ export class AuthPresenter {
         user: result.data,
         error: undefined
       };
-    } else {
+    }
+    
+    if (result.isFailure()) {
       return {
         status: 'error',
         user: undefined,
         error: result.error.message
       };
     }
+    
+    return {
+      status: 'error',
+      user: undefined,
+      error: 'Unknown error'
+    };
   }
 
   /**

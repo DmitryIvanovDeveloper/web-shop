@@ -10,7 +10,7 @@ import { HttpClientMock } from '../http/http-client.mock';
 import { HttpClientMode, resolveHttpClientMode, TYPES } from './types';
 import { ConsoleLogger } from '../logging/console-logger';
 import { bindAuthentication } from '../../modules/authentication/infrastructure/bootstrap/bind.authentication';
-import { bindShop } from '../../modules/shop/infrastructure/bootstrap/bind.shop';
+import { bindUIRenderer } from '../../modules/ui-renderer/infrastructure/bootstrap/bind.ui-renderer';
 
 // Create Inversify container
 const container = new Container();
@@ -31,7 +31,7 @@ container.bind<EventBus>(TYPES.EventBus).to(InMemoryEventBus).inSingletonScope()
 // Register Authentication module
 bindAuthentication(container);
 
-// Register Shop module
-bindShop(container);
+// Register UI Renderer module
+bindUIRenderer(container);
 
 export { container };

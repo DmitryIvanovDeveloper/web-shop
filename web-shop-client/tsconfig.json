@@ -27,6 +27,12 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@components": [
+        "./src/shared/components/index.ts"
+      ],
+      "@components/*": [
+        "./src/shared/components/*"
       ]
     },
     "target": "ES2017"

@@ -5,8 +5,8 @@
 
 import { injectable, inject } from 'inversify';
 import { Result } from '../../../../shared/domain/result/result';
-import { AuthRepositoryPort } from '../ports/auth-repository.port';
-import { ValidateAppLoginRequest, AppUser } from '../../domain/types';
+import type { AuthRepositoryPort } from '../ports/auth-repository.port';
+import type { ValidateAppLoginRequest, AppUser } from '../../domain/types';
 import { 
   InvalidAppIdError, 
   AppIdRequiredError,
@@ -49,7 +49,11 @@ export class ValidateAppLoginUseCase {
       }
 
       // 4. Успешная валидация
-      return Result.ok(result.data);
+      if (result.isSuccess()) {
+        return Result.ok(result.data);
+      }
+
+      return Result.error(new AuthenticationError('Unknown error'));
       
     } catch (error) {
       // 5. Обработка неожиданных ошибок

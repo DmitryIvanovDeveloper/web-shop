@@ -1,0 +1,20 @@
+import { NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
+
+export async function GET() {
+  try {
+    // Читаем продукты из JSON файла
+    const productsPath = path.join(process.cwd(), 'public/mocks/api/shop/products.json');
+    const productsData = fs.readFileSync(productsPath, 'utf8');
+    const products = JSON.parse(productsData);
+
+    return NextResponse.json(products);
+  } catch (error) {
+    console.error('Error loading shop products:', error);
+    return NextResponse.json(
+      { error: 'Failed to load shop products' },
+      { status: 500 }
+    );
+  }
+}

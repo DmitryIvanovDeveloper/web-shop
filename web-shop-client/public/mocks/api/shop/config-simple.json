@@ -1,0 +1,72 @@
+{
+  "version": "1.0",
+  "platform": "web",
+  "theme": {
+    "colors": {
+      "primary": "#3B82F6",
+      "secondary": "#1F2937",
+      "accent": "#EAB308",
+      "background": "#111827",
+      "surface": "#1F2937",
+      "text": "#FFFFFF",
+      "textSecondary": "#9CA3AF",
+      "success": "#10B981",
+      "error": "#EF4444",
+      "warning": "#F59E0B",
+      "border": "#374151"
+    },
+    "spacing": {
+      "unit": "rem",
+      "scale": [0, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4]
+    }
+  },
+  "layout": {
+    "type": "container",
+    "id": "shop-page",
+    "props": {
+      "style": {
+        "padding": "2rem",
+        "maxWidth": "1440px",
+        "backgroundColor": "#111827"
+      }
+    },
+    "children": [
+      {
+        "type": "Header",
+        "id": "page-header",
+        "props": {
+          "title": "Browse Shop",
+          "fontSize": 4,
+          "marginBottom": 2,
+          "color": "#FFFFFF"
+        }
+      },
+      {
+        "type": "div",
+        "id": "simple-content",
+        "props": {
+          "style": {
+            "padding": "1rem",
+            "backgroundColor": "#1F2937",
+            "borderRadius": "0.5rem",
+            "color": "#FFFFFF"
+          }
+        },
+        "children": [
+          {
+            "type": "h2",
+            "props": {
+              "children": "Test Content"
+            }
+          },
+          {
+            "type": "p",
+            "props": {
+              "children": "This is a simple test to see if dynamic rendering works."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
