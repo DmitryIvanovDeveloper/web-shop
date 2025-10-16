@@ -6,3 +6,4 @@ export interface ConfigRepositoryPort {
   getPageConfig(pageType: string): Promise<Result<PageConfig, UIRendererError>>;
 }
 
+

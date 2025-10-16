@@ -1,0 +1,204 @@
+{
+  "offers": [
+    {
+      "id": "tank-turret",
+      "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+      "title": "Tank Turret",
+      "rarity": "MYTHICAL WEAPON",
+      "discount": "-50% OFF",
+      "playerLimit": "1 PER PLAYER",
+      "timer": "2D 06:48:36",
+      "originalPrice": "$39.99",
+      "currentPrice": "$20.00",
+      "rpBonus": 20,
+      "lpBonus": 20,
+      "buyButton": {
+        "text": "BUY NOW",
+        "enabled": true,
+        "style": {
+          "backgroundColor": "#FF6B35",
+          "textColor": "#FFFFFF",
+          "borderRadius": "8px",
+          "padding": "12px 24px",
+          "fontWeight": "bold"
+        }
+      }
+    },
+    {
+      "id": "aztec-warrior",
+      "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+      "sideImage": "https://static-platform.aghanim.com/sku/cc/f4/b9/63/ccf4b963-7ee7-4196-a621-80780556cd76.webp",
+      "includedItems": [
+        "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+        "https://static-platform.aghanim.com/sku/cc/f4/b9/63/ccf4b963-7ee7-4196-a621-80780556cd76.webp",
+        "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp"
+      ],
+      "title": "Aztec Warrior Set",
+      "discount": "-35% OFF",
+      "playerLimit": "1 PER PLAYER",  
+      "timer": "2D 02:35:23",
+      "originalPrice": "$36.99",
+      "currentPrice": "$24.04",
+      "rpBonus": 24,
+      "lpBonus": 24,
+      "buyButton": {
+        "text": "BUY NOW",
+        "enabled": true,
+        "style": {
+          "backgroundColor": "#FF6B35",
+          "textColor": "#FFFFFF",
+          "borderRadius": "8px",
+          "padding": "12px 24px",
+          "fontWeight": "bold"
+        }
+      }
+    },
+    {
+      "id": "deadly-tail",
+      "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+      "title": "Deadly Tail",
+      "rarity": "MYTHICAL WEAPON",
+      "discount": "-50% OFF",
+      "playerLimit": "1 PER PLAYER",
+      "timer": "2D 06:48:36",
+      "originalPrice": "$39.99",
+      "currentPrice": "$20.00",
+      "rpBonus": 20,
+      "lpBonus": 20,
+      "buyButton": {
+        "text": "BUY NOW",
+        "enabled": true,
+        "style": {
+          "backgroundColor": "#FF6B35",
+          "textColor": "#FFFFFF",
+          "borderRadius": "8px",
+          "padding": "12px 24px",
+          "fontWeight": "bold"
+        }
+      }
+    },
+    {
+      "id": "gorgon-head",
+      "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+      "title": "Gorgon Head",
+      "rarity": "MYTHICAL WEAPON",
+      "discount": "-50% OFF",
+      "playerLimit": "1 PER PLAYER",
+      "timer": "2D 06:48:36",
+      "originalPrice": "$39.99",
+      "currentPrice": "$20.00",
+      "rpBonus": 20,
+      "lpBonus": 20,
+      "buyButton": {
+        "text": "BUY NOW",
+        "enabled": true,
+        "style": {
+          "backgroundColor": "#FF6B35",
+          "textColor": "#FFFFFF",
+          "borderRadius": "8px",
+          "padding": "12px 24px",
+          "fontWeight": "bold"
+        }
+      }
+    },
+    {
+      "id": "daisy-set",
+      "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+      "includedItems": [
+        "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+        "https://static-platform.aghanim.com/sku/cc/f4/b9/63/ccf4b963-7ee7-4196-a621-80780556cd76.webp",
+        "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp"
+      ],
+      "title": "Daisy Set",
+      "discount": "-33% OFF",
+      "playerLimit": "1 PER PLAYER",
+      "timer": "2D 02:35:23",
+      "originalPrice": "$44.99",
+      "currentPrice": "$30.14",
+      "rpBonus": 30,
+      "lpBonus": 30,
+      "buyButton": {
+        "text": "BUY NOW",
+        "enabled": true,
+        "style": {
+          "backgroundColor": "#FF6B35",
+          "textColor": "#FFFFFF",
+          "borderRadius": "8px",
+          "padding": "12px 24px",
+          "fontWeight": "bold"
+        }
+      }
+    },
+    {
+      "id": "seas-overlord",
+      "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+      "includedItems": [
+        "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+        "https://static-platform.aghanim.com/sku/cc/f4/b9/63/ccf4b963-7ee7-4196-a621-80780556cd76.webp",
+        "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp"
+      ],
+      "title": "Seas Overlord Set",
+      "discount": "-48% OFF",
+      "playerLimit": "1 PER PLAYER",
+      "timer": "2D 02:35:23",
+      "originalPrice": "$49.99",
+      "currentPrice": "$25.99",
+      "rpBonus": 26,
+      "lpBonus": 26,
+      "buyButton": {
+        "text": "BUY NOW",
+        "enabled": true,
+        "style": {
+          "backgroundColor": "#FF6B35",
+          "textColor": "#FFFFFF",
+          "borderRadius": "8px",
+          "padding": "12px 24px",
+          "fontWeight": "bold"
+        }
+      }
+    },
+    {
+      "id": "mythic-chest",
+      "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+      "title": "Mythic Chest Omega",
+      "rarity": "MYTHIC GUARANTEED",
+      "playerLimit": "12 PER PLAYER",
+      "timer": "5D 13:11:53",
+      "currentPrice": "$19.99",
+      "rpBonus": 20,
+      "lpBonus": 20,
+      "buyButton": {
+        "text": "BUY NOW",
+        "enabled": true,
+        "style": {
+          "backgroundColor": "#FF6B35",
+          "textColor": "#FFFFFF",
+          "borderRadius": "8px",
+          "padding": "12px 24px",
+          "fontWeight": "bold"
+        }
+      }
+    },
+    {
+      "id": "hero-fortune",
+      "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+      "title": "Hero's Fortune",
+      "playerLimit": "10 PER PLAYER",
+      "currentPrice": "$3.99",
+      "rpBonus": 4,
+      "lpBonus": 10,
+      "buyButton": {
+        "text": "BUY NOW",
+        "enabled": true,
+        "style": {
+          "backgroundColor": "#FF6B35",
+          "textColor": "#FFFFFF",
+          "borderRadius": "8px",
+          "padding": "12px 24px",
+          "fontWeight": "bold"
+        }
+      }
+    }
+  ]
+}
+

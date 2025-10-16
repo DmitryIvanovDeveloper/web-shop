@@ -35,4 +35,4 @@ export function UniversalButton({
       {text || children}
     </button>
   );
-ч} 
+} 

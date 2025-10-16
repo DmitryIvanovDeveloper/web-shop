@@ -1,0 +1,55 @@
+{
+  "version": "1.0",
+  "platform": "web",
+  "theme": {
+    "colors": {
+      "primary": "#3B5AFE",
+      "background": "#0D1117",
+      "surface": "#161B22",
+      "text": "#FFFFFF",
+      "textSecondary": "#A0A0A0"
+    },
+    "spacing": [0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80]
+  },
+  "layout": {
+    "type": "Container",
+    "id": "main-content",
+    "props": {
+      "vertical": true
+    },
+    "styles": {
+      "padding": 8,
+      "backgroundImage": "url('/background.jpg')",
+      "backgroundSize": "cover",
+      "backgroundPosition": "center",
+      "backgroundRepeat": "no-repeat",
+      "width": "100%",
+      "minHeight": "100vh"
+    },
+    "children": [
+      {
+        "type": "Text",
+        "id": "page-title",
+        "props": {
+          "text": "Offers"
+        },
+        "styles": {
+          "textColor": "text",
+          "fontSize": "4xl",
+          "fontWeight": "bold",
+          "marginBottom": 8,
+          "textAlign": "center"
+        }
+      },
+             {
+               "type": "DataGrid",
+               "id": "offers-grid",
+               "props": {
+                 "dataSource": "api://products/offers",
+                 "gap": 4
+               }
+             }
+    ]
+  }
+}
+

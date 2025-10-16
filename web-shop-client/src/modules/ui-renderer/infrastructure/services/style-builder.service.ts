@@ -35,6 +35,32 @@ export class StyleBuilder {
       }
     }
 
+    // Обрабатываем размеры для w-full и min-h-screen
+    if (styles.width !== undefined) {
+      inlineStyles.width = styles.width;
+    }
+
+    if (styles.minHeight !== undefined) {
+      inlineStyles.minHeight = styles.minHeight;
+    }
+
+    // Обрабатываем фоновые свойства
+    if (styles.backgroundImage !== undefined) {
+      inlineStyles.backgroundImage = styles.backgroundImage;
+    }
+
+    if (styles.backgroundSize !== undefined) {
+      inlineStyles.backgroundSize = styles.backgroundSize;
+    }
+
+    if (styles.backgroundPosition !== undefined) {
+      inlineStyles.backgroundPosition = styles.backgroundPosition;
+    }
+
+    if (styles.backgroundRepeat !== undefined) {
+      inlineStyles.backgroundRepeat = styles.backgroundRepeat;
+    }
+
     return inlineStyles;
   }
 }

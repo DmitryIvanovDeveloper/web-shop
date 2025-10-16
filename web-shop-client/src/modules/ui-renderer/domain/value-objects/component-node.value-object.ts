@@ -1,13 +1,13 @@
 import { Result } from '../../../../shared/domain/result/result';
 import { UIRendererError } from '../errors/ui-renderer.error';
-import type { StyleConfig, ButtonProps, ContainerProps } from '../types';
+import type { StyleConfig, ButtonProps, ContainerProps, BadgeProps, ImageProps, TextProps, GridProps, DataGridProps, OfferCardProps } from '../types';
 
 // Типобезопасный ComponentNode без any
 export class ComponentNode {
   private constructor(
     public readonly id: string,
-    public readonly type: 'Button' | 'Container',
-    public readonly props: Readonly<ButtonProps | ContainerProps>,
+    public readonly type: string,
+    public readonly props: Readonly<ButtonProps | ContainerProps | BadgeProps | ImageProps | TextProps | GridProps | DataGridProps | OfferCardProps>,
     public readonly styles: Readonly<StyleConfig>,
     public readonly children: readonly ComponentNode[]
   ) {}
@@ -15,19 +15,12 @@ export class ComponentNode {
   public static create(params: {
     readonly id: string;
     readonly type: string;
-    readonly props?: ButtonProps | ContainerProps;
+    readonly props?: ButtonProps | ContainerProps | BadgeProps | ImageProps | TextProps | GridProps | DataGridProps | OfferCardProps;
     readonly styles?: StyleConfig;
     readonly children?: readonly ComponentNode[];
   }): Result<ComponentNode, UIRendererError> {
     if (!params.id || !params.type) {
       return Result.error(new UIRendererError('Invalid node', 'INVALID_CONFIG'));
-    }
-
-    // Type guard для type
-    if (params.type !== 'Button' && params.type !== 'Container') {
-      return Result.error(
-        new UIRendererError(`Unknown component type: ${params.type}`, 'INVALID_CONFIG')
-      );
     }
 
     return Result.ok(

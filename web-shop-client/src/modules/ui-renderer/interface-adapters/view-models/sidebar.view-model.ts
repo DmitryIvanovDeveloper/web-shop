@@ -5,3 +5,4 @@ export type SidebarViewModel =
   | { readonly status: 'success'; readonly config: PageConfig }
   | { readonly status: 'error'; readonly error: string };
 
+

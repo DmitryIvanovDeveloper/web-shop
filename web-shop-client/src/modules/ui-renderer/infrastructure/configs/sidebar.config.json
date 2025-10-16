@@ -17,7 +17,8 @@
     },
     "styles": {
       "padding": 2,
-      "backgroundColor": "surface"
+      "backgroundColor": "surface",
+      "minHeight": "100vh"
     },
     "children": [
       {

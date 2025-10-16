@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import sidebarConfig from '../../../../../src/modules/ui-renderer/infrastructure/configs/sidebar.config.json';
+import mainContentConfig from '../../../../../src/modules/ui-renderer/infrastructure/configs/main-content.config.json';
 
 const configs: Record<string, any> = {
   sidebar: sidebarConfig,
+  'main-content': mainContentConfig,
 };
 
 export async function GET(
