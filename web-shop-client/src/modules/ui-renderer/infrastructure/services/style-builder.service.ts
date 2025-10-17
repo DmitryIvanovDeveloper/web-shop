@@ -11,6 +11,16 @@ export class StyleBuilder {
     if (typeof styles.padding === 'number') {
       classes.push(`p-${styles.padding}`);
     }
+
+    // Обрабатываем w-full для width: 100%
+    if (styles.width === '100%') {
+      classes.push('w-full');
+    }
+
+    // Добавляем пользовательские классы
+    if (styles.className) {
+      classes.push(styles.className);
+    }
     
     // Для цветов используем inline стили через theme, а не Tailwind классы
     // Tailwind классы остаются для других стилей
@@ -21,22 +31,34 @@ export class StyleBuilder {
   public buildInlineStyles(styles: Readonly<StyleConfig>, theme?: ThemeConfig): CSSProperties {
     const inlineStyles: CSSProperties = {};
 
-    if (theme && styles.backgroundColor) {
-      const color = (theme.colors as any)[styles.backgroundColor];
-      if (color) {
-        inlineStyles.backgroundColor = color;
+    if (styles.backgroundColor) {
+      // Если это hex-код (начинается с #), используем напрямую
+      if (typeof styles.backgroundColor === 'string' && styles.backgroundColor.startsWith('#')) {
+        inlineStyles.backgroundColor = styles.backgroundColor;
+      } else if (theme) {
+        // Иначе ищем в теме
+        const color = (theme.colors as any)[styles.backgroundColor];
+        if (color) {
+          inlineStyles.backgroundColor = color;
+        }
       }
     }
 
-    if (theme && styles.textColor) {
-      const color = (theme.colors as any)[styles.textColor];
-      if (color) {
-        inlineStyles.color = color;
+    if (styles.textColor) {
+      // Если это hex-код (начинается с #), используем напрямую
+      if (typeof styles.textColor === 'string' && styles.textColor.startsWith('#')) {
+        inlineStyles.color = styles.textColor;
+      } else if (theme) {
+        // Иначе ищем в теме
+        const color = (theme.colors as any)[styles.textColor];
+        if (color) {
+          inlineStyles.color = color;
+        }
       }
     }
 
-    // Обрабатываем размеры для w-full и min-h-screen
-    if (styles.width !== undefined) {
+    // Обрабатываем width как inline стиль (кроме 100%)
+    if (styles.width !== undefined && styles.width !== '100%') {
       inlineStyles.width = styles.width;
     }
 
@@ -61,7 +83,92 @@ export class StyleBuilder {
       inlineStyles.backgroundRepeat = styles.backgroundRepeat;
     }
 
-    return inlineStyles;
+    // Обрабатываем padding как inline стиль
+    if (styles.padding !== undefined) {
+      inlineStyles.padding = typeof styles.padding === 'number' ? `${styles.padding * 4}px` : styles.padding;
+    }
+
+    // Обрабатываем margin как inline стиль (для строковых значений)
+    if (typeof styles.margin === 'string') {
+      inlineStyles.margin = styles.margin;
+    }
+
+    // Обрабатываем marginBottom как inline стиль
+    if (styles.marginBottom !== undefined) {
+      inlineStyles.marginBottom = typeof styles.marginBottom === 'number' ? `${styles.marginBottom * 4}px` : styles.marginBottom;
+    }
+
+    // Обрабатываем borderRadius как inline стиль
+    if (styles.borderRadius !== undefined) {
+      inlineStyles.borderRadius = typeof styles.borderRadius === 'number' ? `${styles.borderRadius}px` : styles.borderRadius;
+    }
+
+    // Обрабатываем fontSize как inline стиль
+    if (styles.fontSize !== undefined) {
+      const fontSizeMap: Record<string, string> = {
+        'xs': '12px',
+        'sm': '14px', 
+        'base': '16px',
+        'lg': '18px',
+        'xl': '20px',
+        '2xl': '24px',
+        '3xl': '30px',
+        '4xl': '36px'
+      };
+      inlineStyles.fontSize = fontSizeMap[styles.fontSize] || styles.fontSize;
+    }
+
+    // Обрабатываем fontWeight как inline стиль
+    if (styles.fontWeight !== undefined) {
+      const fontWeightMap: Record<string, string> = {
+        'normal': '400',
+        'medium': '500',
+        'semibold': '600',
+        'bold': '700',
+        'extrabold': '800'
+      };
+      inlineStyles.fontWeight = fontWeightMap[styles.fontWeight] || styles.fontWeight;
+    }
+
+    if (styles.fontFamily !== undefined) {
+      inlineStyles.fontFamily = styles.fontFamily;
+    }
+
+    // Обрабатываем height как inline стиль
+    if (styles.height !== undefined) {
+      inlineStyles.height = styles.height;
+    }
+
+    // Обрабатываем maxWidth как inline стиль
+    if (styles.maxWidth !== undefined) {
+      inlineStyles.maxWidth = styles.maxWidth;
+    }
+
+    // Обрабатываем maxHeight как inline стиль
+    if (styles.maxHeight !== undefined) {
+      inlineStyles.maxHeight = styles.maxHeight;
+    }
+
+    // Обрабатываем textAlign как inline стиль
+    if (styles.textAlign !== undefined) {
+      inlineStyles.textAlign = styles.textAlign;
+    }
+
+    // Обрабатываем justifyContent как inline стиль
+    if (styles.justifyContent !== undefined) {
+      inlineStyles.justifyContent = styles.justifyContent;
+    }
+
+    // Обрабатываем flex как inline стиль
+    if (styles.flex !== undefined) {
+      inlineStyles.flex = styles.flex;
+    }
+
+    if (styles.border !== undefined) {
+      inlineStyles.border = styles.border;
+    }
+
+       return inlineStyles;
   }
 }
 

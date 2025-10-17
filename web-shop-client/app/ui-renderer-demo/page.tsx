@@ -6,6 +6,7 @@ import { SidebarRendererPresenter } from '../../src/modules/ui-renderer/interfac
 import { SidebarRenderer } from '../../src/modules/ui-renderer/interface-adapters/ui/components/sidebar-renderer';
 import { LoadPageConfigUseCase } from '../../src/modules/ui-renderer/application/use-cases/load-page-config.use-case';
 import { DynamicRenderer } from '../../src/modules/ui-renderer/interface-adapters/ui/components/dynamic-renderer';
+import type { ActionContext } from '../../src/modules/ui-renderer/domain/types';
 import { useState, useEffect } from 'react';
 
 export default function UIRendererDemoPage(): JSX.Element {
@@ -18,33 +19,62 @@ export default function UIRendererDemoPage(): JSX.Element {
   );
   
   const [mainContentConfig, setMainContentConfig] = useState<any>(null);
+  const [rightSidebarConfig, setRightSidebarConfig] = useState<any>(null);
+  const [popupConfig, setPopupConfig] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // ActionContext для обработки действий
+  const actionContext: ActionContext = {
+    onPopupOpen: (config) => {
+      console.log('[UIRendererDemo] Opening popup with config:', config);
+      setPopupConfig(config);
+    },
+    onPopupClose: () => {
+      console.log('[UIRendererDemo] Closing popup');
+      setPopupConfig(null);
+    },
+  };
+  
+  console.log('[UIRendererDemo] ActionContext created:', actionContext);
+  console.log('[UIRendererDemo] onPopupOpen exists:', !!actionContext.onPopupOpen);
   
   useEffect(() => {
-    const loadMainContent = async () => {
+    const loadConfigs = async () => {
       try {
+        // Load main content
         console.log('[UIRendererDemo] Loading main-content config...');
-        const result = await loadConfigUseCase.execute({ pageType: 'main-content' });
-        console.log('[UIRendererDemo] Config load result:', result);
-        if (result.isSuccess()) {
-          console.log('[UIRendererDemo] Config data:', result.data);
-          setMainContentConfig(result.data);
+        const mainResult = await loadConfigUseCase.execute({ pageType: 'main-content' });
+        console.log('[UIRendererDemo] Main content load result:', mainResult);
+        if (mainResult.isSuccess()) {
+          console.log('[UIRendererDemo] Main content data:', mainResult.data);
+          setMainContentConfig(mainResult.data);
         } else {
-          console.error('[UIRendererDemo] Failed to load config:', result.error);
-          setError(result.error?.message || 'Failed to load config');
+          console.error('[UIRendererDemo] Failed to load main content:', mainResult.error);
+          setError(mainResult.error?.message || 'Failed to load main content');
+        }
+
+        // Load right sidebar
+        console.log('[UIRendererDemo] Loading right-sidebar config...');
+        const rightResult = await loadConfigUseCase.execute({ pageType: 'right-sidebar' });
+        console.log('[UIRendererDemo] Right sidebar load result:', rightResult);
+        if (rightResult.isSuccess()) {
+          console.log('[UIRendererDemo] Right sidebar data:', rightResult.data);
+          setRightSidebarConfig(rightResult.data);
+        } else {
+          console.error('[UIRendererDemo] Failed to load right sidebar:', rightResult.error);
         }
       } catch (err) {
-        console.error('[UIRendererDemo] Exception loading config:', err);
+        console.error('[UIRendererDemo] Exception loading configs:', err);
         setError(String(err));
       }
     };
-    loadMainContent();
+    loadConfigs();
   }, []);
 
   return (
     <div className="min-h-screen bg-gray-900 flex">
-      <SidebarRenderer presenter={sidebarPresenter} />
-      <main className="flex-1">
+      <SidebarRenderer presenter={sidebarPresenter} actionContext={actionContext} />
+      <main className="flex-1 overflow-y-auto h-screen">
         {error && (
           <div className="text-red-500">
             Error: {error}
@@ -58,14 +88,32 @@ export default function UIRendererDemoPage(): JSX.Element {
         {mainContentConfig && (
           <DynamicRenderer 
             node={mainContentConfig.layout} 
-            theme={mainContentConfig.theme} 
+            theme={mainContentConfig.theme}
+            actionContext={actionContext}
           />
         )}
       </main>
       {/* Right Sidebar */}
-      <div className="w-64 bg-gray-800 border-l border-gray-700">
-        {/* Empty right sidebar */}
-      </div>
+      <aside>
+        {rightSidebarConfig && (
+          <>
+            {console.log('[UIRendererDemo] Rendering right sidebar with actionContext:', actionContext)}
+            <DynamicRenderer 
+              node={rightSidebarConfig.layout} 
+              theme={rightSidebarConfig.theme}
+              actionContext={actionContext}
+            />
+          </>
+        )}
+      </aside>
+      {/* Popup */}
+      {popupConfig && (
+        <DynamicRenderer 
+          node={popupConfig.layout} 
+          theme={popupConfig.theme}
+          actionContext={actionContext}
+        />
+      )}
     </div>
   );
 }

@@ -7,6 +7,7 @@ export interface UniversalContainerProps {
   readonly style?: CSSProperties;
   readonly children?: ReactNode;
   readonly vertical?: boolean;
+  readonly sidebar?: boolean;
 }
 
 export function UniversalContainer({
@@ -14,9 +15,12 @@ export function UniversalContainer({
   style,
   children,
   vertical = false,
+  sidebar = false,
 }: UniversalContainerProps): JSX.Element {
   const containerClasses = vertical 
-    ? `flex flex-col min-h-screen w-64 gap-2 ${className}`
+    ? sidebar 
+      ? `flex flex-col w-64 gap-2 ${className}`
+      : `flex flex-col gap-2 ${className}`
     : className;
     
   return (

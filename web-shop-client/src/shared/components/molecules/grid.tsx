@@ -17,11 +17,14 @@ export function Grid({
   style, 
   children 
 }: GridProps): JSX.Element {
+  // Проверяем, есть ли flex классы в className
+  const isFlexLayout = className.includes('flex');
+  
   return (
     <div 
-      className={`grid w-full gap-${gap} ${className}`}
-      style={{ 
-        gridTemplateColumns: `repeat(auto-fill, 284px)`,
+      className={isFlexLayout ? `w-full ${className}` : `grid w-full gap-${gap} ${className}`}
+      style={isFlexLayout ? style : { 
+        gridTemplateColumns: `repeat(auto-fill, 270px)`,
         justifyContent: 'start',
         ...style 
       }}

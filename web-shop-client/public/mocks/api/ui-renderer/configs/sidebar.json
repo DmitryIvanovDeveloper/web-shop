@@ -13,12 +13,14 @@
     "id": "sidebar-container",
     "type": "Container",
     "props": {
-      "vertical": true
+      "vertical": true,
+      "sidebar": true
     },
     "styles": {
-      "padding": 2,
+      "padding": 8,
       "backgroundColor": "surface",
-      "minHeight": "100vh"
+      "minHeight": "100vh",
+      "width": "240px"
     },
     "children": [
       {
@@ -30,12 +32,15 @@
           "fullWidth": true
         },
         "styles": {
-          "padding": 2,
+          "padding": 4  ,
           "backgroundColor": "primary",
-          "textColor": "text"
+          "textColor": "text",
+          "justifyContent": "flex-start"
         }
       }
     ]
   }
 }
+
+
 

@@ -15,12 +15,14 @@ export interface BuyButton {
   readonly text?: string;
   readonly enabled?: boolean;
   readonly style?: BuyButtonStyle;
+  readonly redirectUrl?: string;
 }
 
 export interface OfferCardProps {
   readonly mainImage?: string;
   readonly mainImageAlt?: string;
   readonly sideImage?: string;
+  readonly backgroundImage?: string;
   readonly includedItems?: string[];
   readonly discount?: string;
   readonly playerLimit?: string;
@@ -41,6 +43,7 @@ export function OfferCard({
   mainImage = "",
   mainImageAlt = "Product",
   sideImage,
+  backgroundImage,
   includedItems = [],
   discount,
   playerLimit,
@@ -58,8 +61,14 @@ export function OfferCard({
 }: OfferCardProps): JSX.Element {
   return (
     <div
-      className={`relative grid bg-gray-800 rounded-lg overflow-hidden shadow-lg !w-[280px] ${className}`}
-      style={style}
+      className={`relative grid bg-gray-800 rounded-lg overflow-hidden shadow-lg ${className}`}
+      style={{
+        width: '270px',
+        height: '400px',
+        maxWidth: '270px',
+        maxHeight: '400px',
+        ...style
+      }}
       onClick={onClick}
     >
       {/* Discount Badge */}
@@ -92,8 +101,19 @@ export function OfferCard({
         />
       )}
 
-      {/* Main Image Section */}
-      <div className="relative w-full h-48 bg-gray-700 flex items-center justify-center">
+       {/* Main Image Section */}
+       <div
+         className="relative w-full bg-gray-700 flex items-center justify-center"
+         style={{
+           height: '160px',
+           backgroundImage: backgroundImage
+             ? `url('${backgroundImage}')`
+             : undefined,
+           backgroundSize: "cover",
+           backgroundPosition: "center",
+           backgroundRepeat: "no-repeat",
+         }}
+      >
         {mainImage && (
           <img
             src={mainImage}
@@ -122,68 +142,98 @@ export function OfferCard({
         )} */}
       </div>
 
-
-       {/* Content Section */}
-           <div className="p-4 !grid !justify-center h-full">
-         <div className="!flex-grow">
-            <div>
-                
-            </div>
-           {/* {rarity && (
+       {/* Content Section - CSS Grid для фиксированных позиций */}
+       <div className="p-4 grid grid-rows-[24px_32px_48px_32px_1fr_auto] gap-2" style={{ height: '240px' }}>
+         {/* Row 1: Rarity - всегда 24px */}
+         <div className="flex items-center" style={{ minHeight: '24px', height: '24px' }}>
+           {rarity ? (
              <Badge
                text={rarity ?? ""}
                variant="rarity"
-               className="mb-2"
                style={{ backgroundColor: "#8A2BE2", color: "white" }}
              />
-           )} */}
-           
-           {title && (
-             <h3 className="text-white text-lg font-bold mb-2 truncate">
-               {title}
-             </h3>
+           ) : (
+             <div style={{ width: '100%', height: '24px', minHeight: '24px' }}></div>
            )}
-
-           <div className="flex flex-col">
-             {originalPrice && (
-               <span className="text-gray-400 line-through text-sm truncate">
-                 {originalPrice}
-               </span>
-             )}
-             {currentPrice && (
-               <span className="text-white text-xl font-extrabold truncate">
-                 {currentPrice}
-               </span>
-             )}
-           </div>
-
-           <div className="flex flex-row text-sm text-gray-400 mt-2 justify-between">
-             {rpBonus && <span className="truncate">+{rpBonus} RP</span>}
-             {lpBonus && <span className="truncate">+{lpBonus} LP</span>}
-           </div>
          </div>
-             
-         {/* Buy Button - Always at bottom */}
-         {buyButton && buyButton.enabled && (
-           <button
-             className="w-full mt-auto py-3 px-4 text-white font-bold rounded-lg transition-colors hover:opacity-90"
-             style={{
-               backgroundColor: buyButton.style?.backgroundColor || "#FF6B35",
-               color: buyButton.style?.textColor || "#FFFFFF",
-               borderRadius: buyButton.style?.borderRadius || "8px",
-               padding: buyButton.style?.padding || "12px 24px",
-               fontWeight: buyButton.style?.fontWeight || "bold",
-             }}
-             onClick={(e) => {
-               e.stopPropagation();
-               console.log(`Buy button clicked for: ${title}`);
-             }}
-           >
-             {buyButton.text || "BUY NOW"}
-           </button>
-         )}
+
+         {/* Row 2: Title - всегда 32px */}
+         <div className="flex items-center" style={{ minHeight: '32px', height: '32px' }}>
+           {title ? (
+             <h3 className="text-white text-lg font-bold truncate w-full">{title}</h3>
+           ) : (
+             <div style={{ width: '100%', height: '32px', minHeight: '32px' }}></div>
+           )}
+         </div>
+
+         {/* Row 3: Prices - всегда 48px */}
+         <div className="flex flex-col justify-center" style={{ minHeight: '48px', height: '48px' }}>
+           {originalPrice || currentPrice ? (
+             <>
+               {originalPrice && (
+                 <span className="text-gray-400 line-through text-sm truncate">
+                   {originalPrice}
+                 </span>
+               )}
+               {currentPrice && (
+                 <span className="text-white text-xl font-extrabold truncate">
+                   {currentPrice}
+                 </span>
+               )}
+             </>
+           ) : (
+             <div style={{ width: '100%', height: '48px', minHeight: '48px' }}></div>
+           )}
+         </div>
+
+         {/* Row 4: Bonuses - всегда 32px */}
+         <div className="flex items-center" style={{ minHeight: '32px', height: '32px' }}>
+           {rpBonus || lpBonus ? (
+             <div className="flex flex-row text-sm text-gray-400 justify-between w-full">
+               {rpBonus && <span className="truncate">+{rpBonus} RP</span>}
+               {lpBonus && <span className="truncate">+{lpBonus} LP</span>}
+             </div>
+           ) : (
+             <div style={{ width: '100%', height: '32px', minHeight: '32px' }}></div>
+           )}
+         </div>
+
+         {/* Row 6: Buy Button - всегда внизу */}
+         <div>
+           {buyButton && buyButton.enabled && (
+             <button
+               className="w-full text-white font-bold rounded-lg transition-colors hover:opacity-90 flex items-center justify-center"
+               style={{
+                 backgroundColor: buyButton.style?.backgroundColor || "#FF6B35",
+                 color: buyButton.style?.textColor || "#FFFFFF",
+                 borderRadius: buyButton.style?.borderRadius || "8px",
+                 padding: buyButton.style?.padding || "12px 24px",
+                 fontWeight: buyButton.style?.fontWeight || "bold",
+                 fontSize: "16px",
+                 minHeight: "40px",
+                 height: "40px",
+                 display: "flex",
+                 alignItems: "center",
+                 justifyContent: "center",
+               }}
+               onClick={(e) => {
+                 e.stopPropagation();
+                 console.log(`Buy button clicked for: ${title}`);
+
+                 if (buyButton.redirectUrl) {
+                   window.open(
+                     buyButton.redirectUrl,
+                     "_blank",
+                     "noopener,noreferrer"
+                   );
+                 }
+               }}
+             >
+               {buyButton.text || "BUY NOW"}
+             </button>
+           )}
+         </div>
        </div>
-      
     </div>
   );
 }

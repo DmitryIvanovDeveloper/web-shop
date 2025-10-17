@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "platform": "web",
+  "theme": {
+    "colors": {
+      "primary": "#3B5AFE",
+      "background": "#0D1117",
+      "surface": "#161B22",
+      "text": "#FFFFFF",
+      "textSecondary": "#A0A0A0"
+    },
+    "spacing": [0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80]
+  },
+  "layout": {
+    "type": "Container",
+    "id": "right-sidebar",
+    "props": {
+      "vertical": true
+    },
+    "styles": {
+      "padding": 4,
+      "backgroundColor": "#161B22",
+      "width": "230px",
+      "height": "100vh"
+    },
+    "children": [
+      {
+        "type": "Button",
+        "id": "login-button",
+        "props": {
+          "text": "Login",
+          "fullWidth": true
+        },
+        "styles": {
+          "backgroundColor": "#FBBF24",
+          "textColor": "#000000",
+          "padding": 4,
+          "borderRadius": 15,
+          "fontWeight": "bold",
+          "fontSize": "xl",
+          "height": "56px",
+          "textAlign": "center"
+        },
+        "actions": {
+          "onClick": {
+            "type": "loadPopup",
+            "config": "login-popup"
+          }
+        }
+      }
+    ]
+  }
+}

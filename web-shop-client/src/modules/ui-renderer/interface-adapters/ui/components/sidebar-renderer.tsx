@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react';
 import { DynamicRenderer } from './dynamic-renderer';
 import type { SidebarViewModel } from '../../view-models/sidebar.view-model';
 import type { SidebarRendererPresenter } from '../../presenters/sidebar-renderer.presenter';
+import type { ActionContext } from '../../../domain/types';
 
 interface SidebarRendererProps {
   readonly presenter: SidebarRendererPresenter;
+  readonly actionContext?: ActionContext;
 }
 
-export function SidebarRenderer({ presenter }: SidebarRendererProps): JSX.Element {
+export function SidebarRenderer({ presenter, actionContext }: SidebarRendererProps): JSX.Element {
   const [viewModel, setViewModel] = useState<SidebarViewModel>({ status: 'loading' });
 
   useEffect(() => {
@@ -31,6 +33,5 @@ export function SidebarRenderer({ presenter }: SidebarRendererProps): JSX.Elemen
     );
   }
 
-  return <DynamicRenderer node={viewModel.config.layout} theme={viewModel.config.theme} />;
+  return <DynamicRenderer node={viewModel.config.layout} theme={viewModel.config.theme} actionContext={actionContext} />;
 }
-

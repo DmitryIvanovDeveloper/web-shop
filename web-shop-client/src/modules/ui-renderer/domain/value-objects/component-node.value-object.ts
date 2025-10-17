@@ -1,23 +1,25 @@
 import { Result } from '../../../../shared/domain/result/result';
 import { UIRendererError } from '../errors/ui-renderer.error';
-import type { StyleConfig, ButtonProps, ContainerProps, BadgeProps, ImageProps, TextProps, GridProps, DataGridProps, OfferCardProps } from '../types';
+import type { StyleConfig, ButtonProps, ContainerProps, BadgeProps, ImageProps, TextProps, InputTextProps, UniversalInputProps, InputProps, GridProps, DataGridProps, OfferCardProps, PopupProps, ActionsConfig } from '../types';
 
 // Типобезопасный ComponentNode без any
 export class ComponentNode {
   private constructor(
     public readonly id: string,
     public readonly type: string,
-    public readonly props: Readonly<ButtonProps | ContainerProps | BadgeProps | ImageProps | TextProps | GridProps | DataGridProps | OfferCardProps>,
+    public readonly props: Readonly<ButtonProps | ContainerProps | BadgeProps | ImageProps | TextProps | InputTextProps | UniversalInputProps | InputProps | GridProps | DataGridProps | OfferCardProps | PopupProps>,
     public readonly styles: Readonly<StyleConfig>,
-    public readonly children: readonly ComponentNode[]
+    public readonly children: readonly ComponentNode[],
+    public readonly actions?: Readonly<ActionsConfig>
   ) {}
 
   public static create(params: {
     readonly id: string;
     readonly type: string;
-    readonly props?: ButtonProps | ContainerProps | BadgeProps | ImageProps | TextProps | GridProps | DataGridProps | OfferCardProps;
+    readonly props?: ButtonProps | ContainerProps | BadgeProps | ImageProps | TextProps | InputTextProps | UniversalInputProps | InputProps | GridProps | DataGridProps | OfferCardProps | PopupProps;
     readonly styles?: StyleConfig;
     readonly children?: readonly ComponentNode[];
+    readonly actions?: ActionsConfig;
   }): Result<ComponentNode, UIRendererError> {
     if (!params.id || !params.type) {
       return Result.error(new UIRendererError('Invalid node', 'INVALID_CONFIG'));
@@ -29,7 +31,8 @@ export class ComponentNode {
         params.type,
         Object.freeze(params.props || {}),
         Object.freeze(params.styles || {}),
-        Object.freeze(params.children || [])
+        Object.freeze(params.children || []),
+        params.actions ? Object.freeze(params.actions) : undefined
       )
     );
   }

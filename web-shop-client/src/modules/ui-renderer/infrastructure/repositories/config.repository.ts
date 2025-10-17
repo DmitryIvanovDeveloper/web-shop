@@ -7,7 +7,7 @@ import { ThemeConfig } from '../../domain/value-objects/theme-config.value-objec
 import { ComponentNode } from '../../domain/value-objects/component-node.value-object';
 import { UIRendererError } from '../../domain/errors/ui-renderer.error';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
-import type { ConfigDTO, ComponentNodeDTO, ButtonProps, ContainerProps, BadgeProps, ImageProps, TextProps, GridProps, DataGridProps, OfferCardProps, StyleConfig, SpacingValue, ColorKey } from '../../domain/types';
+import type { ConfigDTO, ComponentNodeDTO, ButtonProps, ContainerProps, BadgeProps, ImageProps, TextProps, InputTextProps, UniversalInputProps, InputProps, GridProps, DataGridProps, OfferCardProps, PopupProps, StyleConfig, SpacingValue, ColorKey, ActionsConfig, ActionConfig } from '../../domain/types';
 
 @injectable()
 export class ConfigRepository implements ConfigRepositoryPort {
@@ -20,18 +20,22 @@ export class ConfigRepository implements ConfigRepositoryPort {
 
   public async getPageConfig(pageType: string): Promise<Result<PageConfig, UIRendererError>> {
     try {
+      console.log('[ConfigRepository] Loading config for pageType:', pageType);
       // ✅ Загружаем конфигурацию через HttpClientMock
       // HttpClientMock мапит: /api/ui-renderer/configs/sidebar -> /mocks/api/ui-renderer/configs/sidebar.json
       const response = await this._httpClient.get<ConfigDTO>(`/api/ui-renderer/configs/${pageType}`);
+      console.log('[ConfigRepository] Response received:', response);
 
       if (response.status !== 200 || !response.data) {
         return Result.error(new UIRendererError('Failed to load config', 'DATA_LOADING_FAILED'));
       }
 
       const data = response.data;
+      console.log('[ConfigRepository] Data extracted:', data);
 
       // ✅ Runtime валидация
       if (!this._isValidConfigDTO(data)) {
+        console.error('[ConfigRepository] Invalid config format');
         return Result.error(new UIRendererError('Invalid config format', 'INVALID_CONFIG'));
       }
 
@@ -44,19 +48,30 @@ export class ConfigRepository implements ConfigRepositoryPort {
         return Result.error(themeResult.error!);
       }
 
+      console.log('[ConfigRepository] Creating layout...');
       const layoutResult = this._createComponentNode(data.layout, 0);
 
       if (!layoutResult.isSuccess()) {
+        console.error('[ConfigRepository] Layout creation failed:', layoutResult.error);
         return Result.error(layoutResult.error!);
       }
 
+      console.log('[ConfigRepository] Creating page config...');
       // Если мы дошли сюда, значит оба результата Success
-      return PageConfig.create({
+      const pageConfigResult = PageConfig.create({
         type: pageType,
         version: data.version,
         theme: themeResult.data,
         layout: layoutResult.data,
       });
+      
+      if (!pageConfigResult.isSuccess()) {
+        console.error('[ConfigRepository] Page config creation failed:', pageConfigResult.error);
+        return Result.error(pageConfigResult.error!);
+      }
+      
+      console.log('[ConfigRepository] Successfully loaded config for:', pageType);
+      return pageConfigResult;
     } catch (error) {
       return Result.error(
         new UIRendererError(`Error loading config: ${error}`, 'DATA_LOADING_FAILED')
@@ -105,7 +120,7 @@ export class ConfigRepository implements ConfigRepositoryPort {
     }
 
     // Валидация типа компонента - разрешаем все зарегистрированные типы
-    const allowedTypes = ['Button', 'Container', 'Badge', 'Image', 'Text', 'Grid', 'DataGrid', 'OfferCard'];
+    const allowedTypes = ['Button', 'Container', 'Badge', 'Image', 'Text', 'InputText', 'UniversalInput', 'Input', 'Grid', 'DataGrid', 'OfferCard', 'Popup'];
     if (!allowedTypes.includes(nodeData.type)) {
       return Result.error(
         new UIRendererError(`Unknown component type: ${nodeData.type}`, 'INVALID_CONFIG')
@@ -132,6 +147,7 @@ export class ConfigRepository implements ConfigRepositoryPort {
     // Типобезопасное извлечение props
     const props = this._extractProps(nodeData.type, nodeData.props);
     const styles = this._extractStyles(nodeData.styles);
+    const actions = this._extractActions(nodeData.actions);
 
     return ComponentNode.create({
       id: nodeData.id,
@@ -139,6 +155,7 @@ export class ConfigRepository implements ConfigRepositoryPort {
       props,
       styles,
       children,
+      actions,
     });
   }
 
@@ -146,12 +163,19 @@ export class ConfigRepository implements ConfigRepositoryPort {
   private _extractProps(
     type: string,
     rawProps: Record<string, unknown> | undefined
-  ): ButtonProps | ContainerProps | BadgeProps | ImageProps | TextProps | GridProps | DataGridProps | OfferCardProps {
+  ): ButtonProps | ContainerProps | BadgeProps | ImageProps | TextProps | InputTextProps | UniversalInputProps | InputProps | GridProps | DataGridProps | OfferCardProps | PopupProps {
     if (type === 'Button') {
       return {
         text: typeof rawProps?.text === 'string' ? rawProps.text : undefined,
         icon: typeof rawProps?.icon === 'string' ? rawProps.icon : undefined,
         fullWidth: typeof rawProps?.fullWidth === 'boolean' ? rawProps.fullWidth : undefined,
+      };
+    }
+
+    if (type === 'Container') {
+      return {
+        vertical: typeof rawProps?.vertical === 'boolean' ? rawProps.vertical : undefined,
+        sidebar: typeof rawProps?.sidebar === 'boolean' ? rawProps.sidebar : undefined,
       };
     }
     
@@ -173,6 +197,38 @@ export class ConfigRepository implements ConfigRepositoryPort {
     if (type === 'Text') {
       return {
         text: typeof rawProps?.text === 'string' ? rawProps.text : undefined,
+      };
+    }
+
+    if (type === 'InputText') {
+      return {
+        placeholder: typeof rawProps?.placeholder === 'string' ? rawProps.placeholder : undefined,
+        value: typeof rawProps?.value === 'string' ? rawProps.value : undefined,
+      };
+    }
+
+    if (type === 'UniversalInput') {
+      return {
+        error: typeof rawProps?.error === 'string' ? rawProps.error : undefined,
+        label: typeof rawProps?.label === 'string' ? rawProps.label : undefined,
+        placeholder: typeof rawProps?.placeholder === 'string' ? rawProps.placeholder : undefined,
+        value: (typeof rawProps?.value === 'string' || typeof rawProps?.value === 'number') ? rawProps.value : undefined,
+        defaultValue: (typeof rawProps?.defaultValue === 'string' || typeof rawProps?.defaultValue === 'number') ? rawProps.defaultValue : undefined,
+        isRequired: typeof rawProps?.isRequired === 'boolean' ? rawProps.isRequired : undefined,
+        disabled: typeof rawProps?.disabled === 'boolean' ? rawProps.disabled : undefined,
+        type: typeof rawProps?.type === 'string' ? rawProps.type as 'number' | 'password' | 'phone' | 'text' | 'email' | 'float' : undefined,
+        bg: typeof rawProps?.bg === 'string' ? rawProps.bg as 'primary' | 'secondary' : undefined,
+        readonly: typeof rawProps?.readonly === 'boolean' ? rawProps.readonly : undefined,
+      };
+    }
+
+    if (type === 'Input') {
+      return {
+        placeholder: typeof rawProps?.placeholder === 'string' ? rawProps.placeholder : undefined,
+        value: (typeof rawProps?.value === 'string' || typeof rawProps?.value === 'number') ? rawProps.value : undefined,
+        type: typeof rawProps?.type === 'string' ? rawProps.type as 'text' | 'email' | 'password' | 'number' | 'tel' : undefined,
+        disabled: typeof rawProps?.disabled === 'boolean' ? rawProps.disabled : undefined,
+        readonly: typeof rawProps?.readonly === 'boolean' ? rawProps.readonly : undefined,
       };
     }
     
@@ -209,6 +265,13 @@ export class ConfigRepository implements ConfigRepositoryPort {
       };
     }
     
+    if (type === 'Popup') {
+      return {
+        isOpen: typeof rawProps?.isOpen === 'boolean' ? rawProps.isOpen : undefined,
+        showCloseButton: typeof rawProps?.showCloseButton === 'boolean' ? rawProps.showCloseButton : undefined,
+      };
+    }
+    
     return {
       vertical: typeof rawProps?.vertical === 'boolean' ? rawProps.vertical : undefined,
     };
@@ -229,6 +292,7 @@ export class ConfigRepository implements ConfigRepositoryPort {
       flexDirection: this._extractFlexDirection(rawStyles?.flexDirection),
       justifyContent: this._extractJustifyContent(rawStyles?.justifyContent),
       alignItems: this._extractAlignItems(rawStyles?.alignItems),
+      flex: typeof rawStyles?.flex === 'string' || typeof rawStyles?.flex === 'number' ? rawStyles.flex : undefined,
       gap: typeof rawStyles?.gap === 'number' ? (rawStyles.gap as SpacingValue) : undefined,
       
       // Grid
@@ -238,17 +302,18 @@ export class ConfigRepository implements ConfigRepositoryPort {
       padding: typeof rawStyles?.padding === 'number' ? (rawStyles.padding as SpacingValue) : undefined,
       paddingX: typeof rawStyles?.paddingX === 'number' ? (rawStyles.paddingX as SpacingValue) : undefined,
       paddingY: typeof rawStyles?.paddingY === 'number' ? (rawStyles.paddingY as SpacingValue) : undefined,
-      margin: typeof rawStyles?.margin === 'number' ? (rawStyles.margin as SpacingValue) : undefined,
+      margin: typeof rawStyles?.margin === 'string' ? rawStyles.margin : (typeof rawStyles?.margin === 'number' ? (rawStyles.margin as SpacingValue) : undefined),
       marginTop: typeof rawStyles?.marginTop === 'number' ? (rawStyles.marginTop as SpacingValue) : undefined,
       marginBottom: typeof rawStyles?.marginBottom === 'number' ? (rawStyles.marginBottom as SpacingValue) : undefined,
       
       // Colors
-      backgroundColor: typeof rawStyles?.backgroundColor === 'string' ? (rawStyles.backgroundColor as ColorKey) : undefined,
-      textColor: typeof rawStyles?.textColor === 'string' ? (rawStyles.textColor as ColorKey) : undefined,
+      backgroundColor: typeof rawStyles?.backgroundColor === 'string' ? rawStyles.backgroundColor : undefined,
+      textColor: typeof rawStyles?.textColor === 'string' ? rawStyles.textColor : undefined,
       
       // Typography
       fontSize: this._extractFontSize(rawStyles?.fontSize),
       fontWeight: this._extractFontWeight(rawStyles?.fontWeight),
+      fontFamily: typeof rawStyles?.fontFamily === 'string' ? rawStyles.fontFamily : undefined,
       textAlign: this._extractTextAlign(rawStyles?.textAlign),
       textDecoration: this._extractTextDecoration(rawStyles?.textDecoration),
       
@@ -257,6 +322,7 @@ export class ConfigRepository implements ConfigRepositoryPort {
       height: typeof rawStyles?.height === 'string' || typeof rawStyles?.height === 'number' ? rawStyles.height : undefined,
       minHeight: typeof rawStyles?.minHeight === 'string' || typeof rawStyles?.minHeight === 'number' ? rawStyles.minHeight : undefined,
       maxWidth: typeof rawStyles?.maxWidth === 'string' || typeof rawStyles?.maxWidth === 'number' ? rawStyles.maxWidth : undefined,
+      maxHeight: typeof rawStyles?.maxHeight === 'string' || typeof rawStyles?.maxHeight === 'number' ? rawStyles.maxHeight : undefined,
       
       // Position
       position: this._extractPosition(rawStyles?.position),
@@ -268,6 +334,7 @@ export class ConfigRepository implements ConfigRepositoryPort {
       
       // Visual
       borderRadius: typeof rawStyles?.borderRadius === 'number' ? (rawStyles.borderRadius as SpacingValue) : undefined,
+      border: typeof rawStyles?.border === 'string' ? rawStyles.border : undefined,
       overflow: this._extractOverflow(rawStyles?.overflow),
       objectFit: this._extractObjectFit(rawStyles?.objectFit),
       filter: typeof rawStyles?.filter === 'string' ? rawStyles.filter : undefined,
@@ -276,7 +343,7 @@ export class ConfigRepository implements ConfigRepositoryPort {
       backgroundImage: typeof rawStyles?.backgroundImage === 'string' ? rawStyles.backgroundImage : undefined,
       backgroundSize: typeof rawStyles?.backgroundSize === 'string' ? rawStyles.backgroundSize : undefined,
       backgroundPosition: typeof rawStyles?.backgroundPosition === 'string' ? rawStyles.backgroundPosition : undefined,
-      backgroundRepeat: typeof rawStyles?.backgroundRepeat === 'string' ? rawStyles.backgroundRepeat : undefined,
+      backgroundRepeat: this._extractBackgroundRepeat(rawStyles?.backgroundRepeat),
     };
   }
 
@@ -354,6 +421,46 @@ export class ConfigRepository implements ConfigRepositoryPort {
     if (typeof objectFit === 'string' && ['contain', 'cover'].includes(objectFit)) {
       return objectFit as 'contain' | 'cover';
     }
+    return undefined;
+  }
+
+  private _extractBackgroundRepeat(backgroundRepeat: unknown): 'repeat' | 'no-repeat' | 'repeat-x' | 'repeat-y' | undefined {
+    if (typeof backgroundRepeat === 'string' && ['repeat', 'no-repeat', 'repeat-x', 'repeat-y'].includes(backgroundRepeat)) {
+      return backgroundRepeat as 'repeat' | 'no-repeat' | 'repeat-x' | 'repeat-y';
+    }
+    return undefined;
+  }
+
+  // Типобезопасное извлечение actions
+  private _extractActions(
+    rawActions: Record<string, unknown> | undefined
+  ): ActionsConfig | undefined {
+    if (!rawActions) return undefined;
+    
+    const onClick = this._extractActionConfig(rawActions.onClick);
+    
+    return onClick ? { onClick } : undefined;
+  }
+
+  private _extractActionConfig(
+    raw: unknown
+  ): ActionConfig | undefined {
+    if (!raw || typeof raw !== 'object') return undefined;
+    
+    const obj = raw as Record<string, unknown>;
+    
+    if (obj.type === 'loadPopup' && typeof obj.config === 'string') {
+      return { type: 'loadPopup', config: obj.config };
+    }
+    
+    if (obj.type === 'navigate' && typeof obj.url === 'string') {
+      return { type: 'navigate', url: obj.url };
+    }
+    
+    if (obj.type === 'custom' && typeof obj.handler === 'string') {
+      return { type: 'custom', handler: obj.handler };
+    }
+    
     return undefined;
   }
 }

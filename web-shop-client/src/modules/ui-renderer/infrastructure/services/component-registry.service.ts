@@ -5,9 +5,12 @@ import { UniversalContainer } from '../../../../../src/shared/components/atoms/c
 import { Badge } from '../../../../../src/shared/components/atoms/badge';
 import { UniversalImage } from '../../../../../src/shared/components/atoms/image';
 import { UniversalText } from '../../../../../src/shared/components/atoms/text';
+import { UniversalInput } from '../../../../../src/shared/components/molecules/universal-input';
+import { Input } from '../../../../../src/shared/components/atoms/input';
 import { Grid } from '../../../../../src/shared/components/molecules/grid';
 import { DataGrid } from '../../../../../src/shared/components/molecules/data-grid';
 import { OfferCard } from '../../../../../src/shared/components/molecules/offer-card';
+import { Popup } from '../../../../../src/shared/components/molecules/popup';
 
 @injectable()
 export class ComponentRegistry {
@@ -23,9 +26,12 @@ export class ComponentRegistry {
     this._components.set('Badge', Badge);
     this._components.set('Image', UniversalImage);
     this._components.set('Text', UniversalText);
+    this._components.set('UniversalInput', UniversalInput);
+    this._components.set('Input', Input);
     this._components.set('Grid', Grid);
     this._components.set('DataGrid', DataGrid);
     this._components.set('OfferCard', OfferCard);
+    this._components.set('Popup', Popup);
   }
 
   public register(type: string, component: ComponentType<any>): void {

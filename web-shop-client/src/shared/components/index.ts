@@ -8,10 +8,18 @@ export { UniversalImage } from './atoms/image';
 export type { UniversalImageProps } from './atoms/image';
 export { UniversalText } from './atoms/text';
 export type { UniversalTextProps } from './atoms/text';
+export { InputText } from './atoms/input-text';
+export type { InputTextProps } from './atoms/input-text';
+export { Input } from './atoms/input';
+export type { InputProps } from './atoms/input';
 export { Grid } from './molecules/grid';
 export type { GridProps } from './molecules/grid';
 export { DataGrid } from './molecules/data-grid';
 export type { DataGridProps } from './molecules/data-grid';
 export { OfferCard } from './molecules/offer-card';
 export type { OfferCardProps } from './molecules/offer-card';
+export { Popup } from './molecules/popup';
+export type { PopupProps } from './molecules/popup';
+export { UniversalInput } from './molecules/universal-input';
+export type { UniversalInputProps } from './molecules/universal-input';
 

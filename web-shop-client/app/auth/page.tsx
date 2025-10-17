@@ -1,14 +1,14 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { container } from '../../src/infrastructure/bootstrap/container';
 import { ValidateAppLoginUseCase } from '../../src/modules/authentication/application/use-cases/validate-app-login.use-case';
 import { AuthPresenter } from '../../src/modules/authentication/interface-adapters/presenters/auth.presenter';
 import { AuthViewModel } from '../../src/modules/authentication/interface-adapters/view-models/auth.view-model';
 import { AUTH_TYPES } from '../../src/infrastructure/bootstrap/types';
 
-export default function AuthPage() {
+function AuthPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [viewModel, setViewModel] = useState<AuthViewModel>({
@@ -192,5 +192,20 @@ export default function AuthPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto"></div>
+          <p className="mt-4 text-gray-900 dark:text-white">Loading...</p>
+        </div>
+      </div>
+    }>
+      <AuthPageContent />
+    </Suspense>
   );
 }

@@ -5,6 +5,7 @@ import { LoadPageConfigUseCase } from '../../application/use-cases/load-page-con
 import { SidebarRendererPresenter } from '../../interface-adapters/presenters/sidebar-renderer.presenter';
 import { ComponentRegistry } from '../services/component-registry.service';
 import { StyleBuilder } from '../services/style-builder.service';
+import { ActionHandler } from '../services/action-handler.service';
 
 export function bindUIRenderer(container: Container): void {
   container
@@ -30,6 +31,11 @@ export function bindUIRenderer(container: Container): void {
   container
     .bind(UI_RENDERER_TYPES.StyleBuilder)
     .to(StyleBuilder)
+    .inSingletonScope();
+
+  container
+    .bind(UI_RENDERER_TYPES.ActionHandler)
+    .to(ActionHandler)
     .inSingletonScope();
 }
 

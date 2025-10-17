@@ -21,16 +21,32 @@ export function UniversalButton({
   children,
   fullWidth = false,
 }: UniversalButtonProps): JSX.Element {
+  // Определяем justify класс на основе style.justifyContent или используем center по умолчанию
+  const justifyClass = style?.justifyContent === 'flex-start' ? 'justify-start' : 'justify-center';
+  
   const buttonClasses = fullWidth 
-    ? `w-full flex items-center justify-start rounded-lg ${className}`
+    ? `w-full flex items-center ${justifyClass} rounded-lg ${className}`
     : className;
     
   const buttonStyle = fullWidth 
-    ? { ...style, height: 'auto', minHeight: '40px', maxHeight: '48px' }
+    ? { 
+        ...style, 
+        height: style?.height || 'auto', 
+        minHeight: style?.minHeight || '40px', 
+        maxHeight: style?.maxHeight || '48px' 
+      }
     : style;
     
+  const handleClick = () => {
+    console.log('[UniversalButton] Button clicked:', text);
+    console.log('[UniversalButton] onClick handler exists:', !!onClick);
+    if (onClick) {
+      onClick();
+    }
+  };
+  
   return (
-    <button type="button" className={buttonClasses} style={buttonStyle} onClick={onClick}>
+    <button type="button" className={buttonClasses} style={buttonStyle} onClick={handleClick}>
       {icon && <span className="mr-2">{icon}</span>}
       {text || children}
     </button>

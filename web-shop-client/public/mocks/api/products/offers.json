@@ -3,6 +3,7 @@
     {
       "id": "tank-turret",
       "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+      "backgroundImage": "/assets/product-card-background.webp",
       "title": "Tank Turret",
       "rarity": "MYTHICAL WEAPON",
       "discount": "-50% OFF",
@@ -13,11 +14,11 @@
       "rpBonus": 20,
       "lpBonus": 20,
       "buyButton": {
-        "text": "BUY NOW",
         "enabled": true,
+        "redirectUrl": "pay.webshopsx.com",
         "style": {
-          "backgroundColor": "#FF6B35",
-          "textColor": "#FFFFFF",
+          "backgroundColor": "rgb(255, 215, 0)",
+          "textColor": "#000000",
           "borderRadius": "8px",
           "padding": "12px 24px",
           "fontWeight": "bold"
@@ -27,6 +28,7 @@
     {
       "id": "aztec-warrior",
       "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+      "backgroundImage": "/assets/product-card-background.webp",
       "sideImage": "https://static-platform.aghanim.com/sku/cc/f4/b9/63/ccf4b963-7ee7-4196-a621-80780556cd76.webp",
       "includedItems": [
         "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
@@ -42,11 +44,11 @@
       "rpBonus": 24,
       "lpBonus": 24,
       "buyButton": {
-        "text": "BUY NOW",
         "enabled": true,
+        "redirectUrl": "https://webshopx.com/purchesing",
         "style": {
-          "backgroundColor": "#FF6B35",
-          "textColor": "#FFFFFF",
+          "backgroundColor": "rgb(255, 215, 0)",
+          "textColor": "#000000",
           "borderRadius": "8px",
           "padding": "12px 24px",
           "fontWeight": "bold"
@@ -56,6 +58,7 @@
     {
       "id": "deadly-tail",
       "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+      "backgroundImage": "/assets/product-card-background.webp",
       "title": "Deadly Tail",
       "rarity": "MYTHICAL WEAPON",
       "discount": "-50% OFF",
@@ -66,11 +69,11 @@
       "rpBonus": 20,
       "lpBonus": 20,
       "buyButton": {
-        "text": "BUY NOW",
         "enabled": true,
+        "redirectUrl": "https://webshopx.com/purchesing",
         "style": {
-          "backgroundColor": "#FF6B35",
-          "textColor": "#FFFFFF",
+          "backgroundColor": "rgb(255, 215, 0)",
+          "textColor": "#000000",
           "borderRadius": "8px",
           "padding": "12px 24px",
           "fontWeight": "bold"
@@ -80,6 +83,7 @@
     {
       "id": "gorgon-head",
       "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+      "backgroundImage": "/assets/product-card-background.webp",
       "title": "Gorgon Head",
       "rarity": "MYTHICAL WEAPON",
       "discount": "-50% OFF",
@@ -90,11 +94,11 @@
       "rpBonus": 20,
       "lpBonus": 20,
       "buyButton": {
-        "text": "BUY NOW",
         "enabled": true,
+        "redirectUrl": "https://webshopx.com/purchesing",
         "style": {
-          "backgroundColor": "#FF6B35",
-          "textColor": "#FFFFFF",
+          "backgroundColor": "rgb(255, 215, 0)",
+          "textColor": "#000000",
           "borderRadius": "8px",
           "padding": "12px 24px",
           "fontWeight": "bold"
@@ -103,7 +107,8 @@
     },
     {
       "id": "daisy-set",
-      "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+      "mainImage": "/assets/dimonds.webp",
+      "backgroundImage": "/assets/blue-background.webp",
       "includedItems": [
         "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
         "https://static-platform.aghanim.com/sku/cc/f4/b9/63/ccf4b963-7ee7-4196-a621-80780556cd76.webp",
@@ -118,11 +123,11 @@
       "rpBonus": 30,
       "lpBonus": 30,
       "buyButton": {
-        "text": "BUY NOW",
         "enabled": true,
+        "redirectUrl": "pay.webshopsx.com",
         "style": {
-          "backgroundColor": "#FF6B35",
-          "textColor": "#FFFFFF",
+          "backgroundColor": "rgb(255, 215, 0)",
+          "textColor": "#000000",
           "borderRadius": "8px",
           "padding": "12px 24px",
           "fontWeight": "bold"
@@ -132,6 +137,7 @@
     {
       "id": "seas-overlord",
       "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+      "backgroundImage": "/assets/product-card-background.webp",
       "includedItems": [
         "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
         "https://static-platform.aghanim.com/sku/cc/f4/b9/63/ccf4b963-7ee7-4196-a621-80780556cd76.webp",
@@ -146,11 +152,11 @@
       "rpBonus": 26,
       "lpBonus": 26,
       "buyButton": {
-        "text": "BUY NOW",
         "enabled": true,
+        "redirectUrl": "https://webshopx.com/purchesing",
         "style": {
-          "backgroundColor": "#FF6B35",
-          "textColor": "#FFFFFF",
+          "backgroundColor": "rgb(255, 215, 0)",
+          "textColor": "#000000",
           "borderRadius": "8px",
           "padding": "12px 24px",
           "fontWeight": "bold"
@@ -160,6 +166,7 @@
     {
       "id": "mythic-chest",
       "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+      "backgroundImage": "/assets/product-card-background.webp",
       "title": "Mythic Chest Omega",
       "rarity": "MYTHIC GUARANTEED",
       "playerLimit": "12 PER PLAYER",
@@ -168,11 +175,11 @@
       "rpBonus": 20,
       "lpBonus": 20,
       "buyButton": {
-        "text": "BUY NOW",
         "enabled": true,
+        "redirectUrl": "https://webshopx.com/purchesing",
         "style": {
-          "backgroundColor": "#FF6B35",
-          "textColor": "#FFFFFF",
+          "backgroundColor": "rgb(255, 215, 0)",
+          "textColor": "#000000",
           "borderRadius": "8px",
           "padding": "12px 24px",
           "fontWeight": "bold"
@@ -182,17 +189,18 @@
     {
       "id": "hero-fortune",
       "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+      "backgroundImage": "/assets/product-card-background.webp",
       "title": "Hero's Fortune",
       "playerLimit": "10 PER PLAYER",
       "currentPrice": "$3.99",
       "rpBonus": 4,
       "lpBonus": 10,
       "buyButton": {
-        "text": "BUY NOW",
         "enabled": true,
+        "redirectUrl": "https://webshopx.com/purchesing",
         "style": {
-          "backgroundColor": "#FF6B35",
-          "textColor": "#FFFFFF",
+          "backgroundColor": "rgb(255, 215, 0)",
+          "textColor": "#000000",
           "borderRadius": "8px",
           "padding": "12px 24px",
           "fontWeight": "bold"

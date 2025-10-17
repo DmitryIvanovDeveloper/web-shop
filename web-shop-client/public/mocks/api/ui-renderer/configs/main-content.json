@@ -31,7 +31,7 @@
         "type": "Text",
         "id": "page-title",
         "props": {
-          "text": "Offers"
+          "text": ""
         },
         "styles": {
           "textColor": "text",
@@ -41,15 +41,16 @@
           "textAlign": "center"
         }
       },
-             {
-               "type": "DataGrid",
-               "id": "offers-grid",
-               "props": {
-                 "dataSource": "api://products/offers",
-                 "gap": 4
-               }
-             }
+      {
+        "type": "DataGrid",
+        "id": "offers-grid",
+        "props": {
+          "dataSource": "api://products/offers"
+        },
+        "styles": {
+          "className": "grid gap-4"
+        }
+      }
     ]
   }
 }
-
