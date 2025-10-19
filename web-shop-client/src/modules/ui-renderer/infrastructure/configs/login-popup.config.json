@@ -2,11 +2,13 @@
   "version": "1.0",
   "theme": {
     "colors": {
-      "primary": "#FBBF24",
-      "background": "#1F2937",
-      "surface": "#374151",
+      "primary": "#FFD700",
+      "background": "#282A3A",
+      "surface": "#3B3D4F",
       "text": "#FFFFFF",
-      "textSecondary": "#9CA3AF",
+      "textSecondary": "#A0A0A0",
+      "accent": "#87CEEB",
+      "border": "#5C5E70",
       "success": "#10B981",
       "error": "#EF4444"
     },
@@ -20,13 +22,14 @@
       "showCloseButton": true
     },
         "styles": {
-          "backgroundColor": "#1F2937",
-          "padding": 3,
-          "borderRadius": 8,
-          "width": "500px",
+          "backgroundColor": "#282A3A",
+          "padding": 4,
+          "borderRadius": 12,
+          "width": "480px",
           "maxWidth": "90vw",
           "maxHeight": "90vh",
-          "margin": "auto"
+          "margin": "auto",
+          "boxShadow": "0 20px 40px rgba(0, 0, 0, 0.5)"
         },
     "children": [
       {
@@ -47,10 +50,10 @@
               "vertical": true
             },
             "styles": {
-              "backgroundColor": "#000000",
-              "padding": 1.5,
-              "borderRadius": 4,
-              "marginBottom": 1.5,
+              "backgroundColor": "#282A3A",
+              "padding": 2,
+              "borderRadius": 8,
+              "marginBottom": 2,
               "display": "inline-flex"
             },
             "children": [
@@ -58,10 +61,10 @@
                 "id": "logo-title",
                 "type": "Text",
                 "props": {
-                  "text": "Game"
+                  "text": "PG"
                 },
                 "styles": {
-                  "textColor": "#FBBF24",
+                  "textColor": "#FFD700",
                   "fontWeight": "bold",
                   "fontSize": "3xl",
                   "marginBottom": 0.5,
@@ -75,7 +78,7 @@
                   "text": "3D"
                 },
                 "styles": {
-                  "textColor": "#FBBF24",
+                  "textColor": "#FFD700",
                   "fontSize": "3xl",
                   "fontWeight": "bold",
                   "fontFamily": "monospace"
@@ -90,16 +93,17 @@
               "text": "Welcome to"
             },
             "styles": {
-              "textColor": "text",
-              "fontSize": "sm",
-              "marginBottom": 0.5
+              "textColor": "#FFFFFF",
+              "fontSize": "base",
+              "marginBottom": 1,
+              "fontWeight": "normal"
             }
           },
           {
             "id": "title-text",
             "type": "Text",
             "props": {
-              "text": "Super Game: Online Shooter Hub"
+              "text": "Pixel Gun 3D: Online Shooter Hub"
             },
             "styles": {
               "textColor": "text",
@@ -137,14 +141,14 @@
             "type": "Container",
             "props": {},
             "styles": {
-              "backgroundColor": "#374151",
-              "border": "1px solid #FBBF24",
-              "borderRadius": 0,
-              "padding": 2,
+              "backgroundColor": "#3B3D4F",
+              "border": "1px solid #5C5E70",
+              "borderRadius": 8,
+              "padding": 3,
               "width": "100%",
-              "textAlign": "center",
+              "textAlign": "left",
               "flex": 1,
-              "height": "52px"
+              "height": "48px"
             },
             "children": [
                      {
@@ -155,13 +159,13 @@
                          "type": "text"
                        },
                        "styles": {
-                         "color": "#9CA3AF",
-                         "fontSize": "14px",
+                         "color": "#A0A0A0",
+                         "fontSize": "16px",
                          "backgroundColor": "transparent",
                          "border": "none",
                          "outline": "none",
                          "width": "100%",
-                         "textAlign": "center"
+                         "textAlign": "left"
                        }
                      }
             ]
@@ -273,13 +277,14 @@
           "fullWidth": true
         },
         "styles": {
-          "backgroundColor": "#FBBF24",
-          "textColor": "#000000",
-          "padding": 2,
+          "background": "linear-gradient(to bottom, #C8A032, #A07820)",
+          "textColor": "#FFFFFF",
+          "padding": 3,
           "borderRadius": 8,
           "fontWeight": "bold",
-          "fontSize": "sm",
-          "marginBottom": 2
+          "fontSize": "lg",
+          "marginBottom": 3,
+          "height": "48px"
         }
       },
       {
@@ -289,10 +294,11 @@
           "vertical": true
         },
         "styles": {
-          "backgroundColor": "#374151",
-          "padding": 1.5,
+          "backgroundColor": "#3B3D4F",
+          "padding": 2,
           "borderRadius": 8,
-          "alignItems": "flex-start"
+          "alignItems": "center",
+          "border": "1px solid #5C5E70"
         },
         "children": [
           {
@@ -329,9 +335,10 @@
               "text": "Where do I find my User ID?"
             },
             "styles": {
-              "textColor": "text",
-              "fontSize": "xs",
-              "flex": 1
+              "textColor": "#FFFFFF",
+              "fontSize": "sm",
+              "flex": 1,
+              "marginLeft": 1
             }
           },
           {
