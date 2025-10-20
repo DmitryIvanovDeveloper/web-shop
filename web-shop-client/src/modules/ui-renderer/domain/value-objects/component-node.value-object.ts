@@ -1,13 +1,13 @@
 import { Result } from '../../../../shared/domain/result/result';
 import { UIRendererError } from '../errors/ui-renderer.error';
-import type { StyleConfig, ButtonProps, ContainerProps, BadgeProps, ImageProps, TextProps, InputTextProps, UniversalInputProps, InputProps, GridProps, DataGridProps, OfferCardProps, PopupProps, ActionsConfig } from '../types';
+import type { StyleConfig, ActionsConfig } from '../types';
 
 // Типобезопасный ComponentNode без any
 export class ComponentNode {
   private constructor(
     public readonly id: string,
     public readonly type: string,
-    public readonly props: Readonly<ButtonProps | ContainerProps | BadgeProps | ImageProps | TextProps | InputTextProps | UniversalInputProps | InputProps | GridProps | DataGridProps | OfferCardProps | PopupProps>,
+    public readonly props: Readonly<Record<string, any>>,
     public readonly styles: Readonly<StyleConfig>,
     public readonly children: readonly ComponentNode[],
     public readonly actions?: Readonly<ActionsConfig>
@@ -16,7 +16,7 @@ export class ComponentNode {
   public static create(params: {
     readonly id: string;
     readonly type: string;
-    readonly props?: ButtonProps | ContainerProps | BadgeProps | ImageProps | TextProps | InputTextProps | UniversalInputProps | InputProps | GridProps | DataGridProps | OfferCardProps | PopupProps;
+    readonly props?: Record<string, any>;
     readonly styles?: StyleConfig;
     readonly children?: readonly ComponentNode[];
     readonly actions?: ActionsConfig;

@@ -43,7 +43,13 @@ export default function HomePage(): JSX.Element {
       try {
         // Load main content
         console.log('[HomePage] Loading main-content config...');
-        const mainResult = await loadConfigUseCase.execute({ pageType: 'main-content' });
+        console.log('[HomePage] Starting Promise.race for main content...');
+        const mainResult = await Promise.race([
+          loadConfigUseCase.execute({ pageType: 'main-content' }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Main content load timeout')), 10000)
+          )
+        ]) as any;
         console.log('[HomePage] Main content load result:', mainResult);
         if (mainResult.isSuccess()) {
           console.log('[HomePage] Main content data:', mainResult.data);

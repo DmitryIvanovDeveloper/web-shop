@@ -1,0 +1,25 @@
+{
+  "id": "dragon-slayer",
+  "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+  "backgroundImage": "/assets/product-card-background.webp",
+  "title": "Dragon Slayer Sword",
+  "rarity": "LEGENDARY WEAPON",
+  "discount": "-60% OFF",
+  "playerLimit": "1 PER PLAYER",
+  "timer": "1D 12:30:45",
+  "originalPrice": "$59.99",
+  "currentPrice": "$23.99",
+  "rpBonus": 35,
+  "lpBonus": 35,
+  "buyButton": {
+    "enabled": true,
+    "redirectUrl": "pay.webshopsx.com",
+    "style": {
+      "backgroundColor": "rgb(255, 215, 0)",
+      "textColor": "#000000",
+      "borderRadius": "8px",
+      "padding": "12px 24px",
+      "fontWeight": "bold"
+    }
+  }
+}

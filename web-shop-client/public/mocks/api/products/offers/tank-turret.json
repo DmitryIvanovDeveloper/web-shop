@@ -1,0 +1,25 @@
+{
+  "id": "tank-turret",
+  "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
+  "backgroundImage": "/assets/product-card-background.webp",
+  "title": "Tank Turret",
+  "rarity": "MYTHICAL WEAPON",
+  "discount": "-50% OFF",
+  "playerLimit": "1 PER PLAYER",
+  "timer": "2D 06:48:36",
+  "originalPrice": "$39.99",
+  "currentPrice": "$20.00",
+  "rpBonus": 20,
+  "lpBonus": 20,
+  "buyButton": {
+    "enabled": true,
+    "redirectUrl": "pay.webshopsx.com",
+    "style": {
+      "backgroundColor": "rgb(255, 215, 0)",
+      "textColor": "#000000",
+      "borderRadius": "8px",
+      "padding": "12px 24px",
+      "fontWeight": "bold"
+    }
+  }
+}

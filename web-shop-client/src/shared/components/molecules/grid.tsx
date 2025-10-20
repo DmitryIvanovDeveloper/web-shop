@@ -3,20 +3,20 @@
 import type { CSSProperties, ReactNode } from 'react';
 
 export interface GridProps {
-  readonly columns?: number;
-  readonly gap?: number;
   readonly className?: string;
   readonly style?: CSSProperties;
   readonly children?: ReactNode;
 }
 
 export function Grid({ 
-  columns = 4, 
-  gap = 4, 
   className = '', 
   style, 
   children 
 }: GridProps): JSX.Element {
+  // Grid определяется внутри компонента
+  const columns = 4;  // Фиксированное количество колонок
+  const gap = 4;      // Фиксированный отступ
+  
   // Проверяем, есть ли flex классы в className
   const isFlexLayout = className.includes('flex');
   

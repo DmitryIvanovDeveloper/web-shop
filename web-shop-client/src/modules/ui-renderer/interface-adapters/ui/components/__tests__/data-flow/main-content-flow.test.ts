@@ -7,6 +7,7 @@ import { ConfigRepository } from '../../../../../infrastructure/repositories/con
 import { ComponentRegistry } from '../../../../../infrastructure/services/component-registry.service';
 import { StyleBuilder } from '../../../../../infrastructure/services/style-builder.service';
 import { HttpClientMock } from '../../../../../../../infrastructure/http/http-client.mock';
+import type { SpacingValue } from '../../../../../domain/types';
 
 describe('Main Content Data Flow', () => {
   beforeEach(() => {
@@ -91,12 +92,12 @@ describe('Main Content Data Flow', () => {
     const styleBuilder = container.get<StyleBuilder>(UI_RENDERER_TYPES.StyleBuilder);
     
     const styles = {
-      padding: 4,
+      padding: 4 as SpacingValue,
       backgroundColor: 'background' as const,
       textColor: 'text' as const,
       fontSize: '4xl' as const,
       fontWeight: 'bold' as const,
-      marginBottom: 8,
+      marginBottom: 8 as SpacingValue,
     };
     
     // Test className building

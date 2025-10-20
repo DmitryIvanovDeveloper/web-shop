@@ -25,7 +25,15 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
   const Component = registry.getComponent(node.type);
   if (!Component) {
     console.warn(`Component not found: ${node.type}`);
+    console.warn(`Available components:`, registry.getAllComponents());
     return null;
+  }
+  
+  // Debug для DataGrid
+  if (node.type === 'DataGrid') {
+    console.log('[DynamicRenderer] Found DataGrid component:', Component);
+    console.log('[DynamicRenderer] DataGrid props:', node.props);
+    console.log('[DynamicRenderer] DataGrid styles:', node.styles);
   }
 
   const className = styleBuilder.buildClassName(node.styles, theme);
@@ -84,30 +92,8 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     ? { onClose: actionContext.onPopupClose }
     : {};
 
-  // Обрабатываем vertical для Container компонентов
-  const isVertical = node.type === 'Container' && (node.props as any)?.vertical;
-  
-  // Избегаем дублирования классов - используем Set для уникальности для всех компонентов
-  let finalClassName = className;
-  
-  if (node.type === 'Container') {
-    // Разбиваем существующие классы
-    const existingClasses = new Set(className.split(' ').filter(Boolean));
-    
-    // Удаляем возможные дубликаты flex классов
-    existingClasses.delete('flex');
-    existingClasses.delete('flex-col');
-    
-    // Добавляем нужные классы
-    if (isVertical) {
-      existingClasses.add('flex');
-      existingClasses.add('flex-col');
-    } else {
-      existingClasses.add('flex');
-    }
-    
-    finalClassName = Array.from(existingClasses).join(' ');
-  }
+  // Для Container компонентов не добавляем flex классы - UniversalContainer сам их добавит
+  const finalClassName = className;
   
   const containerProps = { className: finalClassName };
 
@@ -138,6 +124,9 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
           }
         : {};
 
+      // Специальная обработка для OffersList (больше не нужен presenter)
+      const offersListProps = {};
+
 
   // Типобезопасные props - TypeScript знает структуру
   const componentProps = {
@@ -147,6 +136,7 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     ...inputTextProps,
     ...universalInputProps,
     ...inputProps,
+    ...offersListProps,
     style,
     children,
     onClick: handleClick,

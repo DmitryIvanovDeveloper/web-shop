@@ -17,10 +17,18 @@ export function UniversalContainer({
   vertical = false,
   sidebar = false,
 }: UniversalContainerProps): JSX.Element {
+  // Проверяем, есть ли уже flex flex-col в className (с ! или без)
+  const hasFlexCol = (className.includes('flex') || className.includes('!flex')) && 
+                     (className.includes('flex-col') || className.includes('!flex-col'));
+  
   const containerClasses = vertical 
     ? sidebar 
-      ? `flex flex-col w-64 gap-2 ${className}`
-      : `flex flex-col gap-2 ${className}`
+      ? hasFlexCol 
+        ? `w-64 gap-2 ${className}`.replace(/\s+/g, ' ').trim()
+        : `!flex !flex-col w-64 gap-2 ${className}`.replace(/\s+/g, ' ').trim()
+      : hasFlexCol 
+        ? `gap-2 ${className}`.replace(/\s+/g, ' ').trim()
+        : `!flex !flex-col gap-2 ${className}`.replace(/\s+/g, ' ').trim()
     : className;
     
   return (

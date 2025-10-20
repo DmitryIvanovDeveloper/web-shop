@@ -42,6 +42,14 @@
         }
       },
       {
+        "type": "OffersList",
+        "id": "evaluated-offers",
+        "props": {},
+        "styles": {
+          "className": "mb-6"
+        }
+      },
+      {
         "type": "DataGrid",
         "id": "offers-grid",
         "props": {

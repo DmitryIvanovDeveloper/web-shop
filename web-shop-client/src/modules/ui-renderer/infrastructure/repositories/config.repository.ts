@@ -7,7 +7,7 @@ import { ThemeConfig } from '../../domain/value-objects/theme-config.value-objec
 import { ComponentNode } from '../../domain/value-objects/component-node.value-object';
 import { UIRendererError } from '../../domain/errors/ui-renderer.error';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
-import type { ConfigDTO, ComponentNodeDTO, ButtonProps, ContainerProps, BadgeProps, ImageProps, TextProps, InputTextProps, UniversalInputProps, InputProps, GridProps, DataGridProps, OfferCardProps, PopupProps, StyleConfig, SpacingValue, ColorKey, ActionsConfig, ActionConfig } from '../../domain/types';
+import type { ConfigDTO, ComponentNodeDTO, StyleConfig, SpacingValue, ColorKey, ActionsConfig, ActionConfig } from '../../domain/types';
 
 @injectable()
 export class ConfigRepository implements ConfigRepositoryPort {
@@ -120,7 +120,7 @@ export class ConfigRepository implements ConfigRepositoryPort {
     }
 
     // Валидация типа компонента - разрешаем все зарегистрированные типы
-    const allowedTypes = ['Button', 'Container', 'Badge', 'Image', 'Text', 'InputText', 'UniversalInput', 'Input', 'Grid', 'DataGrid', 'OfferCard', 'Popup'];
+    const allowedTypes = ['Button', 'Container', 'Badge', 'Image', 'Text', 'InputText', 'UniversalInput', 'Input', 'Grid', 'DataGrid', 'OfferCard', 'OffersList', 'Popup'];
     if (!allowedTypes.includes(nodeData.type)) {
       return Result.error(
         new UIRendererError(`Unknown component type: ${nodeData.type}`, 'INVALID_CONFIG')
@@ -159,122 +159,13 @@ export class ConfigRepository implements ConfigRepositoryPort {
     });
   }
 
-  // Типобезопасное извлечение props
+  // Универсальное извлечение props
   private _extractProps(
     type: string,
     rawProps: Record<string, unknown> | undefined
-  ): ButtonProps | ContainerProps | BadgeProps | ImageProps | TextProps | InputTextProps | UniversalInputProps | InputProps | GridProps | DataGridProps | OfferCardProps | PopupProps {
-    if (type === 'Button') {
-      return {
-        text: typeof rawProps?.text === 'string' ? rawProps.text : undefined,
-        icon: typeof rawProps?.icon === 'string' ? rawProps.icon : undefined,
-        fullWidth: typeof rawProps?.fullWidth === 'boolean' ? rawProps.fullWidth : undefined,
-      };
-    }
-
-    if (type === 'Container') {
-      return {
-        vertical: typeof rawProps?.vertical === 'boolean' ? rawProps.vertical : undefined,
-        sidebar: typeof rawProps?.sidebar === 'boolean' ? rawProps.sidebar : undefined,
-      };
-    }
-    
-    if (type === 'Badge') {
-      return {
-        text: typeof rawProps?.text === 'string' ? rawProps.text : undefined,
-        variant: this._extractBadgeVariant(rawProps?.variant),
-        icon: typeof rawProps?.icon === 'string' ? rawProps.icon : undefined,
-      };
-    }
-    
-    if (type === 'Image') {
-      return {
-        src: typeof rawProps?.src === 'string' ? rawProps.src : undefined,
-        alt: typeof rawProps?.alt === 'string' ? rawProps.alt : undefined,
-      };
-    }
-    
-    if (type === 'Text') {
-      return {
-        text: typeof rawProps?.text === 'string' ? rawProps.text : undefined,
-      };
-    }
-
-    if (type === 'InputText') {
-      return {
-        placeholder: typeof rawProps?.placeholder === 'string' ? rawProps.placeholder : undefined,
-        value: typeof rawProps?.value === 'string' ? rawProps.value : undefined,
-      };
-    }
-
-    if (type === 'UniversalInput') {
-      return {
-        error: typeof rawProps?.error === 'string' ? rawProps.error : undefined,
-        label: typeof rawProps?.label === 'string' ? rawProps.label : undefined,
-        placeholder: typeof rawProps?.placeholder === 'string' ? rawProps.placeholder : undefined,
-        value: (typeof rawProps?.value === 'string' || typeof rawProps?.value === 'number') ? rawProps.value : undefined,
-        defaultValue: (typeof rawProps?.defaultValue === 'string' || typeof rawProps?.defaultValue === 'number') ? rawProps.defaultValue : undefined,
-        isRequired: typeof rawProps?.isRequired === 'boolean' ? rawProps.isRequired : undefined,
-        disabled: typeof rawProps?.disabled === 'boolean' ? rawProps.disabled : undefined,
-        type: typeof rawProps?.type === 'string' ? rawProps.type as 'number' | 'password' | 'phone' | 'text' | 'email' | 'float' : undefined,
-        bg: typeof rawProps?.bg === 'string' ? rawProps.bg as 'primary' | 'secondary' : undefined,
-        readonly: typeof rawProps?.readonly === 'boolean' ? rawProps.readonly : undefined,
-      };
-    }
-
-    if (type === 'Input') {
-      return {
-        placeholder: typeof rawProps?.placeholder === 'string' ? rawProps.placeholder : undefined,
-        value: (typeof rawProps?.value === 'string' || typeof rawProps?.value === 'number') ? rawProps.value : undefined,
-        type: typeof rawProps?.type === 'string' ? rawProps.type as 'text' | 'email' | 'password' | 'number' | 'tel' : undefined,
-        disabled: typeof rawProps?.disabled === 'boolean' ? rawProps.disabled : undefined,
-        readonly: typeof rawProps?.readonly === 'boolean' ? rawProps.readonly : undefined,
-      };
-    }
-    
-    if (type === 'Grid') {
-      return {
-        columns: typeof rawProps?.columns === 'number' ? rawProps.columns : undefined,
-        gap: typeof rawProps?.gap === 'number' ? rawProps.gap : undefined,
-      };
-    }
-    
-    if (type === 'DataGrid') {
-      return {
-        dataSource: typeof rawProps?.dataSource === 'string' ? rawProps.dataSource : undefined,
-        columns: typeof rawProps?.columns === 'number' ? rawProps.columns : undefined,
-        gap: typeof rawProps?.gap === 'number' ? rawProps.gap : undefined,
-      };
-    }
-    
-    if (type === 'OfferCard') {
-      return {
-        mainImage: typeof rawProps?.mainImage === 'string' ? rawProps.mainImage : undefined,
-        mainImageAlt: typeof rawProps?.mainImageAlt === 'string' ? rawProps.mainImageAlt : undefined,
-        sideImage: typeof rawProps?.sideImage === 'string' ? rawProps.sideImage : undefined,
-        includedItems: Array.isArray(rawProps?.includedItems) ? rawProps.includedItems as string[] : undefined,
-        discount: typeof rawProps?.discount === 'string' ? rawProps.discount : undefined,
-        playerLimit: typeof rawProps?.playerLimit === 'string' ? rawProps.playerLimit : undefined,
-        timer: typeof rawProps?.timer === 'string' ? rawProps.timer : undefined,
-        title: typeof rawProps?.title === 'string' ? rawProps.title : undefined,
-        rarity: typeof rawProps?.rarity === 'string' ? rawProps.rarity : undefined,
-        originalPrice: typeof rawProps?.originalPrice === 'string' ? rawProps.originalPrice : undefined,
-        currentPrice: typeof rawProps?.currentPrice === 'string' ? rawProps.currentPrice : undefined,
-        rpBonus: typeof rawProps?.rpBonus === 'number' ? rawProps.rpBonus : undefined,
-        lpBonus: typeof rawProps?.lpBonus === 'number' ? rawProps.lpBonus : undefined,
-      };
-    }
-    
-    if (type === 'Popup') {
-      return {
-        isOpen: typeof rawProps?.isOpen === 'boolean' ? rawProps.isOpen : undefined,
-        showCloseButton: typeof rawProps?.showCloseButton === 'boolean' ? rawProps.showCloseButton : undefined,
-      };
-    }
-    
-    return {
-      vertical: typeof rawProps?.vertical === 'boolean' ? rawProps.vertical : undefined,
-    };
+  ): Record<string, any> {
+    // Просто возвращаем все props как есть - компоненты сами знают, что с ними делать
+    return rawProps || {};
   }
 
   private _extractBadgeVariant(variant: unknown): 'discount' | 'limit' | 'timer' | 'rarity' | undefined {

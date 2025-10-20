@@ -162,6 +162,11 @@ export interface PopupProps {
   readonly showCloseButton?: boolean;
 }
 
+export interface OffersListProps {
+  readonly className?: string;
+  readonly style?: React.CSSProperties;
+}
+
 // Action types - discriminated union
 export type ActionConfig =
   | { readonly type: 'loadPopup'; readonly config: string }
@@ -172,17 +177,11 @@ export interface ActionsConfig {
   readonly onClick?: ActionConfig;
 }
 
-// Discriminated union для всех возможных пропсов
-export type ComponentProps =
-  | { readonly type: 'Button'; readonly props: ButtonProps }
-  | { readonly type: 'Container'; readonly props: ContainerProps }
-  | { readonly type: 'Badge'; readonly props: BadgeProps }
-  | { readonly type: 'Image'; readonly props: ImageProps }
-  | { readonly type: 'Text'; readonly props: TextProps }
-  | { readonly type: 'Grid'; readonly props: GridProps }
-  | { readonly type: 'DataGrid'; readonly props: DataGridProps }
-  | { readonly type: 'OfferCard'; readonly props: OfferCardProps }
-  | { readonly type: 'Popup'; readonly props: PopupProps };
+// Универсальный интерфейс для всех компонентов
+export interface ComponentProps {
+  readonly type: string;
+  readonly props: Record<string, any>;
+}
 
 // DTO для JSON
 export interface ComponentNodeDTO {
