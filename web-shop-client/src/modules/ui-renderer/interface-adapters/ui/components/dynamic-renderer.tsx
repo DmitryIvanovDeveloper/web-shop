@@ -25,7 +25,7 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
   const Component = registry.getComponent(node.type);
   if (!Component) {
     console.warn(`Component not found: ${node.type}`);
-    console.warn(`Available components:`, registry.getAllComponents());
+    console.warn(`Available components:`, Array.from(registry['_components'].keys()));
     return null;
   }
   

@@ -50,13 +50,11 @@
         }
       },
       {
-        "type": "DataGrid",
-        "id": "offers-grid",
-        "props": {
-          "dataSource": "api://products/offers"
-        },
+        "type": "ProductsList",
+        "id": "products-list",
+        "props": {},
         "styles": {
-          "className": "grid gap-4"
+          "className": ""
         }
       }
     ]

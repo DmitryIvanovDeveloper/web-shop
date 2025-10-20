@@ -1,8 +1,0 @@
-{
-  "methods": [
-    { "method": "Card", "revenue": 850000, "transactions": 12500, "percentage": 62 },
-    { "method": "PayPal", "revenue": 380000, "transactions": 5200, "percentage": 28 },
-    { "method": "Carrier Billing", "revenue": 140000, "transactions": 1800, "percentage": 10 }
-  ]
-}
-

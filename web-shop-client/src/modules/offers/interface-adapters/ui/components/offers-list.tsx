@@ -31,11 +31,29 @@ export function OffersList({ className, style }: OffersListProps): JSX.Element |
         const purchases = await purchasesResponse.json();
         console.log('[OffersList] User purchases:', purchases);
         
-        // Проверяем условие: user.purchases.length >= 1
+        // Проверяем условие из rules
         const purchasesLength = Array.isArray(purchases) ? purchases.length : 0;
         console.log('[OffersList] User purchases length:', purchasesLength);
         
-        if (purchasesLength >= 1) {
+        // Извлекаем условие из rules
+        const condition = rules.condition;
+        const threshold = condition?.value2?.value || 1;
+        const conditionType = condition?.conditionType || 'gte';
+        
+        console.log('[OffersList] Condition:', { conditionType, threshold, purchasesLength });
+        
+        let conditionMet = false;
+        if (conditionType === 'gte') {
+          conditionMet = purchasesLength >= threshold;
+        } else if (conditionType === 'lte') {
+          conditionMet = purchasesLength <= threshold;
+        } else if (conditionType === 'eq') {
+          conditionMet = purchasesLength === threshold;
+        }
+        
+        console.log('[OffersList] Condition met:', conditionMet);
+        
+        if (conditionMet) {
           // Условие выполнено, загружаем offers
           const offerIds = rules.nextOperation?.action?.params?.offerId;
           if (offerIds) {

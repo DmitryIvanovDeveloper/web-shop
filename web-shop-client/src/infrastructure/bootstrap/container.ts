@@ -11,6 +11,8 @@ import { HttpClientMode, resolveHttpClientMode, TYPES } from './types';
 import { ConsoleLogger } from '../logging/console-logger';
 import { bindAuthentication } from '../../modules/authentication/infrastructure/bootstrap/bind.authentication';
 import { bindUIRenderer } from '../../modules/ui-renderer/infrastructure/bootstrap/bind.ui-renderer';
+import { bindOffers } from '../../modules/offers/infrastructure/bootstrap/bind.offers';
+import { bindProducts } from '../../modules/products/infrastructure/bootstrap/bind.products';
 
 // Create Inversify container
 const container = new Container();
@@ -33,5 +35,11 @@ bindAuthentication(container);
 
 // Register UI Renderer module
 bindUIRenderer(container);
+
+// Register Offers module
+bindOffers(container);
+
+// Register Products module
+bindProducts(container);
 
 export { container };

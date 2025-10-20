@@ -1,9 +1,0 @@
-{
-  "refunds": [
-    { "id": "rf-001", "transactionId": "tx-005", "createdAt": "2025-10-09T11:00:00Z", "amount": 55.00, "currency": "USD", "reason": "Customer requested", "type": "refund" },
-    { "id": "rf-002", "transactionId": "tx-007", "createdAt": "2025-10-09T11:15:00Z", "amount": 75.00, "currency": "EUR", "reason": "Fraudulent activity", "type": "chargeback" },
-    { "id": "rf-003", "transactionId": "tx-012", "createdAt": "2025-10-09T11:30:00Z", "amount": 42.00, "currency": "USD", "reason": "Product not received", "type": "refund" },
-    { "id": "rf-004", "transactionId": "tx-018", "createdAt": "2025-10-09T11:45:00Z", "amount": 95.00, "currency": "GBP", "reason": "Duplicate charge", "type": "chargeback" }
-  ]
-}
-

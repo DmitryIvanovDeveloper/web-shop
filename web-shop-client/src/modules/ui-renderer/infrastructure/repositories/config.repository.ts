@@ -120,7 +120,7 @@ export class ConfigRepository implements ConfigRepositoryPort {
     }
 
     // Валидация типа компонента - разрешаем все зарегистрированные типы
-    const allowedTypes = ['Button', 'Container', 'Badge', 'Image', 'Text', 'InputText', 'UniversalInput', 'Input', 'Grid', 'DataGrid', 'OfferCard', 'OffersList', 'Popup'];
+    const allowedTypes = ['Button', 'Container', 'Badge', 'Image', 'Text', 'InputText', 'UniversalInput', 'Input', 'Grid', 'DataGrid', 'OfferCard', 'OffersList', 'ProductsList', 'Popup'];
     if (!allowedTypes.includes(nodeData.type)) {
       return Result.error(
         new UIRendererError(`Unknown component type: ${nodeData.type}`, 'INVALID_CONFIG')
