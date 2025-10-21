@@ -32,3 +32,4 @@ export interface BuyButton {
   readonly style?: BuyButtonStyle;
   readonly redirectUrl?: string;
 }
+

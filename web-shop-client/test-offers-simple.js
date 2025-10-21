@@ -75,3 +75,4 @@ describe('Offers Module - Simple Tests', () => {
     expect(result).toBe(false);
   });
 });
+

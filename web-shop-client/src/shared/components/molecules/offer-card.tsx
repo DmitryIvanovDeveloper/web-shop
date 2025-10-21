@@ -71,169 +71,169 @@ export function OfferCard({
       }}
       onClick={onClick}
     >
-      {/* Discount Badge */}
-      {discount && (
-        <Badge
-          text={discount}
-          variant="discount"
-          className="absolute top-2 left-2 z-10"
-          style={{ backgroundColor: "#FF4500", color: "white" }}
-        />
-      )}
+      {/* Badges Container - all at top */}
+      <div className="absolute top-0 left-0 right-0 flex justify-between items-start  pointer-events-none z-10 w-full">
+        {/* Left side badges */}
+        <div className="flex">
+          {/* Discount Badge */}
+          {discount && (
+            <Badge
+              text={discount}
+              variant="discount"
+              withSkew={true}
+              style={{ padding: '8px' }}
+            />
+          )}
 
-      {/* Player Limit Badge */}
-      {playerLimit && (
-        <Badge
-          text={playerLimit}
-          variant="limit"
-          className="absolute top-2 right-2 z-10"
-          style={{ backgroundColor: "#4169E1", color: "white" }}
-        />
-      )}
+        </div>
 
-      {/* Timer Badge */}
-      {timer && (
-        <Badge
-          text={timer}
-          variant="timer"
-          className="absolute bottom-2 left-2 z-10"
-          style={{ backgroundColor: "#FFD700", color: "black" }}
-        />
-      )}
+        {/* Right side badges */}
+        <div className="!flex  gap-12">
+          {playerLimit && (
+            <Badge
+              text={playerLimit}
+              variant="limit"
+              withSkew={true}
+              style={{ padding: '8px' }}
+            />
+          )}
+          {timer && (
+            <Badge
+              text={timer}
+              variant="timer"
+              withSkew={true}
+              style={{ padding: '8px' }}
 
-       {/* Main Image Section */}
-       <div
-         className="relative w-full bg-gray-700 flex items-center justify-center"
-         style={{
-           height: '160px',
-           backgroundImage: backgroundImage
-             ? `url('${backgroundImage}')`
-             : undefined,
-           backgroundSize: "cover",
-           backgroundPosition: "center",
-           backgroundRepeat: "no-repeat",
-         }}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Main Image Section */}
+      <div
+        className="relative w-full bg-gray-700 flex items-center justify-center"
+        style={{
+          height: '200px',
+          backgroundImage: backgroundImage
+            ? `url('${backgroundImage}')`
+            : undefined,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
       >
         {mainImage && (
           <img
             src={mainImage}
             alt={mainImageAlt}
-            className="object-cover w-full h-full"
+            className="object-contain w-full h-full"
           />
         )}
-        {/* {sideImage && (
-          <img
-            src={sideImage}
-            alt="Side"
-            className="absolute bottom-0 right-0 h-24 w-24 object-contain"
-          />
-        )} */}
-        {/* {includedItems && includedItems.length > 0 && (
-          <div className="absolute bottom-0 left-0 flex p-2 bg-black bg-opacity-50 rounded-tr-lg">
-            {includedItems.map((item, index) => (
-              <img
-                key={index}
-                src={item}
-                alt={`Item ${index + 1}`}
-                className="w-10 h-10 object-contain mx-1"
-              />
-            ))}
-          </div>
-        )} */}
       </div>
+      {/* Included Items Section - styled like the HTML */}
+      {includedItems && includedItems.length > 0 && (
+        <div className="min-h-10 cursor-pointer content-center bg-gray-700 bg-cover bg-center">
+          <div className="flex justify-center gap-2 self-center p-2">
+            {includedItems.slice(0, 3).map((item, index) => (
+              <div key={index} className="relative basis-1/5 overflow-hidden">
+                <div
+                  className="relative h-full max-w-full rounded bg-gray-600 bg-cover bg-center aspect-3/2"
+                  style={{ backgroundImage: backgroundImage ? `url('${backgroundImage}')` : undefined }}
+                >
+                  <img
+                    alt={`Item ${index + 1}`}
+                    className="rounded object-contain"
+                    src={item}
+                    style={{ position: "absolute", height: "100%", width: "100%", inset: "0px" }}
+                  />
+                </div>
+              </div>
+            ))}
+            {includedItems.length > 3 && (
+              <div className="flex items-center justify-center basis-1/5 aspect-3/2">
+                <div className="flex size-full place-content-center items-center rounded bg-gray-600 px-2 text-center text-xs font-semibold whitespace-pre-line uppercase text-gray-300">
+                  <span className="hidden sm:block">And more</span>
+                  <span className="sm:hidden">...</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
-       {/* Content Section - CSS Grid для фиксированных позиций */}
-       <div className="p-4 grid grid-rows-[24px_32px_48px_32px_1fr_auto] gap-2" style={{ height: '240px' }}>
-         {/* Row 1: Rarity - всегда 24px */}
-         <div className="flex items-center" style={{ minHeight: '24px', height: '24px' }}>
-           {rarity ? (
-             <Badge
-               text={rarity ?? ""}
-               variant="rarity"
-               style={{ backgroundColor: "#8A2BE2", color: "white" }}
-             />
-           ) : (
-             <div style={{ width: '100%', height: '24px', minHeight: '24px' }}></div>
-           )}
-         </div>
+      {/* Content Section - CSS Grid для фиксированных позиций */}
+      <div className="p-4 grid grid-rows-[24px_32px_48px_32px_1fr_auto] gap-2" style={{ height: '200px' }}>
+        {/* Row 1: Rarity - всегда 24px */}
+        <div className="flex items-center" style={{ minHeight: '24px', height: '24px' }}>
+          {rarity ? (
+            <Badge
+              text={rarity ?? ""}
+              variant="rarity"
+              style={{ backgroundColor: "#8A2BE2", color: "white" }}
+            />
+          ) : (
+            <div style={{ width: '100%', height: '24px', minHeight: '24px' }}></div>
+          )}
+        </div>
 
-         {/* Row 2: Title - всегда 32px */}
-         <div className="flex items-center" style={{ minHeight: '32px', height: '32px' }}>
-           {title ? (
-             <h3 className="text-white text-lg font-bold truncate w-full">{title}</h3>
-           ) : (
-             <div style={{ width: '100%', height: '32px', minHeight: '32px' }}></div>
-           )}
-         </div>
+        {/* Row 2: Title - всегда 32px */}
+        <div className="flex items-center justify-center" style={{ minHeight: '32px', height: '32px' }}>
+          {title ? (
+            <h3 className="text-white text-lg font-bold text-center w-full">{title}</h3>
+          ) : (
+            <div style={{ width: '100%', height: '32px', minHeight: '32px' }}></div>
+          )}
+        </div>
+          
+        {/* Row 4: Bonuses - всегда 32px */}
+        <div className="flex items-center" style={{ minHeight: '32px', height: '32px' }}>
+          {rpBonus || lpBonus ? (
+            <div className="flex flex-row text-sm text-gray-400 justify-between w-full">
+              {rpBonus && <span className="truncate">+{rpBonus} RP</span>}
+              {lpBonus && <span className="truncate">+{lpBonus} LP</span>}
+            </div>
+          ) : (
+            <div style={{ width: '100%', height: '32px', minHeight: '32px' }}></div>
+          )}
+        </div>
 
-         {/* Row 3: Prices - всегда 48px */}
-         <div className="flex flex-col justify-center" style={{ minHeight: '48px', height: '48px' }}>
-           {originalPrice || currentPrice ? (
-             <>
-               {originalPrice && (
-                 <span className="text-gray-400 line-through text-sm truncate">
-                   {originalPrice}
-                 </span>
-               )}
-               {currentPrice && (
-                 <span className="text-white text-xl font-extrabold truncate">
-                   {currentPrice}
-                 </span>
-               )}
-             </>
-           ) : (
-             <div style={{ width: '100%', height: '48px', minHeight: '48px' }}></div>
-           )}
-         </div>
+        {/* Row 6: Buy Button - всегда внизу */}
+        <div>
+          {buyButton && buyButton.enabled && (
+            <button
+              className="w-full text-white font-bold rounded-lg transition-colors hover:opacity-90 flex items-center justify-center"
+              style={{
+                backgroundColor: buyButton.style?.backgroundColor || "#FF6B35",
+                color: buyButton.style?.textColor || "#FFFFFF",
+                borderRadius: buyButton.style?.borderRadius || "8px",
+                padding: buyButton.style?.padding || "12px 24px",
+                fontWeight: buyButton.style?.fontWeight || "bold",
+                fontSize: "16px",
+                minHeight: "40px",
+                height: "40px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log(`Buy button clicked for: ${title}`);
 
-         {/* Row 4: Bonuses - всегда 32px */}
-         <div className="flex items-center" style={{ minHeight: '32px', height: '32px' }}>
-           {rpBonus || lpBonus ? (
-             <div className="flex flex-row text-sm text-gray-400 justify-between w-full">
-               {rpBonus && <span className="truncate">+{rpBonus} RP</span>}
-               {lpBonus && <span className="truncate">+{lpBonus} LP</span>}
-             </div>
-           ) : (
-             <div style={{ width: '100%', height: '32px', minHeight: '32px' }}></div>
-           )}
-         </div>
-
-         {/* Row 6: Buy Button - всегда внизу */}
-         <div>
-           {buyButton && buyButton.enabled && (
-             <button
-               className="w-full text-white font-bold rounded-lg transition-colors hover:opacity-90 flex items-center justify-center"
-               style={{
-                 backgroundColor: buyButton.style?.backgroundColor || "#FF6B35",
-                 color: buyButton.style?.textColor || "#FFFFFF",
-                 borderRadius: buyButton.style?.borderRadius || "8px",
-                 padding: buyButton.style?.padding || "12px 24px",
-                 fontWeight: buyButton.style?.fontWeight || "bold",
-                 fontSize: "16px",
-                 minHeight: "40px",
-                 height: "40px",
-                 display: "flex",
-                 alignItems: "center",
-                 justifyContent: "center",
-               }}
-               onClick={(e) => {
-                 e.stopPropagation();
-                 console.log(`Buy button clicked for: ${title}`);
-
-                 if (buyButton.redirectUrl) {
-                   window.open(
-                     buyButton.redirectUrl,
-                     "_blank",
-                     "noopener,noreferrer"
-                   );
-                 }
-               }}
-             >
-               {buyButton.text || "BUY NOW"}
-             </button>
-           )}
-         </div>
-       </div>
+                if (buyButton.redirectUrl) {
+                  window.open(
+                    buyButton.redirectUrl,
+                    "_blank",
+                    "noopener,noreferrer"
+                  );
+                }
+              }}
+            >
+              {buyButton.text || currentPrice || "BUY NOW"}
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
+

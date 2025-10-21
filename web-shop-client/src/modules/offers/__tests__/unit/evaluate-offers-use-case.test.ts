@@ -96,3 +96,4 @@ describe('EvaluateOffersUseCase', () => {
     expect(result).toEqual([mockOffer]);
   });
 });
+

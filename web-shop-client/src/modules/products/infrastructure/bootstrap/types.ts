@@ -6,3 +6,4 @@ export const PRODUCTS_TYPES = {
   // Presenters
   ProductsListPresenter: Symbol.for('Products.ProductsListPresenter'),
 };
+

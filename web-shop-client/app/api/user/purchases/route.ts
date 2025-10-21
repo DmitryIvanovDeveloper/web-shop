@@ -13,3 +13,4 @@ export async function GET() {
     return NextResponse.json({ error: 'Failed to load user purchases' }, { status: 500 });
   }
 }
+

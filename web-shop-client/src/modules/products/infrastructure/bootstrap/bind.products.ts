@@ -14,3 +14,4 @@ export function bindProducts(container: Container): void {
   // Presenters
   container.bind(PRODUCTS_TYPES.ProductsListPresenter).to(ProductsListPresenter).inSingletonScope();
 }
+

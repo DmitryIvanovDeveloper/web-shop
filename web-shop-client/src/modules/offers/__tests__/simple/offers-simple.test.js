@@ -23,3 +23,4 @@ describe('Offers Module - Simple Tests', () => {
     expect(PropertyReadersService).toBeDefined();
   });
 });
+

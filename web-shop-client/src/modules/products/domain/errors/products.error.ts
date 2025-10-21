@@ -20,3 +20,4 @@ export class ProductsLoadError extends ProductsError {
     super('Failed to load products', 'PRODUCTS_LOAD_ERROR', originalError);
   }
 }
+

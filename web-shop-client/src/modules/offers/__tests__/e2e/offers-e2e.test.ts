@@ -145,3 +145,4 @@ describe('Offers E2E Tests', () => {
     console.log('E2E Test - Complete flow result:', finalOffers);
   });
 });
+

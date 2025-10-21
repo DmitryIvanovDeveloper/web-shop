@@ -5,3 +5,4 @@ export interface ProductsListViewModel {
   readonly products: Product[];
   readonly message?: string;
 }
+

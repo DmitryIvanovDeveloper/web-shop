@@ -38,3 +38,4 @@ describe('Offers API E2E Tests', () => {
     expect(response.status).toBe(404);
   });
 });
+
