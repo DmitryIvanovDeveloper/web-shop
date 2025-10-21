@@ -6,7 +6,7 @@ import { container } from '../../../../infrastructure/bootstrap/container';
 import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
 import { AuthPresenter } from '../presenters/auth.presenter';
 import { DynamicRenderer } from '../../../ui-renderer/interface-adapters/ui/components/dynamic-renderer';
-import type { AuthUIConfig, AuthPopupConfig } from '../../domain/types';
+import type { AuthUIConfig, AuthPopupConfig, AppUser } from '../../domain/types';
 import { ComponentNode } from '../../../ui-renderer/domain/value-objects/component-node.value-object';
 import type { ThemeConfig } from '../../../ui-renderer/domain/value-objects/theme-config.value-object';
 
@@ -62,6 +62,8 @@ export function AuthModule({ children, renderSidebarButton = false, renderPopupC
 	const [showPopup, setShowPopup] = useState(false);
   const [popupConfig, setPopupConfig] = useState<AuthPopupConfig | null>(null);
   const [authUIConfig, setAuthUIConfig] = useState<AuthUIConfig | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
 
 	// Загружаем UI конфигурацию один раз при монтировании
 	useEffect(() => {
@@ -90,14 +92,20 @@ export function AuthModule({ children, renderSidebarButton = false, renderPopupC
 	useEffect(() => {
 		const checkAuth = () => {
 			const authStatus = authPresenter.isUserAuthenticated();
+			const user = authPresenter.getCurrentUser();
 			console.log('[AuthModule] checkAuth called:', { 
 				currentIsAuthenticated: isAuthenticated, 
 				newAuthStatus: authStatus,
-				shouldUpdate: authStatus !== isAuthenticated
+				shouldUpdate: authStatus !== isAuthenticated,
+				currentUser: user,
+				timestamp: new Date().toISOString()
 			});
 			if (authStatus !== isAuthenticated) {
 				console.log('[AuthModule] Auth status changed:', { from: isAuthenticated, to: authStatus });
 				setIsAuthenticated(authStatus);
+				setCurrentUser(user);
+			} else {
+				console.log('[AuthModule] Auth status unchanged, no update needed');
 			}
 		};
 
@@ -108,6 +116,7 @@ export function AuthModule({ children, renderSidebarButton = false, renderPopupC
 		const eventListener = (event: Event) => {
 			const customEvent = event as CustomEvent;
 			console.log('[AuthModule] authStateChanged event received:', customEvent.detail);
+			console.log('[AuthModule] Event timestamp:', new Date().toISOString());
 			checkAuth();
 		};
 		
@@ -170,8 +179,22 @@ export function AuthModule({ children, renderSidebarButton = false, renderPopupC
 	};
 
 	const handleAuthSuccess = () => {
+		console.log('[AuthModule] handleAuthSuccess called');
+		console.log('[AuthModule] Current isAuthenticated state:', isAuthenticated);
+		console.log('[AuthModule] AuthPresenter.isUserAuthenticated():', authPresenter.isUserAuthenticated());
+		
 		setShowPopup(false);
 		setPopupConfig(null); // Закрываем popup
+		
+		// Принудительно проверяем состояние авторизации
+		const currentAuthStatus = authPresenter.isUserAuthenticated();
+		const user = authPresenter.getCurrentUser();
+		if (currentAuthStatus !== isAuthenticated) {
+			console.log('[AuthModule] Auth status mismatch detected, updating state:', { from: isAuthenticated, to: currentAuthStatus });
+			setIsAuthenticated(currentAuthStatus);
+			setCurrentUser(user);
+		}
+		
 		// AuthPresenter уже обновил состояние через EventBus
 	};
 
@@ -186,8 +209,16 @@ export function AuthModule({ children, renderSidebarButton = false, renderPopupC
 			return;
 		}
 
+		// Устанавливаем loading состояние
+		setIsLoading(true);
+		console.log('[AuthModule] Loading state set to true');
+
 		try {
 			console.log('[AuthModule] Starting authentication with appId:', appId);
+			
+			// Добавляем небольшую задержку для демонстрации loading
+			await new Promise(resolve => setTimeout(resolve, 1500));
+			
 			const result = await authPresenter.initializeAuthentication(appId.trim());
 
 			if (result.status === 'success') {
@@ -198,6 +229,10 @@ export function AuthModule({ children, renderSidebarButton = false, renderPopupC
 			}
 		} catch (error) {
 			console.error('[AuthModule] Authentication error:', error);
+		} finally {
+			// Сбрасываем loading состояние
+			setIsLoading(false);
+			console.log('[AuthModule] Loading state set to false');
 		}
 	};
 
@@ -218,28 +253,62 @@ export function AuthModule({ children, renderSidebarButton = false, renderPopupC
 		<>
 			{children}
 
-      {/* Auth UI Components - sidebar кнопка */}
-      {renderSidebarButton && !isAuthenticated && authUIConfig?.loginButton?.layout && (
+      {/* Auth UI Components - sidebar кнопка или информация о пользователе */}
+      {renderSidebarButton && (
         <>
-          {console.log('[AuthModule] Rendering sidebar button with config:', {
-            renderSidebarButton,
-            isAuthenticated,
-            hasAuthUIConfig: !!authUIConfig,
-            hasLoginButton: !!authUIConfig?.loginButton,
-            hasLayout: !!authUIConfig?.loginButton?.layout,
-            layout: authUIConfig?.loginButton?.layout
-          })}
-          <DynamicRenderer 
-            node={createComponentNode(authUIConfig?.loginButton?.layout)} 
-            theme={createThemeConfig(authUIConfig?.loginButton?.theme)}
-					actionContext={{
-						onPopupOpen: handlePopupOpen,
-						onPopupClose: handlePopupConfigClose,
-						handleAuthSubmit: handleAuthSubmit,
-						handleAppIdChange: handleAppIdChange,
-						onLoginClick: handleLoginClick,
-					}}
-				/>
+          {!isAuthenticated && authUIConfig?.loginButton?.layout ? (
+            <>
+              {console.log('[AuthModule] Rendering sidebar button with config:', {
+                renderSidebarButton,
+                isAuthenticated,
+                hasAuthUIConfig: !!authUIConfig,
+                hasLoginButton: !!authUIConfig?.loginButton,
+                hasLayout: !!authUIConfig?.loginButton?.layout,
+                layout: authUIConfig?.loginButton?.layout,
+                timestamp: new Date().toISOString()
+              })}
+              <DynamicRenderer 
+                node={createComponentNode(authUIConfig?.loginButton?.layout)} 
+                theme={createThemeConfig(authUIConfig?.loginButton?.theme)}
+  					actionContext={{
+  						onPopupOpen: handlePopupOpen,
+  						onPopupClose: handlePopupConfigClose,
+  						handleAuthSubmit: handleAuthSubmit,
+  						handleAppIdChange: handleAppIdChange,
+  						onLoginClick: handleLoginClick,
+  						isLoading: isLoading,
+  					}}
+  				/>
+            </>
+          ) : isAuthenticated && currentUser ? (
+            <>
+              {console.log('[AuthModule] Rendering user info:', {
+                isAuthenticated,
+                currentUser,
+                timestamp: new Date().toISOString()
+              })}
+              <div className="p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">
+                      {currentUser.username.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">
+                      {currentUser.username}
+                    </h3>
+                    <p className="text-sm text-white">
+                      App ID: {currentUser.appId}
+                    </p>
+                    <p className="text-xs text-green-400 font-medium">
+                      ✓ Авторизован
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : null}
         </>
 			)}
 
@@ -253,6 +322,7 @@ export function AuthModule({ children, renderSidebarButton = false, renderPopupC
 						onPopupClose: handlePopupConfigClose,
 						handleAuthSubmit: handleAuthSubmit,
 						handleAppIdChange: handleAppIdChange,
+						isLoading: isLoading,
 					}}
 				/>
 			)}

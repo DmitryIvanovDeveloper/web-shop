@@ -41,8 +41,13 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
   if (node.type === 'DataGrid') {
   }
 
-  const className = styleBuilder.buildClassName(node.styles, theme);
-  const style = styleBuilder.buildInlineStyles(node.styles, theme);
+  // Определяем стили в зависимости от loading состояния
+  const styles = actionContext?.isLoading && node.styles?.loadingStyles 
+    ? { ...node.styles, ...node.styles.loadingStyles }
+    : node.styles;
+    
+  const className = styleBuilder.buildClassName(styles, theme);
+  const style = styleBuilder.buildInlineStyles(styles, theme);
 
   // Обработка onClick action
   const handleClick = node.actions?.onClick && actionContext
@@ -145,6 +150,7 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     style,
     children,
     onClick: handleClick,
+    isLoading: actionContext?.isLoading || false,
   };
 
   try {

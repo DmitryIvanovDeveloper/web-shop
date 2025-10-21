@@ -22,6 +22,12 @@
         "transition": "all 0.2s ease",
         "textAlign": "center"
       },
+      "loadingStyles": {
+        "backgroundColor": "#6B7280",
+        "textColor": "#FFFFFF",
+        "cursor": "not-allowed",
+        "opacity": 0.7
+      },
       "actions": {
         "onClick": {
           "type": "custom",
@@ -394,6 +400,12 @@
             "fontSize": "lg",
             "marginBottom": 3,
             "height": "48px"
+          },
+          "loadingStyles": {
+            "backgroundColor": "#6B7280",
+            "textColor": "#FFFFFF",
+            "cursor": "not-allowed",
+            "opacity": 0.7
           },
           "actions": {
             "onClick": {

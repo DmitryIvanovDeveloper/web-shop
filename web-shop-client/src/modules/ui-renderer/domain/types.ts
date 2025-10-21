@@ -66,6 +66,9 @@ export interface StyleConfig {
   readonly overflow?: 'hidden' | 'visible' | 'scroll';
   readonly objectFit?: 'contain' | 'cover';
   readonly filter?: string;
+  
+  // Loading styles
+  readonly loadingStyles?: Partial<StyleConfig>;
 }
 
 // Типобезопасные типы для пропсов компонентов
@@ -210,5 +213,6 @@ export interface ActionContext {
   readonly handleAuthSubmit?: (e: React.FormEvent) => void;
   readonly handleAppIdChange?: (value: string) => void;
   readonly onLoginClick?: () => void;
+  readonly isLoading?: boolean;
 }
 

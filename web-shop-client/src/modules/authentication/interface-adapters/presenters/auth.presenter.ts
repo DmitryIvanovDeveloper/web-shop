@@ -41,10 +41,14 @@ export class AuthPresenter {
 		
 		// Генерируем событие для уведомления UI компонентов
 		if (typeof window !== 'undefined') {
-			window.dispatchEvent(new CustomEvent('authStateChanged', { 
+			const event = new CustomEvent('authStateChanged', { 
 				detail: { isAuthenticated: true, user } 
-			}));
-			console.log('[AuthPresenter] present - authStateChanged event dispatched');
+			});
+			console.log('[AuthPresenter] present - dispatching authStateChanged event:', event.detail);
+			window.dispatchEvent(event);
+			console.log('[AuthPresenter] present - authStateChanged event dispatched successfully');
+		} else {
+			console.log('[AuthPresenter] present - window is undefined, cannot dispatch event');
 		}
 
 		return {
@@ -84,6 +88,11 @@ export class AuthPresenter {
 	 * Проверка авторизации
 	 */
 	public isUserAuthenticated(): boolean {
+		console.log('[AuthPresenter] isUserAuthenticated called:', { 
+			isAuthenticated: this._isAuthenticated,
+			currentUser: this._currentUser,
+			timestamp: new Date().toISOString()
+		});
 		return this._isAuthenticated;
 	}
 
