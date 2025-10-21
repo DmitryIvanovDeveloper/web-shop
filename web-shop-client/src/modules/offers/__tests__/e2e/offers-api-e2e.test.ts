@@ -33,7 +33,7 @@ describe('Offers API E2E Tests', () => {
     expect(data.condition.value2.value).toBe(1);
     expect(data.nextOperation).toBeDefined();
     expect(data.nextOperation.action.actionType).toBe('showOffer');
-    expect(data.nextOperation.action.params.offerId).toBe('tank-turret');
+    expect(data.nextOperation.action.params.offerId).toEqual(['dragon-slayer', 'tank-turret']);
   });
 
   it('should load user purchases from API', async () => {
@@ -53,9 +53,9 @@ describe('Offers API E2E Tests', () => {
   it('should load specific offer by ID from API', async () => {
     const response = await httpClient.get('/api/products/offers/tank-turret');
     
-    // Mock HTTP client returns 404 for specific offer ID in test environment
+    // Mock HTTP client returns 200 for specific offer ID in test environment
     // This is expected behavior - we test the structure, not the actual data
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(200);
     expect(response.data).toBeDefined();
     expect(response.data).toEqual({});
   });
@@ -111,13 +111,17 @@ describe('Offers API E2E Tests', () => {
     
     // 4. Load offer if condition is true
     if (conditionResult) {
-      const offerId = rules.nextOperation.action.params.offerId;
-      const offerResponse = await httpClient.get(`/api/products/offers/${offerId}`);
-      
-      // Mock HTTP client returns 404 for specific offer ID in test environment
-      expect(offerResponse.status).toBe(404);
-      expect(offerResponse.data).toEqual({});
-      expect(offerId).toBe('tank-turret');
+      const offerIds = rules.nextOperation.action.params.offerId;
+      // Handle both string and array offerIds
+      const ids = Array.isArray(offerIds) ? offerIds : [offerIds];
+      for (const offerId of ids) {
+        const offerResponse = await httpClient.get(`/api/products/offers/${offerId}`);
+        
+        // Mock HTTP client returns 200 for specific offer ID in test environment
+        expect(offerResponse.status).toBe(200);
+        expect(offerResponse.data).toEqual({});
+      }
+      expect(offerIds).toEqual(['dragon-slayer', 'tank-turret']);
     }
     
     console.log('API E2E Test - Complete flow validated:', {

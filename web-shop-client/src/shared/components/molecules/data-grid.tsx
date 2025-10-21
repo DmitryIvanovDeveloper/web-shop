@@ -20,12 +20,9 @@ export function DataGrid({
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-  console.log('[DataGrid] Component initialized with dataSource:', dataSource);
 
   useEffect(() => {
-    console.log('[DataGrid] useEffect triggered with dataSource:', dataSource);
     if (!dataSource) {
-      console.log('[DataGrid] No dataSource provided');
       setLoading(false);
       return;
     }

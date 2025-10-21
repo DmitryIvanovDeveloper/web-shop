@@ -23,32 +23,7 @@
       "width": "230px",
       "height": "100vh"
     },
-    "children": [
-      {
-        "type": "Button",
-        "id": "login-button",
-        "props": {
-          "text": "Login",
-          "fullWidth": true
-        },
-        "styles": {
-          "backgroundColor": "#FBBF24",
-          "textColor": "#000000",
-          "padding": 4,
-          "borderRadius": 25,
-          "fontWeight": "bold",
-          "fontSize": "xl",
-          "height": "56px",
-          "textAlign": "center"
-        },
-        "actions": {
-          "onClick": {
-            "type": "loadPopup",
-            "config": "login-popup"
-          }
-        }
-      }
-    ]
+    "children": []
   }
 }
 

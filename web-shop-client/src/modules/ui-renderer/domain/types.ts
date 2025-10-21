@@ -207,5 +207,8 @@ export interface ConfigDTO {
 export interface ActionContext {
   readonly onPopupOpen?: (config: any) => void;
   readonly onPopupClose?: () => void;
+  readonly handleAuthSubmit?: (e: React.FormEvent) => void;
+  readonly handleAppIdChange?: (value: string) => void;
+  readonly onLoginClick?: () => void;
 }
 

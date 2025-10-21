@@ -8,8 +8,12 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:unit": "vitest run src/**/*.test.ts --exclude src/__tests__/integration/** --exclude src/__tests__/e2e/**",
+    "test:integration": "vitest run src/__tests__/integration/**",
+    "test:e2e": "vitest run src/__tests__/e2e/**",
+    "test:data-flow": "vitest run src/**/*data-flow*.test.ts",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest watch"
   },
   "dependencies": {
     "inversify": "^7.10.2",

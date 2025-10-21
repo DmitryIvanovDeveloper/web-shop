@@ -217,7 +217,6 @@ export function OfferCard({
               }}
               onClick={(e) => {
                 e.stopPropagation();
-                console.log(`Buy button clicked for: ${title}`);
 
                 if (buyButton.redirectUrl) {
                   window.open(

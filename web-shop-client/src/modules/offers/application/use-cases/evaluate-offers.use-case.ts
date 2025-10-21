@@ -18,9 +18,7 @@ export class EvaluateOffersUseCase {
   ) {}
 
   public async execute(_input?: { contextCache?: Map<string, ComparableValue> }): Promise<Offer[]> {
-    console.log('[EvaluateOffersUseCase] Starting evaluation...');
     const rules = await this.rulesRepository.loadRules();
-    console.log('[EvaluateOffersUseCase] Rules loaded:', rules);
     const offersIds: string[] = [];
     const cache = _input?.contextCache ?? new Map<string, ComparableValue>();
 
@@ -28,7 +26,13 @@ export class EvaluateOffersUseCase {
       if (!operation) return;
       if (operation.operationType === 'action') {
         if (operation.action?.actionType === 'showOffer') {
-          offersIds.push(operation.action.params.offerId);
+          // Handle both string and array offerId
+          const offerId = operation.action.params.offerId;
+          if (Array.isArray(offerId)) {
+            offersIds.push(...offerId);
+          } else {
+            offersIds.push(offerId);
+          }
         }
         await evaluateOperation(operation.nextOperation);
         return;
@@ -48,21 +52,17 @@ export class EvaluateOffersUseCase {
 
     // Deduplicate offer IDs
     const uniqueOfferIds = [...new Set(offersIds)];
-    console.log('[EvaluateOffersUseCase] Unique offer IDs:', uniqueOfferIds);
 
     // Fetch offer details
     const offers: Offer[] = [];
     for (const offerId of uniqueOfferIds) {
       try {
-        console.log(`[EvaluateOffersUseCase] Loading offer: ${offerId}`);
         const offer = await this.offerRepository.getById(offerId);
-        console.log(`[EvaluateOffersUseCase] Offer loaded:`, offer);
         offers.push(offer);
       } catch (error) {
-        console.warn(`Failed to load offer ${offerId}:`, error);
+        // Offer not found or failed to load - continue with other offers
       }
     }
-    console.log('[EvaluateOffersUseCase] Final offers:', offers);
     return offers;
   }
 

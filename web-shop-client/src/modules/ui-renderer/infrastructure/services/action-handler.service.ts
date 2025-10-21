@@ -12,23 +12,17 @@ export class ActionHandler {
 
   public async handleAction(
     action: ActionConfig,
-    context: ActionContext
+    context: ActionContext,
+    value?: any
   ): Promise<void> {
-    console.log('[ActionHandler] Handling action:', action);
     
     if (action.type === 'loadPopup') {
-      console.log('[ActionHandler] Loading popup config:', action.config);
       const result = await this._loadConfigUseCase.execute({
         pageType: action.config,
       });
       
-      console.log('[ActionHandler] Popup config result:', result);
-      console.log('[ActionHandler] Result isSuccess:', result.isSuccess());
-      console.log('[ActionHandler] Result data:', result.data);
-      console.log('[ActionHandler] Context onPopupOpen exists:', !!context.onPopupOpen);
       
       if (result.isSuccess() && context.onPopupOpen) {
-        console.log('[ActionHandler] Opening popup with data:', result.data);
         context.onPopupOpen(result.data);
       } else {
         console.error('[ActionHandler] Failed to load popup config or onPopupOpen not provided');
@@ -43,6 +37,31 @@ export class ActionHandler {
       window.location.href = action.url;
     }
     
-    // custom handler можно добавить позже
+    if (action.type === 'custom') {
+      
+      // Ищем обработчик в контексте по имени
+      const handler = (context as any)[action.handler];
+      if (typeof handler === 'function') {
+        
+        // Для handleAppIdChange передаем значение, для других - mock событие
+        if (action.handler === 'handleAppIdChange') {
+          // Для onChange событий передаем значение напрямую
+          handler(value || '');
+        } else {
+          // Для других обработчиков (например, handleAuthSubmit) передаем mock событие
+          const mockEvent = {
+            preventDefault: () => {},
+            stopPropagation: () => {},
+            currentTarget: null,
+            target: null
+          };
+          
+          handler(mockEvent);
+        }
+      } else {
+        console.error('[ActionHandler] Handler not found in context:', action.handler);
+        console.log('[ActionHandler] Available context keys:', Object.keys(context));
+      }
+    }
   }
 }

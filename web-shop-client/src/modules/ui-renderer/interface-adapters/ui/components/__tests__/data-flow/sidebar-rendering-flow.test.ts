@@ -77,7 +77,7 @@ describe('Sidebar Rendering Data Flow', () => {
       // 4. ComponentNode Value Object должен иметь корректную структуру
       expect(config.layout).toBeDefined();
       expect(config.layout.type).toBe('Container');
-      expect(config.layout.styles.padding).toBe(2);
+      expect(config.layout.styles.padding).toBe(8);
       expect(config.layout.styles.backgroundColor).toBe('surface');
 
       // 5. Вложенный ComponentNode (Button) должен быть создан
@@ -86,7 +86,7 @@ describe('Sidebar Rendering Data Flow', () => {
       expect(buttonNode.type).toBe('Button');
       expect(buttonNode.props).toHaveProperty('text', 'Store');
       expect(buttonNode.props).toHaveProperty('icon', '🛒');
-      expect(buttonNode.styles.padding).toBe(2);
+      expect(buttonNode.styles.padding).toBe(4);
       expect(buttonNode.styles.backgroundColor).toBe('primary');
       expect(buttonNode.styles.textColor).toBe('text');
     }

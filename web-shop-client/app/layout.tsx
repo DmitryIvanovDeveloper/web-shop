@@ -2,14 +2,9 @@
 import 'reflect-metadata';
 import '../src/infrastructure/bootstrap/container';
 import "./output.css";
-import { useRouter, usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { AuthModule } from '../src/modules/authentication/interface-adapters/ui/auth-module';
 
 export default function RootLayout({ children }: { children: React.ReactNode}) {
-  const router = useRouter();
-  const pathname = usePathname();
-
-
   return (
     <html lang="en">
       <head>
@@ -17,10 +12,8 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         <meta name="description" content="Web Shop Application" />
       </head>
       <body className="m-0 p-0 overflow-hidden">
-        <div className="h-screen flex">
-          <main className="flex-1 bg-gradient-to-b from-gray-50 to-white overflow-y-auto" >
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex">
             {children}
-          </main>
         </div>
       </body>
     </html>

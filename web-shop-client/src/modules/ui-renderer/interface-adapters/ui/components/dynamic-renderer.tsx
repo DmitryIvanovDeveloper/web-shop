@@ -18,6 +18,14 @@ interface DynamicRendererProps {
 }
 
 export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererProps): JSX.Element | null {
+  console.log('[DynamicRenderer] Rendering with node:', node);
+  console.log('[DynamicRenderer] Node type:', node?.type);
+  
+  if (!node) {
+    console.error('[DynamicRenderer] Node is undefined or null');
+    return null;
+  }
+  
   const registry = container.get<ComponentRegistry>(UI_RENDERER_TYPES.ComponentRegistry);
   const styleBuilder = container.get<StyleBuilder>(UI_RENDERER_TYPES.StyleBuilder);
   const actionHandler = container.get<ActionHandler>(UI_RENDERER_TYPES.ActionHandler);
@@ -31,9 +39,6 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
   
   // Debug для DataGrid
   if (node.type === 'DataGrid') {
-    console.log('[DynamicRenderer] Found DataGrid component:', Component);
-    console.log('[DynamicRenderer] DataGrid props:', node.props);
-    console.log('[DynamicRenderer] DataGrid styles:', node.styles);
   }
 
   const className = styleBuilder.buildClassName(node.styles, theme);
@@ -42,10 +47,6 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
   // Обработка onClick action
   const handleClick = node.actions?.onClick && actionContext
     ? () => {
-        console.log('[DynamicRenderer] onClick triggered for node:', node.id);
-        console.log('[DynamicRenderer] Action:', node.actions?.onClick);
-        console.log('[DynamicRenderer] ActionContext:', actionContext);
-        console.log('[DynamicRenderer] ActionContext.onPopupOpen exists:', !!actionContext?.onPopupOpen);
         if (node.actions?.onClick && actionContext) {
           actionHandler.handleAction(node.actions.onClick, actionContext);
         }
@@ -120,6 +121,10 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
         ? { 
             onChange: (value: string | number) => {
               console.log('Input value changed:', value);
+              // Если есть onChange action, вызываем его через ActionHandler
+              if (node.actions?.onChange && actionContext) {
+                actionHandler.handleAction(node.actions.onChange, actionContext, value);
+              }
             }
           }
         : {};

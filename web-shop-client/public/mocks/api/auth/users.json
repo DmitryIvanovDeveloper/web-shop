@@ -8,5 +8,10 @@
     "userId": "user-002",
     "username": "AppUser2",
     "appId": "app-456"
+  },
+  "APP123": {
+    "userId": "user-003",
+    "username": "TestUser",
+    "appId": "APP123"
   }
 }

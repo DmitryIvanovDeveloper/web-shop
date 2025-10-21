@@ -2,13 +2,11 @@ import { NextResponse } from 'next/server';
 import sidebarConfig from '../../../../../src/modules/ui-renderer/infrastructure/configs/sidebar.config.json';
 import mainContentConfig from '../../../../../src/modules/ui-renderer/infrastructure/configs/main-content.config.json';
 import rightSidebarConfig from '../../../../../src/modules/ui-renderer/infrastructure/configs/right-sidebar.config.json';
-import loginPopupConfig from '../../../../../src/modules/ui-renderer/infrastructure/configs/login-popup.config.json';
 
 const configs: Record<string, any> = {
   sidebar: sidebarConfig,
   'main-content': mainContentConfig,
   'right-sidebar': rightSidebarConfig,
-  'login-popup': loginPopupConfig,
 };
 
 export async function GET(

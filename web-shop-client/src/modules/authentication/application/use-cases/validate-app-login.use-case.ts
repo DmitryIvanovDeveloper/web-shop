@@ -13,6 +13,10 @@ import {
   UserNotFoundError,
   AuthenticationError
 } from '../../domain/errors/authentication.error';
+import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
+import type { IEventBus } from '../../../../infrastructure/events/event-bus.plugin';
+import type { Logger } from '../../../../application/ports/logger.port';
+import { UserAuthenticatedEvent } from '../../../../shared/events/auth-events';
 
 // Импорт AUTH_TYPES из bootstrap
 import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
@@ -21,10 +25,14 @@ import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
 export class ValidateAppLoginUseCase {
   constructor(
     @inject(AUTH_TYPES.AuthRepository)
-    private readonly authRepository: AuthRepositoryPort
+    private readonly _authRepository: AuthRepositoryPort,
+    @inject(ROOT_TYPES.EventBus)
+    private readonly _eventBus: IEventBus,
+    @inject(ROOT_TYPES.Logger)
+    private readonly _logger: Logger
   ) {}
 
-  async execute(
+  public async execute(
     request: ValidateAppLoginRequest
   ): Promise<Result<AppUser, AuthenticationError>> {
     // 1. Валидация входных данных
@@ -41,7 +49,7 @@ export class ValidateAppLoginUseCase {
 
     try {
       // 2. Вызов через PORT (НЕ напрямую!)
-      const result = await this.authRepository.validateAppId(trimmedAppId);
+      const result = await this._authRepository.validateAppId(trimmedAppId);
 
       // 3. Проверка результата через Result Pattern
       if (result.isFailure()) {
@@ -50,7 +58,30 @@ export class ValidateAppLoginUseCase {
 
       // 4. Успешная валидация
       if (result.isSuccess()) {
-        return Result.ok(result.data);
+        const user = result.data;
+        
+        // Сохранение в localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('user', JSON.stringify(user));
+        }
+        
+        // Публикация события для других модулей (межмодульное общение)
+        this._logger.info('[ValidateAppLoginUseCase] Publishing UserAuthenticatedEvent');
+        console.log('[ValidateAppLoginUseCase] Publishing UserAuthenticatedEvent', {
+          userId: user.userId,
+          username: user.username,
+          appId: user.appId
+        });
+        await this._eventBus.publishAsync(
+          new UserAuthenticatedEvent(
+            user.userId,
+            user.username,
+            user.appId
+          )
+        );
+        console.log('[ValidateAppLoginUseCase] Event published successfully');
+        
+        return Result.ok(user);
       }
 
       return Result.error(new AuthenticationError('Unknown error'));

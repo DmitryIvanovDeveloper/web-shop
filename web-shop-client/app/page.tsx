@@ -8,6 +8,7 @@ import { LoadPageConfigUseCase } from '../src/modules/ui-renderer/application/us
 import { DynamicRenderer } from '../src/modules/ui-renderer/interface-adapters/ui/components/dynamic-renderer';
 import type { ActionContext } from '../src/modules/ui-renderer/domain/types';
 import { useState, useEffect } from 'react';
+import { AuthModule } from '@/modules/authentication/interface-adapters/ui/auth-module';
 
 export default function HomePage(): JSX.Element {
   const sidebarPresenter = container.get<SidebarRendererPresenter>(
@@ -18,59 +19,39 @@ export default function HomePage(): JSX.Element {
     UI_RENDERER_TYPES.LoadPageConfigUseCase
   );
   
+  
   const [mainContentConfig, setMainContentConfig] = useState<any>(null);
   const [rightSidebarConfig, setRightSidebarConfig] = useState<any>(null);
-  const [popupConfig, setPopupConfig] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
   // ActionContext для обработки действий
   const actionContext: ActionContext = {
-    onPopupOpen: (config) => {
-      console.log('[HomePage] Opening popup with config:', config);
-      setPopupConfig(config);
-    },
-    onPopupClose: () => {
-      console.log('[HomePage] Closing popup');
-      setPopupConfig(null);
-    },
+    onPopupOpen: () => {}, // Empty handlers since popup is managed by AuthModule
+    onPopupClose: () => {}, // Empty handlers since popup is managed by AuthModule
   };
-  
-  console.log('[HomePage] ActionContext created:', actionContext);
-  console.log('[HomePage] onPopupOpen exists:', !!actionContext.onPopupOpen);
   
   useEffect(() => {
     const loadConfigs = async () => {
       try {
         // Load main content
-        console.log('[HomePage] Loading main-content config...');
-        console.log('[HomePage] Starting Promise.race for main content...');
         const mainResult = await Promise.race([
           loadConfigUseCase.execute({ pageType: 'main-content' }),
           new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Main content load timeout')), 10000)
           )
         ]) as any;
-        console.log('[HomePage] Main content load result:', mainResult);
         if (mainResult.isSuccess()) {
-          console.log('[HomePage] Main content data:', mainResult.data);
           setMainContentConfig(mainResult.data);
         } else {
-          console.error('[HomePage] Failed to load main content:', mainResult.error);
           setError(mainResult.error?.message || 'Failed to load main content');
         }
 
         // Load right sidebar
-        console.log('[HomePage] Loading right-sidebar config...');
         const rightResult = await loadConfigUseCase.execute({ pageType: 'right-sidebar' });
-        console.log('[HomePage] Right sidebar load result:', rightResult);
         if (rightResult.isSuccess()) {
-          console.log('[HomePage] Right sidebar data:', rightResult.data);
           setRightSidebarConfig(rightResult.data);
-        } else {
-          console.error('[HomePage] Failed to load right sidebar:', rightResult.error);
         }
       } catch (err) {
-        console.error('[HomePage] Exception loading configs:', err);
         setError(String(err));
       }
     };
@@ -78,7 +59,7 @@ export default function HomePage(): JSX.Element {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-900 flex">
+    <>
       <SidebarRenderer presenter={sidebarPresenter} actionContext={actionContext} />
       <main className="flex-1 overflow-y-auto h-screen">
         {error && (
@@ -100,26 +81,20 @@ export default function HomePage(): JSX.Element {
         )}
       </main>
       {/* Right Sidebar */}
-      <aside>
+      <aside className="w-80 border-l border-yellow-400/30 p-4 bg-gray-800">
+        <div className="mb-4">
+         <AuthModule renderSidebarButton={true} renderPopupConfig={true} /> {/* AuthLoginButton и popup config рендерятся через AuthModule */}
+        </div>
+        
         {rightSidebarConfig && (
-          <>
-            {console.log('[HomePage] Rendering right sidebar with actionContext:', actionContext)}
-            <DynamicRenderer 
-              node={rightSidebarConfig.layout} 
-              theme={rightSidebarConfig.theme}
-              actionContext={actionContext}
-            />
-          </>
+          <DynamicRenderer 
+            node={rightSidebarConfig.layout} 
+            theme={rightSidebarConfig.theme}
+            actionContext={actionContext}
+          />
         )}
       </aside>
-      {/* Popup */}
-      {popupConfig && (
-        <DynamicRenderer 
-          node={popupConfig.layout} 
-          theme={popupConfig.theme}
-          actionContext={actionContext}
-        />
-      )}
-    </div>
+      {/* Popup рендерится через AuthModule */}
+    </>
   );
 }

@@ -5,6 +5,9 @@ import { OfferRepository } from '../repositories/offer.repository';
 import { PropertyReadersService } from '../services/property-readers.service';
 import { EvaluateOffersUseCase } from '../../application/use-cases/evaluate-offers.use-case';
 import { OffersListPresenter } from '../../interface-adapters/presenters/offers-list.presenter';
+import { OffersUserAuthenticatedHandler } from '../../interface-adapters/handlers/user-authenticated.handler';
+import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
+import { UserAuthenticatedEvent } from '../../../../shared/events/auth-events';
 
 export function bindOffers(container: Container): void {
   // Repositories
@@ -17,4 +20,10 @@ export function bindOffers(container: Container): void {
   
   // Presenters
   container.bind(OFFERS_TYPES.OffersListPresenter).to(OffersListPresenter).inSingletonScope();
+  
+  // Handler (Interface Adapters) - автоматически подхватывается EventBus
+  container
+    .bind<IAsyncEventHandler<UserAuthenticatedEvent>>(OFFERS_TYPES.UserAuthenticatedHandler)
+    .to(OffersUserAuthenticatedHandler)
+    .inTransientScope();
 }

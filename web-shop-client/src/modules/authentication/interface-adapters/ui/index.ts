@@ -1,4 +1,12 @@
 // Authentication Module UI Components Export
-export { LoginButton } from '../components/login-button';
+// Основные компоненты
+export { AuthModule } from './auth-module';
+
+// Переиспользуемые компоненты
+export * from './components';
+
+// Хуки
+export * from '../hooks';
+
+// Оригинальные компоненты (для обратной совместимости)
 export { AuthPopup } from '../components/auth-popup';
-export { AuthModule, AuthLoginButton } from './auth-module';

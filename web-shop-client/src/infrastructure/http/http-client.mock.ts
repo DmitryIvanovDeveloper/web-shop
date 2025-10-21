@@ -14,6 +14,8 @@ export class HttpClientMock implements HttpClient {
 
   async request<T>(request: HttpRequest): Promise<HttpResponse<T>> {
     const mockPath = this.mapToMockPath(request.url);
+    console.log('[HttpClientMock] Request URL:', request.url);
+    console.log('[HttpClientMock] Mapped to mock path:', mockPath);
     
     // В Node.js окружении (тесты) читаем файл напрямую через динамический импорт
     if (typeof window === 'undefined') {
@@ -23,8 +25,10 @@ export class HttpClientMock implements HttpClient {
         const path = require('path');
         
         const filePath = path.join(process.cwd(), 'public', mockPath);
+        console.log('[HttpClientMock] Node.js - trying to read file:', filePath);
         const fileContent = fs.readFileSync(filePath, 'utf-8');
         const data = JSON.parse(fileContent) as T;
+        console.log('[HttpClientMock] Node.js - file read successfully, data:', data);
         return {
           data,
           status: 200,
@@ -32,6 +36,7 @@ export class HttpClientMock implements HttpClient {
           headers: {},
         };
       } catch (error) {
+        console.error('[HttpClientMock] Node.js - error reading file:', error);
         return {
           data: ({} as unknown) as T,
           status: 404,
@@ -43,8 +48,11 @@ export class HttpClientMock implements HttpClient {
     
     // В браузере используем fetch с полным URL
     const fullUrl = window.location.origin + mockPath;
+    console.log('[HttpClientMock] Browser - trying to fetch:', fullUrl);
     const res = await fetch(fullUrl, { cache: 'no-store' });
+    console.log('[HttpClientMock] Browser - response status:', res.status);
     if (!res.ok) {
+      console.error('[HttpClientMock] Browser - response not ok:', res.status, res.statusText);
       return {
         data: ({} as unknown) as T,
         status: res.status,
@@ -53,6 +61,7 @@ export class HttpClientMock implements HttpClient {
       };
     }
     const data = (await res.json()) as T;
+    console.log('[HttpClientMock] Browser - data received:', data);
     return {
       data,
       status: res.status,

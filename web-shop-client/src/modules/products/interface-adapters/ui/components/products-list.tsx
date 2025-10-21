@@ -17,17 +17,13 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
   });
 
   useEffect(() => {
-    console.log('[ProductsList] Component mounted, loading products...');
     
     const loadProducts = async () => {
       try {
-        console.log('[ProductsList] Fetching products from API...');
         const response = await fetch('/api/products/list');
         const data = await response.json();
-        console.log('[ProductsList] API response:', data);
         
         const products = Array.isArray(data) ? data : [];
-        console.log('[ProductsList] Products extracted:', products.length);
         
         setViewModel({
           status: 'success',

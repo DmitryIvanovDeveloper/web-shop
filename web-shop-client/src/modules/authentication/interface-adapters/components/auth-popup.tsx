@@ -5,13 +5,28 @@ import { container } from '../../../../infrastructure/bootstrap/container';
 import { ValidateAppLoginUseCase } from '../../application/use-cases/validate-app-login.use-case';
 import { AuthPresenter } from '../presenters/auth.presenter';
 import { AuthViewModel } from '../view-models/auth.view-model';
+import type { AppUser } from '../../domain/types';
 import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
 
 interface AuthPopupProps {
   onClose: () => void;
+  /** Кастомные CSS классы для popup */
+  className?: string;
+  /** Callback при успешной авторизации */
+  onAuthSuccess?: (user: AppUser) => void;
+  /** Callback при ошибке авторизации */
+  onAuthError?: (error: string) => void;
+  /** Задержка перед закрытием popup при успехе (по умолчанию 1500ms) */
+  closeDelay?: number;
 }
 
-export function AuthPopup({ onClose }: AuthPopupProps) {
+export function AuthPopup({ 
+  onClose, 
+  className,
+  onAuthSuccess,
+  onAuthError,
+  closeDelay = 1500
+}: AuthPopupProps) {
   const [viewModel, setViewModel] = useState<AuthViewModel>({ status: 'idle' });
   const [manualAppId, setManualAppId] = useState('');
 
@@ -23,25 +38,37 @@ export function AuthPopup({ onClose }: AuthPopupProps) {
 
     try {
       const result = await useCase.execute({ appId });
-      const viewModel = presenter.present(result);
-
-      setViewModel(viewModel);
-
-      if (viewModel.status === 'success') {
-        // Сохраняем пользователя в localStorage
-        localStorage.setItem('user', JSON.stringify(viewModel.user));
+      
+      if (result.isSuccess()) {
+        const viewModel = presenter.present(result.data);
+        setViewModel(viewModel);
         
-        // Закрываем popup и перенаправляем на dashboard
+        // Use Case уже сохранил в localStorage и опубликовал событие в EventBus
+        // Обработчики автоматически выполнятся (скрыть Login, загрузить Offers)
+        
+        // Вызываем callback успешной авторизации
+        onAuthSuccess?.(result.data);
+        
+        // Закрываем popup через задержку для UX
         setTimeout(() => {
           onClose();
-          window.location.href = '/dashboard';
-        }, 1500);
+          // НЕ делаем редирект - пользователь остаётся на текущей странице
+        }, closeDelay);
+      } else {
+        // При ошибке
+        setViewModel({
+          status: 'error',
+          error: result.error?.message || 'Authentication failed'
+        });
+        onAuthError?.(result.error?.message || 'Authentication failed');
       }
     } catch (error) {
+      const errorMessage = 'Произошла ошибка при авторизации';
       setViewModel({
         status: 'error',
-        error: 'Произошла ошибка при авторизации'
+        error: errorMessage
       });
+      onAuthError?.(errorMessage);
     }
   }
 
@@ -51,10 +78,14 @@ export function AuthPopup({ onClose }: AuthPopupProps) {
     }
   }
 
+  const defaultClassName = "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4";
+  const popupClassName = "relative bg-gray-800 border-2 border-yellow-400 rounded-lg p-3 w-80 shadow-2xl";
+  const finalClassName = className ? `${defaultClassName} ${className}` : defaultClassName;
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className={finalClassName}>
       {/* Pixel Gun 3D Style Popup */}
-      <div className="relative bg-gray-800 border-2 border-yellow-400 rounded-lg p-3 w-80 shadow-2xl">
+      <div className={popupClassName}>
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -141,14 +172,6 @@ export function AuthPopup({ onClose }: AuthPopupProps) {
               </label>
             </div>
 
-            {/* Login Button */}
-            <button
-              onClick={handleManualAuth}
-              disabled={!manualAppId.trim()}
-              className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 disabled:from-gray-600 disabled:to-gray-700 text-gray-900 dark:text-black font-bold py-1.5 px-3 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 text-xs"
-            >
-              Войти
-            </button>
 
             {/* Help Section */}
             <div className="mt-2 bg-gray-700 dark:bg-gray-600 border border-gray-600 rounded-lg p-1.5">

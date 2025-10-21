@@ -34,7 +34,7 @@ export interface LoggingConfig {
 export const TYPES = {
   Logger: Symbol.for('Logger'),
   HttpClient: Symbol.for('HttpClient'),
-  EventBus: Symbol.for('EventBus'),
+  EventBus: Symbol.for('IEventBus'), // Обновлено для новой архитектуры
   RealtimeClient: Symbol.for('RealtimeClient')
 } as const;
 
@@ -54,7 +54,6 @@ export enum HttpClientMode {
 export function resolveHttpClientMode(): HttpClientMode {
   // Читаем из env (Next.js runtime env с префиксом NEXT_PUBLIC_)
   const value = process.env.NEXT_PUBLIC_HTTP_CLIENT?.toLowerCase();
-  console.log('HTTP_CLIENT_MODE:', value); // Debug log
   if (value === HttpClientMode.Mock) return HttpClientMode.Mock;
   // Принудительно возвращаем Mock для исправления ошибки HTTP запросов
   return HttpClientMode.Mock;

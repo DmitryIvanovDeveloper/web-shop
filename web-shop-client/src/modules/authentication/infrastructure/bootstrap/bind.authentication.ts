@@ -7,7 +7,14 @@ import { AuthRepositoryPort } from '../../application/ports/auth-repository.port
 import { AuthRepository } from '../repositories/auth.repository';
 import { ValidateAppLoginUseCase } from '../../application/use-cases/validate-app-login.use-case';
 import { AuthPresenter } from '../../interface-adapters/presenters/auth.presenter';
+import { AuthUserAuthenticatedHandler } from '../../interface-adapters/handlers/user-authenticated.handler';
+import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
+import { UserAuthenticatedEvent } from '../../../../shared/events/auth-events';
 import { AUTH_TYPES } from './types';
+// Auth UI imports
+import { AuthUIRepositoryPort } from '../../application/ports/auth-ui-repository.port';
+import { AuthUIRepository } from '../repositories/auth-ui.repository';
+import { LoadAuthUIConfigUseCase } from '../../application/use-cases/load-auth-ui-config.use-case';
 
 export function bindAuthentication(container: Container): void {
   // Repository (Infrastructure)
@@ -25,4 +32,21 @@ export function bindAuthentication(container: Container): void {
   container
     .bind<AuthPresenter>(AUTH_TYPES.AuthPresenter)
     .to(AuthPresenter);
+    
+  // Handler (Interface Adapters) - автоматически подхватывается EventBus
+  container
+    .bind<IAsyncEventHandler<UserAuthenticatedEvent>>(AUTH_TYPES.UserAuthenticatedHandler)
+    .to(AuthUserAuthenticatedHandler)
+    .inTransientScope();
+
+  // Auth UI Repository (Infrastructure)
+  container
+    .bind<AuthUIRepositoryPort>(AUTH_TYPES.AuthUIRepository)
+    .to(AuthUIRepository)
+    .inSingletonScope();
+
+  // Auth UI UseCase (Application)
+  container
+    .bind<LoadAuthUIConfigUseCase>(AUTH_TYPES.LoadAuthUIConfigUseCase)
+    .to(LoadAuthUIConfigUseCase);
 }

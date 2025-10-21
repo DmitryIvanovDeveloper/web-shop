@@ -7,4 +7,6 @@ export const OFFERS_TYPES = {
   EvaluateOffersUseCase: Symbol.for('Offers.EvaluateOffersUseCase'),
   // Presenters
   OffersListPresenter: Symbol.for('Offers.OffersListPresenter'),
+  // Handlers
+  UserAuthenticatedHandler: Symbol.for('IAsyncEventHandler<UserAuthenticatedEvent>')
 };

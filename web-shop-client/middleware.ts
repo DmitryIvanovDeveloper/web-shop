@@ -4,10 +4,7 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Если заходим на /auth, сразу редиректим на /shop
-  if (pathname === '/auth') {
-    return NextResponse.redirect(new URL('/shop', request.url));
-  }
+  // Middleware logic can be added here if needed
 
   return NextResponse.next();
 }

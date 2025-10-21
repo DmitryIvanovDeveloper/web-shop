@@ -42,9 +42,9 @@ export class Result<T, E extends Error = Error> {
 
   map<U>(fn: (data: T) => U): Result<U, E> {
     if (this.isSuccess) {
-      return Result.success(fn(this.data));
+      return Result.ok(fn(this.data));
     }
-    return Result.fail(this.error);
+    return Result.error(this.error);
   }
 
   flatMap<U>(fn: (data: T) => Result<U, E>): Result<U, E> {
