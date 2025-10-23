@@ -20,25 +20,28 @@ export class PaymentRepository implements PaymentRepositoryPort {
   ) {}
 
   public async save(payment: Payment): Promise<Result<Payment, PaymentError>> {
-    const storageData: PaymentStorageData = {
-      id: payment.id,
-      user_id: payment.userId,
-      product_id: payment.productId,
-      amount: payment.amount,
-      currency: payment.currency,
-      status: payment.status,
-      provider_intent_id: payment.providerIntentId,
-      created_at: payment.createdAt.toISOString(),
-      updated_at: payment.updatedAt.toISOString()
-    };
+    try {
+      const storageData: PaymentStorageData = {
+        id: payment.id,
+        user_id: payment.userId,
+        product_id: payment.productId,
+        app_id: payment.appId, // APP123 from query params
+        amount: payment.amount,
+        currency: payment.currency,
+        status: payment.status,
+        provider_intent_id: payment.providerIntentId,
+        created_at: payment.createdAt.toISOString(),
+        updated_at: payment.updatedAt.toISOString()
+      };
 
-    const result = await this._storage.insert(storageData);
-
-    if (isFailure(result)) {
-      return Failure.fail(result.error);
+      await this._storage.insert(storageData);
+      return Success.ok(payment);
+    } catch (error) {
+      return Failure.fail(new PaymentError(
+        'Failed to save payment transaction',
+        'SAVE_PAYMENT_ERROR'
+      ));
     }
-
-    return Success.ok(payment);
   }
 
   public async findById(id: string): Promise<Result<Payment | null, PaymentError>> {

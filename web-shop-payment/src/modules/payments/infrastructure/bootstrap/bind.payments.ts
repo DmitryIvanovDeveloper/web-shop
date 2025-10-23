@@ -24,7 +24,8 @@ import { PAYMENT_TYPES } from './types';
 export function bindPayments(container: Container): void {
   // ============= Infrastructure Layer =============
   
-  // Storage (Infrastructure) - Supabase implementation
+  // Storage (Infrastructure) - Supabase implementation for Payment Service
+  // Payment Service saves to Supabase for persistent storage
   container
     .bind<PaymentStoragePort>(PAYMENT_TYPES.PaymentStorage)
     .to(SupabasePaymentStorage)
@@ -59,12 +60,15 @@ export function bindPayments(container: Container): void {
 
   // ============= Interface Adapters Layer =============
   
-  // Presenter (Interface Adapters)
+  // Presenter (Interface Adapters) - Singleton to maintain state
   container
     .bind<PaymentPresenter>(PAYMENT_TYPES.PaymentPresenter)
-    .to(PaymentPresenter);
+    .to(PaymentPresenter)
+    .inSingletonScope();
 
-  // Event Handlers (Interface Adapters) - Register with EventBus symbols
+  // Event Handlers (Interface Adapters) - ENABLED for Payment Service
+  // Payment Service saves to database to prevent data loss
+  // Main Client can also listen to events for real-time updates
   container
     .bind<IAsyncEventHandler<PaymentConfirmedEvent>>(Symbol.for(`IAsyncEventHandler<PaymentConfirmedEvent>`))
     .to(PaymentWebhookHandler)

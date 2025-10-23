@@ -7,6 +7,7 @@ import { Payment, PaymentStatus } from '../../domain/entities/payment.entity';
 import { PaymentError, PaymentErrorCode } from '../../domain/errors/payment.error';
 import type { Logger } from '../../../../application/ports/logger.port';
 import type { SavePaymentTransactionRequest, SavePaymentTransactionResponse } from './input-output/save-payment-transaction.io';
+import { generateUUID } from '../../../../shared/utils/uuid';
 
 /**
  * Save Payment Transaction Use Case
@@ -48,9 +49,10 @@ export class SavePaymentTransactionUseCase {
 
     // Create payment domain entity
     const payment: Payment = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       userId: request.userId,
       productId: request.productId,
+      appId: request.appId, // APP123 from query params
       amount: request.amount,
       currency: request.currency,
       status: request.status as PaymentStatus,

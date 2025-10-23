@@ -13,6 +13,7 @@ export type ConfirmPaymentRequest = {
     currency: string;
   };
   userId: string;
+  appId?: string; // APP123 from query params
   paymentContext: PaymentElementsContext;
 };
 

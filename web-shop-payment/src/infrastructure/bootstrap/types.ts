@@ -41,10 +41,10 @@ export const TYPES = {
 // Export as ROOT_TYPES for consistency with documentation
 export const ROOT_TYPES = TYPES;
 
-// Export AUTH_TYPES from authentication module
-export { AUTH_TYPES } from '../../modules/authentication/infrastructure/bootstrap/types';
+// Payment Service doesn't have authentication module
+// Authentication is handled by the main client service
 
-// Export SHOP_TYPES from shop module
+// Export SHOP_TYPES from shop module (if needed)
 // Http client selection mode
 export enum HttpClientMode {
   Axios = 'axios',

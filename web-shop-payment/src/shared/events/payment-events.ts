@@ -1,4 +1,5 @@
 import { Event } from '../../application/ports/event-bus.port';
+import { generateUUID } from '../utils/uuid';
 
 /**
  * Event: Payment Confirmed
@@ -21,6 +22,7 @@ export class PaymentConfirmedEvent implements Event {
       currency: string;
     };
     userId: string;
+    appId?: string; // APP123 from query params
   };
 
   constructor(
@@ -31,14 +33,16 @@ export class PaymentConfirmedEvent implements Event {
       price: number;
       currency: string;
     },
-    userId: string
+    userId: string,
+    appId?: string
   ) {
-    this.id = crypto.randomUUID();
+    this.id = generateUUID();
     this.timestamp = new Date();
     this.payload = {
       paymentIntentId,
       productSnapshot,
-      userId
+      userId,
+      appId
     };
   }
 }

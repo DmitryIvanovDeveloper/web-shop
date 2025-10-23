@@ -64,7 +64,8 @@ export class ConfirmPaymentUseCase {
       new PaymentConfirmedEvent(
         request.paymentIntentId,
         request.productSnapshot,
-        request.userId
+        request.userId,
+        request.appId
       )
     );
 

@@ -67,7 +67,8 @@ export class StripePaymentService implements PaymentServicePort {
         ));
       }
 
-      const { error } = await stripe.confirmPayment({
+      // First, confirm payment on client side with Stripe Elements
+      const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
           return_url: `${window.location.origin}/payment/success`
@@ -80,6 +81,36 @@ export class StripePaymentService implements PaymentServicePort {
           error.message || 'Payment confirmation failed',
           new Error(error.message || 'Payment confirmation failed')
         ));
+      }
+
+      // If payment intent is returned, confirm it on server side
+      if (paymentIntent && paymentIntent.id) {
+        const response = await fetch(`${window.location.origin}/api/payments/confirm`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            paymentIntentId: paymentIntent.id
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          return Failure.fail(new PaymentConfirmationError(
+            `Server confirmation failed: ${errorData.error || response.statusText}`,
+            new Error(`HTTP ${response.status}: ${errorData.error || response.statusText}`)
+          ));
+        }
+
+        const result = await response.json();
+        if (!result.success) {
+          return Failure.fail(new PaymentConfirmationError(
+            'Server confirmation failed',
+            new Error(result.error || 'Unknown server error')
+          ));
+        }
       }
 
       return Success.ok(undefined);

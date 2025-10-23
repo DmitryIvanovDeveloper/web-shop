@@ -39,6 +39,7 @@ export class PaymentWebhookHandler implements IAsyncEventHandler<PaymentConfirme
         paymentIntentId: event.payload.paymentIntentId,
         userId: event.payload.userId,
         productId: event.payload.productSnapshot.id,
+        appId: event.payload.appId, // APP123 from query params
         amount: event.payload.productSnapshot.price,
         currency: event.payload.productSnapshot.currency,
         status: 'succeeded'

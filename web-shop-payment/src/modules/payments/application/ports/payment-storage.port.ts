@@ -24,6 +24,7 @@ export interface PaymentStorageData {
   id: string;
   user_id: string;
   product_id: string;
+  app_id?: string; // APP123 from query params
   amount: number;
   currency: string;
   status: string;

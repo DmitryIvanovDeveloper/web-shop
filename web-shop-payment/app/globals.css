@@ -3,17 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 55, 65, 81;
+  --background-end-rgb: 55, 65, 81;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Принудительно оставляем черный текст даже в dark mode */
-    --foreground-rgb: 0, 0, 0;
-    --background-start-rgb: 214, 219, 220;
-    --background-end-rgb: 255, 255, 255;
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 55, 65, 81;
+    --background-end-rgb: 55, 65, 81;
   }
 }
 
@@ -22,8 +21,7 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
-  /* Принудительно черный текст */
-  color: rgb(0, 0, 0) !important;
+  color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-end-rgb));
 }
 

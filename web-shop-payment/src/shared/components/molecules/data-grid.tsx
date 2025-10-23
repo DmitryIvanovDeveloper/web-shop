@@ -5,7 +5,7 @@ import { Grid } from './grid';
 import { OfferCard } from './offer-card';
 
 export interface DataGridProps {
-  readonly dataSource?: string;  // "api://products/offers"
+  readonly dataSource?: string;  // Generic API endpoint
   readonly renderItem?: (item: any, index: number) => ReactNode;
   readonly className?: string;
   readonly style?: CSSProperties;
@@ -29,7 +29,7 @@ export function DataGrid({
 
     const fetchData = async () => {
       try {
-        // Преобразуем "api://products/offers" -> "/api/products/offers"
+        // Преобразуем "api://endpoint" -> "/api/endpoint"
         const apiUrl = dataSource.replace('api://', '/api/');
         console.log('[DataGrid] Fetching data from:', apiUrl);
         
@@ -67,7 +67,7 @@ export function DataGrid({
 
   return (
     <div className={`${className || ''} mt-8`} style={style}>
-      <h2 className="text-white text-xl font-bold mb-4">Products</h2>
+      <h2 className="text-white text-xl font-bold mb-4">Data</h2>
       <Grid>
         {data.map((item, idx) => {
           console.log(`[DataGrid] Rendering item ${idx}:`, item);

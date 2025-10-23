@@ -9,6 +9,7 @@ export interface Payment {
   id: string;
   userId: string;
   productId: string;
+  appId?: string; // APP123 from query params
   amount: number;
   currency: string;
   status: PaymentStatus;

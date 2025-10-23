@@ -3,7 +3,6 @@ import '../src/env'; // Load environment variables first
 import 'reflect-metadata';
 import '../src/infrastructure/bootstrap/container';
 import "./output.css";
-import { AuthModule } from '../src/modules/authentication/interface-adapters/ui/auth-module';
 
 export default function RootLayout({ children }: { children: React.ReactNode}) {
   return (
