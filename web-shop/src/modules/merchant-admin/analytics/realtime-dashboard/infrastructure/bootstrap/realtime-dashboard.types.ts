@@ -13,6 +13,7 @@ export const TYPES = {
   RefundsRepository: Symbol.for('RefundsRepository'),
   MarketingChannelsRepository: Symbol.for('MarketingChannelsRepository'),
   FilterPresetRepository: Symbol.for('FilterPresetRepository'),
+  PurchaseRepository: Symbol.for('PurchaseRepository'),
   
   // Use Cases
   LoadDashboardUseCase: Symbol.for('LoadDashboardUseCase'),
@@ -23,6 +24,7 @@ export const TYPES = {
   LoadSettingsUseCase: Symbol.for('LoadSettingsUseCase'),
   LoadPresetsUseCase: Symbol.for('LoadPresetsUseCase'),
   SavePresetUseCase: Symbol.for('SavePresetUseCase'),
+  LoadRecentPurchasesUseCase: Symbol.for('LoadRecentPurchasesUseCase'),
   
   // Presenters
   DashboardPresenter: Symbol.for('DashboardPresenter')

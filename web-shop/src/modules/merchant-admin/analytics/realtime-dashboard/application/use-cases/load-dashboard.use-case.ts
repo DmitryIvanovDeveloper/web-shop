@@ -11,6 +11,7 @@ import type { PaymentMethodsRepositoryPort } from '../ports/payment-methods-repo
 import type { TransactionsRepositoryPort } from '../ports/transactions-repository.port';
 import type { RefundsRepositoryPort } from '../ports/refunds-repository.port';
 import type { MarketingChannelsRepositoryPort } from '../ports/marketing-channels-repository.port';
+import type { PurchaseRepositoryPort } from '../ports/purchase-repository.port';
 import { TYPES } from '../../infrastructure/bootstrap/realtime-dashboard.types';
 
 @injectable()
@@ -37,7 +38,9 @@ export class LoadDashboardUseCase {
     @inject(TYPES.RefundsRepository)
     private readonly refundsRepository: RefundsRepositoryPort,
     @inject(TYPES.MarketingChannelsRepository)
-    private readonly marketingChannelsRepository: MarketingChannelsRepositoryPort
+    private readonly marketingChannelsRepository: MarketingChannelsRepositoryPort,
+    @inject(TYPES.PurchaseRepository)
+    private readonly purchaseRepository: PurchaseRepositoryPort
   ) {}
 
   async execute(userId: string): Promise<Dashboard> {
@@ -52,7 +55,8 @@ export class LoadDashboardUseCase {
       paymentMethodsSummary,
       transactionsSummary,
       refundsSummary,
-      marketingChannelsSummary
+      marketingChannelsSummary,
+      purchaseSummary
     ] = await Promise.all([
       this.salesRepository.getSalesSummary(),
       this.revenueRepository.getRevenueSummary(),
@@ -63,7 +67,8 @@ export class LoadDashboardUseCase {
       this.paymentMethodsRepository.getPaymentMethodsSummary(),
       this.transactionsRepository.getTransactionsSummary(),
       this.refundsRepository.getRefundsSummary(),
-      this.marketingChannelsRepository.getMarketingChannelsSummary()
+      this.marketingChannelsRepository.getMarketingChannelsSummary(),
+      this.purchaseRepository.getPurchaseSummary()
     ]);
     
     // Создаем дашборд с помощью репозитория
@@ -77,7 +82,8 @@ export class LoadDashboardUseCase {
       paymentMethodsSummary,
       transactionsSummary,
       refundsSummary,
-      marketingChannelsSummary
+      marketingChannelsSummary,
+      purchaseSummary
     );
   }
 }

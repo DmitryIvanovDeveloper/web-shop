@@ -5,3 +5,5 @@ export { DateRangeFilter, type DateRangeFilterProps } from './DateRangeFilter';
 export { FilterBar, type FilterBarProps } from './FilterBar';
 export { SalesPanel, type SalesPanelProps } from './SalesPanel';
 export { RevenuePanel, type RevenuePanelProps } from './RevenuePanel';
+export { PurchasePanel, type PurchasePanelProps } from './PurchasePanel';
+export { PurchasesAnalyticsPanel, type PurchasesAnalyticsPanelProps } from './PurchasesAnalyticsPanel';

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import React from 'react';
 import { GeographyPanel } from '../interface-adapters/ui/GeographyPanel';
 import { GeographySummary } from '../domain/entities/geography-summary.entity';
 import { TransactionsSummary, Transaction } from '../domain/entities/transactions-summary.entity';
@@ -10,29 +11,20 @@ import { RevenueSummary } from '../domain/entities/revenue-summary.entity';
 // Мокаем DonutChart компонент
 vi.mock('../../../../../../shared/ui/charts/DonutChart', () => ({
   DonutChart: ({ data, title }: any) => {
-    return {
-      type: 'div',
-      props: {
-        'data-testid': 'donut-chart',
-        children: [
-          { type: 'h3', props: { children: title } },
-          {
-            type: 'div',
-            props: {
-              'data-testid': 'chart-data',
-              children: data.map((item: any, index: number) => ({
-                type: 'div',
-                key: index,
-                props: {
-                  'data-testid': `chart-item-${index}`,
-                  children: `${item.label}: ${item.value}%`
-                }
-              }))
-            }
-          }
-        ]
-      }
-    };
+    return React.createElement('div', {
+      'data-testid': 'donut-chart'
+    }, [
+      React.createElement('h3', { key: 'title' }, title),
+      React.createElement('div', {
+        key: 'chart-data',
+        'data-testid': 'chart-data'
+      }, data.map((item: any, index: number) => 
+        React.createElement('div', { 
+          key: index,
+          'data-testid': `chart-item-${index}`
+        }, `${item.label}: ${item.value}%`)
+      ))
+    ]);
   }
 }));
 

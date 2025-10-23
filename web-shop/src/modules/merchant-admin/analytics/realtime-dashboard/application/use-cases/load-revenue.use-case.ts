@@ -16,16 +16,8 @@ export class LoadRevenueUseCase {
     try {
       // Получаем данные о доходах за текущий период
       // Repository уже возвращает RevenueSummary с comparison данными из API
-      const revenueResult = await this.revenueRepository.getRevenueSummary(period, filters);
-
-      if (!revenueResult.isSuccess() || !revenueResult.data) {
-        return revenueResult.isSuccess() 
-          ? Result.error(new DataUnavailableError('revenue-summary', 'No data returned'))
-          : revenueResult;
-      }
-
-      // Repository уже создал полный RevenueSummary с comparison
-      return Result.ok(revenueResult.data);
+      const revenueSummary = await this.revenueRepository.getRevenueSummary();
+      return Result.success(revenueSummary);
 
     } catch (error) {
       return Result.error(new DataUnavailableError('revenue-summary', `Failed to load revenue summary: ${error}`));

@@ -5,7 +5,8 @@ import { DollarSign } from 'lucide-react';
 import { MetricCard } from './MetricCard';
 import { DashboardPresenter } from '../../presenters/dashboard.presenter';
 import { MetricFormatter } from '../../formatters';
-import type { RevenueSummary, TrendDataPoint } from '../../../domain';
+import type { RevenueSummary } from '../../../domain/entities/revenue-summary.entity';
+import type { TrendDataPoint } from '../../../domain';
 
 export interface RevenuePanelProps {
   presenter: DashboardPresenter;
@@ -21,21 +22,25 @@ export function RevenuePanel({ presenter }: RevenuePanelProps) {
   useEffect(() => {
     const loadData = async () => {
       setState({ loading: true });
-      await presenter.loadRevenue();
-      setState(presenter.state.revenue ?? { loading: false });
+      await presenter.loadDashboard('demo-user');
+      const viewModel = presenter.getViewModel();
+      setState({ 
+        data: viewModel.dashboard?.revenueSummary, 
+        loading: viewModel.isLoading 
+      });
     };
     void loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [presenter]);
 
-  const trend = state?.data?.trend.dataPoints ?? [];
+  const trend = state?.data?.trend ?? [];
   
   const comparison = state?.data
     ? {
-        percent: state.data.getGrowthRate(),
-        direction: (state.data.isGrowing() 
+        percent: Math.abs(state.data.monthlyGrowth),
+        direction: (state.data.monthlyGrowth > 0 
           ? 'up' 
-          : state.data.isCriticalChange() && state.data.getGrowthRate() < 0 
+          : state.data.monthlyGrowth < 0 
             ? 'down' 
             : 'neutral') as 'up' | 'down' | 'neutral'
       }
@@ -50,29 +55,29 @@ export function RevenuePanel({ presenter }: RevenuePanelProps) {
           icon={DollarSign}
           value={state?.data ? MetricFormatter.formatCurrency(state.data.totalRevenue) : '—'}
           comparison={comparison}
-          trend={trend.map((p: TrendDataPoint) => ({ date: p.date, value: p.value }))}
+          trend={trend.map((p: any) => ({ date: p.timestamp.toISOString().split('T')[0], value: p.value }))}
           loading={state?.loading}
           error={state?.error}
         />
 
-        {/* ARPU */}
+        {/* Revenue Per Visitor */}
         <MetricCard
-          title="ARPU"
+          title="Revenue Per Visitor"
           icon={DollarSign}
-          value={state?.data ? MetricFormatter.formatARPU(state.data.arpu) : '—'}
+          value={state?.data ? MetricFormatter.formatCurrency(state.data.revenuePerVisitor) : '—'}
           loading={state?.loading}
           error={state?.error}
-          className="arpu-card"
+          className="revenue-per-visitor-card"
         />
 
-        {/* ARPPU */}
+        {/* Average Order Value */}
         <MetricCard
-          title="ARPPU"
+          title="Average Order Value"
           icon={DollarSign}
-          value={state?.data ? MetricFormatter.formatARPU(state.data.arppu) : '—'}
+          value={state?.data ? MetricFormatter.formatCurrency(state.data.averageOrderValue) : '—'}
           loading={state?.loading}
           error={state?.error}
-          className="arppu-card"
+          className="average-order-value-card"
         />
       </div>
     </div>

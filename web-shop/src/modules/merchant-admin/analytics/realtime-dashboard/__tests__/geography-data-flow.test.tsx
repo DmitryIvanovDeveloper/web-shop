@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import React from 'react';
 import { GeographyRepository } from '../infrastructure/repositories/geography.repository';
 import { GeographyPanel } from '../interface-adapters/ui/GeographyPanel';
 import { GeographySummary } from '../domain/entities/geography-summary.entity';
@@ -15,11 +16,12 @@ const mockHttpClient = {
 
 // Mock DonutChart component
 vi.mock('../../../../shared/ui/charts/DonutChart', () => ({
-  DonutChart: ({ data }: { data: any[] }) => (
-    <div data-testid="donut-chart" data-chart-data={JSON.stringify(data)}>
-      Mock DonutChart with {data.length} regions
-    </div>
-  ),
+  DonutChart: ({ data }: { data: any[] }) => {
+    return React.createElement('div', {
+      'data-testid': 'donut-chart',
+      'data-chart-data': JSON.stringify(data)
+    }, `Mock DonutChart with ${data.length} regions`);
+  },
 }));
 
 // Mock FilterApplier

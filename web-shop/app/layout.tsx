@@ -1,16 +1,18 @@
 "use client";
 import 'reflect-metadata';
+import '../src/env';
 import '../src/infrastructure/bootstrap/container';
 import '../src/modules/merchant-admin/analytics/realtime-dashboard/infrastructure/bootstrap/realtime-dashboard.container';
 import "./globals.css";
 import "./output.css";
 import Sidebar from "@/shared/ui/Sidebar";
-import { useRouter, usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+// import { usePathname } from "next/navigation";
+// import { useEffect } from "react";
 
 export default function RootLayout({ children }: { children: React.ReactNode}) {
   const router = useRouter();
-  const pathname = usePathname();
+  // const pathname = usePathname();
 
   const handleSelect = (key: string) => {
     if (key === "dashboard") {

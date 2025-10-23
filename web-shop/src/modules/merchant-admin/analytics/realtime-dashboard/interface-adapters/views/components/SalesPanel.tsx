@@ -6,7 +6,8 @@ import { MetricCard } from './MetricCard';
 import { MiniTrendChart } from './MiniTrendChart';
 import { DashboardPresenter } from '../../presenters/dashboard.presenter';
 import { MetricFormatter } from '../../formatters';
-import type { SalesSummary, TrendDataPoint } from '../../../domain';
+import type { SalesSummary } from '../../../domain/entities/sales-summary.entity';
+import type { TrendDataPoint } from '../../../domain/types/trend.types';
 
 export interface SalesPanelProps {
   presenter: DashboardPresenter;
@@ -22,23 +23,34 @@ export function SalesPanel({ presenter }: SalesPanelProps) {
   useEffect(() => {
     const loadData = async () => {
       setState({ loading: true });
-      await presenter.loadSales();
-      setState(presenter.state.sales ?? { loading: false });
+      await presenter.loadDashboard('demo-user');
+      const viewModel = presenter.getViewModel();
+      setState({ 
+        data: viewModel.dashboard?.salesSummary, 
+        loading: viewModel.isLoading 
+      });
     };
     void loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [presenter]);
 
-  const trend = state?.data?.trend.dataPoints ?? [];
+  const trendData = state?.data?.trend ?? [];
+  
+  // Calculate growth rate from trend data
+  const calculateGrowthRate = (trend: TrendDataPoint[]): number => {
+    if (trend.length < 2) return 0;
+    const firstValue = trend[0]?.value || 0;
+    const lastValue = trend[trend.length - 1]?.value || 0;
+    if (firstValue === 0) return lastValue > 0 ? 100 : 0;
+    return ((lastValue - firstValue) / firstValue) * 100;
+  };
+
+  const growthRate = state?.data ? calculateGrowthRate(trendData) : 0;
   
   const comparison = state?.data
     ? {
-        percent: state.data.getGrowthRate(),
-        direction: (state.data.isGrowing() 
-          ? 'up' 
-          : state.data.isCriticalChange() && state.data.getGrowthRate() < 0 
-            ? 'down' 
-            : 'neutral') as 'up' | 'down' | 'neutral'
+        percent: Math.abs(growthRate),
+        direction: (growthRate > 0 ? 'up' : growthRate < 0 ? 'down' : 'neutral') as 'up' | 'down' | 'neutral'
       }
     : undefined;
 
@@ -69,16 +81,19 @@ export function SalesPanel({ presenter }: SalesPanelProps) {
         <MetricCard
           title="ARPU"
           icon={DollarSign}
-          value={presenter.state.revenue?.data ? MetricFormatter.formatARPU(presenter.state.revenue.data.arpu) : '—'}
-          loading={presenter.state.revenue?.loading ?? false}
-          error={presenter.state.revenue?.error}
+          value={state?.data ? MetricFormatter.formatARPU(state.data.totalSales / (state.data.transactions || 1)) : '—'}
+          loading={state?.loading}
+          error={state?.error}
         />
       </div>
 
       {/* Sales Trend full width */}
       <div style={{ marginTop: 24 }}>
         <MiniTrendChart
-          data={trend.map((p: TrendDataPoint) => ({ date: p.date, value: p.value }))}
+          data={trendData.map((p: TrendDataPoint) => ({ 
+            date: p.timestamp ? p.timestamp.toISOString().split('T')[0] : new Date().toISOString().split('T')[0], 
+            value: p.value || 0 
+          }))}
         />
       </div>
     </div>

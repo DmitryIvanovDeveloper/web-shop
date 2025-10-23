@@ -12,6 +12,7 @@ import { ResetSettingsUseCase } from '@/modules/merchant-admin/analytics/realtim
 import { LoadSettingsUseCase } from '@/modules/merchant-admin/analytics/realtime-dashboard/application/use-cases/load-settings.use-case';
 import { LoadPresetsUseCase } from '@/modules/merchant-admin/analytics/realtime-dashboard/application/use-cases/load-presets.use-case';
 import { SavePresetUseCase } from '@/modules/merchant-admin/analytics/realtime-dashboard/application/use-cases/save-preset.use-case';
+import { LoadRecentPurchasesUseCase } from '@/modules/merchant-admin/analytics/realtime-dashboard/application/use-cases/load-recent-purchases.use-case';
 import { DashboardSettings } from '@/modules/merchant-admin/analytics/realtime-dashboard/domain/value-objects/dashboard-settings.value-object';
 import { FilterSet } from '@/modules/merchant-admin/analytics/realtime-dashboard/domain/value-objects/filter-set.value-object';
 
@@ -29,6 +30,7 @@ export default function DashboardPage() {
       const loadSettings = container.get<LoadSettingsUseCase>(TYPES.LoadSettingsUseCase);
       const loadPresets = container.get<LoadPresetsUseCase>(TYPES.LoadPresetsUseCase);
       const savePreset = container.get<SavePresetUseCase>(TYPES.SavePresetUseCase);
+      const loadRecentPurchases = container.get<LoadRecentPurchasesUseCase>(TYPES.LoadRecentPurchasesUseCase);
       
       const p = new DashboardPresenter(
         load,
@@ -39,7 +41,7 @@ export default function DashboardPage() {
         loadSettings,
         loadPresets,
         savePreset,
-        () => force((v) => v + 1)
+        loadRecentPurchases
       );
       setPresenter(p);
       p.loadDashboard('demo-user');

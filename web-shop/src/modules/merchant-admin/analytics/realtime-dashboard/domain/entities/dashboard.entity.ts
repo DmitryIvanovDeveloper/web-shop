@@ -8,6 +8,7 @@ import { PaymentMethodsSummary } from './payment-methods-summary.entity';
 import { TransactionsSummary } from './transactions-summary.entity';
 import { RefundsSummary } from './refunds-summary.entity';
 import { MarketingChannelsSummary } from './marketing-channels-summary.entity';
+import { PurchaseSummary } from './purchase-summary.entity';
 
 export class Dashboard {
   constructor(
@@ -20,6 +21,7 @@ export class Dashboard {
     public readonly paymentMethodsSummary?: PaymentMethodsSummary,
     public readonly transactionsSummary?: TransactionsSummary,
     public readonly refundsSummary?: RefundsSummary,
-    public readonly marketingChannelsSummary?: MarketingChannelsSummary
+    public readonly marketingChannelsSummary?: MarketingChannelsSummary,
+    public readonly purchaseSummary?: PurchaseSummary
   ) {}
 }

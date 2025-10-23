@@ -12,6 +12,8 @@ import type { SavePresetUseCase } from '../../application/use-cases/save-preset.
 import { FilterSet } from '../../domain/value-objects/filter-set.value-object';
 import { FilterPreset } from '../../domain/entities/filter-preset.entity';
 import { TYPES } from '../../infrastructure/bootstrap/realtime-dashboard.types';
+import type { LoadRecentPurchasesUseCase } from '../../application/use-cases/load-recent-purchases.use-case';
+import type { PurchaseRow } from '../../application/ports/purchase-repository.port';
 
 export interface DashboardViewModel {
   dashboard: Dashboard | null;
@@ -41,7 +43,7 @@ export class DashboardPresenter {
     currentPresetId: undefined
   };
 
-  private onViewModelChanged: () => void;
+  private onViewModelChanged: () => void = () => {}; // Default empty callback
   private realtimeChannels = [
     'dashboard.sales',
     'dashboard.revenue',
@@ -66,10 +68,9 @@ export class DashboardPresenter {
     private readonly loadPresetsUseCase: LoadPresetsUseCase,
     @inject(TYPES.SavePresetUseCase)
     private readonly savePresetUseCase: SavePresetUseCase,
-    onViewModelChanged: () => void
-  ) {
-    this.onViewModelChanged = onViewModelChanged;
-  }
+    @inject(TYPES.LoadRecentPurchasesUseCase)
+    private readonly loadRecentPurchasesUseCase: LoadRecentPurchasesUseCase
+  ) {}
 
   async loadDashboard(userId: string): Promise<void> {
     this.viewModel.isLoading = true;
@@ -273,7 +274,17 @@ export class DashboardPresenter {
     }
   }
 
+  async getRecentPurchases(limit: number = 50): Promise<PurchaseRow[]> {
+    try {
+      return await this.loadRecentPurchasesUseCase.execute(limit);
+    } catch (error) {
+      console.error('Failed to load recent purchases:', error);
+      return [];
+    }
+  }
+
   private notifyViewModelChanged(): void {
-    this.onViewModelChanged();
+    // No-op for now - we're not using reactive updates
+    // this.onViewModelChanged();
   }
 }
