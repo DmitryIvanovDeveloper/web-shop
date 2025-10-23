@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  supabase-db:
+    image: supabase/postgres:15.1.0.147
+    container_name: supabase-db
+    ports:
+      - "54322:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - ./supabase/migrations:/docker-entrypoint-initdb.d/migrations
+    networks:
+      - supabase-network
+
+  supabase-api:
+    image: supabase/supabase:1.24.0
+    container_name: supabase-api
+    ports:
+      - "54321:3000"
+    environment:
+      SUPABASE_PUBLIC_ANON_KEY: your-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: your-service-role-key
+      SUPABASE_DB_URL: postgresql://postgres:postgres@supabase-db:5432/postgres
+      SUPABASE_API_URL: http://localhost:54321
+      SUPABASE_SITE_URL: http://localhost:3000
+    depends_on:
+      - supabase-db
+    networks:
+      - supabase-network
+
+  supabase-studio:
+    image: supabase/studio:1.24.0
+    container_name: supabase-studio
+    ports:
+      - "54323:3000"
+    environment:
+      SUPABASE_PUBLIC_ANON_KEY: your-anon-key
+      SUPABASE_API_URL: http://supabase-api:3000
+      SUPABASE_DB_URL: postgresql://postgres:postgres@supabase-db:5432/postgres
+    depends_on:
+      - supabase-api
+    networks:
+      - supabase-network
+
+networks:
+  supabase-network:
+    driver: bridge

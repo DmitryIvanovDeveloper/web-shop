@@ -1,0 +1,92 @@
+[
+  {
+    "name": "Electronics",
+    "currentSales": 1200,
+    "previousSales": 1050,
+    "currentRevenue": 48000,
+    "previousRevenue": 42000,
+    "currentDiscount": 12.5,
+    "previousDiscount": 10.0,
+    "trendData": [
+      { "timestamp": "2023-10-01T00:00:00Z", "value": 4000, "comparisonValue": 3500 },
+      { "timestamp": "2023-10-02T00:00:00Z", "value": 4200, "comparisonValue": 3800 },
+      { "timestamp": "2023-10-03T00:00:00Z", "value": 3800, "comparisonValue": 3600 },
+      { "timestamp": "2023-10-04T00:00:00Z", "value": 4500, "comparisonValue": 4000 },
+      { "timestamp": "2023-10-05T00:00:00Z", "value": 4800, "comparisonValue": 4200 },
+      { "timestamp": "2023-10-06T00:00:00Z", "value": 4600, "comparisonValue": 4100 },
+      { "timestamp": "2023-10-07T00:00:00Z", "value": 5000, "comparisonValue": 4300 }
+    ]
+  },
+  {
+    "name": "Clothing",
+    "currentSales": 2400,
+    "previousSales": 2200,
+    "currentRevenue": 36000,
+    "previousRevenue": 33000,
+    "currentDiscount": 15.0,
+    "previousDiscount": 12.5,
+    "trendData": [
+      { "timestamp": "2023-10-01T00:00:00Z", "value": 3000, "comparisonValue": 2800 },
+      { "timestamp": "2023-10-02T00:00:00Z", "value": 3200, "comparisonValue": 2900 },
+      { "timestamp": "2023-10-03T00:00:00Z", "value": 3100, "comparisonValue": 2850 },
+      { "timestamp": "2023-10-04T00:00:00Z", "value": 3300, "comparisonValue": 3000 },
+      { "timestamp": "2023-10-05T00:00:00Z", "value": 3400, "comparisonValue": 3100 },
+      { "timestamp": "2023-10-06T00:00:00Z", "value": 3250, "comparisonValue": 2950 },
+      { "timestamp": "2023-10-07T00:00:00Z", "value": 3500, "comparisonValue": 3200 }
+    ]
+  },
+  {
+    "name": "Home & Garden",
+    "currentSales": 800,
+    "previousSales": 750,
+    "currentRevenue": 24000,
+    "previousRevenue": 22500,
+    "currentDiscount": 8.0,
+    "previousDiscount": 7.5,
+    "trendData": [
+      { "timestamp": "2023-10-01T00:00:00Z", "value": 2000, "comparisonValue": 1900 },
+      { "timestamp": "2023-10-02T00:00:00Z", "value": 2200, "comparisonValue": 2000 },
+      { "timestamp": "2023-10-03T00:00:00Z", "value": 2100, "comparisonValue": 1950 },
+      { "timestamp": "2023-10-04T00:00:00Z", "value": 2300, "comparisonValue": 2100 },
+      { "timestamp": "2023-10-05T00:00:00Z", "value": 2400, "comparisonValue": 2200 },
+      { "timestamp": "2023-10-06T00:00:00Z", "value": 2350, "comparisonValue": 2150 },
+      { "timestamp": "2023-10-07T00:00:00Z", "value": 2500, "comparisonValue": 2300 }
+    ]
+  },
+  {
+    "name": "Books",
+    "currentSales": 1500,
+    "previousSales": 1400,
+    "currentRevenue": 18000,
+    "previousRevenue": 16800,
+    "currentDiscount": 20.0,
+    "previousDiscount": 18.0,
+    "trendData": [
+      { "timestamp": "2023-10-01T00:00:00Z", "value": 1500, "comparisonValue": 1400 },
+      { "timestamp": "2023-10-02T00:00:00Z", "value": 1600, "comparisonValue": 1500 },
+      { "timestamp": "2023-10-03T00:00:00Z", "value": 1550, "comparisonValue": 1450 },
+      { "timestamp": "2023-10-04T00:00:00Z", "value": 1700, "comparisonValue": 1600 },
+      { "timestamp": "2023-10-05T00:00:00Z", "value": 1800, "comparisonValue": 1680 },
+      { "timestamp": "2023-10-06T00:00:00Z", "value": 1750, "comparisonValue": 1640 },
+      { "timestamp": "2023-10-07T00:00:00Z", "value": 1850, "comparisonValue": 1720 }
+    ]
+  },
+  {
+    "name": "Sports",
+    "currentSales": 600,
+    "previousSales": 550,
+    "currentRevenue": 15000,
+    "previousRevenue": 13750,
+    "currentDiscount": 10.0,
+    "previousDiscount": 9.0,
+    "trendData": [
+      { "timestamp": "2023-10-01T00:00:00Z", "value": 1200, "comparisonValue": 1100 },
+      { "timestamp": "2023-10-02T00:00:00Z", "value": 1300, "comparisonValue": 1200 },
+      { "timestamp": "2023-10-03T00:00:00Z", "value": 1250, "comparisonValue": 1150 },
+      { "timestamp": "2023-10-04T00:00:00Z", "value": 1350, "comparisonValue": 1250 },
+      { "timestamp": "2023-10-05T00:00:00Z", "value": 1400, "comparisonValue": 1300 },
+      { "timestamp": "2023-10-06T00:00:00Z", "value": 1380, "comparisonValue": 1280 },
+      { "timestamp": "2023-10-07T00:00:00Z", "value": 1450, "comparisonValue": 1350 }
+    ]
+  }
+]

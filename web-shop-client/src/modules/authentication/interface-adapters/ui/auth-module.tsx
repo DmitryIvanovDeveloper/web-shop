@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
 import { AuthPresenter } from '../presenters/auth.presenter';
@@ -55,7 +56,7 @@ const createThemeConfig = (theme: any): ThemeConfig => ({
   equals: () => true
 });
 
-export function AuthModule({ children, renderSidebarButton = false, renderPopupConfig = false }: AuthModuleProps) {
+function AuthModuleContent({ children, renderSidebarButton = false, renderPopupConfig = false }: AuthModuleProps) {
 	const searchParams = useSearchParams();
 	const authPresenter = container.get<AuthPresenter>(AUTH_TYPES.AuthPresenter);
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -327,6 +328,14 @@ export function AuthModule({ children, renderSidebarButton = false, renderPopupC
 				/>
 			)}
 		</>
+	);
+}
+
+export function AuthModule(props: AuthModuleProps) {
+	return (
+		<Suspense fallback={<div>Loading...</div>}>
+			<AuthModuleContent {...props} />
+		</Suspense>
 	);
 }
 

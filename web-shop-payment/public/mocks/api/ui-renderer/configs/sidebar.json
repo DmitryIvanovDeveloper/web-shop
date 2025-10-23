@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "theme": {
+    "colors": {
+      "primary": "#3B5AFE",
+      "background": "#0D1117",
+      "surface": "#161B22",
+      "text": "#FFFFFF"
+    },
+    "spacing": [0, 0.5, 1, 1.5, 2, 3, 4]
+  },
+  "layout": {
+    "id": "sidebar-container",
+    "type": "Container",
+    "props": {
+      "vertical": true,
+      "sidebar": true
+    },
+    "styles": {
+      "padding": 8,
+      "backgroundColor": "surface",
+      "minHeight": "100vh",
+      "width": "240px"
+    },
+    "children": [
+      {
+        "id": "store-button",
+        "type": "Button",
+        "props": {
+          "text": "Store",
+          "icon": "🛒",
+          "fullWidth": true
+        },
+        "styles": {
+          "padding": 4  ,
+          "backgroundColor": "primary",
+          "textColor": "text",
+          "justifyContent": "flex-start"
+        }
+      }
+    ]
+  }
+}
+
+
+

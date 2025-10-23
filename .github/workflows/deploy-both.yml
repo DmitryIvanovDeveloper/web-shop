@@ -1,0 +1,82 @@
+name: Deploy Both Projects
+
+on:
+  push:
+    branches: [ web-scenarios, webshop-client ]
+  workflow_dispatch:
+    inputs:
+      project:
+        description: 'Which project to deploy'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+        - both
+        - web-shop
+        - web-shop-client
+
+jobs:
+  deploy-web-shop:
+    if: github.ref == 'refs/heads/web-scenarios' || github.event.inputs.project == 'web-shop' || github.event.inputs.project == 'both'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout web-shop
+      uses: actions/checkout@v4
+      with:
+        path: web-shop
+        ref: web-scenarios
+        
+    - name: Setup Node.js for web-shop
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: web-shop/package-lock.json
+        
+    - name: Install web-shop dependencies
+      run: |
+        cd web-shop
+        npm ci
+        
+    - name: Build web-shop
+      run: |
+        cd web-shop
+        npm run build
+        
+    - name: Deploy web-shop
+      run: |
+        echo "Deploying web-shop from web-scenarios branch"
+
+  deploy-web-shop-client:
+    if: github.ref == 'refs/heads/webshop-client' || github.event.inputs.project == 'web-shop-client' || github.event.inputs.project == 'both'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout web-shop-client
+      uses: actions/checkout@v4
+      with:
+        path: web-shop-client
+        ref: webshop-client
+        
+    - name: Setup Node.js for web-shop-client
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        cache-dependency-path: web-shop-client/package-lock.json
+        
+    - name: Install web-shop-client dependencies
+      run: |
+        cd web-shop-client
+        npm ci
+        
+    - name: Build web-shop-client
+      run: |
+        cd web-shop-client
+        npm run build
+        
+    - name: Deploy web-shop-client
+      run: |
+        echo "Deploying web-shop-client from webshop-client branch"
+

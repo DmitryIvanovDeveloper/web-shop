@@ -178,6 +178,7 @@ export type ActionConfig =
 
 export interface ActionsConfig {
   readonly onClick?: ActionConfig;
+  readonly onChange?: ActionConfig;
 }
 
 // Универсальный интерфейс для всех компонентов

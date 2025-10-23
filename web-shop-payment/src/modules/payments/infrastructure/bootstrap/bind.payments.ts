@@ -1,0 +1,72 @@
+import { Container } from 'inversify';
+import { PaymentRepositoryPort } from '../../application/ports/payment-repository.port';
+import { PaymentStoragePort } from '../../application/ports/payment-storage.port';
+import { PaymentServicePort } from '../../application/ports/payment-service.port';
+import { PaymentRepository } from '../repositories/payment.repository';
+import { SupabasePaymentStorage } from '../storages/supabase-payment.storage';
+import { StripePaymentService } from '../services/stripe-payment.service';
+import { MockPaymentService } from '../services/mock-payment.service';
+import { CreatePaymentIntentUseCase } from '../../application/use-cases/create-payment-intent.use-case';
+import { ConfirmPaymentUseCase } from '../../application/use-cases/confirm-payment.use-case';
+import { SavePaymentTransactionUseCase } from '../../application/use-cases/save-payment-transaction.use-case';
+import { PaymentPresenter } from '../../interface-adapters/presenters/payment.presenter';
+import { PaymentWebhookHandler } from '../../interface-adapters/handlers/payment-webhook.handler';
+import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
+import { PaymentConfirmedEvent } from '../../../../shared/events/payment-events';
+import { PAYMENT_TYPES } from './types';
+
+/**
+ * Bind Payments Module Dependencies
+ * 
+ * Configures DI container for Payments module
+ * Follows Clean Architecture dependency rules
+ */
+export function bindPayments(container: Container): void {
+  // ============= Infrastructure Layer =============
+  
+  // Storage (Infrastructure) - Supabase implementation
+  container
+    .bind<PaymentStoragePort>(PAYMENT_TYPES.PaymentStorage)
+    .to(SupabasePaymentStorage)
+    .inSingletonScope();
+
+  // Repository (Infrastructure) - uses PaymentStoragePort
+  container
+    .bind<PaymentRepositoryPort>(PAYMENT_TYPES.PaymentRepository)
+    .to(PaymentRepository)
+    .inSingletonScope();
+
+  // Payment Service (Infrastructure) - Stripe implementation
+  container
+    .bind<PaymentServicePort>(PAYMENT_TYPES.PaymentService)
+    .to(StripePaymentService)
+    .inSingletonScope();
+
+  // ============= Application Layer =============
+  
+  // Use Cases (Application)
+  container
+    .bind<CreatePaymentIntentUseCase>(PAYMENT_TYPES.CreatePaymentIntentUseCase)
+    .to(CreatePaymentIntentUseCase);
+
+  container
+    .bind<ConfirmPaymentUseCase>(PAYMENT_TYPES.ConfirmPaymentUseCase)
+    .to(ConfirmPaymentUseCase);
+
+  container
+    .bind<SavePaymentTransactionUseCase>(PAYMENT_TYPES.SavePaymentTransactionUseCase)
+    .to(SavePaymentTransactionUseCase);
+
+  // ============= Interface Adapters Layer =============
+  
+  // Presenter (Interface Adapters)
+  container
+    .bind<PaymentPresenter>(PAYMENT_TYPES.PaymentPresenter)
+    .to(PaymentPresenter);
+
+  // Event Handlers (Interface Adapters) - Register with EventBus symbols
+  container
+    .bind<IAsyncEventHandler<PaymentConfirmedEvent>>(Symbol.for(`IAsyncEventHandler<PaymentConfirmedEvent>`))
+    .to(PaymentWebhookHandler)
+    .inTransientScope();
+}

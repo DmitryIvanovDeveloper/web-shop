@@ -35,3 +35,4 @@ export function SidebarRenderer({ presenter, actionContext }: SidebarRendererPro
 
   return <DynamicRenderer node={viewModel.config.layout} theme={viewModel.config.theme} actionContext={actionContext} />;
 }
+

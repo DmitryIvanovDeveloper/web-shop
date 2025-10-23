@@ -1,0 +1,13 @@
+{
+  "operationType": "condition",
+  "condition": {
+    "conditionType": "gte",
+    "value1": { "type": "property", "value": "user.purchases.length" },
+    "value2": { "type": "value", "value": 1 }
+  },
+  "nextOperation": {
+    "operationType": "action",
+    "action": { "actionType": "showOffer", "params": { "offerId": ["dragon-slayer", "tank-turret"] } }
+  }
+}
+

@@ -8,19 +8,42 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const filePath = path.join(process.cwd(), 'public', 'mocks', 'api', 'products', 'offers.json');
-    const fileContents = fs.readFileSync(filePath, 'utf8');
-    const offers = JSON.parse(fileContents);
-    
-    const offer = offers.find((o: any) => o.id === id);
-    if (!offer) {
-      return NextResponse.json({ error: 'Offer not found' }, { status: 404 });
+
+    // Проверяем разные возможные пути к файлу
+    const possiblePaths = [
+      path.join(process.cwd(), 'public', 'mocks', 'api', 'products', 'offers', `${id}.json`),
+      path.join(process.cwd(), 'webshops-specs', 'web-shop-client', 'public', 'mocks', 'api', 'products', 'offers', `${id}.json`),
+      path.join(__dirname, '..', '..', '..', '..', '..', 'public', 'mocks', 'api', 'products', 'offers', `${id}.json`)
+    ];
+
+    console.log('Looking for offer file:', id, 'in paths:', possiblePaths);
+
+    let fileContents = '';
+    let filePath = '';
+
+    for (const testPath of possiblePaths) {
+      try {
+        fileContents = fs.readFileSync(testPath, 'utf8');
+        filePath = testPath;
+        console.log('Found offer file at:', filePath);
+        break;
+      } catch (err) {
+        console.log('Path not found:', testPath);
+        continue;
+      }
     }
-    
+
+    if (!fileContents) {
+      console.log('Offer not found:', id);
+      return NextResponse.json({}, { status: 404 });
+    }
+
+    const offer = JSON.parse(fileContents);
+    console.log('Offer loaded successfully:', offer.title);
     return NextResponse.json(offer);
   } catch (error) {
     console.error('Error loading offer:', error);
-    return NextResponse.json({ error: 'Failed to load offer' }, { status: 500 });
+    return NextResponse.json({}, { status: 404 });
   }
 }
 

@@ -15,6 +15,7 @@ AI-powered e-commerce platform with intelligent agents for enhanced user experie
 - **Frontend**: Next.js 15, React 18, TypeScript
 - **Styling**: Tailwind CSS
 - **AI**: Custom AI agents system
+- **Testing**: Vitest (Unit/Integration), Playwright (E2E)
 - **Database**: PostgreSQL (planned)
 - **Deployment**: Vercel (planned)
 
@@ -53,10 +54,11 @@ web-shop/
 ├── app/                # Next.js app directory
 │   ├── globals.css     # Global styles
 │   ├── layout.tsx      # Root layout
-│   └── page.tsx        # Home page
+│   ├── page.tsx        # Home page
 ├── src/                # Source code
 │   ├── application/    # Application layer
 │   ├── infrastructure/ # Infrastructure layer
+│   ├── modules/        # Feature modules
 │   └── shared/         # Shared utilities
 └── docs/              # Documentation
 ```
@@ -70,6 +72,7 @@ The platform includes several AI agents:
 - **Analytics Agent**: Data analysis and insights
 - **Customer Service Agent**: User support and recommendations
 
+
 ## Development
 
 ### Available Scripts
@@ -78,6 +81,11 @@ The platform includes several AI agents:
 - `npm run build` - Build for production
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
+
+#### Testing Scripts
+- `npm run test` - Run unit and integration tests (Vitest)
+- `npm run test:watch` - Run tests in watch mode
+- `npm run test:coverage` - Run tests with coverage report
 
 ### Contributing
 

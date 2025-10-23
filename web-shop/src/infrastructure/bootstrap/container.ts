@@ -28,4 +28,5 @@ if (mode === HttpClientMode.Mock) {
 container.bind<EventBus>(TYPES.EventBus).to(InMemoryEventBus).inSingletonScope();
 container.bind<RealtimeClientPort>(TYPES.RealtimeClient).to(MockRealtimeClient).inSingletonScope();
 
+
 export { container };

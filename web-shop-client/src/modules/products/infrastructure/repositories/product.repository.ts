@@ -1,25 +1,25 @@
-import { inject, injectable } from 'inversify';
-import type { HttpClient } from '../../../../application/ports/http-client.port';
-import { TYPES } from '../../../../infrastructure/bootstrap/types';
+import { injectable } from 'inversify';
 import type { Product } from '../../domain/types';
 import type { ProductRepositoryPort } from '../../application/ports/product-repository.port';
 
 @injectable()
 export class ProductRepository implements ProductRepositoryPort {
-  public constructor(@inject(TYPES.HttpClient) private readonly http: HttpClient) {}
-
   async getAll(): Promise<Product[]> {
-    console.log('[ProductRepository] Fetching all products...');
+    console.log('[ProductRepository] Loading products from mock data...');
     
     try {
-      const response = await this.http.get<Product[]>('/api/products/list');
-      console.log('[ProductRepository] Response received:', response);
+      // Загружаем данные из JSON файла
+      const response = await fetch('/mocks/api/products/products.json');
+      if (!response.ok) {
+        throw new Error(`Failed to load products: ${response.status}`);
+      }
       
-      console.log('[ProductRepository] Products extracted:', response.data.length);
+      const products = await response.json();
+      console.log('[ProductRepository] Products loaded:', products.length);
       
-      return response.data;
+      return products;
     } catch (error) {
-      console.error('[ProductRepository] Failed to fetch products:', error);
+      console.error('[ProductRepository] Failed to load products:', error);
       throw error;
     }
   }
@@ -28,10 +28,11 @@ export class ProductRepository implements ProductRepositoryPort {
     console.log('[ProductRepository] Fetching product by id:', id);
     
     try {
-      const response = await this.http.get<Product>(`/api/products/list/${id}`);
-      console.log('[ProductRepository] Product response:', response);
+      const products = await this.getAll();
+      const product = products.find(p => p.id === id);
       
-      return response.data || null;
+      console.log('[ProductRepository] Product found:', !!product);
+      return product || null;
     } catch (error) {
       console.error('[ProductRepository] Failed to fetch product:', error);
       return null;

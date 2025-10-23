@@ -12,7 +12,9 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@nivo/line": "^0.99.0",
     "inversify": "^7.10.2",
+    "lucide-react": "^0.546.0",
     "next": "15.1.2",
     "react": "^18",
     "react-dom": "^18",

@@ -66,7 +66,7 @@ export function Sidebar({ children, widthClassName = "w-64", title = "Navigation
   };
 
   return (
-    <aside role="complementary" aria-label="Sidebar" style={containerStyle}>
+    <aside role="complementary" aria-label="Sidebar" data-testid="sidebar" style={containerStyle}>
       {children ?? (
         <>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>

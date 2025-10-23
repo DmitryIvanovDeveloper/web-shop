@@ -8,7 +8,7 @@ import { LoadPageConfigUseCase } from '../src/modules/ui-renderer/application/us
 import { DynamicRenderer } from '../src/modules/ui-renderer/interface-adapters/ui/components/dynamic-renderer';
 import type { ActionContext } from '../src/modules/ui-renderer/domain/types';
 import { useState, useEffect } from 'react';
-import { AuthModule } from '@/modules/authentication/interface-adapters/ui/auth-module';
+import { AuthModule } from '../src/modules/authentication/interface-adapters/ui/auth-module';
 
 export default function HomePage(): JSX.Element {
   const sidebarPresenter = container.get<SidebarRendererPresenter>(

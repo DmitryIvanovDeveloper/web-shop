@@ -1,6 +1,6 @@
 import { injectable, inject } from 'inversify';
 import { Result } from '../../../../shared/domain/result/result';
-import { AuthUIRepositoryPort } from '../ports/auth-ui-repository.port';
+import type { AuthUIRepositoryPort } from '../ports/auth-ui-repository.port';
 import { AuthUIConfigValueObject } from '../../domain/value-objects/auth-ui-config.value-object';
 import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
 

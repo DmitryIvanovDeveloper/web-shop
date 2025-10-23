@@ -1,0 +1,42 @@
+[
+  {
+    "region": "US",
+    "currentSuccessRate": 98.5,
+    "previousSuccessRate": 97.8,
+    "failureReasons": [
+      { "reason": "Insufficient Funds", "count": 12 },
+      { "reason": "Expired Card", "count": 8 },
+      { "reason": "Declined", "count": 5 }
+    ]
+  },
+  {
+    "region": "EU",
+    "currentSuccessRate": 97.2,
+    "previousSuccessRate": 96.5,
+    "failureReasons": [
+      { "reason": "Insufficient Funds", "count": 18 },
+      { "reason": "Expired Card", "count": 10 },
+      { "reason": "Network Error", "count": 7 }
+    ]
+  },
+  {
+    "region": "Asia",
+    "currentSuccessRate": 96.8,
+    "previousSuccessRate": 95.9,
+    "failureReasons": [
+      { "reason": "Insufficient Funds", "count": 22 },
+      { "reason": "Declined", "count": 15 },
+      { "reason": "Network Error", "count": 12 }
+    ]
+  },
+  {
+    "region": "LATAM",
+    "currentSuccessRate": 95.5,
+    "previousSuccessRate": 94.2,
+    "failureReasons": [
+      { "reason": "Insufficient Funds", "count": 28 },
+      { "reason": "Expired Card", "count": 18 },
+      { "reason": "Declined", "count": 14 }
+    ]
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "platform": "Mobile",
+    "currentUsers": 5200,
+    "previousUsers": 4800,
+    "currentRevenue": 75000,
+    "previousRevenue": 68000,
+    "currentConversion": 3.5,
+    "previousConversion": 3.2
+  },
+  {
+    "platform": "Desktop",
+    "currentUsers": 3800,
+    "previousUsers": 3600,
+    "currentRevenue": 42000,
+    "previousRevenue": 38000,
+    "currentConversion": 2.8,
+    "previousConversion": 2.6
+  },
+  {
+    "platform": "Tablet",
+    "currentUsers": 1200,
+    "previousUsers": 1100,
+    "currentRevenue": 8000,
+    "previousRevenue": 7200,
+    "currentConversion": 2.9,
+    "previousConversion": 2.7
+  }
+]
