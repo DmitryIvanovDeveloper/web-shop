@@ -1,6 +1,9 @@
+import { ProductId } from './value-objects/product-id.value-object';
+import { Price } from './value-objects/price.value-object';
+
 // Reuse Offer interface from offers module for consistency
 export interface Product {
-  readonly id: string;
+  readonly id: ProductId;
   readonly mainImage?: string;
   readonly mainImageAlt?: string;
   readonly sideImage?: string;
@@ -8,14 +11,16 @@ export interface Product {
   readonly includedItems?: string[];
   readonly discount?: string;
   readonly playerLimit?: string;
-  readonly timer?: string;
+  readonly timer?: Date;
   readonly title?: string;
   readonly rarity?: string;
-  readonly originalPrice?: string;
-  readonly currentPrice?: string;
+  readonly originalPrice?: Price;
+  readonly currentPrice?: Price;
   readonly rpBonus?: number;
   readonly lpBonus?: number;
+  readonly appid?: string;
   readonly buyButton?: BuyButton;
+  readonly isPurchased?: boolean;
 }
 
 export interface BuyButtonStyle {

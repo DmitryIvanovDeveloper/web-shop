@@ -18,6 +18,9 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
     status: 'loading',
     products: []
   });
+  
+  // State for tracking loading status of individual products
+  const [loadingProducts, setLoadingProducts] = useState<Set<string>>(new Set());
 
   // Get presenter from DI container
   const presenter = container.get<ProductsListPresenter>(PRODUCTS_TYPES.ProductsListPresenter);
@@ -41,13 +44,22 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
   }, [presenter]);
 
   const handleBuyProduct = async (product: Product) => {
+    const productId = product.id.value;
+    
     try {
-      console.log('[ProductsList] Buy product clicked:', product.id);
+      console.log('[ProductsList] Buy product clicked:', productId);
       
-      // Pass only product ID to presenter
-      await presenter.onBuyProduct(product.id);
+      // Set loading state for this product (infinite loading)
+      setLoadingProducts(prev => new Set(prev).add(productId));
+      
+      // Pass only product ID to presenter (convert ProductId to string)
+      await presenter.onBuyProduct(productId);
+      
+      console.log('[ProductsList] Product buy handled successfully:', productId);
+      // Note: Loading state is not cleared - it remains infinite
     } catch (error) {
       console.error('[ProductsList] Failed to handle buy product:', error);
+      // Note: Loading state is not cleared even on error - it remains infinite
     }
   };
 
@@ -86,21 +98,30 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
           <Grid>
             {Array.isArray(viewModel.products) ? viewModel.products.map((product, index) => (
           <OfferCard 
-            key={product?.id || `product-${index}`} 
-            {...product}
+            key={product?.id?.value || `product-${index}`} 
+            mainImage={product.mainImage}
+            mainImageAlt={product.mainImageAlt}
+            sideImage={product.sideImage}
+            backgroundImage={product.backgroundImage}
+            includedItems={product.includedItems}
+            discount={product.discount}
+            playerLimit={product.playerLimit}
+            timer={product.timer}
+            title={product.title}
+            rarity={product.rarity}
+            originalPrice={product.originalPrice?.format()}
+            currentPrice={product.currentPrice?.format()}
+            rpBonus={product.rpBonus}
+            lpBonus={product.lpBonus}
+            isPurchased={product.isPurchased}
+            isLoading={loadingProducts.has(product.id.value)}
             buyButton={{
-              text: product.currentPrice || 'BUY NOW',
-              enabled: true,
-              style: {
-                backgroundColor: '#FF6B35',
-                textColor: '#FFFFFF',
-                borderRadius: '8px',
-                padding: '12px 24px',
-                fontWeight: 'bold'
-              }
+              text: product.currentPrice?.format() || product.originalPrice?.format() || 'BUY NOW',
+              enabled: !product.isPurchased,
+              style: product.buyButton?.style
             }}
-              onClick={() => handleBuyProduct(product)}
-            />
+            onClick={() => !product.isPurchased && handleBuyProduct(product)}
+          />
           )) : (
             <div className="text-white">No products available</div>
           )}

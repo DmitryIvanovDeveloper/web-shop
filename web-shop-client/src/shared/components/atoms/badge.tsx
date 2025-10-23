@@ -1,10 +1,11 @@
 'use client';
 
 import type { CSSProperties } from 'react';
+  import { useBadgeStyles } from '../../hooks/use-badge-styles';
 
 export interface BadgeProps {
   readonly text?: string;
-  readonly variant?: 'discount' | 'limit' | 'timer' | 'rarity';
+  readonly variant?: 'discount' | 'limit' | 'timer' | 'rarity' | 'purchased';
   readonly icon?: string;
   readonly className?: string;
   readonly style?: CSSProperties;
@@ -21,28 +22,8 @@ export function Badge({
   height = 24,
   withSkew = false
 }: BadgeProps): JSX.Element {
-  const variantStyles: Record<string, { bg: string; text: string; skew: string }> = {
-    discount: { 
-      bg: '#FF4500', 
-      text: 'text-white',
-      skew: '#FF4500'
-    },
-    limit: { 
-      bg: '#4169E1', 
-      text: 'text-white',
-      skew: '#4169E1'
-    },
-    timer: { 
-      bg: '#FFD700', 
-      text: 'text-black',
-      skew: '#FFD700'
-    },
-    rarity: { 
-      bg: '#8A2BE2', 
-      text: 'text-white',
-      skew: '#8A2BE2'
-    },
-  };
+  // Load badge styles from products.json
+  const variantStyles = useBadgeStyles();
 
   const currentVariant = variantStyles[variant];
   const heightClass = `h-[${height}px]`;

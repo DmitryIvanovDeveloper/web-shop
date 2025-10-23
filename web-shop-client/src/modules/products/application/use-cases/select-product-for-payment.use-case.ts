@@ -4,7 +4,10 @@ import { PRODUCTS_TYPES } from '../../infrastructure/bootstrap/types';
 import type { EventBus } from '../../../../application/ports/event-bus.port';
 import type { Logger } from '../../../../application/ports/logger.port';
 import type { ProductRepositoryPort } from '../ports/product-repository.port';
+import type { BrowserPort } from '../ports/browser.port';
+import type { PaymentRedirectPort } from '../ports/payment-redirect.port';
 import { ProductSelectedForPaymentEvent } from '../../../../shared/events/product-events';
+import { ProductPaymentService } from '../../domain/services/product-payment.service';
 
 export interface SelectProductForPaymentRequest {
   productId: string;
@@ -18,7 +21,11 @@ export class SelectProductForPaymentUseCase {
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: Logger,
     @inject(PRODUCTS_TYPES.ProductRepository)
-    private readonly _productRepository: ProductRepositoryPort
+    private readonly _productRepository: ProductRepositoryPort,
+    @inject(ROOT_TYPES.Browser)
+    private readonly _browser: BrowserPort,
+    @inject(PRODUCTS_TYPES.PaymentRedirect)
+    private readonly _paymentRedirect: PaymentRedirectPort
   ) {}
 
   public async execute(request: SelectProductForPaymentRequest): Promise<void> {
@@ -27,61 +34,84 @@ export class SelectProductForPaymentUseCase {
     });
 
     try {
-      // Load product data from repository
+      // 1. Load product data from repository
       const product = await this._productRepository.getById(request.productId);
       
       if (!product) {
         throw new Error(`Product with id ${request.productId} not found`);
       }
 
-      // Parse price correctly (remove $ symbol and convert to number)
-      const price = product.currentPrice ? parseFloat(product.currentPrice.replace('$', '')) : 0;
-      
-      const productSnapshot = {
-        id: product.id,
-        title: product.title || 'Unknown Product',
-        price: price,
-        currency: 'USD' // TODO: Get from product or context
-      };
+      // 2. Validate product for payment using Domain Service
+      const validation = ProductPaymentService.validateProductForPayment(product);
+      if (!validation.isValid) {
+        throw new Error(`Product validation failed: ${validation.errors.join(', ')}`);
+      }
 
-      this._logger.info('[SelectProductForPaymentUseCase] Product data loaded', {
+      // 3. Create product snapshot using Domain Service
+      const productSnapshot = ProductPaymentService.createProductSnapshot(product);
+
+      this._logger.info('[SelectProductForPaymentUseCase] Product data loaded and validated', {
         productId: request.productId,
         productTitle: productSnapshot.title,
         productPrice: productSnapshot.price
       });
 
-      // Redirect to external payment service
-      if (typeof window !== 'undefined') {
-        const paymentServiceUrl = process.env.NEXT_PUBLIC_PAYMENT_SERVICE_URL || 'http://localhost:3002';
-        const paymentUrl = new URL('/payment', paymentServiceUrl);
-        paymentUrl.searchParams.set('productId', productSnapshot.id);
-        paymentUrl.searchParams.set('title', productSnapshot.title);
-        paymentUrl.searchParams.set('price', productSnapshot.price.toString());
-        paymentUrl.searchParams.set('currency', productSnapshot.currency);
-        
-        this._logger.info('[SelectProductForPaymentUseCase] Redirecting to external payment service', {
-          productId: request.productId,
-          paymentUrl: paymentUrl.toString()
-        });
-        
-        window.location.href = paymentUrl.toString();
-        return;
+      // 4. Handle payment redirection
+      if (this._browser.isBrowser()) {
+        await this._handleBrowserPayment(productSnapshot);
+      } else {
+        await this._handleServerPayment(request.productId, productSnapshot);
       }
-
-      // Fallback: Publish domain event (if not in browser)
-      await this._eventBus.publishAsync(
-        new ProductSelectedForPaymentEvent(request.productId, productSnapshot)
-      );
-
-      this._logger.info('[SelectProductForPaymentUseCase] ProductSelectedForPaymentEvent published', {
-        productId: request.productId
-      });
     } catch (error) {
-      this._logger.error('[SelectProductForPaymentUseCase] Failed to publish ProductSelectedForPaymentEvent', {
+      this._logger.error('[SelectProductForPaymentUseCase] Failed to process payment', {
         error: error instanceof Error ? error.message : 'Unknown error',
         productId: request.productId
       });
       throw error;
     }
+  }
+
+  /**
+   * Handle payment in browser environment
+   */
+  private async _handleBrowserPayment(productSnapshot: any): Promise<void> {
+    // Get user context through Browser Port
+    const currentUser = await this._browser.getCurrentUser();
+    const tempUserId = this._browser.getTempUserId();
+    const appConfig = this._browser.getAppConfig();
+
+    // Create user context using Domain Service
+    const userContext = ProductPaymentService.createUserContext(
+      currentUser,
+      tempUserId,
+      appConfig
+    );
+
+    // Build payment URL through Payment Redirect Port
+    const paymentUrl = this._paymentRedirect.buildPaymentUrl({
+      productId: productSnapshot.id,
+      productTitle: productSnapshot.title,
+      productPrice: productSnapshot.price,
+      productCurrency: productSnapshot.currency,
+      userId: userContext.userId,
+      appId: userContext.appId
+    });
+
+    // Redirect through Payment Redirect Port
+    this._paymentRedirect.redirectToPayment(paymentUrl);
+  }
+
+  /**
+   * Handle payment in server environment
+   */
+  private async _handleServerPayment(productId: string, productSnapshot: any): Promise<void> {
+    // Publish domain event for server-side processing
+    await this._eventBus.publishAsync(
+      new ProductSelectedForPaymentEvent(productId, productSnapshot)
+    );
+
+    this._logger.info('[SelectProductForPaymentUseCase] ProductSelectedForPaymentEvent published', {
+      productId
+    });
   }
 }

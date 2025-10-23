@@ -26,7 +26,7 @@ export interface OfferCardProps {
   readonly includedItems?: string[];
   readonly discount?: string;
   readonly playerLimit?: string;
-  readonly timer?: string;
+  readonly timer?: Date;
   readonly title?: string;
   readonly rarity?: string;
   readonly originalPrice?: string;
@@ -34,6 +34,8 @@ export interface OfferCardProps {
   readonly rpBonus?: number;
   readonly lpBonus?: number;
   readonly buyButton?: BuyButton;
+  readonly isPurchased?: boolean;
+  readonly isLoading?: boolean;
   readonly className?: string;
   readonly style?: CSSProperties;
   readonly onClick?: () => void;
@@ -55,6 +57,8 @@ export function OfferCard({
   rpBonus,
   lpBonus,
   buyButton,
+  isPurchased = false,
+  isLoading = false,
   className = "",
   style,
   onClick,
@@ -75,8 +79,8 @@ export function OfferCard({
       <div className="absolute top-0 left-0 right-0 flex justify-between items-start  pointer-events-none z-10 w-full">
         {/* Left side badges */}
         <div className="flex">
-          {/* Discount Badge */}
-          {discount && (
+          {/* Discount Badge - only show if not purchased */}
+          {!isPurchased && discount && (
             <Badge
               text={discount}
               variant="discount"
@@ -97,9 +101,9 @@ export function OfferCard({
               style={{ padding: '8px' }}
             />
           )}
-          {timer && (
+          {!isPurchased && timer && (
             <Badge
-              text={timer}
+              text={timer.toLocaleString()}
               variant="timer"
               withSkew={true}
               style={{ padding: '8px' }}
@@ -197,17 +201,17 @@ export function OfferCard({
           )}
         </div>
 
-        {/* Row 6: Buy Button - всегда внизу */}
+        {/* Row 6: Buy Button или Purchased Badge - всегда внизу */}
         <div>
-          {buyButton && buyButton.enabled && (
-            <button
-              className="w-full text-white font-bold rounded-lg transition-colors hover:opacity-90 flex items-center justify-center"
+          {isPurchased ? (
+            <div
+              className="w-full text-white font-bold rounded-lg flex items-center justify-center"
               style={{
-                backgroundColor: buyButton.style?.backgroundColor || "#FF6B35",
-                color: buyButton.style?.textColor || "#FFFFFF",
-                borderRadius: buyButton.style?.borderRadius || "8px",
-                padding: buyButton.style?.padding || "12px 24px",
-                fontWeight: buyButton.style?.fontWeight || "bold",
+                backgroundColor: "#10B981",
+                color: "#FFFFFF",
+                borderRadius: "8px",
+                padding: "12px 24px",
+                fontWeight: "bold",
                 fontSize: "16px",
                 minHeight: "40px",
                 height: "40px",
@@ -215,26 +219,72 @@ export function OfferCard({
                 alignItems: "center",
                 justifyContent: "center",
               }}
-              onClick={(e) => {
-                e.stopPropagation();
-
-                // Call the parent onClick handler first
-                if (onClick) {
-                  onClick();
-                }
-
-                // Then handle redirect if specified
-                if (buyButton.redirectUrl) {
-                  window.open(
-                    buyButton.redirectUrl,
-                    "_blank",
-                    "noopener,noreferrer"
-                  );
-                }
-              }}
             >
-              {buyButton.text || currentPrice || "BUY NOW"}
-            </button>
+              PURCHASED
+            </div>
+          ) : (
+            buyButton && buyButton.enabled && (
+              <button
+                className="w-full text-white font-bold rounded-lg transition-colors hover:opacity-90 flex items-center justify-center"
+                style={{
+                  backgroundColor: buyButton.style?.backgroundColor || "#FF6B35",
+                  color: buyButton.style?.textColor || "#FFFFFF",
+                  borderRadius: buyButton.style?.borderRadius || "8px",
+                  padding: buyButton.style?.padding || "12px 24px",
+                  fontWeight: buyButton.style?.fontWeight || "bold",
+                  fontSize: "16px",
+                  minHeight: "40px",
+                  height: "40px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+
+                  // Don't handle click if loading
+                  if (isLoading) {
+                    return;
+                  }
+
+                  // Call the parent onClick handler first
+                  if (onClick) {
+                    onClick();
+                  }
+
+                  // Then handle redirect if specified
+                  if (buyButton.redirectUrl) {
+                    window.open(
+                      buyButton.redirectUrl,
+                      "_blank",
+                      "noopener,noreferrer"
+                    );
+                  }
+                }}
+                disabled={isLoading}
+              >
+                {isLoading && (
+                  <span className="mr-2 inline-block animate-spin text-white">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                      <circle 
+                        className="opacity-25" 
+                        cx="12" 
+                        cy="12" 
+                        r="10" 
+                        stroke="white" 
+                        strokeWidth="4"
+                      />
+                      <path 
+                        className="opacity-75" 
+                        fill="white" 
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                  </span>
+                )}
+                {isLoading ? "" : (buyButton.text || currentPrice || "BUY NOW")}
+              </button>
+            )
           )}
         </div>
       </div>
