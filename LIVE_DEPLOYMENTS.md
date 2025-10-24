@@ -33,7 +33,7 @@
 
 ### 2️⃣ Web-Shop-Client (Клиентское приложение)
 
-**Production URL**: https://web-shop-client-92b6f274l-dmitryivanovdeveloper-5910s-projects.vercel.app
+**Production URL**: https://web-shop-client-hned9yu5f-dmitryivanovdeveloper-5910s-projects.vercel.app
 
 **Что включено:**
 - Главная страница с офферами
