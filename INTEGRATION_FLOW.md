@@ -209,7 +209,7 @@
 
 | Приложение | URL | Роль |
 |------------|-----|------|
-| **Client** | https://web-shop-client-lj5ltd8at-dmitryivanovdeveloper-5910s-projects.vercel.app | Каталог продуктов, Buy кнопки |
+| **Client** | https://web-shop-client-7fi5cs6g6-dmitryivanovdeveloper-5910s-projects.vercel.app | Каталог продуктов, Buy кнопки |
 | **Payment** | https://web-shop-payment-ie54yubx2-dmitryivanovdeveloper-5910s-projects.vercel.app | Обработка платежей |
 | **Analytics** | https://web-shop-mgnpjz7u8-dmitryivanovdeveloper-5910s-projects.vercel.app/merchant-admin/analytics/dashboard | Аналитика покупок |
 
@@ -219,7 +219,7 @@
 
 ### 1. Откройте Client App
 ```
-https://web-shop-client-lj5ltd8at-dmitryivanovdeveloper-5910s-projects.vercel.app
+https://web-shop-client-7fi5cs6g6-dmitryivanovdeveloper-5910s-projects.vercel.app
 ```
 
 ### 2. Найдите продукт с кнопкой "BUY NOW"

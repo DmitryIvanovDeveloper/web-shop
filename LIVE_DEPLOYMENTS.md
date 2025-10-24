@@ -33,7 +33,7 @@
 
 ### 2️⃣ Web-Shop-Client (Клиентское приложение)
 
-**Production URL**: https://web-shop-client-lj5ltd8at-dmitryivanovdeveloper-5910s-projects.vercel.app
+**Production URL**: https://web-shop-client-7fi5cs6g6-dmitryivanovdeveloper-5910s-projects.vercel.app
 
 **Что включено:**
 - ✅ Главная страница с продуктами из Supabase
