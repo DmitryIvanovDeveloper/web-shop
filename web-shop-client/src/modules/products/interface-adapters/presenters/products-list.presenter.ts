@@ -38,13 +38,24 @@ export class ProductsListPresenter {
       this._logger.info('[ProductsListPresenter] Products loaded from Supabase', { count: products.length, appId });
       
       // 3. Load purchased product IDs (filtered by userId + appId)
-      const purchasedIds = await this.getPurchasedProductsUseCase.execute(userId, appId);
-      this._logger.info('[ProductsListPresenter] Purchased products loaded', { 
-        userId, 
-        appId,
-        count: purchasedIds.length,
-        purchasedIds 
-      });
+      // This is optional - if it fails, we just assume no purchases
+      let purchasedIds: string[] = [];
+      try {
+        purchasedIds = await this.getPurchasedProductsUseCase.execute(userId, appId);
+        this._logger.info('[ProductsListPresenter] Purchased products loaded', { 
+          userId, 
+          appId,
+          count: purchasedIds.length,
+          purchasedIds 
+        });
+      } catch (error) {
+        this._logger.warn('[ProductsListPresenter] Failed to load purchased products, continuing without purchase data', { 
+          error: error instanceof Error ? error.message : 'Unknown error',
+          userId,
+          appId
+        });
+        // Continue with empty purchasedIds - all products will be shown as not purchased
+      }
       
       // 4. Load button style from JSON
       const buttonStyle = await this.productStyleService.getButtonStyle();
