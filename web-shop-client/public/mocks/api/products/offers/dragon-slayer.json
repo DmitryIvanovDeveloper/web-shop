@@ -13,7 +13,7 @@
   "lpBonus": 35,
   "buyButton": {
     "enabled": true,
-    "redirectUrl": "pay.webshopsx.com",
+    "redirectUrl": "https://web-shop-payment-ie54yubx2-dmitryivanovdeveloper-5910s-projects.vercel.app/payment?product_id=dragon-slayer&price=23.99&currency=USD",
     "style": {
       "backgroundColor": "rgb(255, 215, 0)",
       "textColor": "#000000",

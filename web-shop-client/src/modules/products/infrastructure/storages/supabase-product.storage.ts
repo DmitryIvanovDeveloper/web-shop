@@ -103,6 +103,9 @@ export class SupabaseProductStorage implements ProductStoragePort {
    * Map database fields (snake_case) to domain model (camelCase)
    */
   private _mapDatabaseToDomain(dbProduct: any): Product {
+    const paymentUrl = process.env.NEXT_PUBLIC_PAYMENT_URL || 'https://web-shop-payment-ie54yubx2-dmitryivanovdeveloper-5910s-projects.vercel.app';
+    const productPrice = dbProduct.current_price || dbProduct.original_price || 0;
+    
     return {
       id: ProductId.fromString(dbProduct.id),
       mainImage: dbProduct.main_image,
@@ -116,7 +119,18 @@ export class SupabaseProductStorage implements ProductStoragePort {
       currentPrice: dbProduct.current_price ? new Price(dbProduct.current_price) : undefined,
       rpBonus: dbProduct.rp_bonus,
       lpBonus: dbProduct.lp_bonus,
-      appid: dbProduct.appid
+      appid: dbProduct.appid,
+      buyButton: {
+        enabled: true,
+        redirectUrl: `${paymentUrl}/payment?product_id=${dbProduct.id}&price=${productPrice}&currency=USD&title=${encodeURIComponent(dbProduct.title || '')}`,
+        style: {
+          backgroundColor: "rgb(255, 215, 0)",
+          textColor: "#000000",
+          borderRadius: "8px",
+          padding: "12px 24px",
+          fontWeight: "bold"
+        }
+      }
     };
   }
 
