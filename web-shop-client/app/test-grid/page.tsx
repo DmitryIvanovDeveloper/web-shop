@@ -11,7 +11,7 @@ const mockOffers = [
     originalPrice: '$59.99',
     rarity: 'LEGENDARY WEAPON',
     discount: '-60% OFF',
-    timer: '1D 12:30:45'
+    timer: new Date(Date.now() + 36 * 60 * 60 * 1000) // 1.5 days
   },
   {
     id: 'tank-turret',
@@ -20,7 +20,7 @@ const mockOffers = [
     originalPrice: '$39.99',
     rarity: 'MYTHICAL WEAPON',
     discount: '-50% OFF',
-    timer: '2D 06:48:36'
+    timer: new Date(Date.now() + 54 * 60 * 60 * 1000) // 2.25 days
   },
   {
     id: 'plasma-rifle',
@@ -29,7 +29,7 @@ const mockOffers = [
     originalPrice: '$31.99',
     rarity: 'RARE WEAPON',
     discount: '-50% OFF',
-    timer: '3D 14:22:10'
+    timer: new Date(Date.now() + 86 * 60 * 60 * 1000) // 3.5 days
   }
 ];
 

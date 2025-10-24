@@ -56,6 +56,7 @@ export function OffersPopup({
               <OfferCard
                 key={offer.id}
                 {...offer}
+                timer={offer.timer ? new Date(offer.timer) : undefined}
                 onClick={() => onOfferClick?.(offer)}
                 className="cursor-pointer hover:scale-105 transition-transform duration-200"
               />

@@ -3,7 +3,7 @@ import { Result, Success, Failure, isFailure } from '../../../../shared/result/r
 import { PaymentRepositoryPort } from '../../application/ports/payment-repository.port';
 import type { PaymentStoragePort, PaymentStorageData } from '../../application/ports/payment-storage.port';
 import { Payment } from '../../domain/entities/payment.entity';
-import { PaymentError } from '../../domain/errors/payment.error';
+import { PaymentError, PaymentErrorCode } from '../../domain/errors/payment.error';
 import { PAYMENT_TYPES } from '../bootstrap/types';
 
 /**
@@ -39,7 +39,7 @@ export class PaymentRepository implements PaymentRepositoryPort {
     } catch (error) {
       return Failure.fail(new PaymentError(
         'Failed to save payment transaction',
-        'SAVE_PAYMENT_ERROR'
+        PaymentErrorCode.TRANSACTION_SAVE_FAILED
       ));
     }
   }

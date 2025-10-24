@@ -64,7 +64,7 @@ export class MockPaymentService implements PaymentServicePort {
       status: 'succeeded',
       amount: 1749, // Mock amount in cents
       currency: 'usd',
-      lastPaymentError: null
+      lastPaymentError: undefined
     });
   }
 }

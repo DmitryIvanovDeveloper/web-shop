@@ -1,6 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { Result } from '../../../../../../shared/domain/result/result';
-import { Period, DashboardFilters, DataUnavailableError, SalesSummary } from '../../domain';
+import { Period, DashboardFilters, DataUnavailableError } from '../../domain';
+import { SalesSummary } from '../../domain/entities/sales-summary.entity';
 import type { SalesRepositoryPort } from '../ports/sales-repository.port';
 import { PeriodComparisonService } from '../../infrastructure/services/period-comparison.service';
 import { TYPES } from '../../infrastructure/bootstrap/types';
@@ -16,16 +17,8 @@ export class LoadSalesUseCase {
     try {
       // Получаем данные о продажах за текущий период
       // Repository уже возвращает SalesSummary с comparison данными из API
-      const salesResult = await this.salesRepository.getSalesSummary(period, filters);
-
-      if (!salesResult.isSuccess() || !salesResult.data) {
-        return salesResult.isSuccess() 
-          ? Result.error(new DataUnavailableError('sales-summary', 'No data returned'))
-          : salesResult;
-      }
-
-      // Repository уже создал полный SalesSummary с comparison
-      return Result.ok(salesResult.data);
+      const salesSummary = await this.salesRepository.getSalesSummary();
+      return Result.ok(salesSummary);
 
     } catch (error) {
       return Result.error(new DataUnavailableError('sales-summary', `Failed to load sales summary: ${error}`));

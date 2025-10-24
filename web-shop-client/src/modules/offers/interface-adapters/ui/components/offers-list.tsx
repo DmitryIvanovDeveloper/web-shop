@@ -154,7 +154,11 @@ export function OffersList({
         <h2 className="text-white text-xl font-bold mb-4">Offers</h2>
         <Grid style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
           {offers.map((offer, index) => (
-            <OfferCard key={offer?.id || `offer-${index}`} {...offer} />
+            <OfferCard 
+              key={offer?.id || `offer-${index}`} 
+              {...offer}
+              timer={offer.timer ? new Date(offer.timer) : undefined}
+            />
           ))}
         </Grid>
       </div>

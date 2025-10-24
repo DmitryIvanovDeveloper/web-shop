@@ -44,7 +44,7 @@ export class DashboardFilters {
   }
 
   public withPeriod(newPeriod: Period): DashboardFilters {
-    return new DashboardFilters(newPeriod, this.regions, this.platform, this.currency);
+    return new DashboardFilters(newPeriod, [...this.regions], this.platform, this.currency);
   }
 
   public withRegions(newRegions: string[]): DashboardFilters {
@@ -52,11 +52,11 @@ export class DashboardFilters {
   }
 
   public withPlatform(newPlatform: PlatformType): DashboardFilters {
-    return new DashboardFilters(this.period, this.regions, newPlatform, this.currency);
+    return new DashboardFilters(this.period, [...this.regions], newPlatform, this.currency);
   }
 
   public withCurrency(newCurrency: string): DashboardFilters {
-    return new DashboardFilters(this.period, this.regions, this.platform, newCurrency);
+    return new DashboardFilters(this.period, [...this.regions], this.platform, newCurrency);
   }
 
   public hasRegion(region: string): boolean {

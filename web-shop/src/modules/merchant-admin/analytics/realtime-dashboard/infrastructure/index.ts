@@ -4,7 +4,6 @@ export { TrendCalculationService, type ITrendCalculationService } from './servic
 
 // Bootstrap
 export { TYPES } from './bootstrap/types';
-export { bindRealtimeDashboard } from './bootstrap/bind.realtime-dashboard';
 
 
 

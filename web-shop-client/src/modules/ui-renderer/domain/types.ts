@@ -151,7 +151,7 @@ export interface OfferCardProps {
   readonly includedItems?: string[];
   readonly discount?: string;
   readonly playerLimit?: string;
-  readonly timer?: string;
+  readonly timer?: Date;
   readonly title?: string;
   readonly rarity?: string;
   readonly originalPrice?: string;

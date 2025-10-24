@@ -1,5 +1,7 @@
 import React from 'react';
 
+type PlatformType = 'iOS' | 'Android' | 'Web' | 'All';
+
 export interface FilterBarProps {
   regions: string[];
   platform: string;

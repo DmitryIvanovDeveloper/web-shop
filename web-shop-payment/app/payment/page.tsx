@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { PaymentPage } from '../../src/modules/payments/interface-adapters/ui/payment-page';
 
 /**
@@ -9,5 +10,9 @@ import { PaymentPage } from '../../src/modules/payments/interface-adapters/ui/pa
  * The actual business logic is in the PaymentPage UI component
  */
 export default function PaymentPageRoute(): JSX.Element {
-  return <PaymentPage />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PaymentPage />
+    </Suspense>
+  );
 }
