@@ -33,13 +33,20 @@
 
 ### 2️⃣ Web-Shop-Client (Клиентское приложение)
 
-**Production URL**: https://web-shop-client-hned9yu5f-dmitryivanovdeveloper-5910s-projects.vercel.app
+**Production URL**: https://web-shop-client-83xp6errp-dmitryivanovdeveloper-5910s-projects.vercel.app
 
 **Что включено:**
-- Главная страница с офферами
-- Grid система для отображения продуктов
-- Адаптивный дизайн
-- Попапы с офферами
+- ✅ Главная страница с продуктами из Supabase
+- ✅ Grid система для отображения продуктов
+- ✅ Адаптивный дизайн
+- ✅ Попапы с офферами
+- ✅ **Buy кнопки с редиректом на Payment App**
+- ✅ Автоматическая передача данных продукта при покупке
+
+**Поток покупки:**
+1. Пользователь видит продукт из Supabase
+2. Нажимает "BUY NOW"
+3. Автоматически перенаправляется на Payment App с параметрами продукта
 
 ---
 
@@ -69,7 +76,12 @@ NEXT_PUBLIC_USE_SUPABASE_REVENUE = false
 ```
 
 ### Web-Shop-Client
-Нет специальных переменных окружения.
+
+```env
+NEXT_PUBLIC_PAYMENT_URL = https://web-shop-payment-ie54yubx2-dmitryivanovdeveloper-5910s-projects.vercel.app
+NEXT_PUBLIC_SUPABASE_URL = https://qosblydpgejtnyvzctpg.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY = <your-key>
+```
 
 ### Web-Shop-Payment
 Нет специальных переменных окружения.
