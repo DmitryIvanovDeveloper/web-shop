@@ -33,7 +33,7 @@
 
 ### 2️⃣ Web-Shop-Client (Клиентское приложение)
 
-**Production URL**: https://web-shop-client-83xp6errp-dmitryivanovdeveloper-5910s-projects.vercel.app
+**Production URL**: https://web-shop-client-lj5ltd8at-dmitryivanovdeveloper-5910s-projects.vercel.app
 
 **Что включено:**
 - ✅ Главная страница с продуктами из Supabase
@@ -78,7 +78,7 @@ NEXT_PUBLIC_USE_SUPABASE_REVENUE = false
 ### Web-Shop-Client
 
 ```env
-NEXT_PUBLIC_PAYMENT_URL = https://web-shop-payment-ie54yubx2-dmitryivanovdeveloper-5910s-projects.vercel.app
+NEXT_PUBLIC_PAYMENT_SERVICE_URL = https://web-shop-payment-ie54yubx2-dmitryivanovdeveloper-5910s-projects.vercel.app
 NEXT_PUBLIC_SUPABASE_URL = https://qosblydpgejtnyvzctpg.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY = <your-key>
 ```
