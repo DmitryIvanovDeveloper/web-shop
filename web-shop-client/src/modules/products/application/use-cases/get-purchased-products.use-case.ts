@@ -23,6 +23,12 @@ export class GetPurchasedProductsUseCase {
    * Execute the use case
    */
   public async execute(userId: string, appId: string): Promise<string[]> {
+    // If no userId, return empty array (user not authorized)
+    if (!userId) {
+      this._logger.info('[GetPurchasedProductsUseCase] No userId provided, returning empty purchased list');
+      return [];
+    }
+
     this._logger.info('[GetPurchasedProductsUseCase] Getting purchased products', { userId, appId });
 
     try {

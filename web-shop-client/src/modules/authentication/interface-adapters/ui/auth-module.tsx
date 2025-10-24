@@ -143,12 +143,16 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 			return;
 		}
 
-		console.log('[AuthModule] Initializing authentication with appId:', appId);
-		authPresenter.initializeAuthentication(appId);
+		console.log('[AuthModule] Auto-initializing authentication with appId:', appId);
+		setIsLoading(true);
+		authPresenter.initializeAuthentication(appId).finally(() => {
+			setIsLoading(false);
+		});
 
 	}, [searchParams]); // Только searchParams, остальные могут вызывать цикл
 
 	const getAppIdFromQuery = () => searchParams.get('appId');
+	
 	const getAppIdFromStorage = () => {
 		if (typeof window === 'undefined') return null;
 

@@ -14,10 +14,7 @@ export interface ProductsListProps {
 }
 
 export function ProductsList({ className, style }: ProductsListProps): JSX.Element | null {
-  const [viewModel, setViewModel] = useState<ProductsListViewModel>({
-    status: 'loading',
-    products: []
-  });
+  const [, forceUpdate] = useState({});
   
   // State for tracking loading status of individual products
   const [loadingProducts, setLoadingProducts] = useState<Set<string>>(new Set());
@@ -26,22 +23,42 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
   const presenter = container.get<ProductsListPresenter>(PRODUCTS_TYPES.ProductsListPresenter);
 
   useEffect(() => {
+    // Subscribe to presenter updates
+    presenter.setOnViewModelChanged(() => {
+      console.log('[ProductsList] ViewModel changed, updating UI');
+      forceUpdate({});
+    });
+
+    // Initial load
     const loadProducts = async () => {
       try {
-        const viewModel = await presenter.present();
-        setViewModel(viewModel);
+        await presenter.present();
       } catch (error) {
         console.error('[ProductsList] Failed to load products:', error);
-        setViewModel({
-          status: 'error',
-          products: [],
-          message: error instanceof Error ? error.message : 'Failed to load products'
-        });
       }
     };
 
     loadProducts();
+    
+    // Слушать событие от ProductsUserAuthenticatedHandler
+    // Handler уже вызвал presenter.present() с данными из события
+    // Presenter обновит ViewModel и уведомит UI через callback
+    const handleAuthReload = () => {
+      console.log('[ProductsList] Auth changed, presenter will update');
+    };
+    
+    if (typeof window !== 'undefined') {
+      window.addEventListener('productsNeedReload', handleAuthReload);
+    }
+    
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('productsNeedReload', handleAuthReload);
+      }
+    };
   }, [presenter]);
+
+  const viewModel = presenter.getViewModel();
 
   const handleBuyProduct = async (product: Product) => {
     const productId = product.id.value;

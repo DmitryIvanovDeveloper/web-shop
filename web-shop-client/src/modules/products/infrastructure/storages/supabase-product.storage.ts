@@ -103,8 +103,14 @@ export class SupabaseProductStorage implements ProductStoragePort {
    * Map database fields (snake_case) to domain model (camelCase)
    */
   private _mapDatabaseToDomain(dbProduct: any): Product {
-    const paymentUrl = process.env.NEXT_PUBLIC_PAYMENT_URL || 'https://web-shop-payment-ie54yubx2-dmitryivanovdeveloper-5910s-projects.vercel.app';
+    const paymentUrl = process.env.NEXT_PUBLIC_PAYMENT_SERVICE_URL || 'https://web-shop-payment.vercel.app';
     const productPrice = dbProduct.current_price || dbProduct.original_price || 0;
+    
+    console.log('[SupabaseProductStorage] Payment URL for product', {
+      productId: dbProduct.id,
+      paymentUrl,
+      env: process.env.NEXT_PUBLIC_PAYMENT_SERVICE_URL
+    });
     
     return {
       id: ProductId.fromString(dbProduct.id),

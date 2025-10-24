@@ -36,7 +36,7 @@ export class SupabaseRevenueRepository implements RevenueRepositoryPort {
 
       // Получаем данные о доходах из таблицы транзакций
       const { data: transactions, error: transactionsError } = await this._supabase
-        .from('transaction log')
+        .from('transaction_log')
         .select('amount, created_at, payment_status')
         .eq('payment_status', 'succeeded')
         .gte('created_at', this.getLast30DaysDate());
@@ -129,14 +129,14 @@ export class SupabaseRevenueRepository implements RevenueRepositoryPort {
 
       // Текущий месяц
       const { data: currentMonthData } = await this._supabase
-        .from('transaction log')
+        .from('transaction_log')
         .select('amount')
         .eq('payment_status', 'succeeded')
         .gte('created_at', currentMonthStart.toISOString());
 
       // Прошлый месяц
       const { data: lastMonthData } = await this._supabase
-        .from('transaction log')
+        .from('transaction_log')
         .select('amount')
         .eq('payment_status', 'succeeded')
         .gte('created_at', lastMonth.toISOString())

@@ -257,6 +257,7 @@ export class PaymentPresenter {
 
     this._viewModel.status = 'processing';
     this._viewModel.isProcessing = true;
+    this.notifyViewModelChange(); // Notify UI about processing state
 
     try {
       const result = await this._confirmPaymentUseCase.execute({
@@ -270,6 +271,8 @@ export class PaymentPresenter {
       if (isFailure(result)) {
         this._viewModel.status = 'error';
         this._viewModel.error = result.error.message;
+        this._viewModel.isProcessing = false;
+        this.notifyViewModelChange(); // Notify UI about error state
         this._logger.error('[PaymentPresenter] Payment confirmation failed', {
           error: result.error,
           intentId: this._viewModel.paymentIntent.intentId
@@ -279,27 +282,30 @@ export class PaymentPresenter {
 
       this._viewModel.status = 'success';
       this._viewModel.error = null;
+      this._viewModel.isProcessing = false;
+      this.notifyViewModelChange(); // Notify UI about success state
 
       this._logger.info('[PaymentPresenter] Payment confirmed successfully', {
         intentId: this._viewModel.paymentIntent.intentId
       });
 
       // Redirect to Main Client after successful payment
+      const clientUrl = process.env.NEXT_PUBLIC_CLIENT_URL || 'https://web-shop-client-ashy.vercel.app';
       setTimeout(() => {
         this._logger.info('[PaymentPresenter] Redirecting to Main Client', {
-          redirectUrl: 'http://localhost:3000'
+          redirectUrl: clientUrl
         });
-        window.location.href = 'http://localhost:3000';
+        window.location.href = clientUrl;
       }, 2000); // 2 second delay to show success message
     } catch (error) {
       this._viewModel.status = 'error';
       this._viewModel.error = error instanceof Error ? error.message : 'Unknown error';
+      this._viewModel.isProcessing = false;
+      this.notifyViewModelChange(); // Notify UI about error state
       this._logger.error('[PaymentPresenter] Unexpected error confirming payment', {
         error,
         intentId: this._viewModel.paymentIntent.intentId
       });
-    } finally {
-      this._viewModel.isProcessing = false;
     }
   }
 

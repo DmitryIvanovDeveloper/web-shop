@@ -9,6 +9,9 @@ export interface GridProps {
   readonly minItemWidth?: string;
   readonly maxColumns?: number;
   readonly adaptive?: boolean;
+  readonly mobileColumns?: number;
+  readonly tabletColumns?: number;
+  readonly desktopColumns?: number;
 }
 
 export function Grid({
@@ -17,7 +20,10 @@ export function Grid({
   children,
   minItemWidth = '270px',
   maxColumns,
-  adaptive = true
+  adaptive = true,
+  mobileColumns = 2,
+  tabletColumns = 3,
+  desktopColumns = 4
 }: GridProps): JSX.Element {
   const gap = 2;      // Фиксированный отступ - элементы центрированы в своих ячейках
 
@@ -42,11 +48,13 @@ export function Grid({
     }
   };
 
+  // Используем Tailwind классы для responsive grid
+  const gridClasses = `grid w-full gap-${gap} grid-cols-${mobileColumns} md:grid-cols-${tabletColumns} lg:grid-cols-${desktopColumns} ${className}`;
+
   return (
     <div
-      className={isFlexLayout ? `w-full ${className}` : `grid w-full gap-${gap} ${className}`}
+      className={isFlexLayout ? `w-full ${className}` : gridClasses}
       style={isFlexLayout ? style : {
-        gridTemplateColumns: getGridTemplateColumns(),
         placeItems: 'center',
         justifyContent: 'center',
         alignItems: 'start',

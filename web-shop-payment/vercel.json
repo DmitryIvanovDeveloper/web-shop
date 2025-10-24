@@ -3,6 +3,15 @@
   "outputDirectory": ".next",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "build": {
+    "env": {
+      "STRIPE_SECRET_KEY": "sk_test_51Ro03dPJ42tcQDZ5dvzKVDB8J31jUX8V6kT1Q209MrXZqvfMOyw7OPIYRfCozaiQ0dRq24nTMPIkRz9JoSmL3geT00vCYQos75",
+      "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51Ro03dPJ42tcQDZ5Sa6IoIkVifIp6EPIdjbBEm8wUk5Abf0EVInPSF1wCurs2Im4kxCkpxnxE4hI2lekAPyRZQzA0079Mh6eqC",
+      "NEXT_PUBLIC_SUPABASE_URL": "https://qosblydpgejtnyvzctpg.supabase.co",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvc2JseWRwZ2VqdG55dnpjdHBnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExNDIyNjIsImV4cCI6MjA3NjcxODI2Mn0.NdTiIXBqopSrK1uZb1Bh8MjulTOZE0iyjgNS-Tf_kn8",
+      "NEXT_PUBLIC_CLIENT_URL": "https://web-shop-client-ashy.vercel.app"
+    }
+  }
 }
 

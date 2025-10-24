@@ -23,10 +23,16 @@ export class SupabasePaymentStorage implements PaymentStoragePort {
   ) {
     // Создаем Supabase клиент только один раз (синглтон)
     if (!SupabasePaymentStorage.supabase) {
-      SupabasePaymentStorage.supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseKey) {
+        const errorMsg = 'supabaseUrl and supabaseKey are required. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables.';
+        this._logger.error('[SupabasePaymentStorage] ' + errorMsg);
+        throw new Error(errorMsg);
+      }
+
+      SupabasePaymentStorage.supabase = createClient(supabaseUrl, supabaseKey);
       this._logger.info('[SupabasePaymentStorage] Supabase client created');
     }
   }
@@ -106,7 +112,7 @@ export class SupabasePaymentStorage implements PaymentStoragePort {
       };
 
       const { data: insertedData, error } = await this.supabase
-        .from('transaction log')
+        .from('transaction_log')
         .insert(transactionLogData)
         .select()
         .single();
@@ -138,7 +144,7 @@ export class SupabasePaymentStorage implements PaymentStoragePort {
       this._logger.info('[SupabasePaymentStorage] Finding payment by id', { id });
 
       const { data, error } = await this.supabase
-        .from('transaction log')
+        .from('transaction_log')
         .select('*')
         .eq('id', id)
         .single();
@@ -179,7 +185,7 @@ export class SupabasePaymentStorage implements PaymentStoragePort {
       this._logger.info('[SupabasePaymentStorage] Finding payments by user id', { userId });
 
       const { data, error } = await this.supabase
-        .from('transaction log')
+        .from('transaction_log')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
@@ -219,7 +225,7 @@ export class SupabasePaymentStorage implements PaymentStoragePort {
       this._logger.info('[SupabasePaymentStorage] Finding payments by product id', { productId });
 
       const { data, error } = await this.supabase
-        .from('transaction log')
+        .from('transaction_log')
         .select('*')
         .eq('product_id', productId)
         .order('created_at', { ascending: false });
@@ -259,7 +265,7 @@ export class SupabasePaymentStorage implements PaymentStoragePort {
       this._logger.info('[SupabasePaymentStorage] Clearing all payments');
       
       const { error } = await this.supabase
-        .from('transaction log')
+        .from('transaction_log')
         .delete()
         .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all records
 
@@ -284,7 +290,7 @@ export class SupabasePaymentStorage implements PaymentStoragePort {
       this._logger.info('[SupabasePaymentStorage] Getting all payments');
 
       const { data, error } = await this.supabase
-        .from('transaction log')
+        .from('transaction_log')
         .select('*')
         .order('created_at', { ascending: false });
 

@@ -16,15 +16,11 @@ export function getCurrentUserId(): string {
     return '';
   }
   
-  let userId = localStorage.getItem('temp_user_id');
+  // Get userId from localStorage if exists (set after authorization)
+  const userId = localStorage.getItem('user_id');
   
-  if (!userId) {
-    // Generate new UUID for new user
-    userId = crypto.randomUUID();
-    localStorage.setItem('temp_user_id', userId);
-  }
-  
-  return userId;
+  // Return userId or empty string if not authorized
+  return userId || '';
 }
 
 /**

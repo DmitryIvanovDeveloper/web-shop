@@ -7,10 +7,17 @@ import { PRODUCTS_TYPES } from '../../infrastructure/bootstrap/types';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
 import { ProductStyleService } from '../../infrastructure/services/product-style.service';
-import { getCurrentUserId } from '../../../../shared/utils/user-session';
 
 @injectable()
 export class ProductsListPresenter {
+  private _viewModel: ProductsListViewModel = {
+    status: 'loading',
+    products: [],
+    message: 'Loading products...'
+  };
+  
+  private _onViewModelChanged?: () => void;
+
   constructor(
     @inject(PRODUCTS_TYPES.LoadProductsUseCase)
     private readonly loadProductsUseCase: LoadProductsUseCase,
@@ -24,44 +31,60 @@ export class ProductsListPresenter {
     private readonly _logger: Logger
   ) {}
 
-  async present(): Promise<ProductsListViewModel> {
-    this._logger.info('[ProductsListPresenter] Presenting products list...');
+  public setOnViewModelChanged(callback: () => void): void {
+    this._onViewModelChanged = callback;
+  }
+
+  public getViewModel(): ProductsListViewModel {
+    return this._viewModel;
+  }
+
+  private updateViewModel(viewModel: ProductsListViewModel): void {
+    this._viewModel = viewModel;
+    if (this._onViewModelChanged) {
+      this._onViewModelChanged();
+    }
+  }
+
+  async present(options?: { userId?: string; appId?: string }): Promise<ProductsListViewModel> {
+    this._logger.info('[ProductsListPresenter] Presenting products list...', { options });
     
     try {
-      // 1. Get current user ID and appId
-      const userId = getCurrentUserId();
-      const appId = this._getCurrentAppId();
-      this._logger.info('[ProductsListPresenter] Current user context', { userId, appId });
+      // 1. Reset products list (show loading state)
+      this._logger.info('[ProductsListPresenter] Resetting products list');
+      this.updateViewModel({
+        status: 'loading',
+        products: [],
+        message: 'Loading products...'
+      });
       
-      // 2. Load products from Supabase filtered by appId
+      // 2. Get current user context from options (passed from event)
+      const userId = options?.userId || '';
+      const appId = options?.appId || '';
+      
+      this._logger.info('[ProductsListPresenter] User context', { 
+        userId: userId || 'not-authorized', 
+        appId: appId || 'all-products'
+      });
+      
+      // 3. Load products from Supabase filtered by appId
       const products = await this.loadProductsUseCase.execute({ appId });
       this._logger.info('[ProductsListPresenter] Products loaded from Supabase', { count: products.length, appId });
       
-      // 3. Load purchased product IDs (filtered by userId + appId)
-      // This is optional - if it fails, we just assume no purchases
-      let purchasedIds: string[] = [];
-      try {
-        purchasedIds = await this.getPurchasedProductsUseCase.execute(userId, appId);
-        this._logger.info('[ProductsListPresenter] Purchased products loaded', { 
-          userId, 
-          appId,
-          count: purchasedIds.length,
-          purchasedIds 
-        });
-      } catch (error) {
-        this._logger.warn('[ProductsListPresenter] Failed to load purchased products, continuing without purchase data', { 
-          error: error instanceof Error ? error.message : 'Unknown error',
-          userId,
-          appId
-        });
-        // Continue with empty purchasedIds - all products will be shown as not purchased
-      }
+      // 4. Load purchased product IDs (returns empty array if no userId)
+      const purchasedIds = await this.getPurchasedProductsUseCase.execute(userId, appId);
+      this._logger.info('[ProductsListPresenter] Purchase check completed', { 
+        userId: userId || 'not-authorized', 
+        appId,
+        count: purchasedIds.length,
+        purchasedIds 
+      });
       
-      // 4. Load button style from JSON
+      // 5. Load button style from JSON
       const buttonStyle = await this.productStyleService.getButtonStyle();
       this._logger.info('[ProductsListPresenter] Button style loaded');
       
-      // 5. Enrich products with isPurchased and buyButton
+      // 6. Enrich products with isPurchased and buyButton
       const enrichedProducts = products.map(product => {
         const isPurchased = purchasedIds.includes(product.id.value);
         this._logger.info('[ProductsListPresenter] Product purchase check', {
@@ -89,21 +112,27 @@ export class ProductsListPresenter {
         purchasedCount: enrichedProducts.filter(p => p.isPurchased).length
       });
       
-      return {
+      const successViewModel: ProductsListViewModel = {
         status: 'success',
         products: enrichedProducts,
         message: `Loaded ${enrichedProducts.length} products`
       };
+      
+      this.updateViewModel(successViewModel);
+      return successViewModel;
     } catch (error) {
       this._logger.error('[ProductsListPresenter] Failed to present products list', { 
         error: error instanceof Error ? error.message : 'Unknown error' 
       });
       
-      return {
+      const errorViewModel: ProductsListViewModel = {
         status: 'error',
         products: [],
         message: error instanceof Error ? error.message : 'Failed to load products'
       };
+      
+      this.updateViewModel(errorViewModel);
+      return errorViewModel;
     }
   }
 
@@ -134,25 +163,5 @@ export class ProductsListPresenter {
     }
   }
 
-  /**
-   * Get current app ID from localStorage or environment
-   */
-  private _getCurrentAppId(): string {
-    try {
-      // Try to get from localStorage (set by authentication)
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        if (user.appId) {
-          return user.appId;
-        }
-      }
-    } catch (error) {
-      console.warn('[ProductsListPresenter] Failed to parse stored user:', error);
-    }
-
-    // Fallback to environment variable
-    return process.env.NEXT_PUBLIC_APP_ID || 'web-shop-client';
-  }
 }
 

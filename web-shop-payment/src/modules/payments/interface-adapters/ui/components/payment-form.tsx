@@ -57,11 +57,25 @@ function PaymentFormContent({ viewModel, onConfirmPayment }: PaymentFormProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-700 flex items-center justify-center p-4">
-      <div className="max-w-md w-full mx-auto">
+    <div className="min-h-screen w-full bg-gray-700 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
        
           {/* Main Card */}
           <div className="bg-gray-800 rounded-xl sm:rounded-2xl shadow-2xl border border-gray-700 overflow-hidden">
+
+          {/* Product Summary Header */}
+          <div className="bg-gray-900 px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-400 mb-1">You're purchasing</p>
+                <h2 className="text-lg sm:text-xl font-bold text-white">{viewModel.product.title}</h2>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-400 mb-1">Total</p>
+                <p className="text-2xl sm:text-3xl font-bold text-white">${viewModel.product.price.toFixed(2)}</p>
+              </div>
+            </div>
+          </div>
 
           {/* Payment Form */}
           <div className="p-4 sm:p-6">

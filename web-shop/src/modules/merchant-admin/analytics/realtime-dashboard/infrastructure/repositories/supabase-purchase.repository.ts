@@ -37,7 +37,7 @@ export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
 
       // Получаем данные о покупках из таблицы транзакций
       const { data: transactions, error: transactionsError } = await this._supabase
-        .from('transaction log')
+        .from('transaction_log')
         .select('paid_amount, user_id, product_id, created_at, payment_status')
         .eq('payment_status', 'succeeded')
         .gte('created_at', this.getLast30DaysDate());
@@ -211,7 +211,7 @@ export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
 
       // Получаем транзакции
       const { data: transactions, error: transactionsError } = await this._supabase
-        .from('transaction log')
+        .from('transaction_log')
         .select(`
           id,
           user_id,

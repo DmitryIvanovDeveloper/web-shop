@@ -33,7 +33,7 @@ export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
       this._logger.info('[SupabasePurchaseRepository] Loading purchased products', { userId, appId });
 
       const { data, error } = await this._supabase
-        .from('transaction log')
+        .from('transaction_log')
         .select('product_id')
         .eq('user_id', userId)
         .eq('app_id', appId)

@@ -15,7 +15,7 @@ import { PaymentViewModel } from '../view-models/payment.view-model';
  * Handles payment initialization and user interactions
  */
 export function PaymentPage(): JSX.Element {
-  const [paymentViewModel, setPaymentViewModel] = useState<PaymentViewModel | null>(null);
+  const [, forceUpdate] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
@@ -68,17 +68,13 @@ export function PaymentPage(): JSX.Element {
         // Initialize payment presenter with product data
         await paymentPresenter.onProductSelectedForPayment(productData);
         
-        // Get the updated view model
-        const viewModel = paymentPresenter.viewModel;
-        setPaymentViewModel(viewModel);
-        
         console.log('[PaymentPage] Payment initialized:', {
-          hasProduct: !!viewModel.product,
-          hasPaymentIntent: !!viewModel.paymentIntent,
-          status: viewModel.status,
-          productId: viewModel.product?.id,
-          intentId: viewModel.paymentIntent?.intentId,
-          fullViewModel: viewModel
+          hasProduct: !!paymentPresenter.viewModel.product,
+          hasPaymentIntent: !!paymentPresenter.viewModel.paymentIntent,
+          status: paymentPresenter.viewModel.status,
+          productId: paymentPresenter.viewModel.product?.id,
+          intentId: paymentPresenter.viewModel.paymentIntent?.intentId,
+          fullViewModel: paymentPresenter.viewModel
         });
 
         // Double-check PaymentPresenter state
@@ -92,9 +88,8 @@ export function PaymentPage(): JSX.Element {
 
         // Subscribe to PaymentPresenter changes
         const unsubscribe = paymentPresenter.onViewModelChange(() => {
-          const updatedViewModel = paymentPresenter.viewModel;
-          console.log('[PaymentPage] ViewModel changed:', updatedViewModel);
-          setPaymentViewModel(updatedViewModel);
+          console.log('[PaymentPage] ViewModel changed, forcing re-render');
+          forceUpdate({});
         });
         
         setLoading(false);
@@ -112,29 +107,16 @@ export function PaymentPage(): JSX.Element {
 
 
   const handleConfirmPayment = async (paymentContext: any) => {
-    console.log('[PaymentPage] handleConfirmPayment called', {
-      hasPaymentViewModel: !!paymentViewModel,
-      paymentViewModelStatus: paymentViewModel?.status,
-      presenterViewModel: paymentPresenter.viewModel,
-      presenterStatus: paymentPresenter.viewModel.status,
-      presenterHasProduct: !!paymentPresenter.viewModel.product,
-      presenterHasPaymentIntent: !!paymentPresenter.viewModel.paymentIntent,
-      presenterInstanceId: paymentPresenter.constructor.name
-    });
-    
-    // Check if we have valid data in local state first
-    if (!paymentViewModel || !paymentViewModel.product || !paymentViewModel.paymentIntent) {
-      console.error('[PaymentPage] Payment not properly initialized in local state', {
-        hasPaymentViewModel: !!paymentViewModel,
-        hasProduct: !!paymentViewModel?.product,
-        hasPaymentIntent: !!paymentViewModel?.paymentIntent,
-        status: paymentViewModel?.status
-      });
-      return;
-    }
-    
     // Always use PaymentPresenter's viewModel as source of truth
     const currentViewModel = paymentPresenter.viewModel;
+    
+    console.log('[PaymentPage] handleConfirmPayment called', {
+      presenterViewModel: currentViewModel,
+      presenterStatus: currentViewModel.status,
+      presenterHasProduct: !!currentViewModel.product,
+      presenterHasPaymentIntent: !!currentViewModel.paymentIntent,
+      presenterInstanceId: paymentPresenter.constructor.name
+    });
     
     if (!currentViewModel.product || !currentViewModel.paymentIntent) {
       console.error('[PaymentPage] Payment not properly initialized in PaymentPresenter', {
@@ -157,9 +139,6 @@ export function PaymentPage(): JSX.Element {
         hasError: !!updatedViewModel.error
       });
       
-      // Update local state with PaymentPresenter's viewModel
-      setPaymentViewModel(updatedViewModel);
-      
       if (updatedViewModel.status === 'success') {
         // Payment successful - redirect to success page
         console.log('[PaymentPage] Payment successful, redirecting to success page');
@@ -167,10 +146,6 @@ export function PaymentPage(): JSX.Element {
       }
     } catch (error) {
       console.error('[PaymentPage] Payment confirmation failed:', error);
-      
-      // Update local state with error
-      const errorViewModel = paymentPresenter.viewModel;
-      setPaymentViewModel(errorViewModel);
     }
   };
 
@@ -190,14 +165,11 @@ export function PaymentPage(): JSX.Element {
 
       await paymentPresenter.onProductSelectedForPayment(productData);
       
-      const viewModel = paymentPresenter.viewModel;
-      setPaymentViewModel(viewModel);
-      
       console.log('[PaymentPage] New payment intent created:', {
-        hasProduct: !!viewModel.product,
-        hasPaymentIntent: !!viewModel.paymentIntent,
-        status: viewModel.status,
-        intentId: viewModel.paymentIntent?.intentId
+        hasProduct: !!paymentPresenter.viewModel.product,
+        hasPaymentIntent: !!paymentPresenter.viewModel.paymentIntent,
+        status: paymentPresenter.viewModel.status,
+        intentId: paymentPresenter.viewModel.paymentIntent?.intentId
       });
     } catch (error) {
       console.error('[PaymentPage] Failed to retry payment:', error);
@@ -266,7 +238,10 @@ export function PaymentPage(): JSX.Element {
     );
   }
 
-  if (!paymentViewModel) {
+  // Get current viewModel from presenter
+  const paymentViewModel = paymentPresenter.viewModel;
+
+  if (!paymentViewModel.product || !paymentViewModel.paymentIntent) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
         <div className="max-w-md w-full">
@@ -292,8 +267,7 @@ export function PaymentPage(): JSX.Element {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-
+    <>
       {/* Payment Form - Full Screen */}
       <PaymentForm 
         viewModel={paymentViewModel}
@@ -314,6 +288,6 @@ export function PaymentPage(): JSX.Element {
           </button>
         </div>
       )}
-    </div>
+    </>
   );
 }

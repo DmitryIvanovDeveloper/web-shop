@@ -12,5 +12,7 @@ export const PRODUCTS_TYPES = {
   ProductStyleService: Symbol.for('Products.ProductStyleService'),
   // Presenters
   ProductsListPresenter: Symbol.for('Products.ProductsListPresenter'),
+  // Handlers - use generic EventBus symbol for auto-discovery
+  ProductsUserAuthenticatedHandler: Symbol.for('IAsyncEventHandler<UserAuthenticatedEvent>'),
 };
 

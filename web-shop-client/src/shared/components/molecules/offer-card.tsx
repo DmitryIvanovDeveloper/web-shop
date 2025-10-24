@@ -65,12 +65,11 @@ export function OfferCard({
 }: OfferCardProps): JSX.Element {
   return (
     <div
-      className={`relative grid bg-gray-800 rounded-lg overflow-hidden shadow-lg ${className}`}
+      className={`relative grid bg-gray-800 rounded-lg overflow-hidden shadow-lg w-full ${className}`}
       style={{
-        width: '270px',
         height: '400px',
-        maxWidth: '270px',
-        maxHeight: '400px',
+        minWidth: '150px',
+        maxWidth: '100%',
         ...style
       }}
       onClick={onClick}
@@ -205,16 +204,14 @@ export function OfferCard({
         <div>
           {isPurchased ? (
             <div
-              className="w-full text-white font-bold rounded-lg flex items-center justify-center"
+              className="w-full text-white font-bold rounded-lg flex items-center justify-center px-2 py-3"
               style={{
                 backgroundColor: "#10B981",
                 color: "#FFFFFF",
                 borderRadius: "8px",
-                padding: "12px 24px",
                 fontWeight: "bold",
-                fontSize: "16px",
+                fontSize: "14px",
                 minHeight: "40px",
-                height: "40px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -225,16 +222,14 @@ export function OfferCard({
           ) : (
             buyButton && buyButton.enabled && (
               <button
-                className="w-full text-white font-bold rounded-lg transition-colors hover:opacity-90 flex items-center justify-center"
+                className="w-full text-white font-bold rounded-lg transition-colors hover:opacity-90 flex items-center justify-center px-2 py-3"
                 style={{
                   backgroundColor: buyButton.style?.backgroundColor || "#FF6B35",
                   color: buyButton.style?.textColor || "#FFFFFF",
                   borderRadius: buyButton.style?.borderRadius || "8px",
-                  padding: buyButton.style?.padding || "12px 24px",
                   fontWeight: buyButton.style?.fontWeight || "bold",
-                  fontSize: "16px",
+                  fontSize: "14px",
                   minHeight: "40px",
-                  height: "40px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
