@@ -1,41 +1,58 @@
 import { injectable, inject } from 'inversify';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ProductStoragePort } from '../../application/ports/product-storage.port';
 import { Product } from '../../domain/types';
 import { ProductId } from '../../domain/value-objects/product-id.value-object';
 import { Price } from '../../domain/value-objects/price.value-object';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
+import type { DatabaseClientPort } from '../../../../application/ports/database-client.port';
 
 /**
  * Supabase Product Storage Implementation
  * 
  * Infrastructure implementation of ProductStoragePort using Supabase
  * Handles product data operations through Supabase API
+ * Uses shared DatabaseClientPort for Supabase access
  */
 @injectable()
 export class SupabaseProductStorage implements ProductStoragePort {
-  private readonly _supabase: SupabaseClient;
+  private _config: any = null;
 
   constructor(
     @inject(ROOT_TYPES.Logger)
-    private readonly _logger: Logger
+    private readonly _logger: Logger,
+    @inject(ROOT_TYPES.DatabaseClient)
+    private readonly _databaseClient: DatabaseClientPort
   ) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    this._loadConfig();
+  }
 
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Supabase URL and Anon Key must be provided');
+  private async _loadConfig(): Promise<void> {
+    try {
+      const response = await fetch('/mocks/api/products/products.json');
+      this._config = await response.json();
+    } catch (error) {
+      this._logger.warn('[SupabaseProductStorage] Failed to load config, using defaults', { error });
+      this._config = {
+        titleStyle: { fontSize: '18px' },
+        buyButton: {
+          style: {
+            backgroundColor: "rgb(255, 215, 0)",
+            textColor: "#000000",
+            borderRadius: "8px",
+            padding: "12px 24px",
+            fontWeight: "bold"
+          }
+        }
+      };
     }
-
-    this._supabase = createClient(supabaseUrl, supabaseKey);
   }
 
   public async getAll(): Promise<Product[]> {
     try {
       this._logger.info('[SupabaseProductStorage] Loading all products from Supabase');
 
-      const { data, error } = await this._supabase
+      const { data, error } = await this._databaseClient
         .from('products')
         .select('*')
         .order('created_at', { ascending: true });
@@ -45,7 +62,7 @@ export class SupabaseProductStorage implements ProductStoragePort {
         throw new Error(`Failed to load products: ${error.message}`);
       }
 
-      const products = data?.map(item => this._mapDatabaseToDomain(item)) || [];
+      const products = data?.map((item: any) => this._mapDatabaseToDomain(item)) || [];
       
       this._logger.info('[SupabaseProductStorage] Products loaded successfully', { 
         count: products.length 
@@ -62,7 +79,7 @@ export class SupabaseProductStorage implements ProductStoragePort {
     try {
       this._logger.info('[SupabaseProductStorage] Loading product by ID', { productId: id });
 
-      const { data, error } = await this._supabase
+      const { data, error } = await this._databaseClient
         .from('products')
         .select('*')
         .eq('id', id)
@@ -117,6 +134,7 @@ export class SupabaseProductStorage implements ProductStoragePort {
       mainImage: dbProduct.main_image,
       backgroundImage: dbProduct.background_image,
       title: dbProduct.title,
+      titleStyle: dbProduct.title_style || this._config?.titleStyle || { fontSize: '18px' },
       rarity: dbProduct.rarity,
       discount: dbProduct.discount,
       playerLimit: dbProduct.player_limit,
@@ -129,13 +147,7 @@ export class SupabaseProductStorage implements ProductStoragePort {
       buyButton: {
         enabled: true,
         redirectUrl: `${paymentUrl}/payment?product_id=${dbProduct.id}&price=${productPrice}&currency=USD&title=${encodeURIComponent(dbProduct.title || '')}`,
-        style: {
-          backgroundColor: "rgb(255, 215, 0)",
-          textColor: "#000000",
-          borderRadius: "8px",
-          padding: "12px 24px",
-          fontWeight: "bold"
-        }
+        style: this._config?.buyButton?.style
       }
     };
   }

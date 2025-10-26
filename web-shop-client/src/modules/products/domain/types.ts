@@ -13,6 +13,7 @@ export interface Product {
   readonly playerLimit?: string;
   readonly timer?: Date;
   readonly title?: string;
+  readonly titleStyle?: TitleStyle;
   readonly rarity?: string;
   readonly originalPrice?: Price;
   readonly currentPrice?: Price;
@@ -23,12 +24,19 @@ export interface Product {
   readonly isPurchased?: boolean;
 }
 
+export interface TitleStyle {
+  readonly fontSize?: string;
+  readonly fontWeight?: string;
+  readonly color?: string;
+}
+
 export interface BuyButtonStyle {
   readonly backgroundColor?: string;
   readonly textColor?: string;
   readonly borderRadius?: string;
   readonly padding?: string;
   readonly fontWeight?: string;
+  readonly fontSize?: string;
 }
 
 export interface BuyButton {

@@ -9,6 +9,7 @@ export interface BuyButtonStyle {
   readonly borderRadius?: string;
   readonly padding?: string;
   readonly fontWeight?: string;
+  readonly fontSize?: string;
 }
 
 export interface BuyButton {
@@ -16,6 +17,12 @@ export interface BuyButton {
   readonly enabled?: boolean;
   readonly style?: BuyButtonStyle;
   readonly redirectUrl?: string;
+}
+
+export interface TitleStyle {
+  readonly fontSize?: string;
+  readonly fontWeight?: string;
+  readonly color?: string;
 }
 
 export interface OfferCardProps {
@@ -28,6 +35,7 @@ export interface OfferCardProps {
   readonly playerLimit?: string;
   readonly timer?: Date;
   readonly title?: string;
+  readonly titleStyle?: TitleStyle;
   readonly rarity?: string;
   readonly originalPrice?: string;
   readonly currentPrice?: string;
@@ -51,6 +59,7 @@ export function OfferCard({
   playerLimit,
   timer,
   title = "",
+  titleStyle,
   rarity,
   originalPrice,
   currentPrice = "",
@@ -65,17 +74,19 @@ export function OfferCard({
 }: OfferCardProps): JSX.Element {
   return (
     <div
-      className={`relative grid bg-gray-800 rounded-lg overflow-hidden shadow-lg w-full ${className}`}
+      className={`relative bg-gray-800 rounded-lg overflow-hidden shadow-lg w-full ${className}`}
       style={{
-        height: '400px',
-        minWidth: '150px',
-        maxWidth: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '400px',
+        height: '100%',
+        containerType: 'size',
         ...style
       }}
       onClick={onClick}
     >
-      {/* Badges Container - all at top */}
-      <div className="absolute top-0 left-0 right-0 flex justify-between items-start  pointer-events-none z-10 w-full">
+      {/* Badges Container - пропорциональные размеры */}
+      <div className="absolute top-0 left-0 right-0 flex justify-between items-start pointer-events-none z-10 w-full" style={{ fontSize: 'clamp(8px, 2.5cqw, 12px)' }}>
         {/* Left side badges */}
         <div className="flex">
           {/* Discount Badge - only show if not purchased */}
@@ -84,20 +95,20 @@ export function OfferCard({
               text={discount}
               variant="discount"
               withSkew={true}
-              style={{ padding: '8px' }}
+              style={{ padding: '1.5cqw 2cqw', fontSize: 'clamp(8px, 2.5cqw, 12px)' }}
             />
           )}
 
         </div>
 
         {/* Right side badges */}
-        <div className="!flex  gap-12">
+        <div className="!flex gap-2" style={{ gap: '2cqw' }}>
           {playerLimit && (
             <Badge
               text={playerLimit}
               variant="limit"
               withSkew={true}
-              style={{ padding: '8px' }}
+              style={{ padding: '1.5cqw 2cqw', fontSize: 'clamp(6px, 2cqw, 10px)' }}
             />
           )}
           {!isPurchased && timer && (
@@ -105,7 +116,7 @@ export function OfferCard({
               text={timer.toLocaleString()}
               variant="timer"
               withSkew={true}
-              style={{ padding: '8px' }}
+              style={{ padding: '1.5cqw 2cqw', fontSize: 'clamp(6px, 2cqw, 10px)' }}
 
             />
           )}
@@ -114,9 +125,10 @@ export function OfferCard({
 
       {/* Main Image Section */}
       <div
-        className="relative w-full bg-gray-700 flex items-center justify-center"
+        className="relative w-full bg-gray-700 !flex items-center justify-center"
         style={{
-          height: '200px',
+          flex: '0 0 200px',
+          minHeight: '200px',
           backgroundImage: backgroundImage
             ? `url('${backgroundImage}')`
             : undefined,
@@ -129,7 +141,13 @@ export function OfferCard({
           <img
             src={mainImage}
             alt={mainImageAlt}
-            className="object-contain w-full h-full"
+            style={{
+              objectFit: 'contain',
+              width: '100%',
+              height: '100%',
+              maxWidth: '100%',
+              maxHeight: '100%'
+            }}
           />
         )}
       </div>
@@ -164,57 +182,51 @@ export function OfferCard({
         </div>
       )}
 
-      {/* Content Section - CSS Grid для фиксированных позиций */}
-      <div className="p-4 grid grid-rows-[24px_32px_48px_32px_1fr_auto] gap-2" style={{ height: '200px' }}>
-        {/* Row 1: Rarity - всегда 24px */}
-        <div className="flex items-center" style={{ minHeight: '24px', height: '24px' }}>
-          {rarity ? (
-            <Badge
-              text={rarity ?? ""}
-              variant="rarity"
-              style={{ backgroundColor: "#8A2BE2", color: "white" }}
-            />
-          ) : (
-            <div style={{ width: '100%', height: '24px', minHeight: '24px' }}></div>
+      {/* Content Section - CSS Grid с auto + 1fr прижимает Buy Button вниз! */}
+      <div style={{ flex: 1, padding: '3cqw 4cqw 4cqw 4cqw', display: 'grid', gridTemplateRows: 'auto 1fr', gap: '0' }} className="">
+        {/* Блок 1: Title + Rarity - Grid с фиксированной высотой Title */}
+        <div style={{ display: 'grid', gridTemplateRows: '50px auto', gap: '8px' }}>
+          {/* Title */}
+          {title && (
+            <h3 
+              className="text-white font-bold text-center w-full" 
+              style={{ 
+                fontSize: titleStyle?.fontSize || 'clamp(10px, 4cqw, 18px)', 
+                fontWeight: titleStyle?.fontWeight || 'bold',
+                color: titleStyle?.color || 'white',
+                lineHeight: '1.2' 
+              }}
+            >
+              {title}
+            </h3>
           )}
-        </div>
-
-        {/* Row 2: Title - всегда 32px */}
-        <div className="flex items-center justify-center" style={{ minHeight: '32px', height: '32px' }}>
-          {title ? (
-            <h3 className="text-white text-lg font-bold text-center w-full">{title}</h3>
-          ) : (
-            <div style={{ width: '100%', height: '32px', minHeight: '32px' }}></div>
-          )}
-        </div>
           
-        {/* Row 4: Bonuses - всегда 32px */}
-        <div className="flex items-center" style={{ minHeight: '32px', height: '32px' }}>
-          {rpBonus || lpBonus ? (
-            <div className="flex flex-row text-sm text-gray-400 justify-between w-full">
-              {rpBonus && <span className="truncate">+{rpBonus} RP</span>}
-              {lpBonus && <span className="truncate">+{lpBonus} LP</span>}
+          {/* Rarity */}
+          {rarity && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'clamp(8px, 3cqw, 14px)', padding: '0 24px' }}>
+              <Badge
+                text={rarity ?? ""}
+                variant="rarity"
+                style={{ backgroundColor: "#8A2BE2", color: "white", padding: '1cqw 2cqw' }}
+              />
             </div>
-          ) : (
-            <div style={{ width: '100%', height: '32px', minHeight: '32px' }}></div>
           )}
         </div>
 
-        {/* Row 6: Buy Button или Purchased Badge - всегда внизу */}
-        <div>
+        {/* Блок 2: Buy Button + RP/LP отдельно (в footer, прижат к низу через Grid!) */}
+        <div className="!flex !flex-col gap-2" style={{ alignSelf: 'end' }}>
+          {/* Buy Button или Purchased Badge */}
           {isPurchased ? (
             <div
-              className="w-full text-white font-bold rounded-lg flex items-center justify-center px-2 py-3"
+              className="w-full text-white font-bold rounded-lg !flex items-center justify-center"
               style={{
                 backgroundColor: "#10B981",
                 color: "#FFFFFF",
                 borderRadius: "8px",
                 fontWeight: "bold",
-                fontSize: "14px",
-                minHeight: "40px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                fontSize: 'clamp(12px, 4cqw, 18px)',
+                padding: '12px 8px',
+                minHeight: '48px',
               }}
             >
               PURCHASED
@@ -222,17 +234,15 @@ export function OfferCard({
           ) : (
             buyButton && buyButton.enabled && (
               <button
-                className="w-full text-white font-bold rounded-lg transition-colors hover:opacity-90 flex items-center justify-center px-2 py-3"
+                className="w-full text-white font-bold rounded-lg transition-colors hover:opacity-90 !flex items-center justify-center"
                 style={{
                   backgroundColor: buyButton.style?.backgroundColor || "#FF6B35",
                   color: buyButton.style?.textColor || "#FFFFFF",
                   borderRadius: buyButton.style?.borderRadius || "8px",
                   fontWeight: buyButton.style?.fontWeight || "bold",
-                  fontSize: "14px",
-                  minHeight: "40px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  fontSize: buyButton.style?.fontSize || 'clamp(12px, 4cqw, 18px)',
+                  padding: '12px 8px',
+                  minHeight: '48px',
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -258,11 +268,11 @@ export function OfferCard({
                 }}
                 disabled={isLoading}
               >
-                {isLoading && (
-                  <span className="mr-2 inline-block animate-spin text-white">
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                {isLoading ? (
+                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'spin 1s linear infinite' }}>
+                    <svg style={{ width: '20px', height: '20px' }} viewBox="0 0 24 24" fill="none">
                       <circle 
-                        className="opacity-25" 
+                        style={{ opacity: 0.25 }}
                         cx="12" 
                         cy="12" 
                         r="10" 
@@ -270,16 +280,25 @@ export function OfferCard({
                         strokeWidth="4"
                       />
                       <path 
-                        className="opacity-75" 
+                        style={{ opacity: 0.75 }}
                         fill="white" 
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
                   </span>
+                ) : (
+                  buyButton.text || currentPrice || "BUY NOW"
                 )}
-                {isLoading ? "" : (buyButton.text || currentPrice || "BUY NOW")}
               </button>
             )
+          )}
+          
+          {/* RP/LP Bonuses - отдельно под кнопкой */}
+          {(rpBonus || lpBonus) && (
+            <div className="text-gray-400" style={{ display: 'flex', flexDirection: 'row', fontSize: '12px', justifyContent: 'space-between', width: '100%', padding: '0 8px' }}>
+              {rpBonus && <span>+{rpBonus} RP</span>}
+              {lpBonus && <span>+{lpBonus} LP</span>}
+            </div>
           )}
         </div>
       </div>

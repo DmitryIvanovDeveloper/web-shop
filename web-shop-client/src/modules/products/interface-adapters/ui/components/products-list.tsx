@@ -125,6 +125,7 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
             playerLimit={product.playerLimit}
             timer={product.timer}
             title={product.title}
+            titleStyle={product.titleStyle}
             rarity={product.rarity}
             originalPrice={product.originalPrice?.format()}
             currentPrice={product.currentPrice?.format()}

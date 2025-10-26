@@ -1,11 +1,15 @@
     {
+      "titleStyle": {
+        "fontSize": "18px"
+      },
       "buyButton": {
         "style": {
           "backgroundColor": "rgb(255, 215, 0)",
           "textColor": "#000000",
           "borderRadius": "8px",
           "padding": "12px 24px",
-          "fontWeight": "bold"
+          "fontWeight": "bold",
+          "fontSize": "14px"
         }
       },
       "badges": {

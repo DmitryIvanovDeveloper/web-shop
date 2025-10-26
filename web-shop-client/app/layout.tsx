@@ -59,37 +59,45 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       <head>
         <title>Web Shop</title>
         <meta name="description" content="Web Shop Application" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
       </head>
       <body className="m-0 p-0 overflow-hidden">
+        {/* Hidden AuthModule for background authentication - всегда активен */}
+        <div style={{ display: 'none' }}>
+          <AuthModule renderSidebarButton={false} renderPopupConfig={false} />
+        </div>
+
         {/* Mobile Header - показывается только на мобилке */}
-        <header className="px-4 flex items-center justify-between relative" style={{ height: '56px', minHeight: '56px', zIndex: 100, backgroundColor: '#2c3e50' }}>
-          <button 
-            className="p-2 hover:bg-[#34495e] rounded transition-colors bg-[#34495e]" 
-            aria-label="Menu"
-            onClick={() => setIsLeftDrawerOpen(true)}
-            style={{ minWidth: '40px', minHeight: '40px' }}
-          >
-            <svg className="w-6 h-6" fill="none" stroke="#ffffff" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          <span className="text-white font-semibold text-lg">Web Shop</span>
-          <button 
-            className="p-2 hover:bg-[#34495e] rounded transition-colors bg-[#34495e]" 
-            aria-label="Profile"
-            onClick={() => setIsRightDrawerOpen(true)}
-            style={{ minWidth: '40px', minHeight: '40px' }}
-          >
-            <svg className="w-6 h-6" fill="none" stroke="#ffffff" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-          </button>
-        </header>
+        {isMobile && (
+          <header className="px-4 flex items-center justify-between relative" style={{ height: '56px', minHeight: '56px', zIndex: 100, backgroundColor: '#2c3e50' }}>
+            <button 
+              className="p-2 hover:bg-[#34495e] rounded transition-colors bg-[#34495e]" 
+              aria-label="Menu"
+              onClick={() => setIsLeftDrawerOpen(true)}
+              style={{ minWidth: '40px', minHeight: '40px' }}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="#ffffff" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <span className="text-white font-semibold text-lg">Web Shop</span>
+            <button 
+              className="p-2 hover:bg-[#34495e] rounded transition-colors bg-[#34495e]" 
+              aria-label="Profile"
+              onClick={() => setIsRightDrawerOpen(true)}
+              style={{ minWidth: '40px', minHeight: '40px' }}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="#ffffff" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </button>
+          </header>
+        )}
         
-        <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex relative" style={{ height: isMobile ? 'calc(100vh - 56px)' : '100vh' }}>
-            {/* Left Sidebar - только на desktop */}
+        <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex relative h-screen md:h-screen" style={{ height: isMobile ? 'calc(100vh - 56px)' : '100vh' }}>
+            {/* Left Sidebar - только на desktop, компактный для больше места Grid */}
             {!isMobile && (
-              <aside>
+              <aside className="w-64 border-r border-gray-700 bg-gray-900 flex-shrink-0">
                 <SidebarRenderer presenter={sidebarPresenter} actionContext={actionContext} />
               </aside>
             )}
@@ -97,9 +105,9 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
             {/* Main Content */}
             {children}
 
-            {/* Right Sidebar - только на desktop */}
+            {/* Right Sidebar - только на desktop, компактный для больше места Grid */}
             {!isMobile && (
-              <aside className="w-80 border-l border-yellow-400/30 bg-gray-800">
+              <aside className="w-64 border-l border-yellow-400/30 bg-gray-800 flex-shrink-0">
                 <div className="mb-4">
                   <AuthModule renderSidebarButton={true} renderPopupConfig={true} />
                 </div>

@@ -9,7 +9,7 @@
       "text": "#FFFFFF",
       "textSecondary": "#A0A0A0"
     },
-    "spacing": [0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80]
+    "spacing": [0, 4, 8, 12, 14, 16, 20, 24, 32, 40, 48, 64, 80]
   },
   "layout": {
     "type": "Container",
@@ -18,7 +18,7 @@
       "vertical": true
     },
     "styles": {
-      "padding": 8,
+      "padding": 4,
       "backgroundImage": "url('/background.jpg')",
       "backgroundSize": "cover",
       "backgroundPosition": "center",

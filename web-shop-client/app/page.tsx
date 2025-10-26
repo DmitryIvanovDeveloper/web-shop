@@ -45,8 +45,9 @@ export default function HomePage(): JSX.Element {
 
   return (
     <>
+
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto w-full max-w-[1200px] mx-auto">
+      <main className="flex-1 overflow-y-auto w-full mx-auto" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>
         {error && (
           <div className="text-red-500">
             Error: {error}

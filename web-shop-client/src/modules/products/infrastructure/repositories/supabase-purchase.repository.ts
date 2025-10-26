@@ -1,38 +1,30 @@
 import { injectable, inject } from 'inversify';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { PurchaseRepositoryPort } from '../../application/ports/purchase-repository.port';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
+import type { DatabaseClientPort } from '../../../../application/ports/database-client.port';
 
 /**
  * Supabase Purchase Repository Implementation
  * 
  * Infrastructure implementation of PurchaseRepositoryPort using Supabase
  * Handles purchase history operations through Supabase API
+ * Uses shared DatabaseClientPort for Supabase access
  */
 @injectable()
 export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
-  private readonly _supabase: SupabaseClient;
-
   constructor(
     @inject(ROOT_TYPES.Logger)
-    private readonly _logger: Logger
-  ) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Supabase URL and Anon Key must be provided');
-    }
-
-    this._supabase = createClient(supabaseUrl, supabaseKey);
-  }
+    private readonly _logger: Logger,
+    @inject(ROOT_TYPES.DatabaseClient)
+    private readonly _databaseClient: DatabaseClientPort
+  ) {}
 
   public async getPurchasedProductIds(userId: string, appId: string): Promise<string[]> {
     try {
       this._logger.info('[SupabasePurchaseRepository] Loading purchased products', { userId, appId });
 
-      const { data, error } = await this._supabase
+      const { data, error } = await this._databaseClient
         .from('transaction_log')
         .select('product_id')
         .eq('user_id', userId)
@@ -48,7 +40,7 @@ export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
         throw new Error(`Failed to load purchased products: ${error.message}`);
       }
 
-      const productIds = data?.map(item => item.product_id).filter(Boolean) || [];
+      const productIds = data?.map((item: any) => item.product_id).filter(Boolean) || [];
       
       this._logger.info('[SupabasePurchaseRepository] Purchased products loaded', { 
         userId,

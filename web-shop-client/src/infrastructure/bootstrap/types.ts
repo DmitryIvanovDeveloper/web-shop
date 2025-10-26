@@ -36,7 +36,8 @@ export const TYPES = {
   HttpClient: Symbol.for('HttpClient'),
   EventBus: Symbol.for('EventBus'),
   RealtimeClient: Symbol.for('RealtimeClient'),
-  Browser: Symbol.for('Browser')
+  Browser: Symbol.for('Browser'),
+  DatabaseClient: Symbol.for('DatabaseClient')
 } as const;
 
 // Export as ROOT_TYPES for consistency with documentation
