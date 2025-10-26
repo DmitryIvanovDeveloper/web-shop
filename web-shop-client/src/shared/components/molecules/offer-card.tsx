@@ -219,8 +219,8 @@ export function OfferCard({
           {/* Buy Button или Purchased Badge */}
           {isPurchased ? (
             <div
-              className="w-full text-white font-bold rounded-lg !flex items-center justify-center"
               style={{
+                width: '100%',
                 backgroundColor: "#10B981",
                 color: "#FFFFFF",
                 borderRadius: "8px",
@@ -228,6 +228,10 @@ export function OfferCard({
                 fontSize: 'clamp(12px, 4cqw, 18px)',
                 padding: '12px 8px',
                 minHeight: '48px',
+                textAlign: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
               PURCHASED

@@ -136,8 +136,14 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 			return;
 		}
 
-		const appId = getAppIdFromQuery() || getAppIdFromStorage();
-		console.log('[AuthModule] Found appId:', appId);
+		// Приоритет: 1) Query параметр, 2) localStorage, 3) Environment variable
+		const appId = getAppIdFromQuery() || getAppIdFromStorage() || getAppIdFromEnv();
+		console.log('[AuthModule] Found appId:', appId, {
+			fromQuery: getAppIdFromQuery(),
+			fromStorage: getAppIdFromStorage(),
+			fromEnv: getAppIdFromEnv()
+		});
+		
 		if (!appId) {
 			console.log('[AuthModule] No appId found, skipping initialization');
 			return;
@@ -166,6 +172,10 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 			localStorage.removeItem('user');
 			return null;
 		}
+	};
+
+	const getAppIdFromEnv = () => {
+		return process.env.NEXT_PUBLIC_APP_ID || null;
 	};
 
 
