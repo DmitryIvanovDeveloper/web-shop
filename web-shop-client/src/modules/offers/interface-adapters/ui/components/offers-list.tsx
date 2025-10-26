@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 import { OfferCard } from '../../../../../shared/components/molecules/offer-card';
+import { OfferCardSkeleton } from '../../../../../shared/components/molecules/offer-card-skeleton';
 import { Grid } from '../../../../../shared/components/molecules/grid';
 import { OffersPopup } from './offers-popup';
 import type { Offer } from '../../../domain/types';
@@ -125,8 +126,17 @@ export function OffersList({
   }, [showPopupOnFirstLoad]);
 
   if (loading) {
-    console.log('[OffersList] Rendering loading state');
-    return <div className={className} style={style}>Loading offers...</div>;
+    console.log('[OffersList] Rendering loading state with skeletons');
+    return (
+      <div className={className} style={style}>
+        <Grid>
+          {/* Show 3 skeleton cards while loading */}
+          {Array.from({ length: 3 }, (_, index) => (
+            <OfferCardSkeleton key={`skeleton-${index}`} />
+          ))}
+        </Grid>
+      </div>
+    );
   }
 
   if (error) {

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { OfferCard } from '../../../../../shared/components/molecules/offer-card';
+import { OfferCardSkeleton } from '../../../../../shared/components/molecules/offer-card-skeleton';
 import { Grid } from '../../../../../shared/components/molecules/grid';
 import { Product } from '../../../domain/types';
 import { ProductsListViewModel } from '../../view-models/products-list.view-model';
@@ -81,11 +82,16 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
   };
 
   if (viewModel.status === 'loading') {
-    console.log('[ProductsList] Rendering loading state');
+    console.log('[ProductsList] Rendering loading state with skeletons');
     return (
       <div className={className} style={style}>
         <h2 className="text-white text-xl font-bold mb-4">Products</h2>
-        <div className="text-white">Loading products...</div>
+        <Grid>
+          {/* Show 6 skeleton cards while loading */}
+          {Array.from({ length: 6 }, (_, index) => (
+            <OfferCardSkeleton key={`skeleton-${index}`} />
+          ))}
+        </Grid>
       </div>
     );
   }
