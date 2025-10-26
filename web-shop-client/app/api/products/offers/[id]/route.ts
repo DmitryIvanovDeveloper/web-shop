@@ -39,7 +39,13 @@ export async function GET(
     }
 
     const offer = JSON.parse(fileContents);
-    console.log('Offer loaded successfully:', offer.title);
+    
+    // Ensure offer has id field (use filename if not present)
+    if (!offer.id) {
+      offer.id = id;
+    }
+    
+    console.log('Offer loaded successfully:', offer.title, 'with id:', offer.id);
     return NextResponse.json(offer);
   } catch (error) {
     console.error('Error loading offer:', error);

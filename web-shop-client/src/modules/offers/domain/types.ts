@@ -41,7 +41,6 @@ export interface BuyButton {
   readonly text?: string;
   readonly enabled?: boolean;
   readonly style?: BuyButtonStyle;
-  readonly redirectUrl?: string;
 }
 
 export interface Offer {

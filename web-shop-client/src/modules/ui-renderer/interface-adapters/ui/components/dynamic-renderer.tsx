@@ -47,7 +47,13 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     : node.styles;
     
   const className = styleBuilder.buildClassName(styles, theme);
-  const style = styleBuilder.buildInlineStyles(styles, theme);
+  let style = styleBuilder.buildInlineStyles(styles, theme);
+
+  // For main-content Container, remove background styles (they're applied to body)
+  if (node.id === 'main-content' && node.type === 'Container') {
+    const { backgroundImage, backgroundSize, backgroundPosition, backgroundRepeat, ...restStyle } = style;
+    style = restStyle;
+  } 
 
   // Обработка onClick action
   const handleClick = node.actions?.onClick && actionContext

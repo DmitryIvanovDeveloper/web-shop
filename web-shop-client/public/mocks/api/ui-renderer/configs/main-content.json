@@ -19,12 +19,12 @@
     },
     "styles": {
       "padding": 4,
+      "width": "100%",
+      "minHeight": "100vh",
       "backgroundImage": "url('/background.jpg')",
       "backgroundSize": "cover",
       "backgroundPosition": "center",
-      "backgroundRepeat": "no-repeat",
-      "width": "100%",
-      "minHeight": "100vh"
+      "backgroundRepeat": "no-repeat"
     },
     "children": [
       {

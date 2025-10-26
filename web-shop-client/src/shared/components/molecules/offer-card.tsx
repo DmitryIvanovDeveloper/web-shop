@@ -16,7 +16,6 @@ export interface BuyButton {
   readonly text?: string;
   readonly enabled?: boolean;
   readonly style?: BuyButtonStyle;
-  readonly redirectUrl?: string;
 }
 
 export interface TitleStyle {
@@ -26,6 +25,7 @@ export interface TitleStyle {
 }
 
 export interface OfferCardProps {
+  readonly id?: string;
   readonly mainImage?: string;
   readonly mainImageAlt?: string;
   readonly sideImage?: string;
@@ -50,6 +50,7 @@ export interface OfferCardProps {
 }
 
 export function OfferCard({
+  id,
   mainImage = "",
   mainImageAlt = "Product",
   sideImage,
@@ -252,18 +253,9 @@ export function OfferCard({
                     return;
                   }
 
-                  // Call the parent onClick handler first
+                  // Call the parent onClick handler
                   if (onClick) {
                     onClick();
-                  }
-
-                  // Then handle redirect if specified
-                  if (buyButton.redirectUrl) {
-                    window.open(
-                      buyButton.redirectUrl,
-                      "_blank",
-                      "noopener,noreferrer"
-                    );
                   }
                 }}
                 disabled={isLoading}

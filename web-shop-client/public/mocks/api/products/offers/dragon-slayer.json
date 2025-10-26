@@ -16,7 +16,6 @@
   "lpBonus": 35,
   "buyButton": {
     "enabled": true,
-    "redirectUrl": "https://web-shop-payment.vercel.app/payment?product_id=dragon-slayer&price=23.99&currency=USD&title=Dragon%20Slayer%20Sword",
     "style": {
       "backgroundColor": "rgb(255, 215, 0)",
       "textColor": "#000000",

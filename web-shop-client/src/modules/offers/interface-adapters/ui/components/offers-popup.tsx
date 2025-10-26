@@ -11,13 +11,15 @@ export interface OffersPopupProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
   readonly onOfferClick?: (offer: Offer) => void;
+  readonly loadingOfferIds?: Set<string>;
 }
 
 export function OffersPopup({
   offers,
   isOpen,
   onClose,
-  onOfferClick
+  onOfferClick,
+  loadingOfferIds = new Set()
 }: OffersPopupProps): JSX.Element | null {
   if (!isOpen || offers.length === 0) {
     return null;
@@ -57,6 +59,7 @@ export function OffersPopup({
                 key={offer.id}
                 {...offer}
                 timer={offer.timer ? new Date(offer.timer) : undefined}
+                isLoading={loadingOfferIds.has(offer.id)}
                 onClick={() => onOfferClick?.(offer)}
                 className="cursor-pointer hover:scale-105 transition-transform duration-200"
               />

@@ -43,6 +43,41 @@ export default function HomePage(): JSX.Element {
     loadConfigs();
   }, []);
 
+  // Apply background styles from JSON config to body
+  useEffect(() => {
+    if (mainContentConfig?.layout?.styles) {
+      const styles = mainContentConfig.layout.styles;
+      
+      if (styles.backgroundImage) {
+        document.body.style.backgroundImage = styles.backgroundImage;
+      }
+      
+      if (styles.backgroundSize) {
+        document.body.style.backgroundSize = styles.backgroundSize;
+      }
+      
+      if (styles.backgroundPosition) {
+        document.body.style.backgroundPosition = styles.backgroundPosition;
+      }
+      
+      if (styles.backgroundRepeat) {
+        document.body.style.backgroundRepeat = styles.backgroundRepeat;
+      }
+
+      // Set min height to ensure background covers full viewport
+      document.body.style.minHeight = '100vh';
+    }
+
+    // Cleanup function to reset body styles when component unmounts
+    return () => {
+      document.body.style.backgroundImage = '';
+      document.body.style.backgroundSize = '';
+      document.body.style.backgroundPosition = '';
+      document.body.style.backgroundRepeat = '';
+      document.body.style.minHeight = '';
+    };
+  }, [mainContentConfig]);
+
   return (
     <>
 

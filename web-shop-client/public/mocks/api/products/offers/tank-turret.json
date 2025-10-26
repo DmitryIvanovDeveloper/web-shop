@@ -16,7 +16,6 @@
   "lpBonus": 20,
   "buyButton": {
     "enabled": true,
-    "redirectUrl": "https://web-shop-payment.vercel.app/payment?product_id=tank-turret&price=20.00&currency=USD&title=Tank%20Turret",
     "style": {
       "backgroundColor": "rgb(255, 215, 0)",
       "textColor": "#000000",

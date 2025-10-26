@@ -97,7 +97,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex relative h-screen md:h-screen" style={{ height: isMobile ? 'calc(100vh - 56px)' : '100vh' }}>
             {/* Left Sidebar - только на desktop, компактный для больше места Grid */}
             {!isMobile && (
-              <aside className="w-64 border-r border-gray-700 bg-gray-900 flex-shrink-0">
+              <aside className="w-64 border-r border-gray-700 bg-gray-900 flex-shrink-0" style={{ borderLeft: '2px solid rgba(251, 191, 36, 0.3)' }}>
                 <SidebarRenderer presenter={sidebarPresenter} actionContext={actionContext} />
               </aside>
             )}
@@ -107,18 +107,20 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
 
             {/* Right Sidebar - только на desktop, компактный для больше места Grid */}
             {!isMobile && (
-              <aside className="w-64 border-l border-yellow-400/30 bg-gray-800 flex-shrink-0">
-                <div className="mb-4">
-                  <AuthModule renderSidebarButton={true} renderPopupConfig={true} />
+              <aside className="w-64 border-l border-yellow-400/30 flex-shrink-0" style={{ backgroundColor: 'rgba(0, 0, 0, 0.1)', backdropFilter: 'blur(2px)', borderLeft: '0.5px solid rgba(156, 163, 175, 0.5)' }}>
+                <div className="p-4">
+                  <div className="mb-4">
+                    <AuthModule renderSidebarButton={true} renderPopupConfig={true} />
+                  </div>
+                  
+                  {rightSidebarConfig && rightSidebarConfig.layout?.children?.length > 0 && (
+                    <DynamicRenderer 
+                      node={rightSidebarConfig.layout} 
+                      theme={rightSidebarConfig.theme}
+                      actionContext={actionContext}
+                    />
+                  )}
                 </div>
-                
-                {rightSidebarConfig && (
-                  <DynamicRenderer 
-                    node={rightSidebarConfig.layout} 
-                    theme={rightSidebarConfig.theme}
-                    actionContext={actionContext}
-                  />
-                )}
               </aside>
             )}
         </div>
@@ -131,8 +133,10 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
               style={{ zIndex: 9998 }}
               onClick={() => setIsLeftDrawerOpen(false)}
             />
-            <div className="fixed left-0 top-0 bottom-0 w-64 shadow-2xl animate-slide-in-left overflow-y-auto" style={{ zIndex: 9999 }}>
-              <SidebarRenderer presenter={sidebarPresenter} actionContext={actionContext} />
+            <div className="fixed left-0 top-0 bottom-0 shadow-2xl animate-slide-in-left overflow-y-auto w-full" style={{ zIndex: 9999, width: '85%' }}>
+              <div className="w-full h-full">
+                <SidebarRenderer presenter={sidebarPresenter} actionContext={actionContext} />
+              </div>
             </div>
           </>
         )}
@@ -145,18 +149,20 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
               style={{ zIndex: 9998 }}
               onClick={() => setIsRightDrawerOpen(false)}
             />
-            <div className="fixed right-0 top-0 bottom-0 w-80 shadow-2xl animate-slide-in-right overflow-y-auto border-l border-yellow-400/30 bg-gray-800" style={{ zIndex: 9999 }}>
-              <div className="mb-4">
-                <AuthModule renderSidebarButton={true} renderPopupConfig={true} />
+            <div className="fixed right-0 top-0 bottom-0 shadow-2xl animate-slide-in-right overflow-y-auto border-l border-yellow-400/30" style={{ zIndex: 9999, backgroundColor: '#1f2937', borderLeft: '0.5px solid rgba(156, 163, 175, 0.5)', width: '85%' }}>
+              <div className="p-4">
+                <div className="mb-4">
+                  <AuthModule renderSidebarButton={true} renderPopupConfig={true} />
+                </div>
+                
+                {rightSidebarConfig && rightSidebarConfig.layout?.children?.length > 0 && (
+                  <DynamicRenderer 
+                    node={rightSidebarConfig.layout} 
+                    theme={rightSidebarConfig.theme}
+                    actionContext={actionContext}
+                  />
+                )}
               </div>
-              
-              {rightSidebarConfig && (
-                <DynamicRenderer 
-                  node={rightSidebarConfig.layout} 
-                  theme={rightSidebarConfig.theme}
-                  actionContext={actionContext}
-                />
-              )}
             </div>
           </>
         )}

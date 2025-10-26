@@ -168,6 +168,46 @@ export class StyleBuilder {
       inlineStyles.border = styles.border;
     }
 
+    // Обрабатываем position как inline стиль
+    if (styles.position !== undefined) {
+      inlineStyles.position = styles.position as any;
+    }
+
+    // Обрабатываем top как inline стиль
+    if (styles.top !== undefined) {
+      inlineStyles.top = styles.top;
+    }
+
+    // Обрабатываем left как inline стиль
+    if (styles.left !== undefined) {
+      inlineStyles.left = styles.left;
+    }
+
+    // Обрабатываем right как inline стиль
+    if (styles.right !== undefined) {
+      inlineStyles.right = styles.right;
+    }
+
+    // Обрабатываем bottom как inline стиль
+    if (styles.bottom !== undefined) {
+      inlineStyles.bottom = styles.bottom;
+    }
+
+    // Обрабатываем transform как inline стиль
+    if (styles.transform !== undefined) {
+      inlineStyles.transform = styles.transform;
+    }
+
+    // Обрабатываем zIndex как inline стиль
+    if (styles.zIndex !== undefined) {
+      inlineStyles.zIndex = styles.zIndex;
+    }
+
+    // Обрабатываем boxShadow как inline стиль
+    if (styles.boxShadow !== undefined) {
+      inlineStyles.boxShadow = styles.boxShadow;
+    }
+
        return inlineStyles;
   }
 }

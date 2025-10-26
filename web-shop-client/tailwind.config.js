@@ -17,6 +17,8 @@ module.exports = {
     'landscape-max-lg:gap-y-4',
     'max-w-[1200px]',
     'mx-auto',
+    'bg-black/70',
+    'backdrop-blur-md',
   ],
   theme: {
     extend: {

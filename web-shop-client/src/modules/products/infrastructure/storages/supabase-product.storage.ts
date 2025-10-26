@@ -146,7 +146,6 @@ export class SupabaseProductStorage implements ProductStoragePort {
       appid: dbProduct.appid,
       buyButton: {
         enabled: true,
-        redirectUrl: `${paymentUrl}/payment?product_id=${dbProduct.id}&price=${productPrice}&currency=USD&title=${encodeURIComponent(dbProduct.title || '')}`,
         style: this._config?.buyButton?.style
       }
     };

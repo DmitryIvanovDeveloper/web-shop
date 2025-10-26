@@ -48,15 +48,17 @@ export interface StyleConfig {
   
   // Position
   readonly position?: 'relative' | 'absolute' | 'fixed' | 'sticky';
-  readonly top?: SpacingValue;
-  readonly left?: SpacingValue;
-  readonly right?: SpacingValue;
-  readonly bottom?: SpacingValue;
+  readonly top?: SpacingValue | string;
+  readonly left?: SpacingValue | string;
+  readonly right?: SpacingValue | string;
+  readonly bottom?: SpacingValue | string;
   readonly zIndex?: number;
+  readonly transform?: string;
   
   // Visual
   readonly borderRadius?: SpacingValue;
   readonly border?: string;
+  readonly boxShadow?: string;
   
   // Background
   readonly backgroundImage?: string;

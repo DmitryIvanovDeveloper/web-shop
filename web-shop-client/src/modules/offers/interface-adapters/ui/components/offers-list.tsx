@@ -4,6 +4,9 @@ import { OfferCard } from '../../../../../shared/components/molecules/offer-card
 import { Grid } from '../../../../../shared/components/molecules/grid';
 import { OffersPopup } from './offers-popup';
 import type { Offer } from '../../../domain/types';
+import { container } from '../../../../../infrastructure/bootstrap/container';
+import { PRODUCTS_TYPES } from '../../../../products/infrastructure/bootstrap/types';
+import type { SelectProductForPaymentUseCase } from '../../../../products/application/use-cases/select-product-for-payment.use-case';
 
 export interface OffersListProps {
   readonly className?: string;
@@ -21,6 +24,7 @@ export function OffersList({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [loadingOffers, setLoadingOffers] = useState<Set<string>>(new Set());
   const isFirstLoadRef = useRef(true);
 
   useEffect(() => {
@@ -75,6 +79,8 @@ export function OffersList({
                 const offerResponse = await fetch(`/api/products/offers/${offerId}`);
                 const offer = await offerResponse.json();
                 console.log('[OffersList] Offer loaded:', offer);
+                console.log('[OffersList] Offer id from API:', offer.id);
+                console.log('[OffersList] Offer keys:', Object.keys(offer));
                 return offer;
               });
 
@@ -138,9 +144,36 @@ export function OffersList({
 
   console.log('[OffersList] Rendering offers:', offers);
 
-  const handleOfferClick = (offer: Offer) => {
-    console.log('[OffersList] Offer clicked:', offer);
-    // Можно добавить дополнительную логику при клике на offer в попапе
+  const handleBuyOffer = async (offer: Offer) => {
+    console.log('[OffersList] Buy offer clicked:', offer);
+    console.log('[OffersList] Offer id:', offer.id);
+    console.log('[OffersList] Full offer object:', JSON.stringify(offer, null, 2));
+    
+    if (!offer.id) {
+      console.error('[OffersList] Offer has no id!', offer);
+      return;
+    }
+    
+    try {
+      // Set loading state for this specific offer
+      setLoadingOffers(prev => new Set(prev).add(offer.id));
+      
+      const selectProductForPaymentUseCase = container.get<SelectProductForPaymentUseCase>(
+        PRODUCTS_TYPES.SelectProductForPaymentUseCase
+      );
+      
+      await selectProductForPaymentUseCase.execute({ productId: offer.id });
+      
+      // Note: We intentionally don't remove loading state to keep it infinite
+    } catch (error) {
+      console.error('[OffersList] Failed to initiate payment:', error);
+      // Remove loading state on error
+      setLoadingOffers(prev => {
+        const next = new Set(prev);
+        next.delete(offer.id);
+        return next;
+      });
+    }
   };
 
   const handleClosePopup = () => {
@@ -158,6 +191,8 @@ export function OffersList({
               key={offer?.id || `offer-${index}`} 
               {...offer}
               timer={offer.timer ? new Date(offer.timer) : undefined}
+              isLoading={loadingOffers.has(offer.id)}
+              onClick={() => handleBuyOffer(offer)}
             />
           ))}
         </Grid>
@@ -168,7 +203,8 @@ export function OffersList({
         offers={offers}
         isOpen={isPopupOpen}
         onClose={handleClosePopup}
-        onOfferClick={handleOfferClick}
+        onOfferClick={handleBuyOffer}
+        loadingOfferIds={loadingOffers}
       />
     </>
   );
