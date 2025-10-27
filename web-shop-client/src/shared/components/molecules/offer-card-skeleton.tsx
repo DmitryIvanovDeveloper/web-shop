@@ -81,20 +81,6 @@ export function OfferCardSkeleton({
               </div>
             </div>
           </div>
-
-          {/* Included Items Section - Skeleton */}
-          <div className="@container min-h-10 bg-gray-700">
-            <div className="!grid !gap-2 p-2" style={{ gridTemplateColumns: 'repeat(4, 1fr)', justifyItems: 'center', alignSelf: 'center' }}>
-              {[1, 2, 3].map((index) => (
-                <div key={index} className="relative overflow-hidden w-full">
-                  <div
-                    className="relative h-full max-w-full rounded bg-gray-600 aspect-3/2"
-                    style={{ width: '100%', height: '40px' }}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
       {/* Content Section - Skeleton Grid с фиксированными строками как у конкурентов */}
