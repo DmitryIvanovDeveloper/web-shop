@@ -25,33 +25,40 @@ export function Grid({
   tabletColumns = 3,
   desktopColumns = 4
 }: GridProps): JSX.Element {
-  // Grid breakpoints КАК НА РЕФЕРЕНСЕ Pixel Gun Hub
+  // Grid breakpoints и adaptive gap КАК НА РЕФЕРЕНСЕ Pixel Gun Hub
   // Используем JavaScript вместо Tailwind (работает надежнее)
   const [columns, setColumns] = useState(2);
+  const [gap, setGap] = useState('1rem');
   
   useEffect(() => {
-    const updateColumns = () => {
+    const updateLayout = () => {
       const width = window.innerWidth;
+      
+      // Columns
       if (width >= 1280) {
         setColumns(4);
+        setGap('1rem'); // 16px desktop
       } else if (width >= 1024) {
         setColumns(3);
+        setGap('1rem'); // 16px tablet
       } else if (width >= 640) {
         setColumns(2);
+        setGap('0.75rem'); // 12px mobile
       } else {
         setColumns(2);
+        setGap('0.5rem'); // 8px small mobile
       }
     };
     
-    updateColumns();
-    window.addEventListener('resize', updateColumns);
-    return () => window.removeEventListener('resize', updateColumns);
+    updateLayout();
+    window.addEventListener('resize', updateLayout);
+    return () => window.removeEventListener('resize', updateLayout);
   }, []);
   
   const gridStyle: CSSProperties = {
     display: 'grid',
     width: '100%',
-    gap: '1rem',
+    gap, // Adaptive gap
     gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
     gridAutoRows: '1fr', // Все строки одинаковой высоты
     alignItems: 'stretch', // Растягиваем карточки до одинаковой высоты в строке

@@ -187,11 +187,10 @@ export function OfferCard({
 
       {/* Content Section - Grid с фиксированными строками как у конкурентов */}
       <div 
-        className="!grid !size-full" 
+        className="!grid !size-full p-2 sm:p-3 md:p-4" 
         style={{ 
           display: 'grid', 
           gridTemplateRows: 'auto auto 1fr auto', 
-          padding: '12px 16px', 
           gap: '8px',
           alignContent: 'start'
         }}
