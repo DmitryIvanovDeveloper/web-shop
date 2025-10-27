@@ -52,9 +52,9 @@ export function Grid({
     display: 'grid',
     width: '100%',
     gap: '1rem',
-    gridTemplateColumns: `repeat(${columns}, 1fr)`,
-    gridAutoRows: 'minmax(400px, 1fr)', // Минимум 400px, максимум - равная высота
-    alignItems: 'stretch', // Растягиваем карточки по высоте ячейки
+    gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+    gridAutoRows: '1fr', // Все строки одинаковой высоты
+    alignItems: 'stretch', // Растягиваем карточки до одинаковой высоты в строке
     ...style
   };
   

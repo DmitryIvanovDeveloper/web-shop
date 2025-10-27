@@ -17,128 +17,146 @@ export function OfferCardSkeleton({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '400px',
         height: '100%',
-        containerType: 'size',
+        containerType: 'inline-size',
         ...style
       }}
     >
-      {/* Badges Container - Skeleton badges */}
-      <div className="absolute top-0 left-0 right-0 flex justify-between items-start pointer-events-none z-10 w-full" style={{ fontSize: 'clamp(8px, 2.5cqw, 12px)' }}>
-        {/* Left side badges */}
-        <div className="flex">
+      {/* Main wrapper - как у конкурентов */}
+      <div className="!flex !size-full !flex-col">
+        {/* Image + Items wrapper */}
+        <div>
+          {/* Main Image Section - Skeleton */}
           <div
-            className="bg-gray-600 rounded"
-            style={{ 
-              padding: '1.5cqw 2cqw', 
-              fontSize: 'clamp(8px, 2.5cqw, 12px)',
-              width: '60px',
-              height: '20px'
+            className="relative w-full bg-gray-700 !flex !items-center !justify-center"
+            style={{
+              aspectRatio: '1.5 / 1',
             }}
-          />
+          >
+            <div
+              className="bg-gray-600 rounded object-contain"
+              style={{
+                position: 'absolute',
+                width: '80%',
+                height: '80%',
+                inset: '10%'
+              }}
+            />
+            
+            {/* Badges Container - Skeleton badges absolute внутри Image */}
+            <div className="absolute top-0 left-0 right-0 !flex !justify-between !items-start pointer-events-none z-10 w-full" style={{ fontSize: 'clamp(8px, 2.5cqw, 12px)' }}>
+              {/* Left side badges */}
+              <div className="!flex">
+                <div
+                  className="bg-gray-600 rounded"
+                  style={{ 
+                    padding: '1.5cqw 2cqw', 
+                    fontSize: 'clamp(8px, 2.5cqw, 12px)',
+                    width: '60px',
+                    height: '20px'
+                  }}
+                />
+              </div>
+
+              {/* Right side badges */}
+              <div className="!flex !gap-2" style={{ gap: '2cqw' }}>
+                <div
+                  className="bg-gray-600 rounded"
+                  style={{ 
+                    padding: '1.5cqw 2cqw', 
+                    fontSize: 'clamp(6px, 2cqw, 10px)',
+                    width: '40px',
+                    height: '16px'
+                  }}
+                />
+                <div
+                  className="bg-gray-600 rounded"
+                  style={{ 
+                    padding: '1.5cqw 2cqw', 
+                    fontSize: 'clamp(6px, 2cqw, 10px)',
+                    width: '50px',
+                    height: '16px'
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Included Items Section - Skeleton */}
+          <div className="@container min-h-10 bg-gray-700">
+            <div className="!grid !gap-2 p-2" style={{ gridTemplateColumns: 'repeat(4, 1fr)', justifyItems: 'center', alignSelf: 'center' }}>
+              {[1, 2, 3].map((index) => (
+                <div key={index} className="relative overflow-hidden w-full">
+                  <div
+                    className="relative h-full max-w-full rounded bg-gray-600 aspect-3/2"
+                    style={{ width: '100%', height: '40px' }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Right side badges */}
-        <div className="!flex gap-2" style={{ gap: '2cqw' }}>
-          <div
-            className="bg-gray-600 rounded"
-            style={{ 
-              padding: '1.5cqw 2cqw', 
-              fontSize: 'clamp(6px, 2cqw, 10px)',
-              width: '40px',
-              height: '16px'
-            }}
-          />
-          <div
-            className="bg-gray-600 rounded"
-            style={{ 
-              padding: '1.5cqw 2cqw', 
-              fontSize: 'clamp(6px, 2cqw, 10px)',
-              width: '50px',
-              height: '16px'
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Main Image Section - Skeleton */}
-      <div
-        className="relative w-full bg-gray-700 !flex items-center justify-center"
-        style={{
-          flex: '0 0 200px',
-          minHeight: '200px',
+      {/* Content Section - Skeleton Grid с фиксированными строками как у конкурентов */}
+      <div 
+        className="!grid !size-full" 
+        style={{ 
+          display: 'grid', 
+          gridTemplateRows: 'auto auto 1fr auto', 
+          padding: '12px 16px', 
+          gap: '8px',
+          alignContent: 'start'
         }}
       >
-        <div
-          className="bg-gray-600 rounded"
-          style={{
-            width: '80%',
-            height: '80%',
-            maxWidth: '160px',
-            maxHeight: '160px'
-          }}
-        />
-      </div>
-
-      {/* Included Items Section - Skeleton */}
-      <div className="min-h-10 bg-gray-700">
-        <div className="flex justify-center gap-2 self-center p-2">
-          {[1, 2, 3].map((index) => (
-            <div key={index} className="relative basis-1/5 overflow-hidden">
+          {/* Row 1: Title - Skeleton */}
+          <div className="!flex !flex-col" style={{ display: 'flex', flexDirection: 'column', gap: '2px', minHeight: '44px' }}>
+            <div className="w-full" style={{ containerType: 'inline-size' }}>
+              {/* Title Skeleton */}
               <div
-                className="relative h-full max-w-full rounded bg-gray-600 aspect-3/2"
-                style={{ width: '100%', height: '40px' }}
+                className="bg-gray-600 rounded mx-auto"
+                style={{ 
+                  width: '80%',
+                  height: '24px',
+                  maxWidth: '200px'
+                }}
               />
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Content Section - Skeleton */}
-      <div style={{ flex: 1, padding: '3cqw 4cqw 4cqw 4cqw', display: 'grid', gridTemplateRows: 'auto 1fr', gap: '0' }} className="">
-        {/* Блок 1: Title + Rarity - Skeleton */}
-        <div style={{ display: 'grid', gridTemplateRows: '50px auto', gap: '8px' }}>
-          {/* Title Skeleton */}
-          <div
-            className="bg-gray-600 rounded mx-auto"
-            style={{ 
-              width: '80%',
-              height: '24px',
-              maxWidth: '200px'
-            }}
-          />
+          </div>
           
-          {/* Rarity Skeleton */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
+          {/* Row 2: Rarity badges - Skeleton */}
+          <div className="!flex !flex-wrap !justify-center" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px', minHeight: '36px' }}>
+            {/* Rarity Skeleton */}
             <div
               className="bg-gray-600 rounded"
               style={{ 
-                width: '60px',
-                height: '20px',
-                padding: '1cqw 2cqw'
+                width: '120px',
+                height: '24px'
               }}
             />
           </div>
-        </div>
 
-        {/* Блок 2: Buy Button + RP/LP - Skeleton */}
-        <div className="!flex !flex-col gap-2" style={{ alignSelf: 'end' }}>
-          {/* Buy Button Skeleton */}
-          <div
-            className="bg-gray-600 rounded-lg"
-            style={{
-              width: '100%',
-              height: '48px',
-              padding: '12px 8px',
-            }}
-          />
-          
-          {/* RP/LP Bonuses Skeleton */}
-          <div className="text-gray-400" style={{ display: 'flex', flexDirection: 'row', fontSize: '12px', justifyContent: 'space-between', width: '100%', padding: '0 8px' }}>
-            <div className="bg-gray-600 rounded" style={{ width: '40px', height: '12px' }} />
-            <div className="bg-gray-600 rounded" style={{ width: '40px', height: '12px' }} />
+          {/* Row 3: Spacer - растягивается для выравнивания кнопки внизу */}
+          <div></div>
+
+          {/* Row 4: Button + RP/LP - Skeleton - всегда внизу карточки */}
+          <div className="!flex !flex-col landscape-max-lg:py-1">
+            {/* Buy Button Skeleton */}
+            <div
+              className="bg-gray-600 rounded-lg"
+              style={{
+                width: '100%',
+                height: '48px',
+                padding: '12px 8px',
+              }}
+            />
+            
+            {/* RP/LP Bonuses Skeleton - разведены по углам */}
+            <div className="text-gray-400 !flex !justify-between !w-full" style={{ display: 'flex', flexDirection: 'row', fontSize: '12px', justifyContent: 'space-between', width: '100%' }}>
+              <div className="bg-gray-600 rounded" style={{ width: '40px', height: '12px' }} />
+              <div className="bg-gray-600 rounded" style={{ width: '40px', height: '12px' }} />
+            </div>
           </div>
-        </div>
+      </div>
       </div>
     </div>
   );
