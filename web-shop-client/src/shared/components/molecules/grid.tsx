@@ -34,16 +34,16 @@ export function Grid({
     const updateLayout = () => {
       const width = window.innerWidth;
       
-      // Columns
+      // Columns - 1024px включительно = 2 колонки
       if (width >= 1280) {
         setColumns(4);
         setGap('1rem'); // 16px desktop
-      } else if (width >= 1024) {
+      } else if (width > 1024) {
         setColumns(3);
-        setGap('1rem'); // 16px tablet
+        setGap('1rem'); // 16px tablet large
       } else if (width >= 640) {
         setColumns(2);
-        setGap('0.75rem'); // 12px mobile
+        setGap('0.75rem'); // 12px mobile/tablet
       } else {
         setColumns(2);
         setGap('0.5rem'); // 8px small mobile
