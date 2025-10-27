@@ -51,7 +51,7 @@ describe('SupabaseRevenueRepository', () => {
 
       // Mock Supabase responses
       mockSupabaseClient.from.mockImplementation((table: string) => {
-        if (table === 'transaction log') {
+        if (table === 'transaction_log') {
           return {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
@@ -103,7 +103,7 @@ describe('SupabaseRevenueRepository', () => {
     it('should handle empty transactions data', async () => {
       // Arrange - Mock empty transactions
       mockSupabaseClient.from.mockImplementation((table: string) => {
-        if (table === 'transaction log') {
+        if (table === 'transaction_log') {
           return {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
@@ -186,7 +186,7 @@ describe('SupabaseRevenueRepository', () => {
       ];
 
       mockSupabaseClient.from.mockImplementation((table: string) => {
-        if (table === 'transaction log') {
+        if (table === 'transaction_log') {
           return {
             select: vi.fn(() => ({
               eq: vi.fn(() => ({
