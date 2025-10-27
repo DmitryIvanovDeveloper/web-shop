@@ -21,3 +21,12 @@ export class ProductsLoadError extends ProductsError {
   }
 }
 
+export class UnauthenticatedUserError extends ProductsError {
+  constructor(public readonly productId: string) {
+    super(
+      `User must be authenticated to purchase product: ${productId}`,
+      'UNAUTHENTICATED_USER',
+    );
+  }
+}
+

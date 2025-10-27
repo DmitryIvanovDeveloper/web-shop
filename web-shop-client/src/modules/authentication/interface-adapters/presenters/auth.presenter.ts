@@ -139,6 +139,21 @@ export class AuthPresenter {
 	}
 
 	/**
+	 * Показать AuthPopup (вызывается из event handler)
+	 * Используется когда пользователь пытается выполнить действие требующее авторизации
+	 */
+	public showAuthPopup(): void {
+		console.log('[AuthPresenter] Showing auth popup');
+		
+		// Генерируем CustomEvent для AuthModule
+		if (typeof window !== 'undefined') {
+			window.dispatchEvent(new CustomEvent('showAuthPopup', { 
+				detail: { reason: 'authentication_required' } 
+			}));
+		}
+	}
+
+	/**
 	 * Получение ViewModel с текущим состоянием
 	 */
 	public getCurrentViewModel(): AuthViewModel {

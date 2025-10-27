@@ -129,6 +129,20 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 		};
 	}, []); // Убираем зависимости, чтобы избежать цикла
 
+	// Подписка на событие showAuthPopup (для показа popup при попытке покупки)
+	useEffect(() => {
+		const handleShowAuthPopup = (event: Event) => {
+			const customEvent = event as CustomEvent;
+			console.log('[AuthModule] showAuthPopup event received:', customEvent.detail);
+			setShowPopup(true);
+		};
+
+		if (typeof window !== 'undefined') {
+			window.addEventListener('showAuthPopup', handleShowAuthPopup);
+			return () => window.removeEventListener('showAuthPopup', handleShowAuthPopup);
+		}
+	}, []);
+
 	// Инициализация авторизации
 	useEffect(() => {
 		if (isAuthenticated) {

@@ -10,6 +10,7 @@ export const PRODUCTS_TYPES = {
   GetPurchasedProductsUseCase: Symbol.for('Products.GetPurchasedProductsUseCase'),
   // Services
   ProductStyleService: Symbol.for('Products.ProductStyleService'),
+  AuthService: Symbol.for('AuthService'), // Shared с Authentication модулем
   // Presenters
   ProductsListPresenter: Symbol.for('Products.ProductsListPresenter'),
   // Handlers - use generic EventBus symbol for auto-discovery

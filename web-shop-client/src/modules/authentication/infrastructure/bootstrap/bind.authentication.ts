@@ -15,6 +15,10 @@ import { AUTH_TYPES } from './types';
 import { AuthUIRepositoryPort } from '../../application/ports/auth-ui-repository.port';
 import { AuthUIRepository } from '../repositories/auth-ui.repository';
 import { LoadAuthUIConfigUseCase } from '../../application/use-cases/load-auth-ui-config.use-case';
+// Application Service & Event Handler
+import { AuthService } from '../../application/services/auth.service';
+import { AuthenticationRequiredEventHandler } from '../../interface-adapters/handlers/authentication-required.handler';
+import { AuthenticationRequiredEvent } from '../../../../shared/events/auth-events';
 
 export function bindAuthentication(container: Container): void {
   // Repository (Infrastructure)
@@ -49,4 +53,18 @@ export function bindAuthentication(container: Container): void {
   container
     .bind<LoadAuthUIConfigUseCase>(AUTH_TYPES.LoadAuthUIConfigUseCase)
     .to(LoadAuthUIConfigUseCase);
+
+  // Application Service (экспорт функциональности для других модулей)
+  container
+    .bind(AUTH_TYPES.AuthService)
+    .to(AuthService)
+    .inSingletonScope();
+
+  // Event Handler для AuthenticationRequiredEvent (auto-discovery через EventBus)
+  container
+    .bind<IAsyncEventHandler<AuthenticationRequiredEvent>>(
+      Symbol.for('IAsyncEventHandler<AuthenticationRequiredEvent>')
+    )
+    .to(AuthenticationRequiredEventHandler)
+    .inTransientScope();
 }

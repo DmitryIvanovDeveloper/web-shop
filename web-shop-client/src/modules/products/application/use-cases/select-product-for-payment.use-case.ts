@@ -6,8 +6,11 @@ import type { Logger } from '../../../../application/ports/logger.port';
 import type { ProductRepositoryPort } from '../ports/product-repository.port';
 import type { BrowserPort } from '../ports/browser.port';
 import type { PaymentRedirectPort } from '../ports/payment-redirect.port';
+import type { AuthServicePort } from '../ports/auth-service.port';
 import { ProductSelectedForPaymentEvent } from '../../../../shared/events/product-events';
+import { AuthenticationRequiredEvent } from '../../../../shared/events/auth-events';
 import { ProductPaymentService } from '../../domain/services/product-payment.service';
+import { UnauthenticatedUserError } from '../../domain/errors/products.error';
 
 export interface SelectProductForPaymentRequest {
   productId: string;
@@ -25,7 +28,9 @@ export class SelectProductForPaymentUseCase {
     @inject(ROOT_TYPES.Browser)
     private readonly _browser: BrowserPort,
     @inject(PRODUCTS_TYPES.PaymentRedirect)
-    private readonly _paymentRedirect: PaymentRedirectPort
+    private readonly _paymentRedirect: PaymentRedirectPort,
+    @inject(PRODUCTS_TYPES.AuthService)
+    private readonly _authService: AuthServicePort
   ) {}
 
   public async execute(request: SelectProductForPaymentRequest): Promise<void> {
@@ -34,7 +39,22 @@ export class SelectProductForPaymentUseCase {
     });
 
     try {
-      // 1. Load product data from repository
+      // 1. CHECK AUTHENTICATION (UseCase координирует бизнес-логику)
+      if (!this._authService.isUserAuthenticated()) {
+        this._logger.warn('[SelectProductForPaymentUseCase] User not authenticated', {
+          productId: request.productId
+        });
+        
+        // Публикуем событие для показа AuthPopup (межмодульное общение)
+        await this._eventBus.publishAsync(
+          new AuthenticationRequiredEvent('products', 'purchase', request.productId)
+        );
+        
+        // Выбрасываем ошибку для остановки выполнения
+        throw new UnauthenticatedUserError(request.productId);
+      }
+
+      // 2. Load product data from repository
       const product = await this._productRepository.getById(request.productId);
       
       if (!product) {

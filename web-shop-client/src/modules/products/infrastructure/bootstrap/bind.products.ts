@@ -19,6 +19,7 @@ import type { ProductStoragePort } from '../../application/ports/product-storage
 import type { PurchaseRepositoryPort } from '../../application/ports/purchase-repository.port';
 import type { BrowserPort } from '../../application/ports/browser.port';
 import type { PaymentRedirectPort } from '../../application/ports/payment-redirect.port';
+import { AuthService } from '../../../authentication/application/services/auth.service';
 
 export function bindProducts(container: Container): void {
   // Storage Layer
@@ -35,6 +36,10 @@ export function bindProducts(container: Container): void {
   // Services
   container.bind(PRODUCTS_TYPES.ProductStyleService)
     .to(ProductStyleService).inSingletonScope();
+
+  // Auth Service (shared с Authentication модулем)
+  container.bind(PRODUCTS_TYPES.AuthService)
+    .to(AuthService).inSingletonScope();
 
   // Browser and Payment Services
   container.bind<BrowserPort>(ROOT_TYPES.Browser)
