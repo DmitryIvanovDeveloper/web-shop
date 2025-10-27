@@ -17,6 +17,7 @@ export interface AppUser {
  */
 export interface ValidateAppLoginRequest {
   readonly appId: string;
+  readonly userId?: string; // Опционально - если передан, проверяем/создаем в Supabase
 }
 
 /**

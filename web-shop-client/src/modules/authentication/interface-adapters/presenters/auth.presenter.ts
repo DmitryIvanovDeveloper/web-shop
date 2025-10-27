@@ -171,9 +171,9 @@ export class AuthPresenter {
 	/**
 	 * Инициализация авторизации через UseCase
 	 */
-	public async initializeAuthentication(appId: string): Promise<AuthViewModel> {
-		console.log('[AuthPresenter] initializeAuthentication called with appId:', appId);
-		const result = await this._validateAppLoginUseCase.execute({ appId });
+	public async initializeAuthentication(appId: string, userId?: string): Promise<AuthViewModel> {
+		console.log('[AuthPresenter] initializeAuthentication called', { appId, userId });
+		const result = await this._validateAppLoginUseCase.execute({ appId, userId });
 		
 		console.log('[AuthPresenter] initializeAuthentication result', result);
 		if (result.isSuccess()) {

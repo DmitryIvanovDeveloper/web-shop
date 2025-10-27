@@ -152,10 +152,13 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 
 		// Приоритет: 1) Query параметр, 2) localStorage, 3) Environment variable
 		const appId = getAppIdFromQuery() || getAppIdFromStorage() || getAppIdFromEnv();
+		const userId = getUserIdFromQuery(); // НОВОЕ - извлекаем userId из query
+		
 		console.log('[AuthModule] Found appId:', appId, {
 			fromQuery: getAppIdFromQuery(),
 			fromStorage: getAppIdFromStorage(),
-			fromEnv: getAppIdFromEnv()
+			fromEnv: getAppIdFromEnv(),
+			userId: userId // НОВОЕ
 		});
 		
 		if (!appId) {
@@ -163,15 +166,17 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 			return;
 		}
 
-		console.log('[AuthModule] Auto-initializing authentication with appId:', appId);
+		console.log('[AuthModule] Auto-initializing authentication', { appId, userId });
 		setIsLoading(true);
-		authPresenter.initializeAuthentication(appId).finally(() => {
+		authPresenter.initializeAuthentication(appId, userId || undefined).finally(() => {
 			setIsLoading(false);
 		});
 
 	}, [searchParams]); // Только searchParams, остальные могут вызывать цикл
 
 	const getAppIdFromQuery = () => searchParams.get('appId');
+	
+	const getUserIdFromQuery = () => searchParams.get('userId');
 	
 	const getAppIdFromStorage = () => {
 		if (typeof window === 'undefined') return null;

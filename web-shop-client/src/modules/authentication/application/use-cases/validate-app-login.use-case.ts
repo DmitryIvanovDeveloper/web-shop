@@ -48,8 +48,21 @@ export class ValidateAppLoginUseCase {
     }
 
     try {
-      // 2. Вызов через PORT (НЕ напрямую!)
-      const result = await this._authRepository.validateAppId(trimmedAppId);
+      // 2. Выбор потока: Supabase (если userId) или Mock (если только appId)
+      let result: Result<AppUser, Error>;
+      
+      if (request.userId) {
+        // SUPABASE FLOW - проверяем/создаем пользователя в Supabase
+        this._logger.info('[ValidateAppLoginUseCase] Using Supabase flow', { 
+          appId: trimmedAppId, 
+          userId: request.userId 
+        });
+        result = await this._authRepository.ensureUserExists(trimmedAppId, request.userId);
+      } else {
+        // MOCK FLOW - используем mock данные из JSON
+        this._logger.info('[ValidateAppLoginUseCase] Using Mock flow', { appId: trimmedAppId });
+        result = await this._authRepository.validateAppId(trimmedAppId);
+      }
 
       // 3. Проверка результата через Result Pattern
       if (result.isFailure()) {
