@@ -89,7 +89,9 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
         <Grid>
           {/* Show 6 skeleton cards while loading */}
           {Array.from({ length: 6 }, (_, index) => (
-            <OfferCardSkeleton key={`skeleton-${index}`} />
+            <div key={`skeleton-${index}`} className="@container">
+              <OfferCardSkeleton />
+            </div>
           ))}
         </Grid>
       </div>
@@ -120,8 +122,8 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
           <h2 className="text-white text-xl font-bold mb-4">Products</h2>
           <Grid>
             {Array.isArray(viewModel.products) ? viewModel.products.map((product, index) => (
-          <OfferCard 
-            key={product?.id?.value || `product-${index}`} 
+          <div key={product?.id?.value || `product-${index}`} className="@container">
+            <OfferCard 
             mainImage={product.mainImage}
             mainImageAlt={product.mainImageAlt}
             sideImage={product.sideImage}
@@ -145,7 +147,8 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
               style: product.buyButton?.style
             }}
             onClick={() => !product.isPurchased && handleBuyProduct(product)}
-          />
+            />
+          </div>
           )) : (
             <div className="text-white">No products available</div>
           )}

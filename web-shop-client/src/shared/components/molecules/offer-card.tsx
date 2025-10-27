@@ -1,7 +1,31 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import type { CSSProperties } from "react";
 import { Badge } from "../atoms/badge";
+
+// Функция для форматирования countdown как у Pixel Gun (4D 10:36:27)
+function formatCountdown(targetDate: Date): string {
+  // Проверка на Invalid Date
+  if (!targetDate || isNaN(targetDate.getTime())) {
+    return '';
+  }
+  
+  const now = new Date();
+  const diff = targetDate.getTime() - now.getTime();
+  
+  if (diff <= 0) return 'EXPIRED';
+  
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  
+  if (days > 0) {
+    return `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
 
 export interface BuyButtonStyle {
   readonly backgroundColor?: string;
@@ -73,6 +97,22 @@ export function OfferCard({
   style,
   onClick,
 }: OfferCardProps): JSX.Element {
+  // Живой countdown - обновляется каждую секунду
+  const [countdown, setCountdown] = useState<string>('');
+  
+  useEffect(() => {
+    if (!timer) return;
+    
+    const updateCountdown = () => {
+      setCountdown(formatCountdown(timer));
+    };
+    
+    updateCountdown(); // Сразу обновляем
+    const interval = setInterval(updateCountdown, 1000); // Обновляем каждую секунду
+    
+    return () => clearInterval(interval);
+  }, [timer]);
+  
   return (
     <div
       className={`relative bg-gray-800 rounded-lg overflow-hidden shadow-lg w-full ${className}`}
@@ -116,40 +156,52 @@ export function OfferCard({
               />
             )}
             
-            {/* Badges Container - absolute внутри Image */}
-            <div className="absolute top-0 left-0 right-0 !flex !justify-between !items-start pointer-events-none z-10 w-full" style={{ fontSize: 'clamp(8px, 2.5cqw, 12px)' }}>
-              {/* Left side badges */}
-              <div className="!flex">
-                {/* Discount Badge - only show if not purchased */}
-                {!isPurchased && discount && (
-                  <Badge
-                    text={discount}
-                    variant="discount"
-                    withSkew={true}
-                    style={{ padding: '1.5cqw 2cqw', fontSize: 'clamp(8px, 2.5cqw, 12px)' }}
-                  />
-                )}
-              </div>
+            {/* Badges Container - absolute внутри Image как у Pixel Gun */}
+            {/* Left side badges - top-1 на mobile, top-3 на desktop (@2xs:top-3) */}
+            <div className="absolute pointer-events-none z-10 max-w-full" style={{ 
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '2px',
+              top: '4px',
+              left: '-4px',
+              fontSize: 'clamp(8px, 2.5cqw, 12px)' 
+            }}>
+              {/* Discount Badge - only show if not purchased */}
+              {!isPurchased && discount && (
+                <Badge
+                  text={discount}
+                  variant="discount"
+                  withSkew={true}
+                  style={{ padding: '1.5cqw 2cqw', fontSize: 'clamp(8px, 2.5cqw, 12px)' }}
+                />
+              )}
+            </div>
 
-              {/* Right side badges */}
-              <div className="!flex !gap-2" style={{ gap: '2cqw' }}>
-                {playerLimit && (
-                  <Badge
-                    text={playerLimit}
-                    variant="limit"
-                    withSkew={true}
-                    style={{ padding: '1.5cqw 2cqw', fontSize: 'clamp(6px, 2cqw, 10px)' }}
-                  />
-                )}
-                {!isPurchased && timer && (
-                  <Badge
-                    text={timer.toLocaleString()}
-                    variant="timer"
-                    withSkew={true}
-                    style={{ padding: '1.5cqw 2cqw', fontSize: 'clamp(6px, 2cqw, 10px)' }}
-          />
-        )}
-      </div>
+            {/* Right side badges - -right-1 чтобы выходили за границу как у Pixel Gun */}
+            <div className="absolute pointer-events-none z-10" style={{ 
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '2px',
+              top: '4px',
+              right: '-4px',
+              fontSize: 'clamp(6px, 2cqw, 10px)' 
+            }}>
+              {playerLimit && (
+                <Badge
+                  text={playerLimit}
+                  variant="limit"
+                  withSkew={true}
+                  style={{ padding: '1.5cqw 2cqw', fontSize: 'clamp(6px, 2cqw, 10px)' }}
+                />
+              )}
+              {!isPurchased && timer && countdown && (
+                <Badge
+                  text={countdown}
+                  variant="timer"
+                  withSkew={true}
+                  style={{ padding: '1.5cqw 2cqw', fontSize: 'clamp(6px, 2cqw, 10px)' }}
+                />
+              )}
             </div>
           </div>
           

@@ -58,42 +58,55 @@ export function OfferCardSkeleton({
               }}
             />
             
-            {/* Badges Container - Skeleton badges absolute внутри Image */}
-            <div className="absolute top-0 left-0 right-0 !flex !justify-between !items-start pointer-events-none z-10 w-full" style={{ fontSize: 'clamp(8px, 2.5cqw, 12px)' }}>
+            {/* Badges Container - Skeleton badges absolute как у Pixel Gun */}
+            {/* Left side badges - inline styles для гарантированного применения */}
+            <div className="absolute pointer-events-none z-10 max-w-full" style={{ 
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '2px',
+              top: '4px',
+              left: '-4px',
+              fontSize: 'clamp(8px, 2.5cqw, 12px)' 
+            }}>
               {/* Left side badges */}
-              <div className="!flex">
-                <div
-                  className="bg-gray-600 rounded"
-                  style={{ 
-                    padding: '1.5cqw 2cqw', 
-                    fontSize: 'clamp(8px, 2.5cqw, 12px)',
-                    width: '60px',
-                    height: '20px'
-                  }}
-                />
-              </div>
+              <div
+                className="bg-gray-600 rounded"
+                style={{ 
+                  padding: '1.5cqw 2cqw', 
+                  fontSize: 'clamp(8px, 2.5cqw, 12px)',
+                  width: '60px',
+                  height: '20px'
+                }}
+              />
+            </div>
 
-              {/* Right side badges */}
-              <div className="!flex !gap-2" style={{ gap: '2cqw' }}>
-                <div
-                  className="bg-gray-600 rounded"
-                  style={{ 
-                    padding: '1.5cqw 2cqw', 
-                    fontSize: 'clamp(6px, 2cqw, 10px)',
-                    width: '40px',
-                    height: '16px'
-                  }}
-                />
-                <div
-                  className="bg-gray-600 rounded"
-                  style={{ 
-                    padding: '1.5cqw 2cqw', 
-                    fontSize: 'clamp(6px, 2cqw, 10px)',
-                    width: '50px',
-                    height: '16px'
-                  }}
-                />
-              </div>
+            {/* Right side badges - inline styles для гарантированного применения */}
+            <div className="absolute pointer-events-none z-10" style={{ 
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '2px',
+              top: '4px',
+              right: '-4px',
+              fontSize: 'clamp(6px, 2cqw, 10px)' 
+            }}>
+              <div
+                className="bg-gray-600 rounded"
+                style={{ 
+                  padding: '1.5cqw 2cqw', 
+                  fontSize: 'clamp(6px, 2cqw, 10px)',
+                  width: '40px',
+                  height: '16px'
+                }}
+              />
+              <div
+                className="bg-gray-600 rounded"
+                style={{ 
+                  padding: '1.5cqw 2cqw', 
+                  fontSize: 'clamp(6px, 2cqw, 10px)',
+                  width: '50px',
+                  height: '16px'
+                }}
+              />
             </div>
           </div>
         </div>
