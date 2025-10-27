@@ -13,7 +13,7 @@ export function OfferCardSkeleton({
 }: OfferCardSkeletonProps): JSX.Element {
   return (
     <div
-      className={`relative bg-gray-800 rounded-lg overflow-hidden shadow-lg w-full animate-pulse ${className}`}
+      className={`relative bg-gray-800 rounded-lg overflow-hidden shadow-lg w-full ${className}`}
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -22,6 +22,21 @@ export function OfferCardSkeleton({
         ...style
       }}
     >
+      {/* Shimmer overlay effect */}
+      <div 
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%)',
+          animation: 'shimmer 2s infinite',
+          zIndex: 1
+        }}
+      />
+      <style jsx>{`
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
       {/* Main wrapper - как у конкурентов */}
       <div className="!flex !size-full !flex-col">
         {/* Image + Items wrapper */}
