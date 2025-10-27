@@ -55,14 +55,15 @@ export function OffersPopup({
         <div className="flex-1 overflow-y-auto">
           <Grid className="justify-center" style={{ width: '100%', maxWidth: '100%', margin: '0 auto' }}>
             {offers.map((offer) => (
-              <OfferCard
-                key={offer.id}
-                {...offer}
-                timer={offer.timer ? new Date(offer.timer) : undefined}
-                isLoading={loadingOfferIds.has(offer.id)}
-                onClick={() => onOfferClick?.(offer)}
-                className="cursor-pointer hover:scale-105 transition-transform duration-200"
-              />
+              <div key={offer.id} className="@container">
+                <OfferCard
+                  {...offer}
+                  timer={offer.timer ? new Date(offer.timer) : undefined}
+                  isLoading={loadingOfferIds.has(offer.id)}
+                  onClick={() => onOfferClick?.(offer)}
+                  className="cursor-pointer hover:scale-105 transition-transform duration-200"
+                />
+              </div>
             ))}
           </Grid>
         </div>
