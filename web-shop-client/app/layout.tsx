@@ -48,7 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
   }, []);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024); // Скрываем sidebar на tablet тоже (как у Pixel Gun)
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
