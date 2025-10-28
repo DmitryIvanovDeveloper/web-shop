@@ -156,4 +156,3 @@ export interface AuthPopupConfig {
     readonly children: unknown[];
   };
 }
-}
