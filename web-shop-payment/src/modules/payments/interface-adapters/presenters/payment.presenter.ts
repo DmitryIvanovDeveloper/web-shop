@@ -130,7 +130,12 @@ export class PaymentPresenter {
       const result = await this._createPaymentIntentUseCase.execute({
         productId: productSnapshot.id,
         amount: productSnapshot.price,
-        currency: productSnapshot.currency
+        currency: productSnapshot.currency,
+        metadata: {
+          userId: this._userId!,
+          appId: this._appId!,
+          productId: productSnapshot.id
+        }
       });
 
       this._logger.info('[PaymentPresenter] Payment intent creation result', {

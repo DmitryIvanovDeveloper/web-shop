@@ -16,6 +16,9 @@ export const PAYMENT_TYPES = {
   ConfirmPaymentUseCase: Symbol.for('Payments.ConfirmPaymentUseCase'),
   SavePaymentTransactionUseCase: Symbol.for('Payments.SavePaymentTransactionUseCase'),
   
+  // Application Services
+  WebhookService: Symbol.for('Payments.WebhookService'),
+  
   // Presenters (Interface Adapters)
   PaymentPresenter: Symbol.for('Payments.PaymentPresenter'),
   

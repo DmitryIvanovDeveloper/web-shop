@@ -118,6 +118,16 @@ export class SupabasePaymentStorage implements PaymentStoragePort {
         .single();
 
       if (error) {
+        // Check for duplicate transaction (UNIQUE constraint on stripe_payment_intent_id)
+        if (error.code === '23505') {
+          this._logger.info('[SupabasePaymentStorage] Transaction already exists (duplicate from Client-Side event)', { 
+            paymentIntentId: data.provider_intent_id,
+            code: error.code
+          });
+          // Return success - this is not an error, just a duplicate from hybrid approach
+          return Success.ok(data);
+        }
+
         this._logger.error('[SupabasePaymentStorage] Failed to insert payment', { 
           error: error.message,
           code: error.code,

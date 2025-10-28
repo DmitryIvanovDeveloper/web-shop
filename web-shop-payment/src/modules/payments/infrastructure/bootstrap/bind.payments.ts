@@ -9,6 +9,7 @@ import { MockPaymentService } from '../services/mock-payment.service';
 import { CreatePaymentIntentUseCase } from '../../application/use-cases/create-payment-intent.use-case';
 import { ConfirmPaymentUseCase } from '../../application/use-cases/confirm-payment.use-case';
 import { SavePaymentTransactionUseCase } from '../../application/use-cases/save-payment-transaction.use-case';
+import { WebhookService } from '../../application/services/webhook.service';
 import { PaymentPresenter } from '../../interface-adapters/presenters/payment.presenter';
 import { PaymentWebhookHandler } from '../../interface-adapters/handlers/payment-webhook.handler';
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
@@ -57,6 +58,12 @@ export function bindPayments(container: Container): void {
   container
     .bind<SavePaymentTransactionUseCase>(PAYMENT_TYPES.SavePaymentTransactionUseCase)
     .to(SavePaymentTransactionUseCase);
+
+  // Application Services (exports functionality for webhooks and other modules)
+  container
+    .bind<WebhookService>(PAYMENT_TYPES.WebhookService)
+    .to(WebhookService)
+    .inSingletonScope();
 
   // ============= Interface Adapters Layer =============
   
