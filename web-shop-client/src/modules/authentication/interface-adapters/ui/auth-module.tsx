@@ -135,7 +135,13 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 	}, []); // Убираем зависимости, чтобы избежать цикла
 
 	// Подписка на событие showAuthPopup (для показа popup при попытке покупки)
+	// ТОЛЬКО если renderPopupConfig={true}
 	useEffect(() => {
+		// Подписываемся ТОЛЬКО если этот AuthModule должен рендерить popup
+		if (!renderPopupConfig) {
+			return;
+		}
+
 		const handleShowAuthPopup = (event: Event) => {
 			const customEvent = event as CustomEvent;
 			console.log('[AuthModule] showAuthPopup event received:', customEvent.detail);
@@ -153,7 +159,7 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 			window.addEventListener('showAuthPopup', handleShowAuthPopup);
 			return () => window.removeEventListener('showAuthPopup', handleShowAuthPopup);
 		}
-	}, [authUIConfig]); // Добавляем зависимость от authUIConfig
+	}, [authUIConfig, renderPopupConfig]); // Добавляем renderPopupConfig в зависимости
 
 	// Инициализация авторизации
 	useEffect(() => {

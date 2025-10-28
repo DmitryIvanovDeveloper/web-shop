@@ -150,7 +150,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
             <div className="fixed right-0 top-0 bottom-0 shadow-2xl animate-slide-in-right overflow-y-auto border-l border-yellow-400/30" style={{ zIndex: 9999, backgroundColor: '#1f2937', borderLeft: '0.5px solid rgba(156, 163, 175, 0.5)', width: '85%' }}>
               <div className="p-4">
                 <div className="mb-4">
-                  <AuthModule renderSidebarButton={true} renderPopupConfig={true} />
+                  <AuthModule renderSidebarButton={true} renderPopupConfig={false} />
                 </div>
                 
                 {rightSidebarConfig && rightSidebarConfig.layout?.children?.length > 0 && (
