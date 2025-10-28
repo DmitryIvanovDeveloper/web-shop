@@ -16,6 +16,9 @@ import { isFailure } from '../../../../src/shared/result/result';
  * Business logic is in WebhookService (Application Service)
  */
 
+// Disable Next.js body parsing for this route (needed for Stripe signature verification)
+export const runtime = 'nodejs';
+
 // Initialize Stripe client
 function getStripe(): Stripe {
   const secretKey = process.env.STRIPE_SECRET_KEY;
