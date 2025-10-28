@@ -170,13 +170,15 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 
 		// Приоритет: 1) Query параметр, 2) localStorage, 3) Environment variable
 		const appId = getAppIdFromQuery() || getAppIdFromStorage() || getAppIdFromEnv();
-		const userId = getUserIdFromQuery(); // НОВОЕ - извлекаем userId из query
+		const userId = getUserIdFromQuery() || getUserIdFromStorage(); // Приоритет: query -> localStorage
 		
 		console.log('[AuthModule] Found appId:', appId, {
 			fromQuery: getAppIdFromQuery(),
 			fromStorage: getAppIdFromStorage(),
 			fromEnv: getAppIdFromEnv(),
-			userId: userId // НОВОЕ
+			userId: userId,
+			userIdFromQuery: getUserIdFromQuery(),
+			userIdFromStorage: getUserIdFromStorage()
 		});
 		
 		if (!appId) {
@@ -205,6 +207,21 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 
 			const user = JSON.parse(storedUser);
 			return user?.appId || null;
+		} catch (error) {
+			localStorage.removeItem('user');
+			return null;
+		}
+	};
+
+	const getUserIdFromStorage = () => {
+		if (typeof window === 'undefined') return null;
+
+		try {
+			const storedUser = localStorage.getItem('user');
+			if (!storedUser) return null;
+
+			const user = JSON.parse(storedUser);
+			return user?.userId || null;
 		} catch (error) {
 			localStorage.removeItem('user');
 			return null;
