@@ -67,17 +67,23 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
     try {
       console.log('[ProductsList] Buy product clicked:', productId);
       
-      // Set loading state for this product (infinite loading)
+      // Set loading state for this product
       setLoadingProducts(prev => new Set(prev).add(productId));
       
       // Pass only product ID to presenter (convert ProductId to string)
       await presenter.onBuyProduct(productId);
       
       console.log('[ProductsList] Product buy handled successfully:', productId);
-      // Note: Loading state is not cleared - it remains infinite
+      // Loading state will be cleared after redirect (component unmounts)
     } catch (error) {
       console.error('[ProductsList] Failed to handle buy product:', error);
-      // Note: Loading state is not cleared even on error - it remains infinite
+      
+      // Clear loading state on error
+      setLoadingProducts(prev => {
+        const next = new Set(prev);
+        next.delete(productId);
+        return next;
+      });
     }
   };
 
