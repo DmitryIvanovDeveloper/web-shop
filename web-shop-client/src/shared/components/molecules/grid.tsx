@@ -66,7 +66,7 @@ export function Grid({
   };
   
   return (
-    <div
+    <div 
       className={`${className || ''}`}
       style={gridStyle}
     >

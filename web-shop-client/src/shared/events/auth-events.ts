@@ -1,13 +1,26 @@
 import { IEvent } from '../../infrastructure/events/event';
 
 export class UserAuthenticatedEvent implements IEvent {
+  public readonly id: string;
   public readonly type = 'UserAuthenticatedEvent';
+  public readonly timestamp: Date;
+  public readonly source: string;
+  public readonly payload: {
+    userId: string;
+    username: string;
+    appId: string;
+  };
   
   constructor(
     public readonly userId: string,
     public readonly username: string,
     public readonly appId: string
-  ) {}
+  ) {
+    this.id = crypto.randomUUID();
+    this.timestamp = new Date();
+    this.source = 'authentication';
+    this.payload = { userId, username, appId };
+  }
 }
 
 /**

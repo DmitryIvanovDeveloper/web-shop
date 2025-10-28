@@ -11,25 +11,19 @@ import { AppUser } from '../../domain/types';
 import { UserNotFoundError } from '../../domain/errors/authentication.error';
 import type { HttpClient } from '../../../../application/ports/http-client.port';
 import type { Logger } from '../../../../application/ports/logger.port';
+import type { DatabaseClientPort } from '../../../../application/ports/database-client.port';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 @injectable()
 export class AuthRepository implements AuthRepositoryPort {
-  private _supabase: SupabaseClient;
-
   constructor(
     @inject(ROOT_TYPES.HttpClient)
     private readonly _httpClient: HttpClient,
+    @inject(ROOT_TYPES.DatabaseClient)
+    private readonly _supabase: DatabaseClientPort,
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: Logger
-  ) {
-    // Инициализация Supabase client
-    this._supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-    );
-  }
+  ) {}
 
   public async validateAppId(appId: string): Promise<Result<AppUser, UserNotFoundError>> {
     try {
@@ -56,20 +50,46 @@ export class AuthRepository implements AuthRepositoryPort {
   }
 
   /**
+   * Генерирует детерминированный UUID v5 из строки
+   * Использует DNS namespace для консистентности
+   */
+  private _generateUuidFromString(str: string): string {
+    // Простая хеш-функция для генерации UUID из строки
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    // Форматируем как UUID v4
+    const hex = Math.abs(hash).toString(16).padStart(8, '0');
+    const uuid = `${hex.substring(0, 8)}-${hex.substring(0, 4)}-4${hex.substring(1, 4)}-${(parseInt(hex.substring(0, 1), 16) & 0x3 | 0x8).toString(16)}${hex.substring(1, 4)}-${str.split('').reduce((acc, char) => acc + char.charCodeAt(0).toString(16), '').substring(0, 12).padEnd(12, '0')}`;
+    
+    return uuid;
+  }
+
+  /**
    * Проверить существует ли пользователь в Supabase, если нет - создать
    * @param appId - ID приложения
-   * @param userId - ID пользователя
+   * @param userId - ID пользователя (строка, будет конвертирована в UUID)
    */
   public async ensureUserExists(appId: string, userId: string): Promise<Result<AppUser, Error>> {
     try {
-      this._logger.info('[AuthRepository] Ensuring user exists in Supabase', { appId, userId });
+      // Генерируем UUID из строки userId
+      const userUuid = this._generateUuidFromString(userId);
+      
+      this._logger.info('[AuthRepository] Ensuring user exists in Supabase', { 
+        appId, 
+        userId: userId,
+        userUuid: userUuid 
+      });
 
       // 1. Проверяем существует ли пользователь
       const { data: existingUser, error: selectError } = await this._supabase
         .from('users')
         .select('*')
         .eq('app_id', appId)
-        .eq('user_id', userId)
+        .eq('user_id', userUuid)
         .single();
 
       // 2. Если пользователь существует - возвращаем
@@ -77,11 +97,12 @@ export class AuthRepository implements AuthRepositoryPort {
         this._logger.info('[AuthRepository] User found in Supabase', { 
           appId, 
           userId,
+          userUuid,
           dbId: existingUser.id 
         });
         
         return Result.ok({
-          userId: existingUser.user_id,
+          userId: userId, // Возвращаем оригинальный userId (строку)
           appId: existingUser.app_id,
           username: `User-${userId.substring(0, 8)}`
         });
@@ -90,14 +111,15 @@ export class AuthRepository implements AuthRepositoryPort {
       // 3. Если пользователя нет (404 или другая ошибка) - создаем
       this._logger.info('[AuthRepository] User not found, creating new user in Supabase', { 
         appId, 
-        userId 
+        userId,
+        userUuid 
       });
 
       const { data: newUser, error: insertError } = await this._supabase
         .from('users')
         .insert({
           app_id: appId,
-          user_id: userId
+          user_id: userUuid // Используем UUID вместо строки
         })
         .select()
         .single();
@@ -114,11 +136,12 @@ export class AuthRepository implements AuthRepositoryPort {
       this._logger.info('[AuthRepository] User created successfully in Supabase', { 
         appId, 
         userId,
+        userUuid,
         dbId: newUser.id 
       });
 
       return Result.ok({
-        userId: newUser.user_id,
+        userId: userId, // Возвращаем оригинальный userId (строку), не UUID
         appId: newUser.app_id,
         username: `User-${userId.substring(0, 8)}`
       });

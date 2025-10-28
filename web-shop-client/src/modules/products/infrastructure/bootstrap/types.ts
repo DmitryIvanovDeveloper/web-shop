@@ -17,3 +17,4 @@ export const PRODUCTS_TYPES = {
   ProductsUserAuthenticatedHandler: Symbol.for('IAsyncEventHandler<UserAuthenticatedEvent>'),
 };
 
+

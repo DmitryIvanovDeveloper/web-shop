@@ -32,10 +32,11 @@ export function bindAuthentication(container: Container): void {
     .bind<ValidateAppLoginUseCase>(AUTH_TYPES.ValidateAppLoginUseCase)
     .to(ValidateAppLoginUseCase);
 
-  // Presenter (Interface Adapters)
+  // Presenter (Interface Adapters) - Singleton чтобы состояние было общим
   container
     .bind<AuthPresenter>(AUTH_TYPES.AuthPresenter)
-    .to(AuthPresenter);
+    .to(AuthPresenter)
+    .inSingletonScope();
     
   // Handler (Interface Adapters) - автоматически подхватывается EventBus
   container

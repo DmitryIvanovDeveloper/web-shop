@@ -62,10 +62,8 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
       </head>
       <body className="m-0 p-0 overflow-hidden">
-        {/* Hidden AuthModule for background authentication - всегда активен */}
-        <div style={{ display: 'none' }}>
-          <AuthModule renderSidebarButton={false} renderPopupConfig={false} />
-        </div>
+        {/* AuthModule - управляет авторизацией и рендерит popup */}
+        <AuthModule renderSidebarButton={false} renderPopupConfig={true} />
 
         {/* Mobile Header - показывается только на мобилке */}
         {isMobile && (
@@ -110,7 +108,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
               <aside className="w-64 border-l border-yellow-400/30 flex-shrink-0" style={{ backgroundColor: 'rgba(0, 0, 0, 0.1)', backdropFilter: 'blur(2px)', borderLeft: '0.5px solid rgba(156, 163, 175, 0.5)' }}>
                 <div className="p-4">
                   <div className="mb-4">
-                    <AuthModule renderSidebarButton={true} renderPopupConfig={true} />
+                    <AuthModule renderSidebarButton={true} renderPopupConfig={false} />
                   </div>
                   
                   {rightSidebarConfig && rightSidebarConfig.layout?.children?.length > 0 && (

@@ -48,23 +48,25 @@ export class ValidateAppLoginUseCase {
     }
 
     try {
-      // 2. Выбор потока: Supabase (если userId) или Mock (если только appId)
-      let result: Result<AppUser, Error>;
-      
-      if (request.userId) {
-        // SUPABASE FLOW - проверяем/создаем пользователя в Supabase
-        this._logger.info('[ValidateAppLoginUseCase] Using Supabase flow', { 
-          appId: trimmedAppId, 
-          userId: request.userId 
+      // 2. ОБЯЗАТЕЛЬНАЯ ПРОВЕРКА: userId должен быть передан
+      if (!request.userId) {
+        this._logger.warn('[ValidateAppLoginUseCase] No userId provided, authentication not possible', { 
+          appId: trimmedAppId 
         });
-        result = await this._authRepository.ensureUserExists(trimmedAppId, request.userId);
-      } else {
-        // MOCK FLOW - используем mock данные из JSON
-        this._logger.info('[ValidateAppLoginUseCase] Using Mock flow', { appId: trimmedAppId });
-        result = await this._authRepository.validateAppId(trimmedAppId);
+        return Result.error(
+          new AuthenticationError('userId is required for authentication')
+        );
       }
 
-      // 3. Проверка результата через Result Pattern
+      // 3. SUPABASE FLOW - проверяем/создаем пользователя в Supabase
+      this._logger.info('[ValidateAppLoginUseCase] Using Supabase flow', { 
+        appId: trimmedAppId, 
+        userId: request.userId 
+      });
+      
+      const result = await this._authRepository.ensureUserExists(trimmedAppId, request.userId);
+
+      // 4. Проверка результата через Result Pattern
       if (result.isFailure()) {
         return Result.error(result.error);
       }

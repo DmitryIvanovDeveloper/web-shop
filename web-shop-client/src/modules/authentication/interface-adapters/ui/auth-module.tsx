@@ -60,7 +60,6 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 	const searchParams = useSearchParams();
 	const authPresenter = container.get<AuthPresenter>(AUTH_TYPES.AuthPresenter);
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
-	const [showPopup, setShowPopup] = useState(false);
   const [popupConfig, setPopupConfig] = useState<AuthPopupConfig | null>(null);
   const [authUIConfig, setAuthUIConfig] = useState<AuthUIConfig | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -105,6 +104,12 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 				console.log('[AuthModule] Auth status changed:', { from: isAuthenticated, to: authStatus });
 				setIsAuthenticated(authStatus);
 				setCurrentUser(user);
+				
+				// Если пользователь авторизовался - закрываем popup
+				if (authStatus === true && popupConfig !== null) {
+					console.log('[AuthModule] User authenticated, closing popup');
+					setPopupConfig(null);
+				}
 			} else {
 				console.log('[AuthModule] Auth status unchanged, no update needed');
 			}
@@ -134,14 +139,21 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 		const handleShowAuthPopup = (event: Event) => {
 			const customEvent = event as CustomEvent;
 			console.log('[AuthModule] showAuthPopup event received:', customEvent.detail);
-			setShowPopup(true);
+			
+			// Показываем popup с конфигом loginPopup
+			if (authUIConfig?.loginPopup) {
+				setPopupConfig({
+					layout: authUIConfig.loginPopup.layout,
+					theme: authUIConfig.loginPopup.theme
+				});
+			}
 		};
 
 		if (typeof window !== 'undefined') {
 			window.addEventListener('showAuthPopup', handleShowAuthPopup);
 			return () => window.removeEventListener('showAuthPopup', handleShowAuthPopup);
 		}
-	}, []);
+	}, [authUIConfig]); // Добавляем зависимость от authUIConfig
 
 	// Инициализация авторизации
 	useEffect(() => {
@@ -209,7 +221,7 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 	};
 
 	const handleAuthPopupClose = () => {
-		setShowPopup(false);
+		setPopupConfig(null); // Закрываем popup
 	};
 
 	const handleAuthSuccess = () => {
@@ -217,7 +229,6 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 		console.log('[AuthModule] Current isAuthenticated state:', isAuthenticated);
 		console.log('[AuthModule] AuthPresenter.isUserAuthenticated():', authPresenter.isUserAuthenticated());
 		
-		setShowPopup(false);
 		setPopupConfig(null); // Закрываем popup
 		
 		// Принудительно проверяем состояние авторизации
@@ -346,20 +357,20 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
         </>
 			)}
 
-			{/* Auth UI Components - popup config */}
-			{renderPopupConfig && popupConfig?.layout && (
-				<DynamicRenderer
-					node={createComponentNode(popupConfig.layout)}
-					theme={createThemeConfig(popupConfig.theme)}
-					actionContext={{
-						onPopupOpen: handlePopupOpen,
-						onPopupClose: handlePopupConfigClose,
-						handleAuthSubmit: handleAuthSubmit,
-						handleAppIdChange: handleAppIdChange,
-						isLoading: isLoading,
-					}}
-				/>
-			)}
+		{/* Auth UI Components - popup config (рендерится всегда когда popupConfig установлен) */}
+		{popupConfig?.layout && (
+			<DynamicRenderer
+				node={createComponentNode(popupConfig.layout)}
+				theme={createThemeConfig(popupConfig.theme)}
+				actionContext={{
+					onPopupOpen: handlePopupOpen,
+					onPopupClose: handlePopupConfigClose,
+					handleAuthSubmit: handleAuthSubmit,
+					handleAppIdChange: handleAppIdChange,
+					isLoading: isLoading,
+				}}
+			/>
+		)}
 		</>
 	);
 }
