@@ -12,8 +12,10 @@ import { SelectProductForPaymentUseCase } from '../../application/use-cases/sele
 import { GetPurchasedProductsUseCase } from '../../application/use-cases/get-purchased-products.use-case';
 import { ProductsListPresenter } from '../../interface-adapters/presenters/products-list.presenter';
 import { ProductsUserAuthenticatedHandler } from '../../interface-adapters/handlers/user-authenticated.handler';
+import { ProductsAppConfigLoadedHandler } from '../../interface-adapters/handlers/app-config-loaded.handler';
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
 import { UserAuthenticatedEvent } from '../../../../shared/events/auth-events';
+import { AppConfigLoadedEvent } from '../../../../shared/events/app-config-events';
 import type { ProductRepositoryPort } from '../../application/ports/product-repository.port';
 import type { ProductStoragePort } from '../../application/ports/product-storage.port';
 import type { PurchaseRepositoryPort } from '../../application/ports/purchase-repository.port';
@@ -55,10 +57,15 @@ export function bindProducts(container: Container): void {
   // Presenters
   container.bind(PRODUCTS_TYPES.ProductsListPresenter).to(ProductsListPresenter).inSingletonScope();
 
-  // Handler (Interface Adapters) - автоматически подхватывается EventBus
+  // Event Handlers (Interface Adapters) - автоматически подхватываются EventBus
   container
     .bind<IAsyncEventHandler<UserAuthenticatedEvent>>(PRODUCTS_TYPES.ProductsUserAuthenticatedHandler)
     .to(ProductsUserAuthenticatedHandler)
+    .inTransientScope();
+
+  container
+    .bind<IAsyncEventHandler<AppConfigLoadedEvent>>(Symbol.for('IAsyncEventHandler<AppConfigLoadedEvent>'))
+    .to(ProductsAppConfigLoadedHandler)
     .inTransientScope();
 }
 

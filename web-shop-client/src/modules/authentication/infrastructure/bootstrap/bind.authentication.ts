@@ -11,14 +11,12 @@ import { AuthUserAuthenticatedHandler } from '../../interface-adapters/handlers/
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
 import { UserAuthenticatedEvent } from '../../../../shared/events/auth-events';
 import { AUTH_TYPES } from './types';
-// Auth UI imports
-import { AuthUIRepositoryPort } from '../../application/ports/auth-ui-repository.port';
-import { AuthUIRepository } from '../repositories/auth-ui.repository';
-import { LoadAuthUIConfigUseCase } from '../../application/use-cases/load-auth-ui-config.use-case';
 // Application Service & Event Handler
 import { AuthService } from '../../application/services/auth.service';
 import { AuthenticationRequiredEventHandler } from '../../interface-adapters/handlers/authentication-required.handler';
 import { AuthenticationRequiredEvent } from '../../../../shared/events/auth-events';
+import { AuthAppConfigLoadedHandler } from '../../interface-adapters/handlers/app-config-loaded.handler';
+import { AppConfigLoadedEvent } from '../../../../shared/events/app-config-events';
 
 export function bindAuthentication(container: Container): void {
   // Repository (Infrastructure)
@@ -44,17 +42,6 @@ export function bindAuthentication(container: Container): void {
     .to(AuthUserAuthenticatedHandler)
     .inTransientScope();
 
-  // Auth UI Repository (Infrastructure)
-  container
-    .bind<AuthUIRepositoryPort>(AUTH_TYPES.AuthUIRepository)
-    .to(AuthUIRepository)
-    .inSingletonScope();
-
-  // Auth UI UseCase (Application)
-  container
-    .bind<LoadAuthUIConfigUseCase>(AUTH_TYPES.LoadAuthUIConfigUseCase)
-    .to(LoadAuthUIConfigUseCase);
-
   // Application Service (экспорт функциональности для других модулей)
   container
     .bind(AUTH_TYPES.AuthService)
@@ -67,5 +54,13 @@ export function bindAuthentication(container: Container): void {
       Symbol.for('IAsyncEventHandler<AuthenticationRequiredEvent>')
     )
     .to(AuthenticationRequiredEventHandler)
+    .inTransientScope();
+
+  // Event Handler для AppConfigLoadedEvent (получение конфига при старте)
+  container
+    .bind<IAsyncEventHandler<AppConfigLoadedEvent>>(
+      Symbol.for('IAsyncEventHandler<AppConfigLoadedEvent>')
+    )
+    .to(AuthAppConfigLoadedHandler)
     .inTransientScope();
 }

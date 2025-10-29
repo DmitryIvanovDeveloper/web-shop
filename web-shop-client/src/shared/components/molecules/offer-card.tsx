@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import type { CSSProperties } from "react";
 import { Badge } from "../atoms/badge";
+import type { OfferCardUIConfig } from "../../config/app-config.types";
 
 // Функция для форматирования countdown как у Pixel Gun (4D 10:36:27)
 function formatCountdown(targetDate: Date): string {
@@ -100,6 +101,9 @@ export function OfferCard({
   // Живой countdown - обновляется каждую секунду
   const [countdown, setCountdown] = useState<string>('');
   
+  // Стили из app-config.json (загружаются через AppConfigLoadedEvent)
+  const [uiStyles, setUiStyles] = useState<OfferCardUIConfig | null>(null);
+
   useEffect(() => {
     if (!timer) return;
     
@@ -112,15 +116,53 @@ export function OfferCard({
     
     return () => clearInterval(interval);
   }, [timer]);
+
+  // Загружаем стили из window после AppConfigLoadedEvent
+  useEffect(() => {
+    const loadStyles = () => {
+      if (typeof window !== 'undefined' && (window as any).__offerCardStyles) {
+        setUiStyles((window as any).__offerCardStyles);
+      }
+    };
+
+    loadStyles();
+
+    // Слушаем событие загрузки конфига
+    const handleConfigLoaded = () => {
+      loadStyles();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('appConfigLoaded', handleConfigLoaded);
+      return () => window.removeEventListener('appConfigLoaded', handleConfigLoaded);
+    }
+  }, []);
+  
+  // Применяем стили из конфига с fallback на хардкод
+  const containerBg = uiStyles?.container.backgroundColor || '#1F2937';
+  const containerRadius = uiStyles?.container.borderRadius || '8px';
+  const imageBg = uiStyles?.image.backgroundColor || '#374151';
+  const titleFontSize = uiStyles?.title.fontSize || 'clamp(10px, 4cqw, 18px)';
+  const titleColor = uiStyles?.title.color || '#FFFFFF';
+  const rarityBg = uiStyles?.rarity.backgroundColor || '#8A2BE2';
+  const rarityColor = uiStyles?.rarity.color || '#FFFFFF';
+  const buyButtonBg = uiStyles?.buyButton.backgroundColor || '#FF6B35';
+  const buyButtonColor = uiStyles?.buyButton.color || '#FFFFFF';
+  const purchasedBg = uiStyles?.purchasedBadge.backgroundColor || '#10B981';
+  const rpColor = uiStyles?.bonuses.rpColor || '#FBBF24';
+  const lpColor = uiStyles?.bonuses.lpColor || '#3B82F6';
   
   return (
     <div
-      className={`relative bg-gray-800 rounded-lg overflow-hidden shadow-lg w-full ${className}`}
+      className={`relative overflow-hidden w-full ${className}`}
       style={{
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
         containerType: 'inline-size',
+        backgroundColor: containerBg,
+        borderRadius: containerRadius,
+        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
         ...style
       }}
       onClick={onClick}
@@ -131,9 +173,10 @@ export function OfferCard({
         <div>
       {/* Main Image Section */}
       <div
-            className="relative w-full bg-gray-700 !flex !items-center !justify-center"
+            className="relative w-full !flex !items-center !justify-center"
         style={{
-              aspectRatio: '1.5 / 1',
+              aspectRatio: uiStyles?.image.aspectRatio || '1.5 / 1',
+              backgroundColor: imageBg,
           backgroundImage: backgroundImage
             ? `url('${backgroundImage}')`
             : undefined,
@@ -207,13 +250,19 @@ export function OfferCard({
           
           {/* Included Items Section */}
       {includedItems && includedItems.length > 0 && (
-            <div className="@container min-h-10 cursor-pointer content-center bg-gray-700 bg-cover bg-center">
+            <div 
+              className="@container min-h-10 cursor-pointer content-center bg-cover bg-center"
+              style={{ backgroundColor: uiStyles?.includedItems.backgroundColor || '#374151' }}
+            >
               <div className="!grid !gap-2 p-2" style={{ gridTemplateColumns: 'repeat(4, 1fr)', justifyItems: 'center', alignSelf: 'center' }}>
             {includedItems.slice(0, 3).map((item, index) => (
               <div key={index} className="relative overflow-hidden w-full">
                 <div
-                  className="relative h-full max-w-full rounded bg-gray-600 bg-cover bg-center aspect-3/2"
-                  style={{ backgroundImage: backgroundImage ? `url('${backgroundImage}')` : undefined }}
+                  className="relative h-full max-w-full rounded bg-cover bg-center aspect-3/2"
+                  style={{ 
+                    backgroundColor: uiStyles?.includedItems.itemBackgroundColor || '#4B5563',
+                    backgroundImage: backgroundImage ? `url('${backgroundImage}')` : undefined 
+                  }}
                 >
                   <img
                     alt={`Item ${index + 1}`}
@@ -252,11 +301,11 @@ export function OfferCard({
             <div className="w-full" style={{ containerType: 'inline-size' }}>
               {title && (
                 <h3 
-                  className="text-white font-bold text-center w-full" 
+                  className="text-center w-full" 
                   style={{ 
-                    fontSize: titleStyle?.fontSize || 'clamp(10px, 4cqw, 18px)', 
-                    fontWeight: titleStyle?.fontWeight || 'bold',
-                    color: titleStyle?.color || 'white',
+                    fontSize: titleStyle?.fontSize || titleFontSize, 
+                    fontWeight: titleStyle?.fontWeight || (uiStyles?.title.fontWeight || 'bold'),
+                    color: titleStyle?.color || titleColor,
                     lineHeight: '1.2'
                   }}
                 >
@@ -272,7 +321,11 @@ export function OfferCard({
           <Badge
             text={rarity ?? ""}
             variant="rarity"
-                style={{ backgroundColor: "#8A2BE2", color: "white", padding: '1cqw 2cqw' }}
+                style={{ 
+                  backgroundColor: rarityBg,
+                  color: rarityColor,
+                  padding: '1cqw 2cqw' 
+                }}
           />
         )}
       </div>
@@ -287,13 +340,13 @@ export function OfferCard({
             <div
               style={{
                 width: '100%',
-                backgroundColor: "#10B981",
-                color: "#FFFFFF",
-                borderRadius: "8px",
-                fontWeight: "bold",
-                fontSize: 'clamp(12px, 4cqw, 18px)',
-                padding: '12px 8px',
-                minHeight: '48px',
+                backgroundColor: purchasedBg,
+                color: uiStyles?.purchasedBadge.color || '#FFFFFF',
+                borderRadius: uiStyles?.buyButton.borderRadius || '8px',
+                fontWeight: uiStyles?.buyButton.fontWeight || 'bold',
+                fontSize: uiStyles?.buyButton.fontSize || 'clamp(12px, 4cqw, 18px)',
+                padding: uiStyles?.buyButton.padding || '12px 8px',
+                minHeight: uiStyles?.buyButton.minHeight || '48px',
                 textAlign: 'center',
                 display: 'flex',
                 alignItems: 'center',
@@ -305,15 +358,15 @@ export function OfferCard({
           ) : (
             buyButton && buyButton.enabled && (
             <button
-                className="w-full text-white font-bold rounded-lg transition-colors hover:opacity-90 !flex items-center justify-center"
+                className="w-full transition-colors hover:opacity-90 !flex items-center justify-center"
               style={{
-                backgroundColor: buyButton.style?.backgroundColor || "#FF6B35",
-                color: buyButton.style?.textColor || "#FFFFFF",
-                borderRadius: buyButton.style?.borderRadius || "8px",
-                fontWeight: buyButton.style?.fontWeight || "bold",
-                  fontSize: buyButton.style?.fontSize || 'clamp(12px, 4cqw, 18px)',
-                  padding: '12px 8px',
-                  minHeight: '48px',
+                backgroundColor: buyButton.style?.backgroundColor || buyButtonBg,
+                color: buyButton.style?.textColor || buyButtonColor,
+                borderRadius: buyButton.style?.borderRadius || (uiStyles?.buyButton.borderRadius || '8px'),
+                fontWeight: buyButton.style?.fontWeight || (uiStyles?.buyButton.fontWeight || 'bold'),
+                  fontSize: buyButton.style?.fontSize || (uiStyles?.buyButton.fontSize || 'clamp(12px, 4cqw, 18px)'),
+                  padding: uiStyles?.buyButton.padding || '12px 8px',
+                  minHeight: uiStyles?.buyButton.minHeight || '48px',
               }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -357,9 +410,18 @@ export function OfferCard({
           
           {/* RP/LP Bonuses - разведены по углам */}
           {(rpBonus || lpBonus) && (
-            <div className="text-gray-400 !flex !justify-between !w-full" style={{ display: 'flex', flexDirection: 'row', fontSize: '12px', justifyContent: 'space-between', width: '100%' }}>
-              <span className="text-yellow-400">{rpBonus ? `+${rpBonus} RP` : ''}</span>
-              <span className="text-blue-400">{lpBonus ? `+${lpBonus} LP` : ''}</span>
+            <div 
+              className="!flex !justify-between !w-full" 
+              style={{ 
+                display: 'flex', 
+                flexDirection: 'row', 
+                fontSize: uiStyles?.bonuses.fontSize || '12px', 
+                justifyContent: 'space-between', 
+                width: '100%' 
+              }}
+            >
+              <span style={{ color: rpColor }}>{rpBonus ? `+${rpBonus} RP` : ''}</span>
+              <span style={{ color: lpColor }}>{lpBonus ? `+${lpBonus} LP` : ''}</span>
             </div>
           )}
           </div>

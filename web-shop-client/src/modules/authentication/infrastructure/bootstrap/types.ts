@@ -7,9 +7,6 @@ export const AUTH_TYPES = {
   ValidateAppLoginUseCase: Symbol.for('ValidateAppLoginUseCase'),
   AuthPresenter: Symbol.for('AuthPresenter'),
   UserAuthenticatedHandler: Symbol.for('IAsyncEventHandler<UserAuthenticatedEvent>'),
-  // Auth UI Types
-  AuthUIRepository: Symbol.for('AuthUIRepository'),
-  LoadAuthUIConfigUseCase: Symbol.for('LoadAuthUIConfigUseCase'),
   // Application Service (для экспорта функциональности модуля)
   AuthService: Symbol.for('AuthService'),
   // Event Handler для AuthenticationRequiredEvent

@@ -26,6 +26,9 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     return null;
   }
   
+  console.log('[DynamicRenderer] UI_RENDERER_TYPES:', UI_RENDERER_TYPES);
+  console.log('[DynamicRenderer] ComponentRegistry symbol:', UI_RENDERER_TYPES.ComponentRegistry);
+  
   const registry = container.get<ComponentRegistry>(UI_RENDERER_TYPES.ComponentRegistry);
   const styleBuilder = container.get<StyleBuilder>(UI_RENDERER_TYPES.StyleBuilder);
   const actionHandler = container.get<ActionHandler>(UI_RENDERER_TYPES.ActionHandler);

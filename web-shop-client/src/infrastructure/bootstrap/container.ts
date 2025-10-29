@@ -47,5 +47,30 @@ bindOffers(container);
 // Register Products module
 bindProducts(container);
 
+// Register UI Renderer Service (universal infrastructure service)
+import { UIRendererService } from '../services/ui-renderer/ui-renderer.service';
+import { UIComponentRegistry } from '../services/ui-renderer/component-registry.service';
+import { UIStyleBuilder } from '../services/ui-renderer/style-builder.service';
+import { UIActionHandler } from '../services/ui-renderer/action-handler.service';
+import type { UIRendererPort } from '../../application/ports/ui-renderer.port';
+import { LoadAppConfigUseCase } from '../../application/use-cases/load-app-config.use-case';
+import { ApplyBackgroundOnConfigHandler } from '../handlers/apply-background-on-config.handler';
+import { IAsyncEventHandler } from '../events/events-handler.plugin';
+import { AppConfigLoadedEvent } from '../../shared/events/app-config-events';
+
+// Universal UI Renderer Service and its dependencies
+container.bind(TYPES.UIComponentRegistry).to(UIComponentRegistry).inSingletonScope();
+container.bind(TYPES.UIStyleBuilder).to(UIStyleBuilder).inSingletonScope();
+container.bind(TYPES.UIActionHandler).to(UIActionHandler).inSingletonScope();
+container.bind<UIRendererPort>(TYPES.UIRenderer).to(UIRendererService).inSingletonScope();
+
+// App Config
+container.bind(TYPES.LoadAppConfig).to(LoadAppConfigUseCase).inSingletonScope();
+
+// Global background applier on AppConfig load
+container
+  .bind<IAsyncEventHandler<AppConfigLoadedEvent>>(Symbol.for('IAsyncEventHandler<AppConfigLoadedEvent>'))
+  .to(ApplyBackgroundOnConfigHandler)
+  .inTransientScope();
 
 export { container };

@@ -1,0 +1,344 @@
+{
+  "version": "1.0",
+  "environment": "production",
+  "theme": {
+    "colors": {
+      "primary": "#3B5AFE",
+      "secondary": "#FBBF24",
+      "accent": "#FF6B35",
+      "background": "#0D1117",
+      "surface": "#161B22",
+      "text": "#FFFFFF",
+      "textSecondary": "#A0A0A0",
+      "success": "#10B981",
+      "error": "#EF4444",
+      "warning": "#FFA500",
+      "border": "#374151"
+    },
+    "spacing": [0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80],
+    "borderRadius": {
+      "small": 4,
+      "medium": 8,
+      "large": 12,
+      "full": 9999
+    },
+    "typography": {
+      "fontFamily": "system-ui, -apple-system, sans-serif",
+      "fontSize": {
+        "xs": "12px",
+        "sm": "14px",
+        "base": "16px",
+        "lg": "18px",
+        "xl": "20px",
+        "2xl": "24px",
+        "3xl": "30px",
+        "4xl": "36px"
+      },
+      "fontWeight": {
+        "normal": 400,
+        "medium": 500,
+        "semibold": 600,
+        "bold": 700,
+        "extrabold": 800
+      }
+    }
+  },
+  "background": {
+    "backgroundImage": "url('/background.jpg')",
+    "backgroundSize": "cover",
+    "backgroundPosition": "center",
+    "backgroundRepeat": "no-repeat"
+  },
+  "shared": {
+    "offerCardUI": {
+      "container": {
+        "backgroundColor": "#1F2937",
+        "borderRadius": "8px",
+        "shadow": "lg"
+      },
+      "image": {
+        "backgroundColor": "#374151",
+        "aspectRatio": "1.5 / 1"
+      },
+      "includedItems": {
+        "backgroundColor": "#374151",
+        "itemBackgroundColor": "#4B5563"
+      },
+      "title": {
+        "fontSize": "clamp(10px, 4cqw, 18px)",
+        "fontWeight": "bold",
+        "color": "#FFFFFF"
+      },
+      "rarity": {
+        "backgroundColor": "#8A2BE2",
+        "color": "#FFFFFF"
+      },
+      "buyButton": {
+        "backgroundColor": "#FF6B35",
+        "color": "#FFFFFF",
+        "borderRadius": "8px",
+        "fontSize": "clamp(12px, 4cqw, 18px)",
+        "fontWeight": "bold",
+        "padding": "12px 8px",
+        "minHeight": "48px"
+      },
+      "purchasedBadge": {
+        "backgroundColor": "#10B981",
+        "color": "#FFFFFF"
+      },
+      "bonuses": {
+        "rpColor": "#FBBF24",
+        "lpColor": "#3B82F6",
+        "fontSize": "12px"
+      }
+    },
+    "productCardUI": {
+      "container": {
+        "backgroundColor": "#1F2937",
+        "borderRadius": "8px",
+        "shadow": "lg"
+      },
+      "image": {
+        "backgroundColor": "#374151",
+        "aspectRatio": "1 / 1"
+      },
+      "title": {
+        "fontSize": "clamp(10px, 4cqw, 18px)",
+        "fontWeight": "bold",
+        "color": "#FFFFFF"
+      },
+      "buyButton": {
+        "backgroundColor": "#FF6B35",
+        "color": "#FFFFFF",
+        "borderRadius": "8px",
+        "fontSize": "clamp(12px, 4cqw, 18px)",
+        "fontWeight": "bold",
+        "padding": "12px 8px",
+        "minHeight": "48px"
+      },
+      "purchasedBadge": {
+        "backgroundColor": "#10B981",
+        "color": "#FFFFFF"
+      }
+    }
+  },
+  "modules": {
+    "authentication": {
+      "labels": {
+        "loginButton": "Login",
+        "logoutButton": "Logout",
+        "appIdPlaceholder": "Enter App ID",
+        "userIdPlaceholder": "Enter User ID",
+        "submitButton": "Submit",
+        "welcomeTitle": "PG3D HUB",
+        "welcomeMessage": "Welcome to",
+        "welcomeSubtitle": "WebShop Game: Online Hub",
+        "enterAppId": "Enter your App ID to continue",
+        "enterUserId": "Enter your User ID",
+        "successMessage": "Login Successful!",
+        "loadingMessage": "Validating credentials...",
+        "errorMessage": "Authentication Failed",
+        "helpQuestion": "Where do I find my App ID?",
+        "helpAnswer": "App ID is provided by WebShop Game app. Try: game-123 or app-456",
+        "agreementText": "I am 13 years of age or older and agree to the",
+        "privacyPolicy": "Privacy Policy",
+        "termsOfService": "Terms of Service",
+        "refundPolicy": "Refund Policy"
+      },
+      "settings": {
+        "closeDelay": 1500,
+        "showHelpSection": true,
+        "showAgreement": true,
+        "rememberUser": true
+      },
+      "loginButtonUI": {
+        "icon": "",
+        "styles": {
+          "backgroundColor": "#FBBF24",
+          "color": "#000000",
+          "fontWeight": "bold",
+          "fontSize": "16px",
+          "height": "48px",
+          "borderRadius": "8px",
+          "padding": "12px 16px",
+          "width": "100%",
+          "border": "none",
+          "cursor": "pointer",
+          "transition": "all 0.2s ease"
+        },
+        "hoverStyles": {
+          "backgroundColor": "#F59E0B",
+          "transform": "scale(1.05)"
+        }
+      }
+    },
+    "products": {
+      "labels": {
+        "title": "Products",
+        "buyButton": "Buy Now",
+        "purchasedBadge": "PURCHASED",
+        "emptyState": "No products available",
+        "loadingState": "Loading products..."
+      },
+      "settings": {
+        "gridColumns": 4,
+        "gridGap": 16,
+        "enableFilters": false
+      }
+    },
+    "offers": {
+      "labels": {
+        "title": "Special Offers",
+        "featuredTitle": "Featured Deals",
+        "emptyState": "No offers available",
+        "expiredBadge": "EXPIRED"
+      },
+      "settings": {
+        "featuredThreshold": 2,
+        "gridColumns": 3,
+        "gridGap": 16
+      }
+    },
+    "uiRenderer": {
+      "sidebar": {
+        "version": "1.0",
+        "theme": {
+          "colors": {
+            "primary": "#3B5AFE",
+            "background": "#0D1117",
+            "surface": "#161B22",
+            "text": "#FFFFFF"
+          },
+          "spacing": [0, 0.5, 1, 1.5, 2, 3, 4]
+        },
+        "layout": {
+          "id": "sidebar-container",
+          "type": "Container",
+          "props": {
+            "vertical": true,
+            "sidebar": true
+          },
+          "styles": {
+            "padding": 8,
+            "backgroundColor": "surface",
+            "minHeight": "100vh",
+            "width": "100%"
+          },
+          "children": [
+            {
+              "id": "store-button",
+              "type": "Button",
+              "props": {
+                "text": "Store",
+                "icon": "🛒",
+                "fullWidth": true
+              },
+              "styles": {
+                "padding": 4,
+                "backgroundColor": "primary",
+                "textColor": "text",
+                "justifyContent": "flex-start"
+              }
+            }
+          ]
+        }
+      },
+      "rightSidebar": {
+        "version": "1.0",
+        "theme": {
+          "colors": {
+            "primary": "#3B5AFE",
+            "background": "#0D1117",
+            "surface": "#161B22",
+            "text": "#FFFFFF",
+            "textSecondary": "#A0A0A0"
+          },
+          "spacing": [0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80]
+        },
+        "layout": {
+          "type": "Container",
+          "id": "right-sidebar",
+          "props": {
+            "vertical": true
+          },
+          "styles": {
+            "width": "100%",
+            "height": "100%"
+          },
+          "children": []
+        }
+      },
+      "store": {
+        "version": "1.0",
+        "theme": {
+          "colors": {
+            "primary": "#3B5AFE",
+            "background": "#0D1117",
+            "surface": "#161B22",
+            "text": "#FFFFFF",
+            "textSecondary": "#A0A0A0"
+          },
+          "spacing": [0, 4, 8, 12, 14, 16, 20, 24, 32, 40, 48, 64, 80]
+        },
+        "layout": {
+          "type": "Container",
+          "id": "store",
+          "props": {
+            "vertical": true
+          },
+          "styles": {
+            "padding": 4,
+            "width": "100%",
+            "minHeight": "100vh"
+          },
+          "children": [
+            {
+              "type": "Text",
+              "id": "page-title",
+              "props": {
+                "text": ""
+              },
+              "styles": {
+                "textColor": "text",
+                "fontSize": "4xl",
+                "fontWeight": "bold",
+                "marginBottom": 8,
+                "textAlign": "center"
+              }
+            },
+            {
+              "type": "OffersList",
+              "id": "evaluated-offers",
+              "props": {},
+              "styles": {
+                "className": "mb-6"
+              }
+            },
+            {
+              "type": "ProductsList",
+              "id": "products-list",
+              "props": {},
+              "styles": {
+                "className": ""
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "constants": {
+    "api": {
+      "timeout": 10000,
+      "retryAttempts": 3
+    },
+    "ui": {
+      "animationDuration": 300,
+      "toastDuration": 3000,
+      "mobileBreakpoint": 1024
+    }
+  }
+}
+
+
+

@@ -32,12 +32,17 @@ export interface LoggingConfig {
 }
 // Inversify TYPES symbols
 export const TYPES = {
-  Logger: Symbol.for('Logger'),
-  HttpClient: Symbol.for('HttpClient'),
-  EventBus: Symbol.for('EventBus'),
-  RealtimeClient: Symbol.for('RealtimeClient'),
-  Browser: Symbol.for('Browser'),
-  DatabaseClient: Symbol.for('DatabaseClient')
+	Logger: Symbol.for('Logger'),
+	HttpClient: Symbol.for('HttpClient'),
+	EventBus: Symbol.for('EventBus'),
+	RealtimeClient: Symbol.for('RealtimeClient'),
+	Browser: Symbol.for('Browser'),
+	DatabaseClient: Symbol.for('DatabaseClient'),
+	UIRenderer: Symbol.for('UIRenderer'),
+	UIComponentRegistry: Symbol.for('UIComponentRegistry'),
+	UIStyleBuilder: Symbol.for('UIStyleBuilder'),
+	UIActionHandler: Symbol.for('UIActionHandler'),
+	LoadAppConfig: Symbol.for('LoadAppConfig')
 } as const;
 
 // Export as ROOT_TYPES for consistency with documentation

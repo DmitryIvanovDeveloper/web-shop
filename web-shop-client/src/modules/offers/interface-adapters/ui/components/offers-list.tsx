@@ -65,51 +65,28 @@ export function OffersList({
           conditionMet = purchasesLength === threshold;
         }
 
-        console.log('[OffersList] Condition met:', conditionMet);
-
         if (conditionMet) {
           // Условие выполнено, загружаем offers
           const offerIds = rules.nextOperation?.action?.params?.offerId;
           if (offerIds) {
-            console.log('[OffersList] Loading offers:', offerIds);
 
             // Если offerId - массив, загружаем все offers
             if (Array.isArray(offerIds)) {
               const offersPromises = offerIds.map(async (offerId) => {
-                console.log('[OffersList] Loading offer:', offerId);
                 const offerResponse = await fetch(`/api/products/offers/${offerId}`);
                 const offer = await offerResponse.json();
-                console.log('[OffersList] Offer loaded:', offer);
-                console.log('[OffersList] Offer id from API:', offer.id);
-                console.log('[OffersList] Offer keys:', Object.keys(offer));
                 return offer;
               });
 
               const loadedOffers = await Promise.all(offersPromises);
               console.log('[OffersList] All offers loaded:', loadedOffers);
               setOffers(loadedOffers);
-
-              // Показываем попап при первой загрузке если есть offers
-              if (showPopupOnFirstLoad && isFirstLoadRef.current && loadedOffers.length > 0) {
-                console.log('[OffersList] Opening popup for first load');
-                setIsPopupOpen(true);
-                isFirstLoadRef.current = false;
-              }
             } else {
               // Если offerId - строка (для обратной совместимости)
-              console.log('[OffersList] Loading single offer:', offerIds);
               const offerResponse = await fetch(`/api/products/offers/${offerIds}`);
               const offer = await offerResponse.json();
-              console.log('[OffersList] Offer loaded:', offer);
               const loadedOffers = [offer];
               setOffers(loadedOffers);
-
-              // Показываем попап при первой загрузке если есть offers
-              if (showPopupOnFirstLoad && isFirstLoadRef.current && loadedOffers.length > 0) {
-                console.log('[OffersList] Opening popup for first load');
-                setIsPopupOpen(true);
-                isFirstLoadRef.current = false;
-              }
             }
           }
         }
@@ -124,6 +101,15 @@ export function OffersList({
 
     loadOffers();
   }, [showPopupOnFirstLoad]);
+
+  // Открываем popup только после полной загрузки данных
+  useEffect(() => {
+    if (!loading && offers.length > 0 && showPopupOnFirstLoad && isFirstLoadRef.current) {
+      console.log('[OffersList] Data fully loaded, opening popup');
+      setIsPopupOpen(true);
+      isFirstLoadRef.current = false;
+    }
+  }, [loading, offers, showPopupOnFirstLoad]);
 
   if (loading) {
     console.log('[OffersList] Rendering loading state with skeletons');

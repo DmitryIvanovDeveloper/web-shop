@@ -1,35 +1,152 @@
-import { injectable, inject } from 'inversify';
-import type { LoadPageConfigUseCase } from '../../application/use-cases/load-page-config.use-case';
-import type { SidebarViewModel } from '../view-models/sidebar.view-model';
-import { UI_RENDERER_TYPES } from '../../infrastructure/bootstrap/types';
+import { injectable } from 'inversify';
+import type { UIRendererModuleConfig } from '../../../../shared/config/app-config.types';
+import { PageConfig } from '../../domain/value-objects/page-config.value-object';
+import { ThemeConfig } from '../../domain/value-objects/theme-config.value-object';
+import { ComponentNode } from '../../domain/value-objects/component-node.value-object';
+import { Result } from '../../../../shared/domain/result/result';
+import { UIRendererError } from '../../domain/errors/ui-renderer.error';
 
 @injectable()
 export class SidebarRendererPresenter {
-  constructor(
-    @inject(UI_RENDERER_TYPES.LoadPageConfigUseCase)
-    private readonly _loadConfigUseCase: LoadPageConfigUseCase
-  ) {}
+  private _configs: UIRendererModuleConfig | null = null;
+  private _listeners: Array<() => void> = [];
 
   public readonly labels = {
     loading: 'Loading...',
     error: 'Failed to load configuration',
+    notReady: 'Configuration not loaded yet',
     store: 'Store',
   } as const;
 
-  public async loadSidebar(): Promise<SidebarViewModel> {
-    const result = await this._loadConfigUseCase.execute({
-      pageType: 'sidebar',
+  /**
+   * Устанавливает конфигурации из AppConfig (вызывается через EventHandler)
+   */
+  public setConfigs(configs: UIRendererModuleConfig): void {
+    this._configs = configs;
+    // Оповещаем всех подписчиков о готовности конфига
+    this._listeners.forEach(listener => listener());
+  }
+
+  /**
+   * Подписка на изменения конфигурации
+   */
+  public subscribe(listener: () => void): () => void {
+    this._listeners.push(listener);
+    
+    // Если конфиг уже загружен, сразу вызываем listener
+    if (this._configs !== null) {
+      listener();
+    }
+    
+    // Возвращаем функцию для отписки
+    return () => {
+      this._listeners = this._listeners.filter(l => l !== listener);
+    };
+  }
+
+  /**
+   * Возвращает конфигурацию для Sidebar
+   */
+  public getSidebar(): PageConfig | null {
+    if (!this._configs) {
+      return null;
+    }
+    return this._convertToPageConfig(this._configs.sidebar, 'sidebar');
+  }
+
+  /**
+   * Возвращает конфигурацию для Right Sidebar
+   */
+  public getRightSidebar(): PageConfig | null {
+    if (!this._configs) {
+      return null;
+    }
+    return this._convertToPageConfig(this._configs.rightSidebar, 'right-sidebar');
+  }
+
+  /**
+   * Возвращает конфигурацию для Store (main content)
+   */
+  public getStore(): PageConfig | null {
+    if (!this._configs) {
+      return null;
+    }
+    return this._convertToPageConfig(this._configs.store, 'store');
+  }
+
+  /**
+   * Проверяет, загружены ли конфигурации
+   */
+  public isReady(): boolean {
+    return this._configs !== null;
+  }
+
+  /**
+   * Преобразует UILayoutConfig в PageConfig (Value Object)
+   */
+  private _convertToPageConfig(layoutConfig: any, type: string): PageConfig | null {
+    try {
+      const themeResult = ThemeConfig.create({
+        colors: layoutConfig.theme.colors,
+        spacing: layoutConfig.theme.spacing,
+      });
+
+      if (!themeResult.isSuccess()) {
+        console.error('[SidebarRendererPresenter] Failed to create ThemeConfig:', themeResult.error);
+        return null;
+      }
+
+      const componentNodeResult = this._convertToComponentNode(layoutConfig.layout);
+      if (!componentNodeResult.isSuccess()) {
+        console.error('[SidebarRendererPresenter] Failed to create ComponentNode:', componentNodeResult.error);
+        return null;
+      }
+
+      const pageConfigResult = PageConfig.create({
+        type,
+        version: layoutConfig.version,
+        theme: themeResult.data,
+        layout: componentNodeResult.data,
+      });
+
+      if (!pageConfigResult.isSuccess()) {
+        console.error('[SidebarRendererPresenter] Failed to create PageConfig:', pageConfigResult.error);
+        return null;
+      }
+
+      return pageConfigResult.data;
+    } catch (error) {
+      console.error('[SidebarRendererPresenter] Error converting config:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Рекурсивно преобразует ComponentNodeData в ComponentNode Value Object
+   */
+  private _convertToComponentNode(nodeData: any): Result<ComponentNode, UIRendererError> {
+    const children: ComponentNode[] = [];
+
+    if (Array.isArray(nodeData.children)) {
+      for (const childData of nodeData.children) {
+        const childResult = this._convertToComponentNode(childData);
+        if (childResult.isFailure()) {
+          return Result.error(childResult.error);
+        }
+        if (childResult.isSuccess()) {
+          children.push(childResult.data);
+        }
+      }
+    }
+
+    return ComponentNode.create({
+      id: nodeData.id,
+      type: nodeData.type,
+      props: nodeData.props || {},
+      styles: nodeData.styles || {},
+      children,
+      actions: nodeData.actions,
     });
-
-    if (result.isFailure()) {
-      return { status: 'error', error: result.error.message };
-    }
-
-    if (result.isSuccess()) {
-      return { status: 'success', config: result.data };
-    }
-
-    return { status: 'error', error: 'Unknown error' };
   }
 }
 

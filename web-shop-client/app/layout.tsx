@@ -8,22 +8,18 @@ import { useState, useEffect } from 'react';
 import { UI_RENDERER_TYPES } from '../src/modules/ui-renderer/infrastructure/bootstrap/types';
 import { SidebarRendererPresenter } from '../src/modules/ui-renderer/interface-adapters/presenters/sidebar-renderer.presenter';
 import { SidebarRenderer } from '../src/modules/ui-renderer/interface-adapters/ui/components/sidebar-renderer';
-import { DynamicRenderer } from '../src/modules/ui-renderer/interface-adapters/ui/components/dynamic-renderer';
-import { LoadPageConfigUseCase } from '../src/modules/ui-renderer/application/use-cases/load-page-config.use-case';
 import type { ActionContext } from '../src/modules/ui-renderer/domain/types';
+import { LoadAppConfigUseCase } from '../src/application/use-cases/load-app-config.use-case';
+import { TYPES } from '../src/infrastructure/bootstrap/types';
 
 export default function RootLayout({ children }: { children: React.ReactNode}) {
   const [isLeftDrawerOpen, setIsLeftDrawerOpen] = useState(false);
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [rightSidebarConfig, setRightSidebarConfig] = useState<any>(null);
+  const [isConfigLoading, setIsConfigLoading] = useState(true);
 
   const sidebarPresenter = container.get<SidebarRendererPresenter>(
     UI_RENDERER_TYPES.SidebarRendererPresenter
-  );
-
-  const loadConfigUseCase = container.get<LoadPageConfigUseCase>(
-    UI_RENDERER_TYPES.LoadPageConfigUseCase
   );
 
   const actionContext: ActionContext = {
@@ -31,20 +27,22 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     onPopupClose: () => {},
   };
 
+  // Load app-config.json при старте приложения (один раз)
   useEffect(() => {
-    const loadConfigs = async () => {
+    const loadAppConfig = async () => {
       try {
-        const rightResult = await loadConfigUseCase.execute({ pageType: 'right-sidebar' });
-        if (rightResult.isSuccess()) {
-          setRightSidebarConfig(rightResult.data);
-        } else {
-          console.error('Failed to load right sidebar config:', rightResult.error);
-        }
+        setIsConfigLoading(true);
+        const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
+        await loadAppConfigUseCase.execute();
+        console.log('[RootLayout] App config loaded and distributed via EventBus');
+        // Даём время на обработку события и рендер компонентов
+        setTimeout(() => setIsConfigLoading(false), 300);
       } catch (err) {
-        console.error('Failed to load right sidebar config:', err);
+        console.error('[RootLayout] Failed to load app config:', err);
+        setIsConfigLoading(false);
       }
     };
-    loadConfigs();
+    loadAppConfig();
   }, []);
 
   useEffect(() => {
@@ -60,8 +58,57 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         <title>Web Shop</title>
         <meta name="description" content="Web Shop Application" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
       </head>
       <body className="m-0 p-0 overflow-hidden">
+        {/* Global Loader - показывается пока загружается app-config.json */}
+        {isConfigLoading && (
+          <div 
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: '#0D1117',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999
+            }}
+          >
+            {/* Spinner */}
+            <div 
+              style={{
+                width: '64px',
+                height: '64px',
+                border: '4px solid rgba(251, 191, 36, 0.2)',
+                borderTop: '4px solid #FBBF24',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+              }}
+            />
+            {/* Loading Text */}
+            <p 
+              style={{
+                marginTop: '24px',
+                color: '#FFFFFF',
+                fontSize: '18px',
+                fontWeight: 'bold',
+                textAlign: 'center'
+              }}
+            >
+              Loading...
+            </p>
+          </div>
+        )}
+
         {/* AuthModule - управляет авторизацией и рендерит popup */}
         <AuthModule renderSidebarButton={false} renderPopupConfig={true} />
 
@@ -108,16 +155,14 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
               <aside className="w-64 border-l border-yellow-400/30 flex-shrink-0" style={{ backgroundColor: 'rgba(0, 0, 0, 0.1)', backdropFilter: 'blur(2px)', borderLeft: '0.5px solid rgba(156, 163, 175, 0.5)' }}>
                 <div className="p-4">
                   <div className="mb-4">
-                    <AuthModule renderSidebarButton={true} renderPopupConfig={false} />
+                    <AuthModule renderSidebarButton={true} renderPopupConfig={true} />
                   </div>
                   
-                  {rightSidebarConfig && rightSidebarConfig.layout?.children?.length > 0 && (
-                    <DynamicRenderer 
-                      node={rightSidebarConfig.layout} 
-                      theme={rightSidebarConfig.theme}
-                      actionContext={actionContext}
-                    />
-                  )}
+                  <SidebarRenderer 
+                    presenter={sidebarPresenter} 
+                    layoutType="rightSidebar"
+                    actionContext={actionContext}
+                  />
                 </div>
               </aside>
             )}
@@ -150,16 +195,14 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
             <div className="fixed right-0 top-0 bottom-0 shadow-2xl animate-slide-in-right overflow-y-auto border-l border-yellow-400/30" style={{ zIndex: 9999, backgroundColor: '#1f2937', borderLeft: '0.5px solid rgba(156, 163, 175, 0.5)', width: '85%' }}>
               <div className="p-4">
                 <div className="mb-4">
-                  <AuthModule renderSidebarButton={true} renderPopupConfig={false} />
+                  <AuthModule renderSidebarButton={true} renderPopupConfig={true} />
                 </div>
                 
-                {rightSidebarConfig && rightSidebarConfig.layout?.children?.length > 0 && (
-                  <DynamicRenderer 
-                    node={rightSidebarConfig.layout} 
-                    theme={rightSidebarConfig.theme}
-                    actionContext={actionContext}
-                  />
-                )}
+                <SidebarRenderer 
+                  presenter={sidebarPresenter} 
+                  layoutType="rightSidebar"
+                  actionContext={actionContext}
+                />
               </div>
             </div>
           </>

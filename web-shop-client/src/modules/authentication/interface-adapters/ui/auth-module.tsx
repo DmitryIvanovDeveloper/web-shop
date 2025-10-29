@@ -5,11 +5,10 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
+import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import { AuthPresenter } from '../presenters/auth.presenter';
-import { DynamicRenderer } from '../../../ui-renderer/interface-adapters/ui/components/dynamic-renderer';
-import type { AuthUIConfig, AuthPopupConfig, AppUser } from '../../domain/types';
-import { ComponentNode } from '../../../ui-renderer/domain/value-objects/component-node.value-object';
-import type { ThemeConfig } from '../../../ui-renderer/domain/value-objects/theme-config.value-object';
+import type { AppUser } from '../../domain/types';
+import type { UIRendererPort } from '../../../../application/ports/ui-renderer.port';
 
 interface AuthModuleProps {
 	children?: React.ReactNode;
@@ -17,101 +16,39 @@ interface AuthModuleProps {
 	renderPopupConfig?: boolean;
 }
 
-// Функция для создания ComponentNode из JSON
-const createComponentNode = (layout: any): ComponentNode => {
-  const result = ComponentNode.create({
-    id: layout.id,
-    type: layout.type,
-    props: layout.props || {},
-    styles: layout.styles || {},
-    children: layout.children || [],
-    actions: layout.actions
-  });
-  
-  if (result.isSuccess()) {
-    return result.data;
-  }
-  
-  // Fallback - создаем минимальный ComponentNode
-  const fallbackResult = ComponentNode.create({
-    id: layout.id || 'fallback',
-    type: layout.type || 'Button',
-    props: {},
-    styles: {},
-    children: []
-  });
-  
-  if (fallbackResult.isSuccess()) {
-    return fallbackResult.data;
-  }
-  
-  // Если и fallback не работает, выбрасываем ошибку
-  throw new Error('Failed to create ComponentNode');
-};
-
-// Функция для создания ThemeConfig из JSON
-const createThemeConfig = (theme: any): ThemeConfig => ({
-  colors: theme.colors || {},
-  spacing: theme.spacing || [],
-  equals: () => true
-});
+type PopupState = 'idle' | 'loading' | 'success' | 'error';
 
 function AuthModuleContent({ children, renderSidebarButton = false, renderPopupConfig = false }: AuthModuleProps) {
 	const searchParams = useSearchParams();
 	const authPresenter = container.get<AuthPresenter>(AUTH_TYPES.AuthPresenter);
+	const uiRenderer = container.get<UIRendererPort>(ROOT_TYPES.UIRenderer);
+	
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [popupConfig, setPopupConfig] = useState<AuthPopupConfig | null>(null);
-  const [authUIConfig, setAuthUIConfig] = useState<AuthUIConfig | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
+	const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
+	const [showPopup, setShowPopup] = useState(false);
+	const [popupState, setPopupState] = useState<PopupState>('idle');
+	const [appIdValue, setAppIdValue] = useState('');
+	const [userIdValue, setUserIdValue] = useState('');
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+	const [isConfigReady, setIsConfigReady] = useState(false);
 
-	// Загружаем UI конфигурацию один раз при монтировании
-	useEffect(() => {
-		const loadUIConfig = async () => {
-			try {
-				console.log('[AuthModule] Loading UI config...');
-				const result = await authPresenter.loadAuthUI();
-                if (result.status === 'success') {
-                  setAuthUIConfig(result.config);
-                  console.log('[AuthModule] UI config loaded successfully:', result.config);
-                  console.log('[AuthModule] loginButton:', result.config?.loginButton);
-                  console.log('[AuthModule] loginButton layout:', result.config?.loginButton?.layout);
-                  console.log('[AuthModule] loginButton theme:', result.config?.loginButton?.theme);
-                } else if (result.status === 'error') {
-                  console.error('[AuthModule] Failed to load UI config:', result.error);
-                }
-			} catch (error) {
-				console.error('[AuthModule] Error loading UI config:', error);
-			}
-		};
-
-		loadUIConfig();
-	}, []); // Убираем authPresenter из зависимостей
-
-	// Подписываемся на изменения состояния авторизации через EventBus
+	// Проверяем состояние авторизации
 	useEffect(() => {
 		const checkAuth = () => {
 			const authStatus = authPresenter.isUserAuthenticated();
 			const user = authPresenter.getCurrentUser();
-			console.log('[AuthModule] checkAuth called:', { 
-				currentIsAuthenticated: isAuthenticated, 
-				newAuthStatus: authStatus,
-				shouldUpdate: authStatus !== isAuthenticated,
-				currentUser: user,
-				timestamp: new Date().toISOString()
-			});
+			
 			if (authStatus !== isAuthenticated) {
 				console.log('[AuthModule] Auth status changed:', { from: isAuthenticated, to: authStatus });
 				setIsAuthenticated(authStatus);
 				setCurrentUser(user);
 				
 				// Если пользователь авторизовался - закрываем popup
-				if (authStatus === true && popupConfig !== null) {
+				if (authStatus === true && showPopup) {
 					console.log('[AuthModule] User authenticated, closing popup');
-					setPopupConfig(null);
+					setShowPopup(false);
+					setPopupState('idle');
 				}
-			} else {
-				console.log('[AuthModule] Auth status unchanged, no update needed');
 			}
 		};
 
@@ -119,67 +56,68 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 		checkAuth();
 
 		// Подписываемся на события авторизации
-		const eventListener = (event: Event) => {
-			const customEvent = event as CustomEvent;
-			console.log('[AuthModule] authStateChanged event received:', customEvent.detail);
-			console.log('[AuthModule] Event timestamp:', new Date().toISOString());
+		const eventListener = () => {
+			console.log('[AuthModule] authStateChanged event received');
 			checkAuth();
 		};
 		
-		// Добавляем слушатель для событий авторизации
 		window.addEventListener('authStateChanged', eventListener);
 
 		return () => {
 			window.removeEventListener('authStateChanged', eventListener);
 		};
-	}, []); // Убираем зависимости, чтобы избежать цикла
+	}, [isAuthenticated, showPopup, authPresenter]);
 
 	// Подписка на событие showAuthPopup (для показа popup при попытке покупки)
-	// ТОЛЬКО если renderPopupConfig={true}
 	useEffect(() => {
-		// Подписываемся ТОЛЬКО если этот AuthModule должен рендерить popup
 		if (!renderPopupConfig) {
 			return;
 		}
 
-		const handleShowAuthPopup = (event: Event) => {
-			const customEvent = event as CustomEvent;
-			console.log('[AuthModule] showAuthPopup event received:', customEvent.detail);
-			
-			// Показываем popup с конфигом loginPopup
-			if (authUIConfig?.loginPopup) {
-				setPopupConfig({
-					layout: authUIConfig.loginPopup.layout,
-					theme: authUIConfig.loginPopup.theme
-				});
-			}
+		const handleShowAuthPopup = () => {
+			console.log('[AuthModule] showAuthPopup event received');
+			setShowPopup(true);
+			setPopupState('idle');
 		};
 
 		if (typeof window !== 'undefined') {
 			window.addEventListener('showAuthPopup', handleShowAuthPopup);
 			return () => window.removeEventListener('showAuthPopup', handleShowAuthPopup);
 		}
-	}, [authUIConfig, renderPopupConfig]); // Добавляем renderPopupConfig в зависимости
+	}, [renderPopupConfig]);
 
-	// Инициализация авторизации
+	// Проверка готовности конфига для рендера Login button
+	useEffect(() => {
+		// Проверяем сразу при монтировании
+		const ready = authPresenter.isConfigReady();
+		if (ready !== isConfigReady) {
+			console.log('[AuthModule] Config ready state changed:', ready);
+			setIsConfigReady(ready);
+		}
+
+		// Подписываемся на событие загрузки конфига (если нужно)
+		const handleConfigLoaded = () => {
+			console.log('[AuthModule] AppConfig loaded event detected');
+			setIsConfigReady(true);
+		};
+
+		if (typeof window !== 'undefined') {
+			window.addEventListener('appConfigLoaded', handleConfigLoaded);
+			return () => window.removeEventListener('appConfigLoaded', handleConfigLoaded);
+		}
+	}, [authPresenter, isConfigReady]);
+
+	// Инициализация авторизации из query params или localStorage
 	useEffect(() => {
 		if (isAuthenticated) {
 			console.log('[AuthModule] Already authenticated, skipping initialization');
 			return;
 		}
 
-		// Приоритет: 1) Query параметр, 2) localStorage, 3) Environment variable
 		const appId = getAppIdFromQuery() || getAppIdFromStorage() || getAppIdFromEnv();
-		const userId = getUserIdFromQuery() || getUserIdFromStorage(); // Приоритет: query -> localStorage
+		const userId = getUserIdFromQuery() || getUserIdFromStorage();
 		
-		console.log('[AuthModule] Found appId:', appId, {
-			fromQuery: getAppIdFromQuery(),
-			fromStorage: getAppIdFromStorage(),
-			fromEnv: getAppIdFromEnv(),
-			userId: userId,
-			userIdFromQuery: getUserIdFromQuery(),
-			userIdFromStorage: getUserIdFromStorage()
-		});
+		console.log('[AuthModule] Found appId:', appId, { userId });
 		
 		if (!appId) {
 			console.log('[AuthModule] No appId found, skipping initialization');
@@ -187,15 +125,11 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 		}
 
 		console.log('[AuthModule] Auto-initializing authentication', { appId, userId });
-		setIsLoading(true);
-		authPresenter.initializeAuthentication(appId, userId || undefined).finally(() => {
-			setIsLoading(false);
-		});
+		authPresenter.initializeAuthentication(appId, userId || undefined);
 
-	}, [searchParams]); // Только searchParams, остальные могут вызывать цикл
+	}, [searchParams, isAuthenticated, authPresenter]);
 
 	const getAppIdFromQuery = () => searchParams.get('appId');
-	
 	const getUserIdFromQuery = () => searchParams.get('userId');
 	
 	const getAppIdFromStorage = () => {
@@ -232,168 +166,228 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 		return process.env.NEXT_PUBLIC_APP_ID || null;
 	};
 
-
+	// Handler для клика по кнопке Login
 	const handleLoginClick = () => {
 		console.log('[AuthModule] Login button clicked, showing popup');
-		if (authUIConfig?.loginPopup) {
-			setPopupConfig(authUIConfig.loginPopup);
-			console.log('[AuthModule] Popup config set from cached UI config');
-		} else {
-			console.error('[AuthModule] No UI config available for popup');
+		setShowPopup(true);
+		setPopupState('idle');
+		setAppIdValue('');
+		setUserIdValue('');
+		setErrorMessage(null);
+	};
+
+	// Handler для изменения App ID в input
+	const handleAppIdChange = (value: string) => {
+		console.log('[AuthModule] App ID changed:', value);
+		setAppIdValue(value);
+		// Очищаем ошибку при изменении
+		if (errorMessage) {
+			setErrorMessage(null);
 		}
 	};
 
-	const handleAuthPopupClose = () => {
-		setPopupConfig(null); // Закрываем popup
-	};
-
-	const handleAuthSuccess = () => {
-		console.log('[AuthModule] handleAuthSuccess called');
-		console.log('[AuthModule] Current isAuthenticated state:', isAuthenticated);
-		console.log('[AuthModule] AuthPresenter.isUserAuthenticated():', authPresenter.isUserAuthenticated());
-		
-		setPopupConfig(null); // Закрываем popup
-		
-		// Принудительно проверяем состояние авторизации
-		const currentAuthStatus = authPresenter.isUserAuthenticated();
-		const user = authPresenter.getCurrentUser();
-		if (currentAuthStatus !== isAuthenticated) {
-			console.log('[AuthModule] Auth status mismatch detected, updating state:', { from: isAuthenticated, to: currentAuthStatus });
-			setIsAuthenticated(currentAuthStatus);
-			setCurrentUser(user);
+	// Handler для изменения User ID в input
+	const handleUserIdChange = (value: string) => {
+		console.log('[AuthModule] User ID changed:', value);
+		setUserIdValue(value);
+		// Очищаем ошибку при изменении
+		if (errorMessage) {
+			setErrorMessage(null);
 		}
-		
-		// AuthPresenter уже обновил состояние через EventBus
 	};
 
-	const handleAuthSubmit = async (e: React.FormEvent) => {
-		console.log('[AuthModule] Auth submit called');
+	// Handler для submit формы
+	const handleAuthSubmit = async () => {
+		console.log('[AuthModule] Auth submit called with appId:', appIdValue, 'userId:', userIdValue);
 
-		// Для popup используем фиксированный appId для тестирования
-		const appId = 'APP123';
-
-		if (!appId?.trim()) {
+		if (!appIdValue?.trim()) {
 			console.error('[AuthModule] No appId provided');
+			setPopupState('error');
+			setErrorMessage('Please enter App ID');
 			return;
 		}
 
-		// Устанавливаем loading состояние
-		setIsLoading(true);
-		console.log('[AuthModule] Loading state set to true');
+		if (!userIdValue?.trim()) {
+			console.error('[AuthModule] No userId provided');
+			setPopupState('error');
+			setErrorMessage('Please enter User ID');
+			return;
+		}
+
+		setPopupState('loading');
+		console.log('[AuthModule] Starting authentication with appId:', appIdValue, 'userId:', userIdValue);
 
 		try {
-			console.log('[AuthModule] Starting authentication with appId:', appId);
+			// Небольшая задержка для демонстрации loading
+			await new Promise(resolve => setTimeout(resolve, 800));
 			
-			// Добавляем небольшую задержку для демонстрации loading
-			await new Promise(resolve => setTimeout(resolve, 1500));
-			
-			const result = await authPresenter.initializeAuthentication(appId.trim());
+			const result = await authPresenter.initializeAuthentication(appIdValue.trim(), userIdValue.trim());
 
 			if (result.status === 'success') {
 				console.log('[AuthModule] Authentication successful');
-				handleAuthSuccess();
+				setPopupState('success');
+				
+				// Через 1.5 секунды закрываем popup
+				setTimeout(() => {
+					setShowPopup(false);
+					setPopupState('idle');
+					setAppIdValue('');
+					setUserIdValue('');
+					setErrorMessage(null);
+				}, 1500);
 			} else {
 				console.error('[AuthModule] Authentication failed:', result.error);
+				setPopupState('error');
+				setErrorMessage(result.error || 'Authentication failed. Please try again.');
 			}
 		} catch (error) {
 			console.error('[AuthModule] Authentication error:', error);
-		} finally {
-			// Сбрасываем loading состояние
-			setIsLoading(false);
-			console.log('[AuthModule] Loading state set to false');
+			setPopupState('error');
+			setErrorMessage('An unexpected error occurred. Please try again.');
 		}
 	};
 
-  const handlePopupOpen = (config: AuthPopupConfig) => {
-    setPopupConfig(config);
-  };
-
-	const handlePopupConfigClose = () => {
-		setPopupConfig(null);
+	// Handler для закрытия popup
+	const handlePopupClose = () => {
+		console.log('[AuthModule] Popup close requested');
+		setShowPopup(false);
+		setPopupState('idle');
+		setAppIdValue('');
+		setUserIdValue('');
+		setErrorMessage(null);
 	};
 
-	const handleAppIdChange = (value: string) => {
-		// App ID изменение обрабатывается в AuthLoginButton
-		console.log('[AuthModule] App ID changed:', value);
+	// Рендерим Sidebar Button через UI Renderer Service
+	const renderLoginButton = () => {
+		if (!renderSidebarButton || isAuthenticated) {
+			return null;
+		}
+
+		// Проверяем готовность конфига перед рендером
+		if (!authPresenter.isConfigReady()) {
+			console.log('[AuthModule] Config not ready yet, skipping login button render');
+			return null;
+		}
+
+		try {
+			// Создаём UIDescriptor из Presenter
+			const descriptor = authPresenter.createLoginButtonUI();
+
+			// Добавляем реальный handler в context
+			const contextWithHandlers = {
+				...descriptor.context,
+				handleLoginClick: () => {
+					handleLoginClick();
+				}
+			};
+
+			// Рендерим через UI Renderer Service
+			return uiRenderer.renderUI({
+				...descriptor,
+				context: contextWithHandlers
+			});
+		} catch (error) {
+			console.error('[AuthModule] Error rendering login button:', error);
+			// Не рендерим кнопку при ошибке
+			return null;
+		}
+	};
+
+	// Рендерим User Info
+	const renderUserInfo = () => {
+		if (!renderSidebarButton || !isAuthenticated || !currentUser) {
+			return null;
+		}
+
+		return (
+			<div className="p-4">
+				<div className="flex items-center space-x-3">
+					<div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
+						<span className="text-white font-bold text-lg">
+							{currentUser.username.charAt(0).toUpperCase()}
+						</span>
+					</div>
+					<div>
+						<h3 className="text-lg font-semibold text-white">
+							{currentUser.username}
+						</h3>
+						<p className="text-sm text-gray-300">
+							App ID: {currentUser.appId}
+						</p>
+						<p className="text-xs text-green-400 font-medium">
+							✓ Авторизован
+						</p>
+					</div>
+				</div>
+			</div>
+		);
+	};
+
+	// Рендерим Auth Popup через UI Renderer Service
+	const renderAuthPopup = () => {
+		if (!showPopup || !renderPopupConfig) {
+			return null;
+		}
+
+		try {
+			// Создаём UIDescriptor из Presenter
+			const descriptor = authPresenter.createAuthPopupUI(
+				popupState,
+				appIdValue,
+				userIdValue,
+				errorMessage
+			);
+
+			// Добавляем реальные handlers в context
+			const contextWithHandlers = {
+				...descriptor.context,
+				handleAppIdChange: (value: string) => {
+					handleAppIdChange(value);
+				},
+				handleUserIdChange: (value: string) => {
+					handleUserIdChange(value);
+				},
+				handleAuthSubmit: () => {
+					handleAuthSubmit();
+				},
+				onPopupClose: () => {
+					handlePopupClose();
+				}
+			};
+
+			// Рендерим через UI Renderer Service
+			return uiRenderer.renderUI({
+				...descriptor,
+				context: contextWithHandlers
+			});
+		} catch (error) {
+			console.error('[AuthModule] Error rendering popup:', error);
+			return (
+				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+					<div className="bg-gray-800 p-6 rounded-lg">
+						<p className="text-red-500">Failed to render authentication popup</p>
+						<button 
+							onClick={handlePopupClose}
+							className="mt-4 bg-gray-600 text-white px-4 py-2 rounded"
+						>
+							Close
+						</button>
+					</div>
+				</div>
+			);
+		}
 	};
 
 	return (
 		<>
 			{children}
 
-      {/* Auth UI Components - sidebar кнопка или информация о пользователе */}
-      {renderSidebarButton && (
-        <>
-          {!isAuthenticated && authUIConfig?.loginButton?.layout ? (
-            <>
-              {console.log('[AuthModule] Rendering sidebar button with config:', {
-                renderSidebarButton,
-                isAuthenticated,
-                hasAuthUIConfig: !!authUIConfig,
-                hasLoginButton: !!authUIConfig?.loginButton,
-                hasLayout: !!authUIConfig?.loginButton?.layout,
-                layout: authUIConfig?.loginButton?.layout,
-                timestamp: new Date().toISOString()
-              })}
-              <DynamicRenderer 
-                node={createComponentNode(authUIConfig?.loginButton?.layout)} 
-                theme={createThemeConfig(authUIConfig?.loginButton?.theme)}
-  					actionContext={{
-  						onPopupOpen: handlePopupOpen,
-  						onPopupClose: handlePopupConfigClose,
-  						handleAuthSubmit: handleAuthSubmit,
-  						handleAppIdChange: handleAppIdChange,
-  						onLoginClick: handleLoginClick,
-  						isLoading: isLoading,
-  					}}
-  				/>
-            </>
-          ) : isAuthenticated && currentUser ? (
-            <>
-              {console.log('[AuthModule] Rendering user info:', {
-                isAuthenticated,
-                currentUser,
-                timestamp: new Date().toISOString()
-              })}
-              <div className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">
-                      {currentUser.username.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">
-                      {currentUser.username}
-                    </h3>
-                    <p className="text-sm text-white">
-                      App ID: {currentUser.appId}
-                    </p>
-                    <p className="text-xs text-green-400 font-medium">
-                      ✓ Авторизован
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : null}
-        </>
-			)}
+			{/* Sidebar Login Button или User Info */}
+			{renderLoginButton()}
+			{renderUserInfo()}
 
-		{/* Auth UI Components - popup config (рендерится всегда когда popupConfig установлен) */}
-		{popupConfig?.layout && (
-			<DynamicRenderer
-				node={createComponentNode(popupConfig.layout)}
-				theme={createThemeConfig(popupConfig.theme)}
-				actionContext={{
-					onPopupOpen: handlePopupOpen,
-					onPopupClose: handlePopupConfigClose,
-					handleAuthSubmit: handleAuthSubmit,
-					handleAppIdChange: handleAppIdChange,
-					isLoading: isLoading,
-				}}
-			/>
-		)}
+			{/* Auth Popup через UI Renderer Service */}
+			{renderAuthPopup()}
 		</>
 	);
 }
@@ -405,4 +399,3 @@ export function AuthModule(props: AuthModuleProps) {
 		</Suspense>
 	);
 }
-

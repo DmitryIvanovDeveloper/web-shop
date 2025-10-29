@@ -1,0 +1,146 @@
+/**
+ * UI Style Builder Service
+ * Универсальный сервис для построения стилей из StyleConfig
+ */
+
+import { injectable } from 'inversify';
+import type { ThemeConfig, StyleConfig } from '../../../shared/ui';
+
+@injectable()
+export class UIStyleBuilder {
+	/**
+	 * Строит className из StyleConfig и ThemeConfig
+	 */
+	public buildClassName(styles: StyleConfig | undefined, theme: ThemeConfig): string {
+		if (!styles) return '';
+
+		const classes: string[] = [];
+
+		// Используем className если есть
+		if (styles.className) {
+			classes.push(styles.className);
+		}
+
+		return classes.join(' ');
+	}
+
+	/**
+	 * Строит inline styles из StyleConfig и ThemeConfig
+	 */
+	public buildInlineStyles(
+		styles: StyleConfig | undefined,
+		theme: ThemeConfig
+	): React.CSSProperties {
+		if (!styles) return {};
+
+		const inlineStyles: React.CSSProperties = {};
+
+		// Layout
+		if (styles.display) inlineStyles.display = styles.display;
+		if (styles.flexDirection) inlineStyles.flexDirection = styles.flexDirection;
+		if (styles.justifyContent) inlineStyles.justifyContent = styles.justifyContent;
+		if (styles.alignItems) inlineStyles.alignItems = styles.alignItems;
+		if (styles.flex) inlineStyles.flex = styles.flex;
+		if (typeof styles.gap === 'number') {
+			inlineStyles.gap = `${theme.spacing[styles.gap]}px`;
+		}
+
+		// Grid
+		if (styles.gridTemplateColumns) inlineStyles.gridTemplateColumns = styles.gridTemplateColumns;
+
+		// Spacing
+		if (typeof styles.padding === 'number') {
+			inlineStyles.padding = `${theme.spacing[styles.padding]}px`;
+		}
+		if (typeof styles.paddingX === 'number') {
+			inlineStyles.paddingLeft = `${theme.spacing[styles.paddingX]}px`;
+			inlineStyles.paddingRight = `${theme.spacing[styles.paddingX]}px`;
+		}
+		if (typeof styles.paddingY === 'number') {
+			inlineStyles.paddingTop = `${theme.spacing[styles.paddingY]}px`;
+			inlineStyles.paddingBottom = `${theme.spacing[styles.paddingY]}px`;
+		}
+		if (typeof styles.margin === 'number') {
+			inlineStyles.margin = `${theme.spacing[styles.margin]}px`;
+		} else if (typeof styles.margin === 'string') {
+			inlineStyles.margin = styles.margin;
+		}
+		if (typeof styles.marginTop === 'number') {
+			inlineStyles.marginTop = `${theme.spacing[styles.marginTop]}px`;
+		}
+		if (typeof styles.marginBottom === 'number') {
+			inlineStyles.marginBottom = `${theme.spacing[styles.marginBottom]}px`;
+		}
+
+		// Colors
+		if (styles.backgroundColor) {
+			inlineStyles.backgroundColor = this._resolveColor(styles.backgroundColor, theme);
+		}
+		if (styles.textColor) {
+			inlineStyles.color = this._resolveColor(styles.textColor, theme);
+		}
+
+		// Typography
+		if (styles.fontSize) inlineStyles.fontSize = styles.fontSize;
+		if (styles.fontWeight) inlineStyles.fontWeight = styles.fontWeight;
+		if (styles.fontFamily) inlineStyles.fontFamily = styles.fontFamily;
+		if (styles.textAlign) inlineStyles.textAlign = styles.textAlign;
+		if (styles.textDecoration) inlineStyles.textDecoration = styles.textDecoration;
+
+		// Size
+		if (styles.width) inlineStyles.width = styles.width;
+		if (styles.height) inlineStyles.height = styles.height;
+		if (styles.minHeight) inlineStyles.minHeight = styles.minHeight;
+		if (styles.maxWidth) inlineStyles.maxWidth = styles.maxWidth;
+		if (styles.maxHeight) inlineStyles.maxHeight = styles.maxHeight;
+
+		// Position
+		if (styles.position) inlineStyles.position = styles.position;
+		if (typeof styles.top === 'number') {
+			inlineStyles.top = `${theme.spacing[styles.top]}px`;
+		}
+		if (typeof styles.left === 'number') {
+			inlineStyles.left = `${theme.spacing[styles.left]}px`;
+		}
+		if (typeof styles.right === 'number') {
+			inlineStyles.right = `${theme.spacing[styles.right]}px`;
+		}
+		if (typeof styles.bottom === 'number') {
+			inlineStyles.bottom = `${theme.spacing[styles.bottom]}px`;
+		}
+		if (typeof styles.zIndex === 'number') {
+			inlineStyles.zIndex = styles.zIndex;
+		}
+
+		// Visual
+		if (typeof styles.borderRadius === 'number') {
+			inlineStyles.borderRadius = `${theme.spacing[styles.borderRadius]}px`;
+		}
+		if (styles.border) inlineStyles.border = styles.border;
+		if (styles.overflow) inlineStyles.overflow = styles.overflow;
+		if (styles.objectFit) inlineStyles.objectFit = styles.objectFit;
+		if (styles.filter) inlineStyles.filter = styles.filter;
+
+		// Background
+		if (styles.backgroundImage) inlineStyles.backgroundImage = styles.backgroundImage;
+		if (styles.backgroundSize) inlineStyles.backgroundSize = styles.backgroundSize;
+		if (styles.backgroundPosition) inlineStyles.backgroundPosition = styles.backgroundPosition;
+		if (styles.backgroundRepeat) inlineStyles.backgroundRepeat = styles.backgroundRepeat;
+
+		return inlineStyles;
+	}
+
+	/**
+	 * Resolve color from theme or use as-is
+	 */
+	private _resolveColor(color: string, theme: ThemeConfig): string {
+		// If it's a theme color reference, resolve it
+		const colors = theme.colors as Record<string, string>;
+		if (colors[color]) {
+			return colors[color];
+		}
+		// Otherwise use as-is (hex, rgb, etc.)
+		return color;
+	}
+}
+
