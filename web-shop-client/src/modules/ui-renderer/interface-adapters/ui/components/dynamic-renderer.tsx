@@ -173,40 +173,6 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
   // Check preview mode
   const previewMode = isPreviewMode();
 
-      // Специальная обработка для InputText
-      const inputTextProps = node.type === 'InputText' 
-        ? { 
-            onChange: (value: string) => {
-              console.log('Input value changed:', value);
-            }
-          }
-        : {};
-
-      // Специальная обработка для UniversalInput
-      const universalInputProps = node.type === 'UniversalInput' 
-        ? { 
-            onChange: (value: string | number) => {
-              console.log('UniversalInput value changed:', value);
-            }
-          }
-        : {};
-
-      // Специальная обработка для Input
-      const inputProps = node.type === 'Input' 
-        ? { 
-            onChange: (value: string | number) => {
-              console.log('Input value changed:', value);
-              // Если есть onChange action, вызываем его через ActionHandler
-              if (node.actions?.onChange && actionContext) {
-                actionHandler.handleAction(node.actions.onChange, actionContext, value);
-              }
-            }
-          }
-        : {};
-
-      // Специальная обработка для OffersList (больше не нужен presenter)
-      const offersListProps = {};
-
 
   // Типобезопасные props - TypeScript знает структуру
   const componentProps = {
