@@ -97,8 +97,12 @@ export class UIBuilderPresenter {
   }
 
   public selectElement(elementId: string): void {
+    console.log('[UIBuilderPresenter] selectElement called:', elementId);
     const colors = this.getElementColorsFromConfig(elementId);
-    this.vm.selectedElement = { id: elementId, colors: colors || undefined };
+    console.log('[UIBuilderPresenter] Found colors:', colors);
+    // Create new viewModel object to trigger React re-render
+    this.vm = { ...this.vm, selectedElement: { id: elementId, colors: colors || undefined } };
+    console.log('[UIBuilderPresenter] Updated viewModel.selectedElement:', this.vm.selectedElement);
     this.notify();
   }
 

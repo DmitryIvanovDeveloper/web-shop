@@ -1,6 +1,6 @@
 import { injectable } from 'inversify';
 import type { PreviewCommunicationPort } from '../../application/ports/preview-communication.port';
-import { env } from '@/env';
+import { env } from '../../../../env';
 
 @injectable()
 export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
@@ -84,7 +84,18 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
 
     // Create new handler
     this._elementSelectedHandler = (event: MessageEvent) => {
-      if (this._targetOrigin !== '*' && event.origin !== this._targetOrigin) {
+      console.log('[PostMessagePreviewAdapter] Received message:', {
+        type: event.data.type,
+        origin: event.origin,
+        targetOrigin: this._targetOrigin
+      });
+      
+      // Allow localhost in development, or specific origin in production
+      const isLocalhost = event.origin.startsWith('http://localhost:');
+      const isAllowedOrigin = this._targetOrigin === '*' || event.origin === this._targetOrigin;
+      
+      if (!isAllowedOrigin && !isLocalhost) {
+        console.warn('[PostMessagePreviewAdapter] Message from untrusted origin:', event.origin);
         return;
       }
       
@@ -94,6 +105,7 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
       }
     };
 
+    console.log('[PostMessagePreviewAdapter] Listening for element selection messages');
     window.addEventListener('message', this._elementSelectedHandler);
   }
 

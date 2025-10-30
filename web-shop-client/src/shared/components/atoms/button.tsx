@@ -42,6 +42,12 @@ export function UniversalButton({
     : style;
     
   const handleClick = () => {
+    console.log('[UniversalButton] handleClick called', {
+      text,
+      isLoading,
+      hasOnClick: !!onClick
+    });
+    
     if (isLoading) {
       console.log('[UniversalButton] Button clicked but loading, ignoring');
       return;
@@ -51,6 +57,8 @@ export function UniversalButton({
     console.log('[UniversalButton] onClick handler exists:', !!onClick);
     if (onClick) {
       onClick();
+    } else {
+      console.warn('[UniversalButton] No onClick handler provided');
     }
   };
   

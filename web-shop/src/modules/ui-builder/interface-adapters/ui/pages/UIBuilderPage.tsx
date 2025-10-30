@@ -28,6 +28,10 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
   useEffect(() => {
     const unsubscribe = presenter.subscribe((vm: any) => {
+      console.log('[UIBuilderPage] ViewModel updated:', {
+        selectedElement: vm.selectedElement,
+        activeSection
+      });
       setViewModel(vm);
     });
 
@@ -79,8 +83,19 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   };
 
   const handleElementSelect = (elementId: string) => {
+    console.log('[UIBuilderPage] handleElementSelect called:', elementId);
+    // Ensure we're on sidebar section
+    if (activeSection !== 'sidebar') {
+      setActiveSection('sidebar');
+    }
     presenter.selectElement(elementId);
   };
+
+  // Force re-render when selectedElement changes
+  useEffect(() => {
+    // This effect ensures UI updates when selectedElement changes
+    // even if activeSection doesn't change
+  }, [viewModel.selectedElement?.id]);
 
   const handleElementColorChange = (elementId: string, colors: Record<string, string>) => {
     presenter.updateElementColors(elementId, colors);

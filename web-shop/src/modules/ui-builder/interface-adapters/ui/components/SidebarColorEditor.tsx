@@ -43,7 +43,10 @@ function ColorInput({ label, value, onChange }: ColorInputProps): JSX.Element {
 }
 
 export function SidebarColorEditor({ element, onChange }: SidebarColorEditorProps): JSX.Element {
+  console.log('[SidebarColorEditor] Rendering with element:', element);
+  
   if (!element) {
+    console.log('[SidebarColorEditor] No element, showing placeholder');
     return (
       <div className="bg-white rounded-lg shadow p-4">
         <div className="text-center text-gray-500 py-6">
@@ -66,6 +69,8 @@ export function SidebarColorEditor({ element, onChange }: SidebarColorEditorProp
       </div>
     );
   }
+  
+  console.log('[SidebarColorEditor] Rendering editor for element:', element.id);
 
   const handleColorChange = (colorKey: string, newColor: string) => {
     const updatedColors = {

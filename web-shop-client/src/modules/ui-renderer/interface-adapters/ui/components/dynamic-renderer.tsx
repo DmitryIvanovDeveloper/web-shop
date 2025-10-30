@@ -67,21 +67,36 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
 
   // Обработка onClick action с поддержкой preview mode
   const handleClick = (e?: React.MouseEvent) => {
+    console.log('[DynamicRenderer] handleClick called', {
+      nodeId: node.id,
+      nodeType: node.type,
+      isPreviewMode: isPreviewMode()
+    });
+    
     // Preview mode - send element selection to parent window
     if (isPreviewMode() && node.id) {
       if (e) e.stopPropagation();
       console.log('[DynamicRenderer] Element clicked in preview mode:', node.id);
       
       if (window.parent && window.parent !== window) {
+        const builderOrigin = process.env.NEXT_PUBLIC_BUILDER_URL || '*';
+        console.log('[DynamicRenderer] Sending ELEMENT_SELECTED to parent:', {
+          elementId: node.id,
+          origin: builderOrigin
+        });
+        
         window.parent.postMessage(
           { type: 'ELEMENT_SELECTED', elementId: node.id },
-          'http://localhost:3001'
+          builderOrigin
         );
+      } else {
+        console.warn('[DynamicRenderer] No parent window or same window');
       }
       return;
     }
 
     // Normal mode - handle action
+    console.log('[DynamicRenderer] Normal mode - handling action');
     if (node.actions?.onClick && actionContext) {
       actionHandler.handleAction(node.actions.onClick, actionContext);
     }
