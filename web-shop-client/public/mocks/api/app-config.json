@@ -1,4 +1,5 @@
 {
+  "$schema": "../../app-config.schema.json",
   "version": "1.0",
   "environment": "production",
   "theme": {
@@ -51,74 +52,170 @@
   },
   "shared": {
     "offerCardUI": {
-      "container": {
-        "backgroundColor": "#1F2937",
-        "borderRadius": "8px",
-        "shadow": "lg"
+      "type": "OfferCard",
+      "id": "offer-card-template",
+      "props": {},
+      "styles": {
+        "container": {
+          "backgroundColor": "#1F2937",
+          "borderRadius": "8px",
+          "shadow": "lg"
+        },
+        "image": {
+          "backgroundColor": "#374151",
+          "aspectRatio": "1.5 / 1"
+        },
+        "includedItems": {
+          "backgroundColor": "#374151",
+          "itemBackgroundColor": "#4B5563"
+        },
+        "title": {
+          "fontSize": "clamp(10px, 4cqw, 18px)",
+          "fontWeight": "bold",
+          "color": "#FFFFFF"
+        },
+        "rarity": {
+          "backgroundColor": "#8A2BE2",
+          "color": "#FFFFFF"
+        },
+        "buyButton": {
+          "backgroundColor": "#FF6B35",
+          "color": "#FFFFFF",
+          "borderRadius": "8px",
+          "fontSize": "clamp(12px, 4cqw, 18px)",
+          "fontWeight": "bold",
+          "padding": "12px 8px",
+          "minHeight": "48px"
+        },
+        "purchasedBadge": {
+          "backgroundColor": "#10B981",
+          "color": "#FFFFFF"
+        },
+        "bonuses": {
+          "rpColor": "#FBBF24",
+          "lpColor": "#3B82F6",
+          "fontSize": "12px"
+        }
       },
-      "image": {
-        "backgroundColor": "#374151",
-        "aspectRatio": "1.5 / 1"
-      },
-      "includedItems": {
-        "backgroundColor": "#374151",
-        "itemBackgroundColor": "#4B5563"
-      },
-      "title": {
-        "fontSize": "clamp(10px, 4cqw, 18px)",
-        "fontWeight": "bold",
-        "color": "#FFFFFF"
-      },
-      "rarity": {
-        "backgroundColor": "#8A2BE2",
-        "color": "#FFFFFF"
-      },
-      "buyButton": {
-        "backgroundColor": "#FF6B35",
-        "color": "#FFFFFF",
-        "borderRadius": "8px",
-        "fontSize": "clamp(12px, 4cqw, 18px)",
-        "fontWeight": "bold",
-        "padding": "12px 8px",
-        "minHeight": "48px"
-      },
-      "purchasedBadge": {
-        "backgroundColor": "#10B981",
-        "color": "#FFFFFF"
-      },
-      "bonuses": {
-        "rpColor": "#FBBF24",
-        "lpColor": "#3B82F6",
-        "fontSize": "12px"
-      }
+      "children": []
     },
     "productCardUI": {
-      "container": {
-        "backgroundColor": "#1F2937",
-        "borderRadius": "8px",
-        "shadow": "lg"
+      "type": "OfferCard",
+      "id": "product-card-template",
+      "props": {},
+      "styles": {
+        "container": {
+          "backgroundColor": "#1F2937",
+          "borderRadius": "8px",
+          "shadow": "lg"
+        },
+        "image": {
+          "backgroundColor": "#374151",
+          "aspectRatio": "1 / 1"
+        },
+        "title": {
+          "fontSize": "clamp(10px, 4cqw, 18px)",
+          "fontWeight": "bold",
+          "color": "#FFFFFF"
+        },
+        "buyButton": {
+          "backgroundColor": "#FF6B35",
+          "color": "#FFFFFF",
+          "borderRadius": "8px",
+          "fontSize": "clamp(12px, 4cqw, 18px)",
+          "fontWeight": "bold",
+          "padding": "12px 8px",
+          "minHeight": "48px"
+        },
+        "purchasedBadge": {
+          "backgroundColor": "#10B981",
+          "color": "#FFFFFF"
+        }
       },
-      "image": {
-        "backgroundColor": "#374151",
-        "aspectRatio": "1 / 1"
+      "children": []
+    }
+  },
+  "moduleSchemas": {
+    "authentication": {
+      "labels": {
+        "fields": [
+          { "key": "loginButton", "type": "string", "required": true, "default": "Login", "description": "Text for login button" },
+          { "key": "logoutButton", "type": "string", "required": true, "default": "Logout", "description": "Text for logout button" },
+          { "key": "appIdPlaceholder", "type": "string", "required": true, "default": "Enter App ID", "description": "Placeholder for App ID input" },
+          { "key": "userIdPlaceholder", "type": "string", "required": true, "default": "Enter User ID", "description": "Placeholder for User ID input" },
+          { "key": "submitButton", "type": "string", "required": true, "default": "Submit" },
+          { "key": "welcomeTitle", "type": "string", "required": true, "default": "PG3D HUB" },
+          { "key": "welcomeMessage", "type": "string", "required": true, "default": "Welcome to" },
+          { "key": "welcomeSubtitle", "type": "string", "required": true, "default": "WebShop Game Hub" },
+          { "key": "enterAppId", "type": "string", "required": true, "default": "Enter your App ID" },
+          { "key": "enterUserId", "type": "string", "required": true, "default": "Enter your User ID" },
+          { "key": "successMessage", "type": "string", "required": true, "default": "Success!" },
+          { "key": "loadingMessage", "type": "string", "required": true, "default": "Loading..." },
+          { "key": "errorMessage", "type": "string", "required": true, "default": "Error" },
+          { "key": "helpQuestion", "type": "string", "required": false, "default": "Need help?" },
+          { "key": "helpAnswer", "type": "string", "required": false, "default": "Contact support" },
+          { "key": "agreementText", "type": "string", "required": false, "default": "I agree" },
+          { "key": "privacyPolicy", "type": "string", "required": false, "default": "Privacy Policy" },
+          { "key": "termsOfService", "type": "string", "required": false, "default": "Terms of Service" },
+          { "key": "refundPolicy", "type": "string", "required": false, "default": "Refund Policy" }
+        ]
       },
-      "title": {
-        "fontSize": "clamp(10px, 4cqw, 18px)",
-        "fontWeight": "bold",
-        "color": "#FFFFFF"
+      "settings": {
+        "fields": [
+          { "key": "closeDelay", "type": "number", "required": true, "default": 1500, "min": 0, "max": 10000, "description": "Delay before closing popup (ms)" },
+          { "key": "showHelpSection", "type": "boolean", "required": true, "default": true, "description": "Show help section in auth popup" },
+          { "key": "showAgreement", "type": "boolean", "required": true, "default": true, "description": "Show agreement checkbox" },
+          { "key": "rememberUser", "type": "boolean", "required": true, "default": true, "description": "Remember user in localStorage" }
+        ]
       },
-      "buyButton": {
-        "backgroundColor": "#FF6B35",
-        "color": "#FFFFFF",
-        "borderRadius": "8px",
-        "fontSize": "clamp(12px, 4cqw, 18px)",
-        "fontWeight": "bold",
-        "padding": "12px 8px",
-        "minHeight": "48px"
+      "ui": {
+        "fields": [
+          { "key": "loginButtonUI", "type": "componentNode", "required": true, "description": "Login button UI configuration" }
+        ]
+      }
+    },
+    "products": {
+      "labels": {
+        "fields": [
+          { "key": "title", "type": "string", "required": true, "default": "Products" },
+          { "key": "buyButton", "type": "string", "required": true, "default": "Buy Now" },
+          { "key": "purchasedBadge", "type": "string", "required": true, "default": "PURCHASED" },
+          { "key": "emptyState", "type": "string", "required": true, "default": "No products available" },
+          { "key": "loadingState", "type": "string", "required": true, "default": "Loading products..." }
+        ]
       },
-      "purchasedBadge": {
-        "backgroundColor": "#10B981",
-        "color": "#FFFFFF"
+      "settings": {
+        "fields": [
+          { "key": "gridColumns", "type": "number", "required": true, "default": 4, "min": 1, "max": 12, "description": "Number of columns in product grid" },
+          { "key": "gridGap", "type": "number", "required": true, "default": 16, "min": 0, "max": 64, "description": "Gap between grid items (px)" },
+          { "key": "enableFilters", "type": "boolean", "required": true, "default": false, "description": "Enable product filters" }
+        ]
+      }
+    },
+    "offers": {
+      "labels": {
+        "fields": [
+          { "key": "title", "type": "string", "required": true, "default": "Special Offers" },
+          { "key": "featuredTitle", "type": "string", "required": true, "default": "Featured Deals" },
+          { "key": "emptyState", "type": "string", "required": true, "default": "No offers available" },
+          { "key": "expiredBadge", "type": "string", "required": true, "default": "EXPIRED" }
+        ]
+      },
+      "settings": {
+        "fields": [
+          { "key": "featuredThreshold", "type": "number", "required": true, "default": 2, "min": 0, "description": "Number of purchases to show featured offers" },
+          { "key": "gridColumns", "type": "number", "required": true, "default": 3, "min": 1, "max": 12, "description": "Number of columns in offers grid" },
+          { "key": "gridGap", "type": "number", "required": true, "default": 16, "min": 0, "max": 64, "description": "Gap between grid items (px)" }
+        ]
+      }
+    },
+    "uiRenderer": {
+      "ui": {
+        "fields": [
+          { "key": "sidebar", "type": "componentNode", "required": true, "description": "Left sidebar layout configuration" },
+          { "key": "rightSidebar", "type": "componentNode", "required": true, "description": "Right sidebar layout configuration" },
+          { "key": "store", "type": "componentNode", "required": true, "description": "Main store content layout configuration" }
+        ]
       }
     }
   },
@@ -152,7 +249,13 @@
         "rememberUser": true
       },
       "loginButtonUI": {
-        "icon": "",
+        "type": "Button",
+        "id": "login-button",
+        "props": {
+          "text": "Login",
+          "icon": "",
+          "fullWidth": true
+        },
         "styles": {
           "backgroundColor": "#FBBF24",
           "color": "#000000",
@@ -166,10 +269,13 @@
           "cursor": "pointer",
           "transition": "all 0.2s ease"
         },
-        "hoverStyles": {
-          "backgroundColor": "#F59E0B",
-          "transform": "scale(1.05)"
-        }
+        "actions": {
+          "onClick": {
+            "type": "custom",
+            "handler": "handleLoginClick"
+          }
+        },
+        "children": []
       }
     },
     "products": {

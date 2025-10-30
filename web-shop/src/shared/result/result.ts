@@ -1,47 +1,91 @@
-export type Result<T, E = Error> = Success<T> | Failure<E>;
+export abstract class Result<T, E> {
+  abstract get isSuccess(): boolean;
+  abstract get isFailure(): boolean;
+  abstract get value(): T | undefined;
+  abstract get error(): E | undefined;
 
-export class Success<T> {
-  public readonly success = true;
-  public readonly failure = false;
-
-  constructor(public readonly data: T) {}
-
-  public static ok<T>(data: T): Success<T> {
-    return new Success(data);
+  static ok<T, E = Error>(value: T): Success<T, E> {
+    return new Success(value);
   }
 
-  public map<U>(fn: (value: T) => U): Result<U, never> {
-    return new Success(fn(this.data));
-  }
-
-  public flatMap<U, F>(fn: (value: T) => Result<U, F>): Result<U, F> {
-    return fn(this.data);
-  }
-}
-
-export class Failure<E> {
-  public readonly success = false;
-  public readonly failure = true;
-
-  constructor(public readonly error: E) {}
-
-  public static fail<E>(error: E): Failure<E> {
+  static fail<T = void, E = Error>(error: E): Failure<T, E> {
     return new Failure(error);
   }
 
-  public map<U>(fn: (value: never) => U): Result<U, E> {
-    return this as any;
+  // Alias for compatibility
+  static error<T = void, E = Error>(error: E): Failure<T, E> {
+    return Result.fail(error);
   }
 
-  public flatMap<U, F>(fn: (value: never) => Result<U, F>): Result<U, E> {
-    return this as any;
+  map<U>(fn: (value: T) => U): Result<U, E> {
+    if (this.isSuccess) {
+      return Result.ok(fn(this.value!));
+    }
+    return Result.fail(this.error!);
+  }
+
+  flatMap<U>(fn: (value: T) => Result<U, E>): Result<U, E> {
+    if (this.isSuccess) {
+      return fn(this.value!);
+    }
+    return Result.fail(this.error!);
+  }
+
+  onSuccess(fn: (value: T) => void): Result<T, E> {
+    if (this.isSuccess) {
+      fn(this.value!);
+    }
+    return this;
+  }
+
+  onFailure(fn: (error: E) => void): Result<T, E> {
+    if (this.isFailure) {
+      fn(this.error!);
+    }
+    return this;
   }
 }
 
-export function isSuccess<T, E>(result: Result<T, E>): result is Success<T> {
-  return result.success;
+export class Success<T, E> extends Result<T, E> {
+  constructor(private readonly _value: T) {
+    super();
+  }
+
+  get isSuccess(): boolean {
+    return true;
+  }
+
+  get isFailure(): boolean {
+    return false;
+  }
+
+  get value(): T {
+    return this._value;
+  }
+
+  get error(): E | undefined {
+    return undefined;
+  }
 }
 
-export function isFailure<T, E>(result: Result<T, E>): result is Failure<E> {
-  return result.failure;
+export class Failure<T, E> extends Result<T, E> {
+  constructor(private readonly _error: E) {
+    super();
+  }
+
+  get isSuccess(): boolean {
+    return false;
+  }
+
+  get isFailure(): boolean {
+    return true;
+  }
+
+  get value(): T | undefined {
+    return undefined;
+  }
+
+  get error(): E {
+    return this._error;
+  }
 }

@@ -57,6 +57,7 @@ import { LoadAppConfigUseCase } from '../../application/use-cases/load-app-confi
 import { ApplyBackgroundOnConfigHandler } from '../handlers/apply-background-on-config.handler';
 import { IAsyncEventHandler } from '../events/events-handler.plugin';
 import { AppConfigLoadedEvent } from '../../shared/events/app-config-events';
+import { SupabaseConfigLoader } from '../config/supabase-config-loader';
 
 // Universal UI Renderer Service and its dependencies
 container.bind(TYPES.UIComponentRegistry).to(UIComponentRegistry).inSingletonScope();
@@ -65,6 +66,7 @@ container.bind(TYPES.UIActionHandler).to(UIActionHandler).inSingletonScope();
 container.bind<UIRendererPort>(TYPES.UIRenderer).to(UIRendererService).inSingletonScope();
 
 // App Config
+container.bind(TYPES.SupabaseConfigLoader).to(SupabaseConfigLoader).inSingletonScope();
 container.bind(TYPES.LoadAppConfig).to(LoadAppConfigUseCase).inSingletonScope();
 
 // Global background applier on AppConfig load

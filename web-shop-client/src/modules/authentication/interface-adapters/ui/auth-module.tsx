@@ -6,7 +6,7 @@ import { Suspense } from 'react';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
-import { AuthPresenter } from '../presenters/auth.presenter';
+// Import removed: presenter type is resolved at runtime from DI container
 import type { AppUser } from '../../domain/types';
 import type { UIRendererPort } from '../../../../application/ports/ui-renderer.port';
 
@@ -20,11 +20,11 @@ type PopupState = 'idle' | 'loading' | 'success' | 'error';
 
 function AuthModuleContent({ children, renderSidebarButton = false, renderPopupConfig = false }: AuthModuleProps) {
 	const searchParams = useSearchParams();
-	const authPresenter = container.get<AuthPresenter>(AUTH_TYPES.AuthPresenter);
+	const authPresenter = container.get<any>(AUTH_TYPES.AuthPresenter);
 	const uiRenderer = container.get<UIRendererPort>(ROOT_TYPES.UIRenderer);
 	
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
-	const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
 	const [showPopup, setShowPopup] = useState(false);
 	const [popupState, setPopupState] = useState<PopupState>('idle');
 	const [appIdValue, setAppIdValue] = useState('');
@@ -299,27 +299,27 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 			return null;
 		}
 
-		return (
-			<div className="p-4">
-				<div className="flex items-center space-x-3">
+	return (
+              <div className="p-4">
+                <div className="flex items-center space-x-3">
 					<div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
-						<span className="text-white font-bold text-lg">
-							{currentUser.username.charAt(0).toUpperCase()}
-						</span>
-					</div>
-					<div>
-						<h3 className="text-lg font-semibold text-white">
-							{currentUser.username}
-						</h3>
+                    <span className="text-white font-bold text-lg">
+                      {currentUser.username.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">
+                      {currentUser.username}
+                    </h3>
 						<p className="text-sm text-gray-300">
-							App ID: {currentUser.appId}
-						</p>
-						<p className="text-xs text-green-400 font-medium">
-							✓ Авторизован
-						</p>
-					</div>
-				</div>
-			</div>
+                      App ID: {currentUser.appId}
+                    </p>
+                    <p className="text-xs text-green-400 font-medium">
+                      ✓ Авторизован
+                    </p>
+                  </div>
+                </div>
+              </div>
 		);
 	};
 

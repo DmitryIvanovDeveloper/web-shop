@@ -17,6 +17,13 @@ interface DynamicRendererProps {
   readonly actionContext?: ActionContext;
 }
 
+// Check if in preview mode
+const isPreviewMode = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  const params = new URLSearchParams(window.location.search);
+  return params.get('previewMode') === 'true';
+};
+
 export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererProps): JSX.Element | null {
   console.log('[DynamicRenderer] Rendering with node:', node);
   console.log('[DynamicRenderer] Node type:', node?.type);
@@ -58,13 +65,30 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     style = restStyle;
   } 
 
-  // Обработка onClick action
-  const handleClick = node.actions?.onClick && actionContext
-    ? () => {
-        if (node.actions?.onClick && actionContext) {
-          actionHandler.handleAction(node.actions.onClick, actionContext);
-        }
+  // Обработка onClick action с поддержкой preview mode
+  const handleClick = (e?: React.MouseEvent) => {
+    // Preview mode - send element selection to parent window
+    if (isPreviewMode() && node.id) {
+      if (e) e.stopPropagation();
+      console.log('[DynamicRenderer] Element clicked in preview mode:', node.id);
+      
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage(
+          { type: 'ELEMENT_SELECTED', elementId: node.id },
+          'http://localhost:3001'
+        );
       }
+      return;
+    }
+
+    // Normal mode - handle action
+    if (node.actions?.onClick && actionContext) {
+      actionHandler.handleAction(node.actions.onClick, actionContext);
+    }
+  };
+
+  const clickHandler = (node.actions?.onClick && actionContext) || isPreviewMode() 
+    ? handleClick 
     : undefined;
 
   // Debug logging для main-content
@@ -111,6 +135,43 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
   const finalClassName = className;
   
   const containerProps = { className: finalClassName };
+
+  // Специальная обработка для InputText
+  const inputTextProps = node.type === 'InputText' 
+    ? { 
+        onChange: (value: string) => {
+          console.log('Input value changed:', value);
+        }
+      }
+    : {};
+
+  // Специальная обработка для UniversalInput
+  const universalInputProps = node.type === 'UniversalInput' 
+    ? { 
+        onChange: (value: string | number) => {
+          console.log('UniversalInput value changed:', value);
+        }
+      }
+    : {};
+
+  // Специальная обработка для Input
+  const inputProps = node.type === 'Input' 
+    ? { 
+        onChange: (value: string | number) => {
+          console.log('Input value changed:', value);
+          // Если есть onChange action, вызываем его через ActionHandler
+          if (node.actions?.onChange && actionContext) {
+            actionHandler.handleAction(node.actions.onChange, actionContext, value);
+          }
+        }
+      }
+    : {};
+
+  // Специальная обработка для OffersList (больше не нужен presenter)
+  const offersListProps = {};
+
+  // Check preview mode
+  const previewMode = isPreviewMode();
 
       // Специальная обработка для InputText
       const inputTextProps = node.type === 'InputText' 

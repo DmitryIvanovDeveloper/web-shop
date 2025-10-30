@@ -10,6 +10,7 @@ import { HttpClientMock } from '../http/http-client.mock';
 import { HttpClientMode, resolveHttpClientMode, TYPES } from './types';
 import { ConsoleLogger } from '../logging/console-logger';
 import { MockRealtimeClient } from '../realtime/mock-realtime-client';
+import { bindUIBuilder } from '@/modules/ui-builder/infrastructure/bootstrap/bind.ui-builder';
 
 // Create Inversify container
 const container = new Container();
@@ -28,5 +29,7 @@ if (mode === HttpClientMode.Mock) {
 container.bind<EventBus>(TYPES.EventBus).to(InMemoryEventBus).inSingletonScope();
 container.bind<RealtimeClientPort>(TYPES.RealtimeClient).to(MockRealtimeClient).inSingletonScope();
 
+// Register UI Builder module
+bindUIBuilder(container);
 
 export { container };

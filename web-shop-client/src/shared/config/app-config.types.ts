@@ -9,8 +9,9 @@ export interface AppConfig {
 	readonly theme: GlobalTheme;
 	readonly background?: GlobalBackground;
 	readonly shared?: SharedConfig;
+	readonly moduleSchemas?: Record<string, ModuleSchema>;
 	readonly modules: ModulesConfig;
-	readonly constants: AppConstants;
+	readonly constants?: AppConstants;
 }
 
 export interface GlobalTheme {
@@ -57,29 +58,39 @@ export interface GlobalBackground {
 }
 
 export interface SharedConfig {
-	readonly offerCardUI?: OfferCardUIConfig;
-	readonly productCardUI?: ProductCardUIConfig;
+	readonly offerCardUI?: ComponentNodeData;
+	readonly productCardUI?: ComponentNodeData;
 }
 
-export interface OfferCardUIConfig {
-	readonly container: CardContainerStyle;
-	readonly image: CardImageStyle;
-	readonly includedItems: IncludedItemsStyle;
-	readonly title: CardTitleStyle;
-	readonly rarity: RarityStyle;
-	readonly buyButton: CardButtonStyle;
-	readonly purchasedBadge: CardBadgeStyle;
-	readonly bonuses: BonusesStyle;
+// Minimal placeholder types to satisfy compile; detailed shapes are provided by UI Builder schemas
+export interface FieldSchema {
+  readonly key: string;
+  readonly type: 'string' | 'number' | 'boolean' | 'array' | 'object' | 'componentNode';
+  readonly required?: boolean;
+  readonly min?: number;
+  readonly max?: number;
+  readonly options?: readonly string[];
+  readonly default?: any;
+  readonly description?: string;
 }
 
-export interface ProductCardUIConfig {
-	readonly container: CardContainerStyle;
-	readonly image: CardImageStyle;
-	readonly title: CardTitleStyle;
-	readonly buyButton: CardButtonStyle;
-	readonly purchasedBadge: CardBadgeStyle;
+export interface FieldsSchema { readonly fields: readonly FieldSchema[] }
+
+export interface ModuleSchema {
+  readonly labels?: FieldsSchema;
+  readonly settings?: FieldsSchema;
+  readonly ui?: FieldsSchema;
 }
 
+export interface ComponentNodeData { readonly [key: string]: any }
+
+export interface AppConstants { readonly [key: string]: any }
+export interface ApiConstants { readonly [key: string]: any }
+export interface UIConstants { readonly [key: string]: any }
+export interface UILayoutConfig { readonly [key: string]: any }
+
+// Legacy types - kept for backward compatibility with offer-card.tsx
+// Эти типы используются внутри styles объекта ComponentNode
 export interface CardContainerStyle {
 	readonly backgroundColor: string;
 	readonly borderRadius: string;
@@ -128,6 +139,26 @@ export interface BonusesStyle {
 	readonly fontSize: string;
 }
 
+// Helper type для извлечения стилей из ComponentNode формата карточек
+export interface OfferCardUIConfig {
+	readonly container: CardContainerStyle;
+	readonly image: CardImageStyle;
+	readonly includedItems: IncludedItemsStyle;
+	readonly title: CardTitleStyle;
+	readonly rarity: RarityStyle;
+	readonly buyButton: CardButtonStyle;
+	readonly purchasedBadge: CardBadgeStyle;
+	readonly bonuses: BonusesStyle;
+}
+
+export interface ProductCardUIConfig {
+	readonly container: CardContainerStyle;
+	readonly image: CardImageStyle;
+	readonly title: CardTitleStyle;
+	readonly buyButton: CardButtonStyle;
+	readonly purchasedBadge: CardBadgeStyle;
+}
+
 export interface FontSizeScale {
 	readonly xs: string;
 	readonly sm: string;
@@ -149,14 +180,14 @@ export interface FontWeightScale {
 
 export interface ModulesConfig {
 	readonly authentication: AuthenticationModuleConfig;
-	readonly products: ProductsModuleConfig;
-	readonly offers: OffersModuleConfig;
-	readonly uiRenderer: UIRendererModuleConfig;
+	readonly products?: ProductsModuleConfig;
+	readonly offers?: OffersModuleConfig;
+	readonly uiRenderer?: UIRendererModuleConfig;
 }
 
 export interface AuthenticationModuleConfig {
 	readonly labels: AuthLabels;
-	readonly settings: AuthSettings;
+	readonly settings?: AuthSettings;
 	readonly loginButtonUI: LoginButtonUIConfig;
 }
 
@@ -180,19 +211,21 @@ export interface AuthLabels {
 	readonly privacyPolicy: string;
 	readonly termsOfService: string;
 	readonly refundPolicy: string;
+	readonly [key: string]: string; // Allows custom fields from UI Builder
 }
+
+export interface AuthSettings { readonly [key: string]: any }
+export interface LoginButtonUIConfig { readonly [key: string]: any }
+
+export interface ProductsModuleConfig { readonly [key: string]: any }
+export interface OffersModuleConfig { readonly [key: string]: any }
+export interface UIRendererModuleConfig { readonly [key: string]: any }
 
 export interface AuthSettings {
 	readonly closeDelay: number;
 	readonly showHelpSection: boolean;
 	readonly showAgreement: boolean;
 	readonly rememberUser: boolean;
-}
-
-export interface LoginButtonUIConfig {
-	readonly icon: string;
-	readonly styles: Record<string, string | number>;
-	readonly hoverStyles?: Record<string, string | number>;
 }
 
 export interface ProductsModuleConfig {

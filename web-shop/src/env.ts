@@ -8,6 +8,8 @@ export const env = {
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_USE_SUPABASE_REVENUE: process.env.NEXT_PUBLIC_USE_SUPABASE_REVENUE,
   NEXT_PUBLIC_USE_SUPABASE_PURCHASE: process.env.NEXT_PUBLIC_USE_SUPABASE_PURCHASE,
+  // No localhost fallback: use explicit production URL to avoid dev HMR in preview iframe
+  NEXT_PUBLIC_CLIENT_URL: process.env.NEXT_PUBLIC_CLIENT_URL,
 };
 
 // Log environment variables status (for debugging)
@@ -16,6 +18,7 @@ console.log('[ENV] Environment variables loaded:', {
   NEXT_PUBLIC_SUPABASE_ANON_KEY: env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET',
   NEXT_PUBLIC_USE_SUPABASE_REVENUE: env.NEXT_PUBLIC_USE_SUPABASE_REVENUE,
   NEXT_PUBLIC_USE_SUPABASE_PURCHASE: env.NEXT_PUBLIC_USE_SUPABASE_PURCHASE,
+  NEXT_PUBLIC_CLIENT_URL: env.NEXT_PUBLIC_CLIENT_URL,
   isServer: typeof window === 'undefined',
   isClient: typeof window !== 'undefined'
 });

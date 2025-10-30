@@ -28,9 +28,4 @@ export function bindOffers(container: Container): void {
     .bind<IAsyncEventHandler<UserAuthenticatedEvent>>(OFFERS_TYPES.UserAuthenticatedHandler)
     .to(OffersUserAuthenticatedHandler)
     .inTransientScope();
-
-  container
-    .bind<IAsyncEventHandler<AppConfigLoadedEvent>>(Symbol.for('IAsyncEventHandler<AppConfigLoadedEvent>'))
-    .to(OffersAppConfigLoadedHandler)
-    .inTransientScope();
 }

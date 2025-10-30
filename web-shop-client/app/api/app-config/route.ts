@@ -5,7 +5,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import appConfig from '../../../public/app-config.json';
+import appConfig from '../../../public/mocks/api/app-config.json';
 
 export async function GET(): Promise<NextResponse> {
 	return NextResponse.json(appConfig, {

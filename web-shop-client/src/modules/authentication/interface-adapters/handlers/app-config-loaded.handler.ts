@@ -36,7 +36,6 @@ export class AuthAppConfigLoadedHandler implements IAsyncEventHandler<AppConfigL
 		this._authPresenter.setConfig({
 			labels: authConfig.labels,
 			settings: authConfig.settings,
-			loginButtonUI: authConfig.loginButtonUI,
 			theme
 		});
 

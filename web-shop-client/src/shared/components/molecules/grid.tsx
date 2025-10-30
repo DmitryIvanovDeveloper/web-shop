@@ -34,19 +34,19 @@ export function Grid({
     const updateLayout = () => {
       const width = window.innerWidth;
       
-      // Columns - 1024px включительно = 2 колонки
+      // Адаптивные breakpoints для iframe preview режимов
       if (width >= 1280) {
         setColumns(4);
         setGap('1rem'); // 16px desktop
-      } else if (width > 1024) {
+      } else if (width >= 900) {
         setColumns(3);
-        setGap('1rem'); // 16px tablet large
+        setGap('0.875rem'); // 14px tablet large
       } else if (width >= 640) {
         setColumns(2);
-        setGap('0.75rem'); // 12px mobile/tablet
+        setGap('0.75rem'); // 12px tablet
       } else {
-        setColumns(2);
-        setGap('0.5rem'); // 8px small mobile
+        setColumns(1);
+        setGap('0.75rem'); // 12px mobile - одна колонка для избежания overflow
       }
     };
     

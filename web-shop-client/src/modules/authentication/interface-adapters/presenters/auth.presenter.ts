@@ -1,3 +1,4 @@
+
 /**
  * Presenter для Authentication
  * Result → ViewModel + State Management
@@ -37,7 +38,7 @@ export class AuthPresenter {
 		submitButton: 'Submit',
 		welcomeTitle: 'PG3D HUB',
 		welcomeMessage: 'Welcome to',
-		welcomeSubtitle: 'WebShop Game Hub',
+		welcomeSubtitle: 'Pixel Gun 3D Hub',
 		enterAppId: 'Enter your App ID',
 		enterUserId: 'Enter your User ID',
 		successMessage: 'Success!',
@@ -409,8 +410,7 @@ export class AuthPresenter {
 									borderRadius: 8,
 									textColor: 'text',
 									fontSize: 'base',
-									textAlign: 'center',
-									marginBottom: 3
+									textAlign: 'center'
 								},
 								actions: {
 									onChange: {

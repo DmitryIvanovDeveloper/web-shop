@@ -42,7 +42,8 @@ export const TYPES = {
 	UIComponentRegistry: Symbol.for('UIComponentRegistry'),
 	UIStyleBuilder: Symbol.for('UIStyleBuilder'),
 	UIActionHandler: Symbol.for('UIActionHandler'),
-	LoadAppConfig: Symbol.for('LoadAppConfig')
+	LoadAppConfig: Symbol.for('LoadAppConfig'),
+	SupabaseConfigLoader: Symbol.for('SupabaseConfigLoader')
 } as const;
 
 // Export as ROOT_TYPES for consistency with documentation

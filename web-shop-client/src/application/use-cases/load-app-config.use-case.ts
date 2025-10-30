@@ -1,39 +1,44 @@
 import { injectable, inject } from 'inversify';
-import type { HttpClient } from '../ports/http-client.port';
 import type { EventBus } from '../ports/event-bus.port';
 import type { Logger } from '../ports/logger.port';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { AppConfigLoadedEvent } from '../../shared/events/app-config-events';
 import type { AppConfig } from '../../shared/config/app-config.types';
+import type { SupabaseConfigLoader } from '../../infrastructure/config/supabase-config-loader';
 
 @injectable()
 export class LoadAppConfigUseCase {
 	constructor(
-		@inject(TYPES.HttpClient)
-		private readonly _httpClient: HttpClient,
+    // HTTP fallback удалён: конфиг загружаем только из Supabase
 		@inject(TYPES.EventBus)
 		private readonly _eventBus: EventBus,
 		@inject(TYPES.Logger)
-		private readonly _logger: Logger
+		private readonly _logger: Logger,
+		@inject(TYPES.SupabaseConfigLoader)
+		private readonly _supabaseLoader: SupabaseConfigLoader
 	) {}
 
 	public async execute(): Promise<void> {
 		this._logger.info('[LoadAppConfigUseCase] Loading app configuration');
 
 		try {
-			const response = await this._httpClient.get<AppConfig>('/api/app-config');
+      const appId = this._getAppIdFromEnvironment();
+      if (!appId) {
+        throw new Error('[LoadAppConfigUseCase] appId is required but was not provided');
+      }
 
-			if (response.status !== 200 || !response.data) {
-				throw new Error('Failed to load app config');
-			}
+      const config = await this._supabaseLoader.loadConfig(appId);
+      if (!config) {
+        throw new Error(`[LoadAppConfigUseCase] Failed to load active config from Supabase for appId: ${appId}`);
+      }
 
-			this._logger.info('[LoadAppConfigUseCase] App config loaded successfully', {
-				version: response.data.version,
-				environment: response.data.environment
-			});
+      this._logger.info('[LoadAppConfigUseCase] App config loaded successfully (Supabase)', {
+        version: config.version,
+        environment: config.environment
+      });
 
 			// Publish event for all modules to consume
-			await this._eventBus.publishAsync(new AppConfigLoadedEvent(response.data));
+      await this._eventBus.publishAsync(new AppConfigLoadedEvent(config as AppConfig));
 			
 			this._logger.info('[LoadAppConfigUseCase] AppConfigLoadedEvent published');
 
@@ -47,5 +52,16 @@ export class LoadAppConfigUseCase {
 			throw error;
 		}
 	}
+
+  private _getAppIdFromEnvironment(): string | null {
+    if (typeof window !== 'undefined') {
+      try {
+        const url = new URL(window.location.href);
+        const fromQuery = url.searchParams.get('appId');
+        if (fromQuery) return fromQuery;
+      } catch {}
+    }
+    return process.env.NEXT_PUBLIC_APP_ID || null;
+  }
 }
 
