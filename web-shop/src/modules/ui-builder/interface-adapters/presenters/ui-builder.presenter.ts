@@ -1,6 +1,8 @@
 import { inject, injectable } from 'inversify';
 import { UI_BUILDER_TYPES } from '../../infrastructure/bootstrap/types';
 import type { PreviewCommunicationPort } from '../../application/ports/preview-communication.port';
+import type { SaveDraftUseCase } from '../../application/use-cases/save-draft.use-case';
+import { container } from '@/infrastructure/bootstrap/container';
 
 interface ViewModel {
   appId: string;
@@ -17,6 +19,7 @@ interface ViewModel {
 @injectable()
 export class UIBuilderPresenter {
   private readonly subscribers: Array<(vm: ViewModel) => void> = [];
+  private saveDraftDebounceTimer: NodeJS.Timeout | null = null;
   private vm: ViewModel = {
     appId: '',
     version: 1,
@@ -30,15 +33,20 @@ export class UIBuilderPresenter {
       modules: {
         uiRenderer: {
           sidebar: {
+            version: '1.0',
+            theme: {
+              colors: { primary: '#1d4ed8', background: '#ffffff', surface: '#ffffff', text: '#111827' },
+              spacing: [4, 8, 12, 16, 24, 32, 48, 64]
+            },
             layout: {
               id: 'left-sidebar',
-              type: 'container',
+              type: 'Container',
               props: { text: 'Left Sidebar' },
               styles: { backgroundColor: '#f3f4f6', textColor: '#111827', borderColor: '#e5e7eb' },
               children: [
                 {
                   id: 'store-button',
-                  type: 'button',
+                  type: 'Button',
                   props: { text: 'Store' },
                   styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af' },
                 },
@@ -91,9 +99,11 @@ export class UIBuilderPresenter {
   }
 
   public updateTheme(colors: Record<string, string>): void {
-    try {
-      this.preview.sendThemeUpdate(colors);
-    } catch {}
+    // Update config and trigger auto-save
+    if (this.vm.config) {
+      (this.vm.config as any).theme = { ...(this.vm.config as any).theme, colors };
+    }
+    this.triggerAutoSave();
   }
 
   public selectElement(elementId: string): void {
@@ -108,10 +118,8 @@ export class UIBuilderPresenter {
 
   public updateElementColors(elementId: string, colors: Record<string, string>): void {
     this.applyColorsToConfig(elementId, colors);
-    try {
-      this.preview.sendSidebarUpdate({ elementId, colors });
-    } catch {}
     this.selectElement(elementId);
+    this.triggerAutoSave();
   }
 
   public addSidebarButton(label?: string): void {
@@ -137,7 +145,7 @@ export class UIBuilderPresenter {
 
     const node = {
       id: newId,
-      type: 'button',
+      type: 'Button',
       props: { text: label || 'New Button' },
       styles: {
         backgroundColor: '#1d4ed8',
@@ -155,9 +163,6 @@ export class UIBuilderPresenter {
       selectedElement: { id: newId, colors: this.getElementColorsFromConfig(newId) || undefined },
       isDraft: true,
     };
-    try {
-      this.preview.sendSidebarStructure?.(layout);
-    } catch {}
     this.notify();
   }
 
@@ -176,9 +181,7 @@ export class UIBuilderPresenter {
   }
 
   public previewAuthPopup(visible: boolean): void {
-    try {
-      this.preview.sendAuthUpdate?.({ popup: { visible } });
-    } catch {}
+    // Preview via Supabase Realtime only
   }
 
   public updateLoginButton(input: { text?: string; styles?: Record<string, string> }): void {
@@ -186,12 +189,56 @@ export class UIBuilderPresenter {
     if (!node) return;
     if (input.text) node.props = { ...(node.props || {}), text: input.text };
     if (input.styles) node.styles = { ...(node.styles || {}), ...input.styles };
-    if (input.styles) this.preview.sendSidebarUpdate({ elementId: 'store-button', colors: input.styles });
     this.notify();
+    this.triggerAutoSave();
   }
 
   public updateAuthPopup(input: Record<string, unknown>): void {
-    this.preview.sendAuthUpdate?.({ popup: input });
+    this.triggerAutoSave();
+  }
+
+  private triggerAutoSave(): void {
+    // Clear existing timer
+    if (this.saveDraftDebounceTimer) {
+      clearTimeout(this.saveDraftDebounceTimer);
+    }
+
+    // Set new timer - debounce for 300ms
+    this.saveDraftDebounceTimer = setTimeout(() => {
+      this.saveDraftDebounceTimer = null;
+      this.autoSaveDraft();
+    }, 300);
+  }
+
+  private async autoSaveDraft(): Promise<void> {
+    if (!this.vm.config || !this.vm.appId) {
+      console.warn('[UIBuilderPresenter] Cannot auto-save: missing config or appId');
+      return;
+    }
+
+    try {
+      console.log('[UIBuilderPresenter] Auto-saving draft');
+      const saveDraftUseCase = container.get<SaveDraftUseCase>(UI_BUILDER_TYPES.SaveDraftUseCase);
+      const result = await saveDraftUseCase.execute({
+        appId: this.vm.appId,
+        config: this.vm.config,
+      });
+      
+      if (result.isSuccess) {
+        console.log('[UIBuilderPresenter] Draft auto-saved successfully');
+        this.vm.isDraft = true;
+        this.notify();
+        
+        // Dispatch custom event for UIBuilderPage to refresh iframe
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('uibuilder:autoSave'));
+        }
+      } else {
+        console.error('[UIBuilderPresenter] Failed to auto-save draft:', result.error);
+      }
+    } catch (error) {
+      console.error('[UIBuilderPresenter] Error during auto-save:', error);
+    }
   }
 
   private getElementColorsFromConfig(elementId: string): Record<string, string> | null {

@@ -188,6 +188,8 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
   // Check preview mode
   const previewMode = isPreviewMode();
 
+  // Add data-element-id for preview mode to enable color updates
+  const previewProps = node.id ? { 'data-element-id': node.id } : {};
 
   // Типобезопасные props - TypeScript знает структуру
   const componentProps = {
@@ -198,6 +200,7 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     ...universalInputProps,
     ...inputProps,
     ...offersListProps,
+    ...previewProps,
     style,
     children,
     onClick: handleClick,

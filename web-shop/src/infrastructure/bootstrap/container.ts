@@ -4,12 +4,14 @@ import { EventBus } from '../../application/ports/event-bus.port';
 import { HttpClient } from '../../application/ports/http-client.port';
 import { Logger } from '../../application/ports/logger.port';
 import { RealtimeClientPort } from '../../application/ports/realtime-client.port';
+import { DatabaseClientPort } from '../../application/ports/database-client.port';
 import { InMemoryEventBus } from '../event-bus/event-bus';
 import { AxiosHttpClient } from '../http/http-client';
 import { HttpClientMock } from '../http/http-client.mock';
 import { HttpClientMode, resolveHttpClientMode, TYPES } from './types';
 import { ConsoleLogger } from '../logging/console-logger';
 import { MockRealtimeClient } from '../realtime/mock-realtime-client';
+import { SupabaseClient } from '../database/supabase-client';
 import { bindUIBuilder } from '@/modules/ui-builder/infrastructure/bootstrap/bind.ui-builder';
 
 // Create Inversify container
@@ -28,6 +30,7 @@ if (mode === HttpClientMode.Mock) {
 
 container.bind<EventBus>(TYPES.EventBus).to(InMemoryEventBus).inSingletonScope();
 container.bind<RealtimeClientPort>(TYPES.RealtimeClient).to(MockRealtimeClient).inSingletonScope();
+container.bind<DatabaseClientPort>(TYPES.DatabaseClient).to(SupabaseClient).inSingletonScope();
 
 // Register UI Builder module
 bindUIBuilder(container);

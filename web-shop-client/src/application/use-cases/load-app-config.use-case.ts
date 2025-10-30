@@ -18,8 +18,8 @@ export class LoadAppConfigUseCase {
 		private readonly _supabaseLoader: SupabaseConfigLoader
 	) {}
 
-	public async execute(): Promise<void> {
-		this._logger.info('[LoadAppConfigUseCase] Loading app configuration');
+	public async execute(isDraft?: boolean): Promise<void> {
+		this._logger.info('[LoadAppConfigUseCase] Loading app configuration', { isDraft });
 
 		try {
       const appId = this._getAppIdFromEnvironment();
@@ -27,14 +27,20 @@ export class LoadAppConfigUseCase {
         throw new Error('[LoadAppConfigUseCase] appId is required but was not provided');
       }
 
-      const config = await this._supabaseLoader.loadConfig(appId);
+      // Use isDraft parameter to determine which config to load
+      const config = isDraft
+        ? await this._supabaseLoader.loadDraftConfig(appId)
+        : await this._supabaseLoader.loadConfig(appId);
+      
       if (!config) {
-        throw new Error(`[LoadAppConfigUseCase] Failed to load active config from Supabase for appId: ${appId}`);
+        const configType = isDraft ? 'draft' : 'active';
+        throw new Error(`[LoadAppConfigUseCase] Failed to load ${configType} config from Supabase for appId: ${appId}`);
       }
 
       this._logger.info('[LoadAppConfigUseCase] App config loaded successfully (Supabase)', {
         version: config.version,
-        environment: config.environment
+        environment: config.environment,
+        isDraft
       });
 
 			// Publish event for all modules to consume

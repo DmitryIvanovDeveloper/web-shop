@@ -12,6 +12,7 @@ export interface UniversalButtonProps {
   readonly fullWidth?: boolean;
   readonly isLoading?: boolean;
   readonly loadingText?: string;
+  readonly [key: string]: unknown; // Allow data-* attributes
 }
 
 export function UniversalButton({
@@ -24,6 +25,7 @@ export function UniversalButton({
   fullWidth = false,
   isLoading = false,
   loadingText = 'Loading...',
+  ...restProps
 }: UniversalButtonProps): JSX.Element {
   // Определяем justify класс на основе style.justifyContent или используем center по умолчанию
   const justifyClass = style?.justifyContent === 'flex-start' ? 'justify-start' : 'justify-center';
@@ -73,6 +75,7 @@ export function UniversalButton({
       style={buttonStyle} 
       onClick={handleClick}
       disabled={isLoading}
+      {...restProps}
     >
       {isLoading && (
         <span className="mr-2 inline-block animate-spin">

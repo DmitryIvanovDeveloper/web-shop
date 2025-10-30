@@ -43,7 +43,9 @@ export const TYPES = {
 	UIStyleBuilder: Symbol.for('UIStyleBuilder'),
 	UIActionHandler: Symbol.for('UIActionHandler'),
 	LoadAppConfig: Symbol.for('LoadAppConfig'),
-	SupabaseConfigLoader: Symbol.for('SupabaseConfigLoader')
+	SupabaseConfigLoader: Symbol.for('SupabaseConfigLoader'),
+	ConfigSubscriptionPort: Symbol.for('ConfigSubscriptionPort'),
+	SubscribeToConfigUpdates: Symbol.for('SubscribeToConfigUpdates')
 } as const;
 
 // Export as ROOT_TYPES for consistency with documentation

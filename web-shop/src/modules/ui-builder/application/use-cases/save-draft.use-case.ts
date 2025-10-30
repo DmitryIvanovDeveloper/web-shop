@@ -4,6 +4,14 @@ import { UI_BUILDER_TYPES } from '../../infrastructure/bootstrap/types';
 import { Result } from '@/shared/result/result';
 import type { Logger } from '@/application/ports/logger.port';
 import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
+import type { AppConfig } from '../../domain/entities/app-config.entity';
+import { AppConfigFactory } from '../../domain/entities/app-config.entity';
+import { ConfigVersion } from '../../domain/value-objects/config-version.vo';
+
+export interface SaveDraftInput {
+  appId: string;
+  config: Record<string, unknown>;
+}
 
 @injectable()
 export class SaveDraftUseCase {
@@ -14,8 +22,30 @@ export class SaveDraftUseCase {
     private readonly _logger: Logger
   ) {}
 
-  public async execute(): Promise<Result<void, Error>> {
-    this._logger.info('[SaveDraftUseCase] Stub execute');
+  public async execute(input: SaveDraftInput): Promise<Result<void, Error>> {
+    const { appId, config } = input;
+    this._logger.info('[SaveDraftUseCase] Saving draft config', { appId });
+    
+    // Create draft config entity
+    const draftConfig = AppConfigFactory.create({
+      appId,
+      config,
+      version: ConfigVersion.initial(), // Version will be incremented in storage
+      isActive: false,
+      isDraft: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    // Save draft
+    const saveResult = await this._storage.saveDraft(draftConfig);
+    
+    if (saveResult.isFailure) {
+      this._logger.error('[SaveDraftUseCase] Failed to save draft', saveResult.error);
+      return Result.fail(saveResult.error || new Error('Failed to save draft'));
+    }
+
+    this._logger.info('[SaveDraftUseCase] Draft saved successfully', { appId });
     return Result.ok<void, Error>(undefined as void);
   }
 }

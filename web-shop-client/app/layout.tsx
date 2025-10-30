@@ -10,6 +10,7 @@ import { SidebarRendererPresenter } from '../src/modules/ui-renderer/interface-a
 import { SidebarRenderer } from '../src/modules/ui-renderer/interface-adapters/ui/components/sidebar-renderer';
 import type { ActionContext } from '../src/modules/ui-renderer/domain/types';
 import { LoadAppConfigUseCase } from '../src/application/use-cases/load-app-config.use-case';
+import { SubscribeToConfigUpdatesUseCase } from '../src/application/use-cases/subscribe-to-config-updates.use-case';
 import { TYPES } from '../src/infrastructure/bootstrap/types';
 
 export default function RootLayout({ children }: { children: React.ReactNode}) {
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isConfigLoading, setIsConfigLoading] = useState(true);
+  const [isUIBuilderMode, setIsUIBuilderMode] = useState(false);
 
   const sidebarPresenter = container.get<SidebarRendererPresenter>(
     UI_RENDERER_TYPES.SidebarRendererPresenter
@@ -27,29 +29,101 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     onPopupClose: () => {},
   };
 
-  // Load app-config.json при старте приложения (один раз)
+  // Load app-config при старте приложения и подписка на real-time обновления
   useEffect(() => {
-    const loadAppConfig = async () => {
+    const initializeConfig = async () => {
       try {
         setIsConfigLoading(true);
+        
+        // Determine if we should load draft config
+        const isDraft = getIsDraftFromQuery();
+        
+        // 1. Load initial config (draft or active based on isDraft)
         const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
-        await loadAppConfigUseCase.execute();
+        await loadAppConfigUseCase.execute(isDraft);
         console.log('[RootLayout] App config loaded and distributed via EventBus');
-        // Даём время на обработку события и рендер компонентов
-        setTimeout(() => setIsConfigLoading(false), 300);
+        
+        // 2. Get appId from environment
+        const appId = getAppIdFromEnvironment();
+        if (appId) {
+          // 3. Subscribe to real-time config updates
+          const subscribeToUpdatesUseCase = container.get<SubscribeToConfigUpdatesUseCase>(TYPES.SubscribeToConfigUpdates);
+          await subscribeToUpdatesUseCase.execute(appId);
+          console.log('[RootLayout] Subscribed to real-time config updates');
+        }
+        
+        // Ожидаем событие применения конфига, как только модули его обработают
+        // (см. LoadAppConfigUseCase: dispatch window 'appConfigLoaded')
+        const safety = setTimeout(() => setIsConfigLoading(false), 2000);
+        const onAppConfigLoaded = () => {
+          clearTimeout(safety);
+          setIsConfigLoading(false);
+        };
+        window.addEventListener('appConfigLoaded', onAppConfigLoaded, { once: true });
       } catch (err) {
-        console.error('[RootLayout] Failed to load app config:', err);
+        console.error('[RootLayout] Failed to initialize config:', err);
         setIsConfigLoading(false);
       }
     };
-    loadAppConfig();
+
+    const getIsDraftFromQuery = (): boolean => {
+      if (typeof window !== 'undefined') {
+        try {
+          const url = new URL(window.location.href);
+          return url.searchParams.get('previewMode') === 'true';
+        } catch {}
+      }
+      return false;
+    };
+
+    const getAppIdFromEnvironment = (): string | null => {
+      if (typeof window !== 'undefined') {
+        try {
+          const url = new URL(window.location.href);
+          const fromQuery = url.searchParams.get('appId');
+          if (fromQuery) return fromQuery;
+        } catch {}
+      }
+      return process.env.NEXT_PUBLIC_APP_ID || null;
+    };
+
+    initializeConfig();
+
+    // Cleanup subscription on unmount
+    return () => {
+      try {
+        const subscribeUseCase = container.get<SubscribeToConfigUpdatesUseCase>(TYPES.SubscribeToConfigUpdates);
+        subscribeUseCase.cleanup();
+        console.log('[RootLayout] Unsubscribed from config updates');
+      } catch (err) {
+        console.error('[RootLayout] Failed to unsubscribe from config updates:', err);
+      }
+    };
   }, []);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 1024); // Скрываем sidebar на 1024px включительно (как у Pixel Gun)
+    const checkMobile = () => {
+      // Always desktop mode in UI Builder preview
+      if (isUIBuilderMode) {
+        setIsMobile(false);
+      } else {
+        setIsMobile(window.innerWidth <= 1024);
+      }
+    };
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
+  }, [isUIBuilderMode]);
+
+  useEffect(() => {
+    // Check if we're in UI Builder mode (for iframe preview)
+    if (typeof window !== 'undefined') {
+      try {
+        const url = new URL(window.location.href);
+        const uibuilder = url.searchParams.get('uibuilder');
+        setIsUIBuilderMode(uibuilder === 'true');
+      } catch {}
+    }
   }, []);
 
   return (
@@ -141,9 +215,9 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
             )}
         
             <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex relative h-screen md:h-screen" style={{ height: isMobile ? 'calc(100vh - 56px)' : '100vh' }}>
-              {/* Left Sidebar - скрывается на экранах < 1280px (xl breakpoint) */}
+              {/* Left Sidebar - скрывается на экранах < 1280px (xl breakpoint), но всегда показывается в UI Builder */}
               {!isMobile && (
-                <aside data-element-id="left-sidebar" className="hidden xl:block w-64 border-r border-gray-700 bg-gray-900 flex-shrink-0" style={{ borderLeft: '2px solid rgba(251, 191, 36, 0.3)' }}>
+                <aside data-element-id="left-sidebar" className={isUIBuilderMode ? "block w-64 border-r border-gray-700 bg-gray-900 flex-shrink-0" : "hidden xl:block w-64 border-r border-gray-700 bg-gray-900 flex-shrink-0"} style={{ borderLeft: '2px solid rgba(251, 191, 36, 0.3)' }}>
                   <SidebarRenderer presenter={sidebarPresenter} actionContext={actionContext} />
                 </aside>
               )}

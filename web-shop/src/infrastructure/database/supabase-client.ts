@@ -1,7 +1,7 @@
 import { injectable, inject } from 'inversify';
 import { createClient, SupabaseClient as SupabaseClientType } from '@supabase/supabase-js';
-import type { DatabaseClientPort } from '../../application/ports/database-client.port';
-import { ROOT_TYPES } from '../bootstrap/types';
+import { DatabaseClientPort } from '../../application/ports/database-client.port';
+import { TYPES } from '../bootstrap/types';
 import type { Logger } from '../../application/ports/logger.port';
 
 /**
@@ -15,7 +15,7 @@ export class SupabaseClient implements DatabaseClientPort {
   private static instance: SupabaseClientType | null = null;
 
   constructor(
-    @inject(ROOT_TYPES.Logger)
+    @inject(TYPES.Logger)
     private readonly _logger: Logger
   ) {
     if (!SupabaseClient.instance) {

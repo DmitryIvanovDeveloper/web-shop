@@ -4,7 +4,7 @@ import { HttpClient } from '../../application/ports/http-client.port';
 import { Logger } from '../../application/ports/logger.port';
 import { RealtimeClientPort } from '../../application/ports/realtime-client.port';
 import { EventBus as EventBusPort } from '../../application/ports/event-bus.port';
-import { DatabaseClientPort } from '../../application/ports/database-client.port';
+import type { DatabaseClientPort } from '../../application/ports/database-client.port';
 import { EventBus } from '../events/event-bus';
 import { AxiosHttpClient } from '../http/http-client';
 import { HttpClientMock } from '../http/http-client.mock';
@@ -54,10 +54,10 @@ import { UIStyleBuilder } from '../services/ui-renderer/style-builder.service';
 import { UIActionHandler } from '../services/ui-renderer/action-handler.service';
 import type { UIRendererPort } from '../../application/ports/ui-renderer.port';
 import { LoadAppConfigUseCase } from '../../application/use-cases/load-app-config.use-case';
-import { ApplyBackgroundOnConfigHandler } from '../handlers/apply-background-on-config.handler';
-import { IAsyncEventHandler } from '../events/events-handler.plugin';
-import { AppConfigLoadedEvent } from '../../shared/events/app-config-events';
 import { SupabaseConfigLoader } from '../config/supabase-config-loader';
+import { ConfigSubscriptionPort } from '../../application/ports/config-subscription.port';
+import { SupabaseConfigSubscriptionAdapter } from '../config/supabase-config-subscription.adapter';
+import { SubscribeToConfigUpdatesUseCase } from '../../application/use-cases/subscribe-to-config-updates.use-case';
 
 // Universal UI Renderer Service and its dependencies
 container.bind(TYPES.UIComponentRegistry).to(UIComponentRegistry).inSingletonScope();
@@ -69,10 +69,8 @@ container.bind<UIRendererPort>(TYPES.UIRenderer).to(UIRendererService).inSinglet
 container.bind(TYPES.SupabaseConfigLoader).to(SupabaseConfigLoader).inSingletonScope();
 container.bind(TYPES.LoadAppConfig).to(LoadAppConfigUseCase).inSingletonScope();
 
-// Global background applier on AppConfig load
-container
-  .bind<IAsyncEventHandler<AppConfigLoadedEvent>>(Symbol.for('IAsyncEventHandler<AppConfigLoadedEvent>'))
-  .to(ApplyBackgroundOnConfigHandler)
-  .inTransientScope();
+// Config Subscription for real-time updates
+container.bind<ConfigSubscriptionPort>(TYPES.ConfigSubscriptionPort).to(SupabaseConfigSubscriptionAdapter).inSingletonScope();
+container.bind(TYPES.SubscribeToConfigUpdates).to(SubscribeToConfigUpdatesUseCase).inSingletonScope();
 
 export { container };

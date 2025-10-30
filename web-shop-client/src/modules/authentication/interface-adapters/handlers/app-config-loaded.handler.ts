@@ -30,7 +30,12 @@ export class AuthAppConfigLoadedHandler implements IAsyncEventHandler<AppConfigL
 			version: event.payload.config.version
 		});
 
-		const authConfig = event.payload.config.modules.authentication;
+		const authConfig = event.payload.config.modules?.authentication;
+		if (!authConfig) {
+			this._logger.warn('[AuthAppConfigLoadedHandler] No authentication config found in modules');
+			return;
+		}
+
 		const theme = event.payload.config.theme;
 
 		this._authPresenter.setConfig({

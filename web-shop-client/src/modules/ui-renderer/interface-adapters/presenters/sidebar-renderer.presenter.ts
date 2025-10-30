@@ -86,6 +86,12 @@ export class SidebarRendererPresenter {
    */
   private _convertToPageConfig(layoutConfig: any, type: string): PageConfig | null {
     try {
+      // Defensive guards: layoutConfig and its theme/layout must exist
+      if (!layoutConfig || !layoutConfig.theme || !layoutConfig.layout) {
+        console.warn('[SidebarRendererPresenter] Missing layoutConfig fields for', type, layoutConfig);
+        return null;
+      }
+
       const themeResult = ThemeConfig.create({
         colors: layoutConfig.theme.colors,
         spacing: layoutConfig.theme.spacing,
@@ -139,14 +145,25 @@ export class SidebarRendererPresenter {
       }
     }
 
+    // Normalize component type to PascalCase (fix for OffersList/ProductsList)
+    const normalizedType = this._normalizeComponentType(nodeData.type);
+    
     return ComponentNode.create({
       id: nodeData.id,
-      type: nodeData.type,
+      type: normalizedType,
       props: nodeData.props || {},
       styles: nodeData.styles || {},
       children,
       actions: nodeData.actions,
     });
+  }
+
+  private _normalizeComponentType(type: string): string {
+    // PascalCase: First letter uppercase, rest as-is
+    if (!type) return type;
+    const firstChar = type[0]?.toUpperCase() || '';
+    const rest = type.slice(1);
+    return firstChar + rest;
   }
 }
 

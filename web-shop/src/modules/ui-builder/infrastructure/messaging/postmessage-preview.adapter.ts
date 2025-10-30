@@ -13,8 +13,8 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
     return env.NEXT_PUBLIC_CLIENT_URL || '*';
   }
 
-  public setIframeRef(ref: HTMLIFrameElement | null): void {
-    this._iframeEl = ref;
+  public setIframeRef(ref: React.RefObject<HTMLIFrameElement> | HTMLIFrameElement | null): void {
+    this._iframeEl = (ref as any)?.current || ref;
   }
 
   public sendThemeUpdate(colors: Record<string, string>): void {
@@ -103,19 +103,26 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
         console.log('[PostMessagePreviewAdapter] Element selected:', event.data.elementId);
         callback(event.data.elementId);
       }
+      
+      if (event.data.type === 'PREVIEW_READY') {
+        console.log('[PostMessagePreviewAdapter] Preview ready, notifying callbacks');
+        this.notifyPreviewReady();
+      }
     };
 
-    console.log('[PostMessagePreviewAdapter] Listening for element selection messages');
+    console.log('[PostMessagePreviewAdapter] Listening for element selection and preview ready messages');
     window.addEventListener('message', this._elementSelectedHandler);
   }
 
   public onPreviewReady(callback: () => void): void {
+    console.log('[PostMessagePreviewAdapter] Registering onPreviewReady callback');
     this._readyCallbacks.push(callback);
   }
 
   public notifyPreviewReady(): void {
+    console.log('[PostMessagePreviewAdapter] notifying callbacks', { count: this._readyCallbacks.length });
     this._readyCallbacks.forEach(cb => cb());
-    this._readyCallbacks = [];
+    // Don't clear callbacks to allow re-sending updates on iframe reload
   }
 
   public sendSidebarStructure(layout: unknown): void {

@@ -26,6 +26,14 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   useEffect(() => { setIsClient(true); }, []);
   const [activeSection, setActiveSection] = useState<'sidebar' | 'authButton' | 'authPopup'>('sidebar');
 
+  // Set iframe ref when it changes
+  useEffect(() => {
+    const previewComm = presenter.getPreviewCommunication();
+    if (previewComm && previewComm.setIframeRef && iframeRef.current) {
+      previewComm.setIframeRef(iframeRef);
+    }
+  });
+
   useEffect(() => {
     const unsubscribe = presenter.subscribe((vm: any) => {
       console.log('[UIBuilderPage] ViewModel updated:', {
@@ -35,12 +43,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       setViewModel(vm);
     });
 
-    // Set iframe ref in preview communication adapter
-    const previewComm = presenter.getPreviewCommunication();
-    if (previewComm && previewComm.setIframeRef) {
-      previewComm.setIframeRef(iframeRef);
-    }
-
     // Load config on mount
     presenter.loadConfig(appId);
 
@@ -49,6 +51,19 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
     return unsubscribe;
   }, [presenter, appId]);
+
+  // Listen for custom auto-save event
+  useEffect(() => {
+    const handleAutoSave = () => {
+      setCacheKey(Date.now());
+      setLastAutoSaved(new Date());
+    };
+    
+    window.addEventListener('uibuilder:autoSave', handleAutoSave);
+    return () => {
+      window.removeEventListener('uibuilder:autoSave', handleAutoSave);
+    };
+  }, []);
 
   const handleThemeChange = (colors: Record<string, string>) => {
     presenter.updateTheme(colors);
@@ -166,40 +181,44 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   }, [presenter]);
 
   // Send initial theme and sidebar colors when preview signals ready or when config changes
-  useEffect(() => {
-    const previewComm = presenter.getPreviewCommunication();
-    if (!previewComm) return;
+  // Temporarily disabled postMessage - using only Supabase Realtime
+  // useEffect(() => {
+  //   const previewComm = presenter.getPreviewCommunication();
+  //   if (!previewComm) return;
 
-    const sendInitial = () => {
-      try {
-        // send theme
-        const themeColors = ((viewModel.config as any)?.theme?.colors || {}) as Record<string, string>;
-        if (themeColors) {
-          previewComm.sendThemeUpdate(themeColors);
-        }
-        // send store-button colors (and others later if needed)
-        const storeColors = getElementColorsFromConfig('store-button');
-        if (storeColors) {
-          previewComm.sendSidebarUpdate({ elementId: 'store-button', colors: storeColors });
-        }
+  //   const sendInitial = () => {
+  //     try {
+  //       // Delay to ensure iframe is ready
+  //       setTimeout(() => {
+  //         // send theme
+  //         const themeColors = ((viewModel.config as any)?.theme?.colors || {}) as Record<string, string>;
+  //         if (themeColors) {
+  //           previewComm.sendThemeUpdate(themeColors);
+  //         }
+  //         // send store-button colors (and others later if needed)
+  //         const storeColors = getElementColorsFromConfig('store-button');
+  //         if (storeColors) {
+  //           previewComm.sendSidebarUpdate({ elementId: 'store-button', colors: storeColors });
+  //         }
 
-        // send current left sidebar structure so new buttons appear without reload
-        const layout = (viewModel.config as any)?.modules?.uiRenderer?.sidebar?.layout;
-        if (layout && previewComm.sendSidebarStructure) {
-          previewComm.sendSidebarStructure(layout);
-        }
-      } catch {}
-    };
+  //         // send current left sidebar structure so new buttons appear without reload
+  //         const layout = (viewModel.config as any)?.modules?.uiRenderer?.sidebar?.layout;
+  //         if (layout && previewComm.sendSidebarStructure) {
+  //           previewComm.sendSidebarStructure(layout);
+  //         }
+  //       }, 100);
+  //     } catch {}
+  //   };
 
-    if (previewComm.onPreviewReady) {
-      previewComm.onPreviewReady(sendInitial);
-    }
+  //   if (previewComm.onPreviewReady) {
+  //     previewComm.onPreviewReady(sendInitial);
+  //   }
 
-    // also send once when config is ready (in case iframe was already ready)
-    if (viewModel.config) {
-      sendInitial();
-    }
-  }, [presenter, viewModel.config]);
+  //   // also send once when config is ready (in case iframe was already ready)
+  //   if (viewModel.config) {
+  //     sendInitial();
+  //   }
+  // }, [presenter, viewModel.config]);
 
   if (viewModel.isLoading) {
     return (
@@ -431,7 +450,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                     ↻
                   </button>
                   <button
-                    onClick={() => window.open(`${clientUrl}/showcase?appId=${appId}&previewMode=true`, '_blank')}
+                    onClick={() => window.open(`${clientUrl}/?appId=${appId}&previewMode=false`, '_blank')}
                     className="p-1.5 text-gray-600 hover:text-gray-900 text-sm"
                     title="Open in new tab"
                   >
@@ -443,7 +462,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 {isClient && (
                   <iframe
                     ref={iframeRef}
-                    src={`${clientUrl}/showcase?appId=${appId}&previewMode=true${cacheKey ? `&_t=${cacheKey}` : ''}`}
+                    src={`${clientUrl}/?appId=${appId}&previewMode=false&uibuilder=true${cacheKey ? `&_t=${cacheKey}` : ''}`}
                     className={`border border-gray-300 rounded transition-all duration-300 ${
                       viewportMode === 'mobile' ? 'w-[375px]' : 
                       viewportMode === 'tablet' ? 'w-[768px]' : 
