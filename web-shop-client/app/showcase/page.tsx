@@ -72,6 +72,16 @@ function ShowcaseContent() {
         applyElementColors(elementId, colors);
       }
 
+      if (event.data.type === 'STRUCTURE_UPDATE') {
+        try {
+          const layout = event.data.layout;
+          console.log('[Showcase] Received STRUCTURE_UPDATE', layout);
+          rebuildLeftSidebar(layout);
+        } catch (e) {
+          console.warn('[Showcase] Failed to apply STRUCTURE_UPDATE', e);
+        }
+      }
+
       if (event.data.type === 'AUTH_UPDATE') {
         try {
           const payload = event.data.payload || {};
@@ -100,6 +110,55 @@ function ShowcaseContent() {
         } catch (e) {
           console.warn('[Showcase] Failed to apply AUTH_UPDATE', e);
         }
+      }
+    };
+
+    const rebuildLeftSidebar = (layout: any) => {
+      if (!layout) return;
+      // Try to find left sidebar container by several strategies
+      let sidebarWrapper = document.querySelector('[data-element-id="left-sidebar"]') as HTMLElement | null;
+      if (!sidebarWrapper) {
+        // any element-id containing 'sidebar'
+        sidebarWrapper = document.querySelector('[data-element-id*="sidebar" i]') as HTMLElement | null;
+      }
+      if (!sidebarWrapper) {
+        // try first aside as a fallback
+        sidebarWrapper = document.querySelector('aside') as HTMLElement | null;
+      }
+      if (!sidebarWrapper) {
+        console.warn('[Showcase] Left sidebar wrapper not found to rebuild');
+        return;
+      }
+      const container = (sidebarWrapper.firstElementChild as HTMLElement) || (sidebarWrapper as HTMLElement);
+      if (!container) return;
+      // Clear existing dynamic items
+      while (container.firstChild) container.removeChild(container.firstChild);
+
+      const buildNode = (node: any): HTMLElement => {
+        if (node.type === 'button') {
+          const btn = document.createElement('button');
+          btn.textContent = node?.props?.text || 'Button';
+          btn.setAttribute('data-element-id', node.id || 'button');
+          const s = node.styles || {};
+          if (s.backgroundColor) btn.style.setProperty('background-color', s.backgroundColor, 'important');
+          if (s.textColor) btn.style.setProperty('color', s.textColor, 'important');
+          if (s.borderColor) btn.style.setProperty('border-color', s.borderColor, 'important');
+          btn.className = 'px-3 py-2 rounded border';
+          return btn;
+        }
+        // container or unknown: build a div and append children
+        const div = document.createElement('div');
+        if (node?.id) div.setAttribute('data-element-id', node.id);
+        (node?.children || []).forEach((child: any) => div.appendChild(buildNode(child)));
+        return div;
+      };
+
+      const rebuilt = buildNode(layout);
+      // If the top node is the left-sidebar container itself, render its children
+      if (rebuilt.children && rebuilt.children.length > 0) {
+        Array.from(rebuilt.children).forEach((child) => container.appendChild(child.cloneNode(true)));
+      } else {
+        container.appendChild(rebuilt);
       }
     };
 
@@ -226,6 +285,7 @@ export default function ShowcasePage() {
     </Suspense>
   );
 }
+
 
 
 

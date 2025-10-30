@@ -110,6 +110,53 @@ export class UIBuilderPresenter {
     this.selectElement(elementId);
   }
 
+  public addSidebarButton(label?: string): void {
+    const layout = (this.vm.config as any)?.modules?.uiRenderer?.sidebar?.layout;
+    if (!layout) return;
+    if (!Array.isArray(layout.children)) {
+      layout.children = [];
+    }
+
+    const existingIds = new Set<string>();
+    const collect = (n: any) => {
+      if (n?.id) existingIds.add(n.id);
+      if (Array.isArray(n?.children)) n.children.forEach(collect);
+    };
+    collect(layout);
+
+    let index = 1;
+    let newId = `button-${index}`;
+    while (existingIds.has(newId)) {
+      index += 1;
+      newId = `button-${index}`;
+    }
+
+    const node = {
+      id: newId,
+      type: 'button',
+      props: { text: label || 'New Button' },
+      styles: {
+        backgroundColor: '#1d4ed8',
+        textColor: '#ffffff',
+        borderColor: '#1e40af',
+      },
+    };
+
+    layout.children.push(node);
+    // Иммутабельное обновление, чтобы React отследил изменения
+    const clonedConfig = JSON.parse(JSON.stringify(this.vm.config || {}));
+    this.vm = {
+      ...this.vm,
+      config: clonedConfig,
+      selectedElement: { id: newId, colors: this.getElementColorsFromConfig(newId) || undefined },
+      isDraft: true,
+    };
+    try {
+      this.preview.sendSidebarStructure?.(layout);
+    } catch {}
+    this.notify();
+  }
+
   public async saveDraft(): Promise<boolean> {
     // stub success
     this.vm.isDraft = true;

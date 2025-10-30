@@ -143,7 +143,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
             <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex relative h-screen md:h-screen" style={{ height: isMobile ? 'calc(100vh - 56px)' : '100vh' }}>
               {/* Left Sidebar - скрывается на экранах < 1280px (xl breakpoint) */}
               {!isMobile && (
-                <aside className="hidden xl:block w-64 border-r border-gray-700 bg-gray-900 flex-shrink-0" style={{ borderLeft: '2px solid rgba(251, 191, 36, 0.3)' }}>
+                <aside data-element-id="left-sidebar" className="hidden xl:block w-64 border-r border-gray-700 bg-gray-900 flex-shrink-0" style={{ borderLeft: '2px solid rgba(251, 191, 36, 0.3)' }}>
                   <SidebarRenderer presenter={sidebarPresenter} actionContext={actionContext} />
                 </aside>
               )}

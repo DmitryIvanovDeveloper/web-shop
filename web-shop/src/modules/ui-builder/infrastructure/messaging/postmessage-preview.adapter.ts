@@ -105,6 +105,21 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
     this._readyCallbacks.forEach(cb => cb());
     this._readyCallbacks = [];
   }
+
+  public sendSidebarStructure(layout: unknown): void {
+    if (!this._iframeEl?.contentWindow) {
+      console.warn('[PostMessagePreviewAdapter] iframe not ready, cannot send structure update');
+      return;
+    }
+
+    this._iframeEl.contentWindow.postMessage(
+      {
+        type: 'STRUCTURE_UPDATE',
+        layout,
+      },
+      this._targetOrigin
+    );
+  }
 }
 
 

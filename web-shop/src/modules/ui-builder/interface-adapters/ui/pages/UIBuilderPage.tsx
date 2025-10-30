@@ -20,7 +20,10 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   const [viewportMode, setViewportMode] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
   const clientUrl = env.NEXT_PUBLIC_CLIENT_URL;
   // Keep a stable cache-buster to avoid iframe reload on every re-render (selection/color change)
-  const [cacheKey, setCacheKey] = useState<number>(() => Date.now());
+  // Avoid SSR/CSR mismatch: start without cache-buster, set only on explicit refresh/publish
+  const [cacheKey, setCacheKey] = useState<number | null>(null);
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => { setIsClient(true); }, []);
   const [activeSection, setActiveSection] = useState<'sidebar' | 'authButton' | 'authPopup'>('sidebar');
 
   useEffect(() => {
@@ -164,6 +167,12 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         if (storeColors) {
           previewComm.sendSidebarUpdate({ elementId: 'store-button', colors: storeColors });
         }
+
+        // send current left sidebar structure so new buttons appear without reload
+        const layout = (viewModel.config as any)?.modules?.uiRenderer?.sidebar?.layout;
+        if (layout && previewComm.sendSidebarStructure) {
+          previewComm.sendSidebarStructure(layout);
+        }
       } catch {}
     };
 
@@ -228,6 +237,18 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           {/* Left Sidebar Elements */}
           <div className="mb-4">
             <h3 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Left Sidebar</h3>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] text-gray-500">Manage buttons</span>
+              <button
+                onClick={() => {
+                  presenter.addSidebarButton('New Button');
+                }}
+                className="px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600"
+                title="Add new button to Left Sidebar"
+              >
+                + Add Button
+              </button>
+            </div>
             <ElementTreeSelector
               elements={extractSidebarElements()}
               selectedId={viewModel.selectedElement?.id || null}
@@ -404,18 +425,20 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 </div>
               </div>
               <div className="relative flex justify-center">
-                <iframe
-                  ref={iframeRef}
-                  src={`${clientUrl}/showcase?appId=${appId}&previewMode=true&_t=${cacheKey}`}
-                  className={`border border-gray-300 rounded transition-all duration-300 ${
-                    viewportMode === 'mobile' ? 'w-[375px]' : 
-                    viewportMode === 'tablet' ? 'w-[768px]' : 
-                    'w-full'
-                  }`}
-                  style={{ height: 'calc(100vh - 200px)' }}
-                  title="Live Preview"
-                  sandbox="allow-scripts allow-same-origin"
-                />
+                {isClient && (
+                  <iframe
+                    ref={iframeRef}
+                    src={`${clientUrl}/showcase?appId=${appId}&previewMode=true${cacheKey ? `&_t=${cacheKey}` : ''}`}
+                    className={`border border-gray-300 rounded transition-all duration-300 ${
+                      viewportMode === 'mobile' ? 'w-[375px]' : 
+                      viewportMode === 'tablet' ? 'w-[768px]' : 
+                      'w-full'
+                    }`}
+                    style={{ height: 'calc(100vh - 200px)' }}
+                    title="Live Preview"
+                    sandbox="allow-scripts allow-same-origin"
+                  />
+                )}
               </div>
             </div>
 
