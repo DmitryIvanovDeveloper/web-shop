@@ -57,7 +57,7 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     : node.styles;
     
   const className = styleBuilder.buildClassName(styles, theme);
-  let style = styleBuilder.buildInlineStyles(styles, theme);
+  let style = styleBuilder.buildInlineStyles(styles, theme, node.type);
 
   // For main-content Container, remove background styles (they're applied to body)
   if (node.id === 'main-content' && node.type === 'Container') {
@@ -149,7 +149,11 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
   // Для Container компонентов не добавляем flex классы - UniversalContainer сам их добавит
   const finalClassName = className;
   
-  const containerProps = { className: finalClassName };
+  const containerProps = { 
+    className: finalClassName,
+    ...(node.type === 'Container' && node.styles?.gap ? { gap: node.styles.gap, vertical: true } : {}),
+    ...(node.type === 'Container' && node.id === 'sidebar-container' ? { sidebar: true } : {})
+  };
 
   // Специальная обработка для InputText
   const inputTextProps = node.type === 'InputText' 
@@ -191,6 +195,11 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
   // Add data-element-id for preview mode to enable color updates
   const previewProps = node.id ? { 'data-element-id': node.id } : {};
 
+  // Специальная обработка для Button - text уже в node.props, но убеждаемся что он передаётся
+  const buttonProps = node.type === 'Button'
+    ? { text: node.props?.text || node.props?.children }
+    : {};
+
   // Типобезопасные props - TypeScript знает структуру
   const componentProps = {
     ...node.props,
@@ -200,6 +209,7 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     ...universalInputProps,
     ...inputProps,
     ...offersListProps,
+    ...buttonProps,
     ...previewProps,
     style,
     children,

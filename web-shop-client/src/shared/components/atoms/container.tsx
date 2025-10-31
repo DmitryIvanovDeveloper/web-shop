@@ -8,6 +8,7 @@ export interface UniversalContainerProps {
   readonly children?: ReactNode;
   readonly vertical?: boolean;
   readonly sidebar?: boolean;
+  readonly gap?: string;
 }
 
 export function UniversalContainer({
@@ -16,23 +17,31 @@ export function UniversalContainer({
   children,
   vertical = false,
   sidebar = false,
+  gap,
 }: UniversalContainerProps): JSX.Element {
   // Проверяем, есть ли уже flex flex-col в className (с ! или без)
   const hasFlexCol = (className.includes('flex') || className.includes('!flex')) && 
-                     (className.includes('flex-col') || className.includes('!flex-col'));
+                    (className.includes('flex-col') || className.includes('!flex-col'));
   
   const containerClasses = vertical 
     ? sidebar 
       ? hasFlexCol 
-        ? `w-64 gap-2 ${className}`.replace(/\s+/g, ' ').trim()
-        : `!flex !flex-col w-64 gap-2 ${className}`.replace(/\s+/g, ' ').trim()
+        ? `w-64 ${className}`.replace(/\s+/g, ' ').trim()
+        : `!flex !flex-col w-64 ${className}`.replace(/\s+/g, ' ').trim()
       : hasFlexCol 
-        ? `gap-2 ${className}`.replace(/\s+/g, ' ').trim()
-        : `!flex !flex-col gap-2 ${className}`.replace(/\s+/g, ' ').trim()
+        ? className
+        : `!flex !flex-col ${className}`.replace(/\s+/g, ' ').trim()
     : className;
+  
+  // Apply gap via inline style if provided, otherwise use default
+  // When gap is applied, we must also ensure display: flex is in inline style
+  const containerStyle: CSSProperties = {
+    ...style,
+    ...(vertical && gap ? { display: 'flex', flexDirection: 'column', gap } : {}),
+  };
     
   return (
-    <aside className={containerClasses} style={style}>
+    <aside className={containerClasses} style={containerStyle}>
       {children}
     </aside>
   );

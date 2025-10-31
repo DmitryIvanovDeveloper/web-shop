@@ -28,7 +28,7 @@ export class StyleBuilder {
     return classes.join(' ');
   }
 
-  public buildInlineStyles(styles: Readonly<StyleConfig>, theme?: ThemeConfig): CSSProperties {
+  public buildInlineStyles(styles: Readonly<StyleConfig>, theme?: ThemeConfig, componentType?: string): CSSProperties {
     const inlineStyles: CSSProperties = {};
 
     if (styles.backgroundColor) {
@@ -150,8 +150,18 @@ export class StyleBuilder {
     }
 
     // Обрабатываем textAlign как inline стиль
+    // Для кнопок преобразуем textAlign в justifyContent, так как кнопки используют flexbox
     if (styles.textAlign !== undefined) {
-      inlineStyles.textAlign = styles.textAlign;
+      if (componentType === 'Button') {
+        const justifyContentMap: Record<string, string> = {
+          'left': 'flex-start',
+          'center': 'center',
+          'right': 'flex-end',
+        };
+        inlineStyles.justifyContent = justifyContentMap[styles.textAlign] || 'center';
+      } else {
+        inlineStyles.textAlign = styles.textAlign;
+      }
     }
 
     // Обрабатываем justifyContent как inline стиль

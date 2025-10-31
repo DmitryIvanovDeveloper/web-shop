@@ -16,12 +16,8 @@ interface UIBuilderPageProps {
 export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Element {
   const [viewModel, setViewModel] = useState(presenter.getViewModel());
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [lastAutoSaved, setLastAutoSaved] = useState<Date | null>(null);
   const [viewportMode, setViewportMode] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
   const clientUrl = env.NEXT_PUBLIC_CLIENT_URL;
-  // Keep a stable cache-buster to avoid iframe reload on every re-render (selection/color change)
-  // Avoid SSR/CSR mismatch: start without cache-buster, set only on explicit refresh/publish
-  const [cacheKey, setCacheKey] = useState<number | null>(null);
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
   const [activeSection, setActiveSection] = useState<'sidebar' | 'authButton' | 'authPopup'>('sidebar');
@@ -43,31 +39,14 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       setViewModel(vm);
     });
 
-    // Load config on mount
-    presenter.loadConfig(appId);
-
-    // Try to restore local draft
-    presenter.loadLocalDraft(appId);
+    // Initialize and load full config from Supabase on mount
+    presenter.initialize(appId);
 
     return unsubscribe;
   }, [presenter, appId]);
 
-  // Listen for custom auto-save event
-  useEffect(() => {
-    const handleAutoSave = () => {
-      setCacheKey(Date.now());
-      setLastAutoSaved(new Date());
-    };
-    
-    window.addEventListener('uibuilder:autoSave', handleAutoSave);
-    return () => {
-      window.removeEventListener('uibuilder:autoSave', handleAutoSave);
-    };
-  }, []);
-
   const handleThemeChange = (colors: Record<string, string>) => {
     presenter.updateTheme(colors);
-    setLastAutoSaved(new Date());
   };
 
   const handleSaveDraft = async () => {
@@ -89,8 +68,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
     const success = await presenter.publishDraft();
     if (success) {
-      // Refresh iframe to load new published config
-      setCacheKey(Date.now());
       alert('Configuration published successfully!');
     } else if (viewModel.error) {
       alert(`Failed to publish: ${viewModel.error}`);
@@ -114,7 +91,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
   const handleElementColorChange = (elementId: string, colors: Record<string, string>) => {
     presenter.updateElementColors(elementId, colors);
-    setLastAutoSaved(new Date());
   };
 
   // Extract sidebar elements from config
@@ -252,15 +228,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
   const theme = viewModel.config.theme as any;
 
-  const formatTime = (date: Date): string => {
-    const diff = Date.now() - date.getTime();
-    const minutes = Math.floor(diff / 60000);
-    if (minutes < 1) return 'just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    return `${hours}h ago`;
-  };
-
   return (
     <div className="w-full h-screen flex bg-gray-100">
       {/* Edit Elements Sidebar - список компонентов для редактирования */}
@@ -348,10 +315,17 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                     )}
                   </span>
                 )}
-                {lastAutoSaved && <span className="ml-3 text-gray-400">Auto-saved {formatTime(lastAutoSaved)}</span>}
               </p>
             </div>
             <div className="flex gap-2 items-center">
+              <button
+                onClick={() => presenter.resetToActive(appId)}
+                disabled={viewModel.isSaving || !viewModel.isDraft}
+                className="px-3 py-1.5 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs"
+                title={!viewModel.isDraft ? 'No draft changes to reset' : 'Reset to last published version'}
+              >
+                🔄 Reset to Active
+              </button>
               <button
                 onClick={handleSaveDraft}
                 disabled={viewModel.isSaving || !viewModel.isDraft}
@@ -380,6 +354,10 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               <SidebarColorEditor
                 element={viewModel.selectedElement}
                 onChange={handleElementColorChange}
+                onGapChange={(elementId, gap) => presenter.updateContainerGap(elementId, gap)}
+                onBorderRadiusChange={(elementId, borderRadius) => presenter.updateButtonBorderRadius(elementId, borderRadius)}
+                onLabelChange={(elementId, label) => presenter.updateButtonLabel(elementId, label)}
+                onTextAlignChange={(elementId, textAlign) => presenter.updateButtonTextAlign(elementId, textAlign)}
               />
             )}
 
@@ -462,7 +440,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 {isClient && (
                   <iframe
                     ref={iframeRef}
-                    src={`${clientUrl}/?appId=${appId}&previewMode=false&uibuilder=true${cacheKey ? `&_t=${cacheKey}` : ''}`}
+                    src={`${clientUrl}/?appId=${appId}&previewMode=true&uibuilder=true`}
                     className={`border border-gray-300 rounded transition-all duration-300 ${
                       viewportMode === 'mobile' ? 'w-[375px]' : 
                       viewportMode === 'tablet' ? 'w-[768px]' : 

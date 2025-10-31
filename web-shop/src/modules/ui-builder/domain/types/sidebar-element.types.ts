@@ -9,8 +9,13 @@ export interface SidebarElement {
 
 export interface SelectedElement {
   id: string;
-  path: string[];
+  path?: string[];
   colors?: Record<string, string>;
+  gap?: string;
+  type?: string;
+  borderRadius?: string;
+  label?: string;
+  textAlign?: string;
 }
 
 

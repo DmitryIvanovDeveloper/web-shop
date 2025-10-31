@@ -1,8 +1,12 @@
 import { inject, injectable } from 'inversify';
 import { UI_BUILDER_TYPES } from '../../infrastructure/bootstrap/types';
 import type { PreviewCommunicationPort } from '../../application/ports/preview-communication.port';
+import type { LoadDraftConfigUseCase } from '../../application/use-cases/load-draft-config.use-case';
+import type { LoadActiveConfigUseCase } from '../../application/use-cases/load-active-config.use-case';
 import type { SaveDraftUseCase } from '../../application/use-cases/save-draft.use-case';
-import { container } from '@/infrastructure/bootstrap/container';
+import type { Logger } from '@/application/ports/logger.port';
+import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
+import type { SelectedElement } from '../../domain/types/sidebar-element.types';
 
 interface ViewModel {
   appId: string;
@@ -13,7 +17,7 @@ interface ViewModel {
   error: string | null;
   validationErrors: any[];
   config: Record<string, unknown> | null;
-  selectedElement: { id: string; colors?: Record<string, string> } | null;
+  selectedElement: SelectedElement | null;
 }
 
 @injectable()
@@ -61,7 +65,15 @@ export class UIBuilderPresenter {
 
   constructor(
     @inject(UI_BUILDER_TYPES.PreviewCommunication)
-    private readonly preview: PreviewCommunicationPort
+    private readonly preview: PreviewCommunicationPort,
+    @inject(UI_BUILDER_TYPES.LoadDraftConfigUseCase)
+    private readonly _loadDraftConfigUseCase: LoadDraftConfigUseCase,
+    @inject(UI_BUILDER_TYPES.LoadActiveConfigUseCase)
+    private readonly _loadActiveConfigUseCase: LoadActiveConfigUseCase,
+    @inject(UI_BUILDER_TYPES.SaveDraftUseCase)
+    private readonly _saveDraftUseCase: SaveDraftUseCase,
+    @inject(ROOT_TYPES.Logger)
+    private readonly _logger: Logger
   ) {}
 
   public subscribe(cb: (vm: ViewModel) => void): () => void {
@@ -85,6 +97,104 @@ export class UIBuilderPresenter {
     return this.preview;
   }
 
+  public async initialize(appId: string): Promise<void> {
+    this._logger.info('[UIBuilderPresenter] Initializing with appId', { appId });
+    this.vm = { ...this.vm, isLoading: true, appId };
+    this.notify();
+
+    try {
+      const result = await this._loadDraftConfigUseCase.execute(appId);
+      
+      if (result.isSuccess && result.value) {
+        this._logger.info('[UIBuilderPresenter] Config loaded successfully', { appId });
+        this.vm = { ...this.vm, config: result.value as unknown as Record<string, unknown>, isLoading: false };
+        this.sendConfigToIframe();
+      } else {
+        this._logger.warn('[UIBuilderPresenter] Failed to load config, using default', { appId, error: result.error });
+        this.vm = { ...this.vm, config: this.getDefaultConfig(), isLoading: false };
+        this.sendConfigToIframe();
+      }
+      
+      this.notify();
+    } catch (error) {
+      this._logger.error('[UIBuilderPresenter] Error initializing', { appId, error });
+      this.vm = { ...this.vm, config: this.getDefaultConfig(), isLoading: false, error: 'Failed to load configuration' };
+      this.notify();
+    }
+  }
+
+  public async resetToActive(appId: string): Promise<void> {
+    this._logger.info('[UIBuilderPresenter] Resetting to active config', { appId });
+    this.vm = { ...this.vm, isLoading: true };
+    this.notify();
+
+    try {
+      const result = await this._loadActiveConfigUseCase.execute(appId);
+      
+      if (result.isSuccess && result.value) {
+        this._logger.info('[UIBuilderPresenter] Active config loaded successfully', { appId });
+        this.vm = { 
+          ...this.vm, 
+          config: result.value as unknown as Record<string, unknown>, 
+          isLoading: false,
+          isDraft: false,
+          selectedElement: null 
+        };
+        this.sendConfigToIframe();
+      } else {
+        this._logger.error('[UIBuilderPresenter] Failed to load active config', { appId, error: result.error });
+        this.vm = { 
+          ...this.vm, 
+          isLoading: false, 
+          error: 'Failed to load active configuration. Make sure you have published at least one version.' 
+        };
+      }
+      
+      this.notify();
+    } catch (error) {
+      this._logger.error('[UIBuilderPresenter] Error resetting to active', { appId, error });
+      this.vm = { 
+        ...this.vm, 
+        isLoading: false, 
+        error: 'Failed to reset to active configuration' 
+      };
+      this.notify();
+    }
+  }
+
+  private getDefaultConfig(): Record<string, unknown> {
+    return {
+      theme: { colors: { primary: '#1d4ed8', background: '#ffffff', text: '#111827' } },
+      modules: {
+        uiRenderer: {
+          sidebar: {
+            version: '1.0',
+            theme: {
+              colors: { primary: '#1d4ed8', background: '#ffffff', surface: '#ffffff', text: '#111827' },
+              spacing: [4, 8, 12, 16, 24, 32, 48, 64]
+            },
+            layout: {
+              id: 'left-sidebar',
+              type: 'Container',
+              props: { text: 'Left Sidebar' },
+              styles: { backgroundColor: '#f3f4f6', textColor: '#111827', borderColor: '#e5e7eb' },
+              children: [
+                {
+                  id: 'store-button',
+                  type: 'Button',
+                  props: { text: 'Store' },
+                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af' },
+                },
+              ],
+            },
+          },
+        },
+      },
+      version: '1.0',
+      environment: 'production'
+    };
+  }
+
   public async loadConfig(appId: string): Promise<void> {
     this.vm.isLoading = true;
     this.vm.appId = appId;
@@ -94,24 +204,36 @@ export class UIBuilderPresenter {
     this.notify();
   }
 
-  public async loadLocalDraft(): Promise<void> {
-    // no-op placeholder
-  }
 
   public updateTheme(colors: Record<string, string>): void {
-    // Update config and trigger auto-save
+    // Update config
     if (this.vm.config) {
       (this.vm.config as any).theme = { ...(this.vm.config as any).theme, colors };
     }
-    this.triggerAutoSave();
+    this.notify();
+    this.sendConfigToIframe();
+    this.saveConfigToSupabase();
   }
 
   public selectElement(elementId: string): void {
     console.log('[UIBuilderPresenter] selectElement called:', elementId);
+    const node = this.findNode(elementId);
     const colors = this.getElementColorsFromConfig(elementId);
     console.log('[UIBuilderPresenter] Found colors:', colors);
+    
     // Create new viewModel object to trigger React re-render
-    this.vm = { ...this.vm, selectedElement: { id: elementId, colors: colors || undefined } };
+    this.vm = { 
+      ...this.vm, 
+      selectedElement: { 
+        id: elementId, 
+        colors: colors || undefined,
+        gap: node?.styles?.gap,
+        type: node?.type,
+        borderRadius: node?.styles?.borderRadius,
+        label: node?.props?.text || node?.props?.children,
+        textAlign: node?.styles?.textAlign
+      } 
+    };
     console.log('[UIBuilderPresenter] Updated viewModel.selectedElement:', this.vm.selectedElement);
     this.notify();
   }
@@ -119,7 +241,64 @@ export class UIBuilderPresenter {
   public updateElementColors(elementId: string, colors: Record<string, string>): void {
     this.applyColorsToConfig(elementId, colors);
     this.selectElement(elementId);
-    this.triggerAutoSave();
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
+  }
+
+  public updateContainerGap(elementId: string, gap: string): void {
+    const node = this.findNode(elementId);
+    if (!node) return;
+    
+    if (!node.styles) {
+      node.styles = {};
+    }
+    node.styles.gap = gap;
+    
+    this.selectElement(elementId);
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
+  }
+
+  public updateButtonBorderRadius(elementId: string, borderRadius: string): void {
+    const node = this.findNode(elementId);
+    if (!node) return;
+    
+    if (!node.styles) {
+      node.styles = {};
+    }
+    node.styles.borderRadius = borderRadius;
+    
+    this.selectElement(elementId);
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
+  }
+
+  public updateButtonLabel(elementId: string, label: string): void {
+    const node = this.findNode(elementId);
+    if (!node) return;
+    
+    if (!node.props) {
+      node.props = {};
+    }
+    node.props.text = label;
+    
+    this.selectElement(elementId);
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
+  }
+
+  public updateButtonTextAlign(elementId: string, textAlign: string): void {
+    const node = this.findNode(elementId);
+    if (!node) return;
+    
+    if (!node.styles) {
+      node.styles = {};
+    }
+    node.styles.textAlign = textAlign;
+    
+    this.selectElement(elementId);
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
   }
 
   public addSidebarButton(label?: string): void {
@@ -130,8 +309,13 @@ export class UIBuilderPresenter {
     }
 
     const existingIds = new Set<string>();
+    let lastButton: any = null;
+    
     const collect = (n: any) => {
       if (n?.id) existingIds.add(n.id);
+      if (n?.type === 'Button') {
+        lastButton = n;
+      }
       if (Array.isArray(n?.children)) n.children.forEach(collect);
     };
     collect(layout);
@@ -143,15 +327,22 @@ export class UIBuilderPresenter {
       newId = `button-${index}`;
     }
 
+    // Copy styles from the last button or use defaults
+    const defaultStyles = {
+      backgroundColor: '#1d4ed8',
+      textColor: '#ffffff',
+      borderColor: '#1e40af',
+    };
+    
+    const copiedStyles = lastButton?.styles 
+      ? { ...lastButton.styles } 
+      : defaultStyles;
+
     const node = {
       id: newId,
       type: 'Button',
       props: { text: label || 'New Button' },
-      styles: {
-        backgroundColor: '#1d4ed8',
-        textColor: '#ffffff',
-        borderColor: '#1e40af',
-      },
+      styles: copiedStyles,
     };
 
     layout.children.push(node);
@@ -164,6 +355,10 @@ export class UIBuilderPresenter {
       isDraft: true,
     };
     this.notify();
+    this.sendConfigToIframe();
+    
+    // Save to Supabase
+    this.saveConfigToSupabase();
   }
 
   public async saveDraft(): Promise<boolean> {
@@ -190,55 +385,12 @@ export class UIBuilderPresenter {
     if (input.text) node.props = { ...(node.props || {}), text: input.text };
     if (input.styles) node.styles = { ...(node.styles || {}), ...input.styles };
     this.notify();
-    this.triggerAutoSave();
+    this.sendConfigToIframe();
   }
 
   public updateAuthPopup(input: Record<string, unknown>): void {
-    this.triggerAutoSave();
-  }
-
-  private triggerAutoSave(): void {
-    // Clear existing timer
-    if (this.saveDraftDebounceTimer) {
-      clearTimeout(this.saveDraftDebounceTimer);
-    }
-
-    // Set new timer - debounce for 300ms
-    this.saveDraftDebounceTimer = setTimeout(() => {
-      this.saveDraftDebounceTimer = null;
-      this.autoSaveDraft();
-    }, 300);
-  }
-
-  private async autoSaveDraft(): Promise<void> {
-    if (!this.vm.config || !this.vm.appId) {
-      console.warn('[UIBuilderPresenter] Cannot auto-save: missing config or appId');
-      return;
-    }
-
-    try {
-      console.log('[UIBuilderPresenter] Auto-saving draft');
-      const saveDraftUseCase = container.get<SaveDraftUseCase>(UI_BUILDER_TYPES.SaveDraftUseCase);
-      const result = await saveDraftUseCase.execute({
-        appId: this.vm.appId,
-        config: this.vm.config,
-      });
-      
-      if (result.isSuccess) {
-        console.log('[UIBuilderPresenter] Draft auto-saved successfully');
-        this.vm.isDraft = true;
-        this.notify();
-        
-        // Dispatch custom event for UIBuilderPage to refresh iframe
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('uibuilder:autoSave'));
-        }
-      } else {
-        console.error('[UIBuilderPresenter] Failed to auto-save draft:', result.error);
-      }
-    } catch (error) {
-      console.error('[UIBuilderPresenter] Error during auto-save:', error);
-    }
+    this.notify();
+    this.sendConfigToIframe();
   }
 
   private getElementColorsFromConfig(elementId: string): Record<string, string> | null {
@@ -272,6 +424,46 @@ export class UIBuilderPresenter {
       return null;
     };
     return dfs(layout);
+  }
+
+  private sendConfigToIframe(): void {
+    if (!this.vm.config) {
+      this._logger.warn('[UIBuilderPresenter] Cannot send config to iframe: config is null');
+      return;
+    }
+    this.preview.sendConfig(this.vm.config);
+  }
+
+  private async saveConfigToSupabase(): Promise<void> {
+    if (!this.vm.appId || !this.vm.config) {
+      this._logger.warn('[UIBuilderPresenter] Cannot save: missing appId or config');
+      return;
+    }
+
+    try {
+      const result = await this._saveDraftUseCase.execute({
+        appId: this.vm.appId,
+        config: this.vm.config,
+      });
+
+      if (result.isSuccess) {
+        this._logger.info('[UIBuilderPresenter] Config saved to Supabase successfully');
+      } else {
+        this._logger.error('[UIBuilderPresenter] Failed to save config', result.error);
+      }
+    } catch (error) {
+      this._logger.error('[UIBuilderPresenter] Error saving config', error);
+    }
+  }
+
+  private saveConfigToSupabaseDebounced(): void {
+    if (this.saveDraftDebounceTimer) {
+      clearTimeout(this.saveDraftDebounceTimer);
+    }
+
+    this.saveDraftDebounceTimer = setTimeout(() => {
+      this.saveConfigToSupabase();
+    }, 500); // 500ms debounce
   }
 }
 

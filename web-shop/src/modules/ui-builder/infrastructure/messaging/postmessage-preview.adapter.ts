@@ -139,6 +139,23 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
       this._targetOrigin
     );
   }
+
+  public sendConfig(config: Record<string, unknown>): void {
+    if (!this._iframeEl?.contentWindow) {
+      console.warn('[PostMessagePreviewAdapter] iframe not ready, cannot send config update');
+      return;
+    }
+
+    console.log('[PostMessagePreviewAdapter] Sending config update');
+
+    this._iframeEl.contentWindow.postMessage(
+      {
+        type: 'CONFIG_UPDATE',
+        payload: { config },
+      },
+      this._targetOrigin
+    );
+  }
 }
 
 

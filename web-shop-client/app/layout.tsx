@@ -12,6 +12,8 @@ import type { ActionContext } from '../src/modules/ui-renderer/domain/types';
 import { LoadAppConfigUseCase } from '../src/application/use-cases/load-app-config.use-case';
 import { SubscribeToConfigUpdatesUseCase } from '../src/application/use-cases/subscribe-to-config-updates.use-case';
 import { TYPES } from '../src/infrastructure/bootstrap/types';
+import type { EventBus } from '../src/application/ports/event-bus.port';
+import { AppConfigLoadedEvent } from '../src/shared/events/app-config-events';
 
 export default function RootLayout({ children }: { children: React.ReactNode}) {
   const [isLeftDrawerOpen, setIsLeftDrawerOpen] = useState(false);
@@ -43,13 +45,17 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         await loadAppConfigUseCase.execute(isDraft);
         console.log('[RootLayout] App config loaded and distributed via EventBus');
         
-        // 2. Get appId from environment
-        const appId = getAppIdFromEnvironment();
-        if (appId) {
-          // 3. Subscribe to real-time config updates
-          const subscribeToUpdatesUseCase = container.get<SubscribeToConfigUpdatesUseCase>(TYPES.SubscribeToConfigUpdates);
-          await subscribeToUpdatesUseCase.execute(appId);
-          console.log('[RootLayout] Subscribed to real-time config updates');
+        // 2. Subscribe to real-time config updates (only if not in UI Builder preview mode)
+        const isUIBuilderPreview = getIsUIBuilderFromQuery();
+        if (!isUIBuilderPreview) {
+          const appId = getAppIdFromEnvironment();
+          if (appId) {
+            const subscribeToUpdatesUseCase = container.get<SubscribeToConfigUpdatesUseCase>(TYPES.SubscribeToConfigUpdates);
+            await subscribeToUpdatesUseCase.execute(appId);
+            console.log('[RootLayout] Subscribed to real-time config updates');
+          }
+        } else {
+          console.log('[RootLayout] Skipping Realtime subscription - in UI Builder preview mode');
         }
         
         // Ожидаем событие применения конфига, как только модули его обработают
@@ -71,6 +77,16 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         try {
           const url = new URL(window.location.href);
           return url.searchParams.get('previewMode') === 'true';
+        } catch {}
+      }
+      return false;
+    };
+
+    const getIsUIBuilderFromQuery = (): boolean => {
+      if (typeof window !== 'undefined') {
+        try {
+          const url = new URL(window.location.href);
+          return url.searchParams.get('uibuilder') === 'true';
         } catch {}
       }
       return false;
@@ -124,6 +140,59 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         setIsUIBuilderMode(uibuilder === 'true');
       } catch {}
     }
+  }, []);
+
+  // Listen for config updates from UI Builder via postMessage
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleConfigUpdate = async (event: MessageEvent) => {
+      // Verify origin - allow localhost in development
+      const isLocalhost = event.origin.startsWith('http://localhost:');
+      const builderOrigin = process.env.NEXT_PUBLIC_BUILDER_URL;
+      const isDevelopment = !builderOrigin || builderOrigin.startsWith('http://localhost:');
+      
+      if (!isDevelopment && event.origin !== builderOrigin) {
+        console.warn('[RootLayout] Message from untrusted origin:', event.origin);
+        return;
+      }
+
+      if (isDevelopment && !isLocalhost) {
+        console.warn('[RootLayout] Message from non-localhost origin in dev mode:', event.origin);
+        return;
+      }
+
+      // Handle CONFIG_UPDATE message
+      if (event.data.type === 'CONFIG_UPDATE') {
+        const config = event.data.payload?.config;
+        if (!config) {
+          console.warn('[RootLayout] Received CONFIG_UPDATE without config payload');
+          return;
+        }
+
+        console.log('[RootLayout] Received CONFIG_UPDATE from UI Builder');
+        
+        try {
+          // Get EventBus from container and publish AppConfigLoadedEvent
+          const eventBus = container.get<EventBus>(TYPES.EventBus);
+          await eventBus.publishAsync(new AppConfigLoadedEvent(config));
+          
+          console.log('[RootLayout] AppConfigLoadedEvent published from postMessage');
+          
+          // Dispatch window event for UI components
+          window.dispatchEvent(new CustomEvent('appConfigLoaded'));
+        } catch (error) {
+          console.error('[RootLayout] Failed to process CONFIG_UPDATE:', error);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleConfigUpdate);
+    console.log('[RootLayout] Listening for CONFIG_UPDATE messages from UI Builder');
+
+    return () => {
+      window.removeEventListener('message', handleConfigUpdate);
+    };
   }, []);
 
   return (

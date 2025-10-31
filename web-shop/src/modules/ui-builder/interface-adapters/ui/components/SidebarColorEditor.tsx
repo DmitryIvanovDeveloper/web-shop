@@ -6,6 +6,10 @@ import type { SelectedElement } from '../../../domain/types/sidebar-element.type
 interface SidebarColorEditorProps {
   element: SelectedElement | null;
   onChange: (elementId: string, colors: Record<string, string>) => void;
+  onGapChange?: (elementId: string, gap: string) => void;
+  onBorderRadiusChange?: (elementId: string, borderRadius: string) => void;
+  onLabelChange?: (elementId: string, label: string) => void;
+  onTextAlignChange?: (elementId: string, textAlign: string) => void;
 }
 
 interface ColorInputProps {
@@ -19,22 +23,22 @@ function ColorInput({ label, value, onChange }: ColorInputProps): JSX.Element {
   const capitalizedLabel = displayLabel.charAt(0).toUpperCase() + displayLabel.slice(1);
 
   return (
-    <div className="grid grid-cols-[140px_1fr] gap-3 items-center">
-      <label className="text-sm font-medium text-gray-700">
+    <div className="space-y-1.5">
+      <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
         {capitalizedLabel}
       </label>
-      <div className="flex gap-2 items-center">
+      <div className="flex items-center gap-2">
         <input
           type="color"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-10 h-8 rounded border border-gray-300 cursor-pointer flex-shrink-0"
+          className="w-9 h-9 rounded border border-gray-300 cursor-pointer flex-shrink-0"
         />
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="flex-1 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono text-xs"
+          className="w-28 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
           placeholder="#000000"
         />
       </div>
@@ -42,7 +46,7 @@ function ColorInput({ label, value, onChange }: ColorInputProps): JSX.Element {
   );
 }
 
-export function SidebarColorEditor({ element, onChange }: SidebarColorEditorProps): JSX.Element {
+export function SidebarColorEditor({ element, onChange, onGapChange, onBorderRadiusChange, onLabelChange, onTextAlignChange }: SidebarColorEditorProps): JSX.Element {
   console.log('[SidebarColorEditor] Rendering with element:', element);
   
   if (!element) {
@@ -80,32 +84,193 @@ export function SidebarColorEditor({ element, onChange }: SidebarColorEditorProp
     onChange(element.id, updatedColors);
   };
 
+  // Parse gap value and unit
+  const parseGap = (gapString: string): { value: number; unit: string } => {
+    const match = gapString?.match(/^([\d.]+)(rem|px)$/);
+    if (match) {
+      return { value: parseFloat(match[1]), unit: match[2] };
+    }
+    return { value: 0.5, unit: 'rem' };
+  };
+
+  const { value: gapValue, unit: gapUnit } = parseGap(element.gap || '0.5rem');
+
+  const handleGapValueChange = (newValue: string) => {
+    if (onGapChange) {
+      onGapChange(element.id, `${newValue}${gapUnit}`);
+    }
+  };
+
+  const handleGapUnitChange = (newUnit: string) => {
+    if (onGapChange) {
+      onGapChange(element.id, `${gapValue}${newUnit}`);
+    }
+  };
+
+  // Parse borderRadius value and unit
+  const parseBorderRadius = (borderRadiusString: string): { value: number; unit: string } => {
+    const match = borderRadiusString?.match(/^([\d.]+)(rem|px)$/);
+    if (match) {
+      return { value: parseFloat(match[1]), unit: match[2] };
+    }
+    return { value: 0.5, unit: 'rem' };
+  };
+
+  const { value: borderRadiusValue, unit: borderRadiusUnit } = parseBorderRadius(element.borderRadius || '0.5rem');
+
+  const handleBorderRadiusValueChange = (newValue: string) => {
+    if (onBorderRadiusChange) {
+      onBorderRadiusChange(element.id, `${newValue}${borderRadiusUnit}`);
+    }
+  };
+
+  const handleBorderRadiusUnitChange = (newUnit: string) => {
+    if (onBorderRadiusChange) {
+      onBorderRadiusChange(element.id, `${borderRadiusValue}${newUnit}`);
+    }
+  };
+
+  const isContainer = element.type === 'Container' || element.id.includes('container');
+  const isButton = element.type === 'Button' || element.id.includes('button');
+
   return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <div className="mb-3 pb-3 border-b border-gray-200">
-        <h3 className="text-sm font-bold text-gray-900">Edit Colors</h3>
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+        <h3 className="text-sm font-semibold text-gray-900">Properties</h3>
         <p className="text-xs text-gray-500 mt-0.5 font-mono">{element.id}</p>
       </div>
 
-      {Object.keys(element.colors ?? {}).length > 0 ? (
-        <div className="space-y-2">
-          {Object.entries(element.colors ?? {}).map(([key, value]) => (
-            <ColorInput
-              key={key}
-              label={key}
-              value={value}
-              onChange={(newColor) => handleColorChange(key, newColor)}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="text-gray-500 text-xs py-3 text-center">
-          No color properties available
-        </div>
-      )}
+      <div className="p-4 space-y-6">
+        {/* Colors Section */}
+        {Object.keys(element.colors ?? {}).length > 0 && (
+          <div className="space-y-3">
+            <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Colors</h4>
+            <div className="space-y-3">
+              {Object.entries(element.colors ?? {}).map(([key, value]) => (
+                <ColorInput
+                  key={key}
+                  label={key}
+                  value={value}
+                  onChange={(newColor) => handleColorChange(key, newColor)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Gap editor for containers */}
+        {isContainer && onGapChange && (
+          <div className="space-y-3">
+            <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Layout</h4>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                Gap (Spacing)
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={gapValue}
+                  onChange={(e) => handleGapValueChange(e.target.value)}
+                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                  placeholder="0.5"
+                />
+                <select
+                  value={gapUnit}
+                  onChange={(e) => handleGapUnitChange(e.target.value)}
+                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                >
+                  <option value="rem">rem</option>
+                  <option value="px">px</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* BorderRadius editor for buttons */}
+        {isButton && onBorderRadiusChange && (
+          <div className="space-y-3">
+            <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Border</h4>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                Border Radius
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={borderRadiusValue}
+                  onChange={(e) => handleBorderRadiusValueChange(e.target.value)}
+                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                  placeholder="0.5"
+                />
+                <select
+                  value={borderRadiusUnit}
+                  onChange={(e) => handleBorderRadiusUnitChange(e.target.value)}
+                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                >
+                  <option value="rem">rem</option>
+                  <option value="px">px</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Content editor for buttons */}
+        {isButton && (onLabelChange || onTextAlignChange) && (
+          <div className="space-y-3">
+            <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Content</h4>
+            
+            {/* Label */}
+            {onLabelChange && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                  Button Text
+                </label>
+                <input
+                  type="text"
+                  value={element.label || ''}
+                  onChange={(e) => onLabelChange(element.id, e.target.value)}
+                  className="w-48 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  placeholder="Enter button text"
+                />
+              </div>
+            )}
+
+            {/* Text Align */}
+            {onTextAlignChange && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                  Text Alignment
+                </label>
+                <select
+                  value={element.textAlign || 'center'}
+                  onChange={(e) => onTextAlignChange(element.id, e.target.value)}
+                  className="w-32 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                >
+                  <option value="left">Left</option>
+                  <option value="center">Center</option>
+                  <option value="right">Right</option>
+                </select>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
+
+
+
+
+
+
 
 
 

@@ -58,3 +58,4 @@ export class SupabaseClient implements DatabaseClientPort {
   }
 }
 
+

@@ -17,6 +17,7 @@ export function SidebarRenderer({
   layoutType = 'sidebar' 
 }: SidebarRendererProps): JSX.Element {
   const [isReady, setIsReady] = useState(false);
+  const [configVersion, setConfigVersion] = useState(0);
 
   // Subscribe to config changes
   useEffect(() => {
@@ -36,6 +37,18 @@ export function SidebarRenderer({
       unsubscribe();
     };
   }, [presenter, layoutType]);
+
+  // Subscribe to config updates (for live preview updates)
+  useEffect(() => {
+    const unsubscribe = presenter.subscribe(() => {
+      // Force re-render when config changes
+      setConfigVersion(prev => prev + 1);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [presenter]);
 
   // Синхронно получаем конфигурацию из presenter
   let config = null;

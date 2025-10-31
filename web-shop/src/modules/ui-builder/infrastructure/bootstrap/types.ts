@@ -1,7 +1,7 @@
 export const UI_BUILDER_TYPES = {
   // Storage
   ConfigStorage: Symbol.for('UIBuilder.ConfigStorage'),
-  LocalDraftStorage: Symbol.for('UIBuilder.LocalDraftStorage'),
+  ConfigStoragePort: Symbol.for('UIBuilder.ConfigStoragePort'),
 
   // Validators
   ConfigValidator: Symbol.for('UIBuilder.ConfigValidator'),
@@ -15,11 +15,15 @@ export const UI_BUILDER_TYPES = {
   ValidateConfigUseCase: Symbol.for('UIBuilder.ValidateConfigUseCase'),
   SaveDraftUseCase: Symbol.for('UIBuilder.SaveDraftUseCase'),
   LoadDraftUseCase: Symbol.for('UIBuilder.LoadDraftUseCase'),
+  LoadDraftConfigUseCase: Symbol.for('UIBuilder.LoadDraftConfigUseCase'),
+  LoadActiveConfigUseCase: Symbol.for('UIBuilder.LoadActiveConfigUseCase'),
   PublishDraftUseCase: Symbol.for('UIBuilder.PublishDraftUseCase'),
 
   // Presenters
   UIBuilderPresenter: Symbol.for('UIBuilder.UIBuilderPresenter'),
 };
+
+
 
 
 

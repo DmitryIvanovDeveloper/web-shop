@@ -28,15 +28,24 @@ export function UniversalButton({
   ...restProps
 }: UniversalButtonProps): JSX.Element {
   // Определяем justify класс на основе style.justifyContent или используем center по умолчанию
-  const justifyClass = style?.justifyContent === 'flex-start' ? 'justify-start' : 'justify-center';
+  const getJustifyClass = () => {
+    if (style?.justifyContent === 'flex-start') return 'justify-start';
+    if (style?.justifyContent === 'flex-end') return 'justify-end';
+    return 'justify-center';
+  };
+  
+  const justifyClass = getJustifyClass();
   
   const buttonClasses = fullWidth 
     ? `w-full flex items-center ${justifyClass} rounded-lg ${className}`
     : className;
     
+  // Удаляем justifyContent из inline styles, так как он уже применён через CSS класс
+  const { justifyContent, ...styleWithoutJustify } = style || {};
+  
   const buttonStyle = fullWidth 
     ? { 
-        ...style, 
+        ...styleWithoutJustify, 
         height: style?.height || 'auto', 
         minHeight: style?.minHeight || '40px', 
         maxHeight: style?.maxHeight || '48px' 

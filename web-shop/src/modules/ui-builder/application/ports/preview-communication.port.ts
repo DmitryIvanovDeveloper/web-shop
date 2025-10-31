@@ -6,6 +6,7 @@ export interface PreviewCommunicationPort {
   sendSidebarUpdate(payload: { elementId: string; colors: Record<string, string> }): void;
   sendAuthUpdate?(payload: unknown): void;
   sendSidebarStructure?(layout: unknown): void;
+  sendConfig(config: Record<string, unknown>): void;
 }
 
 
