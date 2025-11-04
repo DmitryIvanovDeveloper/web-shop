@@ -452,17 +452,134 @@ export function ComponentEditor({ component, onUpdate, onRemove }: ComponentEdit
 
       case 'Video':
         return (
-          <div>
-            <label className="text-xs font-medium text-gray-600 block mb-1.5">
-              Video URL
-            </label>
-            <input
-              type="text"
-              value={(component.props?.src as string) || ''}
-              onChange={(e) => onUpdate({ ...component.props, src: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
-              placeholder="https://example.com/video.mp4"
-            />
+          <div className="space-y-4">
+            {/* Properties Section */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">Properties</h4>
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1.5">
+                  YouTube Video URL
+                </label>
+                <input
+                  type="text"
+                  value={(component.props?.url as string) || (component.props?.src as string) || ''}
+                  onChange={(e) => {
+                    // Поддерживаем как url, так и src для обратной совместимости
+                    const props = { ...component.props };
+                    if (e.target.value) {
+                      props.url = e.target.value;
+                    } else {
+                      delete props.url;
+                    }
+                    // Удаляем старый src, если есть
+                    if (props.src) delete props.src;
+                    onUpdate(props);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                  placeholder="https://www.youtube.com/watch?v=VIDEO_ID or https://youtu.be/VIDEO_ID or https://www.youtube.com/shorts/VIDEO_ID"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Supports: youtube.com/watch, youtu.be, youtube.com/shorts, youtube.com/embed
+                </p>
+              </div>
+              
+              {/* Alternative: Video ID */}
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1.5">
+                  Video ID (alternative)
+                </label>
+                <input
+                  type="text"
+                  value={(component.props?.videoId as string) || ''}
+                  onChange={(e) => {
+                    const props = { ...component.props };
+                    if (e.target.value) {
+                      props.videoId = e.target.value;
+                    } else {
+                      delete props.videoId;
+                    }
+                    onUpdate(props);
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                  placeholder="e_qWzzBQMU8"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Enter YouTube video ID directly (e.g., e_qWzzBQMU8)
+                </p>
+              </div>
+            </div>
+
+            {/* Styles Section */}
+            <div className="space-y-4 pt-4 border-t border-gray-200">
+              <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">Player Settings</h4>
+              
+              {/* Width */}
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1.5">
+                  Width
+                </label>
+                <input
+                  type="text"
+                  value={(component.props?.width as string) || '100%'}
+                  onChange={(e) => onUpdate({ ...component.props, width: e.target.value || '100%' })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                  placeholder="100% or 560px"
+                />
+              </div>
+
+              {/* Height */}
+              <div>
+                <label className="text-xs font-medium text-gray-600 block mb-1.5">
+                  Height
+                </label>
+                <input
+                  type="text"
+                  value={(component.props?.height as string) || '315'}
+                  onChange={(e) => onUpdate({ ...component.props, height: e.target.value || '315' })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                  placeholder="315 or 315px"
+                />
+              </div>
+
+              {/* Autoplay */}
+              <div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={(component.props?.autoplay as boolean) || false}
+                    onChange={(e) => onUpdate({ ...component.props, autoplay: e.target.checked })}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-xs font-medium text-gray-600">Autoplay</span>
+                </label>
+              </div>
+
+              {/* Controls */}
+              <div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={(component.props?.controls as boolean) !== false}
+                    onChange={(e) => onUpdate({ ...component.props, controls: e.target.checked })}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-xs font-medium text-gray-600">Show Controls</span>
+                </label>
+              </div>
+
+              {/* Allow Fullscreen */}
+              <div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={(component.props?.allowFullScreen as boolean) !== false}
+                    onChange={(e) => onUpdate({ ...component.props, allowFullScreen: e.target.checked })}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="text-xs font-medium text-gray-600">Allow Fullscreen</span>
+                </label>
+              </div>
+            </div>
           </div>
         );
 

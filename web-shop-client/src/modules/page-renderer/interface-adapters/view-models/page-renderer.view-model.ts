@@ -4,6 +4,7 @@ export interface PageRendererViewModel {
   sections: PageSection[];
   pageStyles?: {
     padding?: string;
+    gap?: string;
   };
   isLoading: boolean;
   error: string | null;

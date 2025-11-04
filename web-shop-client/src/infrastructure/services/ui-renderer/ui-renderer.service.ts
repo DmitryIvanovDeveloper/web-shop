@@ -135,6 +135,14 @@ export class UIRendererService implements UIRendererPort {
 			}
 		}
 
+		// Special handling for UniversalVideo - map src to url
+		if (node.type === 'Video') {
+			if (componentProps.src && !componentProps.url) {
+				componentProps.url = componentProps.src;
+				delete componentProps.src;
+			}
+		}
+
 		try {
 			return createElement(Component, componentProps as never);
 		} catch (error) {

@@ -21,7 +21,24 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isConfigLoading, setIsConfigLoading] = useState(true);
+  // Initialize isUIBuilderMode to false to match SSR, then update in useEffect
   const [isUIBuilderMode, setIsUIBuilderMode] = useState(false);
+  
+  // Viewport mode from UI Builder (mobile/tablet/desktop)
+  const [viewportMode, setViewportMode] = useState<'mobile' | 'tablet' | 'desktop' | null>(null);
+
+  // Initialize isUIBuilderMode on client side to avoid hydration mismatch
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const url = new URL(window.location.href);
+        const isUIBuilder = url.searchParams.get('uibuilder') === 'true';
+        setIsUIBuilderMode(isUIBuilder);
+      } catch (err) {
+        console.error('[RootLayout] Failed to parse URL for uibuilder param:', err);
+      }
+    }
+  }, []);
 
   const sidebarPresenter = container.get<SidebarRendererPresenter>(
     APP_LAYOUT_TYPES.SidebarRendererPresenter
@@ -109,28 +126,26 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
 
   useEffect(() => {
     const checkMobile = () => {
-      // Always desktop mode in UI Builder preview
       if (isUIBuilderMode) {
-        setIsMobile(false);
+        // In UI Builder preview: use viewportMode from parent if available, otherwise use window width
+        if (viewportMode) {
+          // For tablet (1024px), match real app behavior: isMobile = true (sidebars hidden)
+          // For mobile: isMobile = true (sidebars hidden)
+          // For desktop: isMobile = false (sidebars visible)
+          setIsMobile(viewportMode === 'mobile' || viewportMode === 'tablet');
+        } else {
+          // Fallback: use window width (iframe width)
+          setIsMobile(window.innerWidth <= 1024);
+        }
       } else {
+        // Normal mode: use window width
         setIsMobile(window.innerWidth <= 1024);
       }
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, [isUIBuilderMode]);
-
-  useEffect(() => {
-    // Check if we're in UI Builder mode (for iframe preview)
-    if (typeof window !== 'undefined') {
-      try {
-        const url = new URL(window.location.href);
-        const uibuilder = url.searchParams.get('uibuilder');
-        setIsUIBuilderMode(uibuilder === 'true');
-      } catch {}
-    }
-  }, []);
+  }, [isUIBuilderMode, viewportMode]);
 
   // Listen for config updates from UI Builder via postMessage
   useEffect(() => {
@@ -170,6 +185,15 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
           console.log('[RootLayout] Config processed from postMessage');
         } catch (error) {
           console.error('[RootLayout] Failed to process CONFIG_UPDATE:', error);
+        }
+      }
+
+      // Handle VIEWPORT_MODE_UPDATE message from UI Builder
+      if (event.data.type === 'VIEWPORT_MODE_UPDATE') {
+        const mode = event.data.payload?.viewportMode;
+        if (mode && (mode === 'mobile' || mode === 'tablet' || mode === 'desktop')) {
+          console.log('[RootLayout] Received VIEWPORT_MODE_UPDATE:', mode);
+          setViewportMode(mode);
         }
       }
     };
@@ -283,9 +307,9 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                 {children}
               </main>
 
-              {/* Right Sidebar - скрывается на экранах < 1280px (xl breakpoint) */}
+              {/* Right Sidebar - скрывается на экранах < 1280px (xl breakpoint), но всегда показывается в UI Builder */}
               {!isMobile && (
-                <aside className="hidden xl:block w-64 border-l border-yellow-400/30 flex-shrink-0" style={{ backgroundColor: 'rgba(0, 0, 0, 0.1)', backdropFilter: 'blur(2px)', borderLeft: '0.5px solid rgba(156, 163, 175, 0.5)' }}>
+                <aside className={isUIBuilderMode ? "block w-64 border-l border-yellow-400/30 flex-shrink-0" : "hidden xl:block w-64 border-l border-yellow-400/30 flex-shrink-0"} style={{ backgroundColor: 'rgba(0, 0, 0, 0.1)', backdropFilter: 'blur(2px)', borderLeft: '0.5px solid rgba(156, 163, 175, 0.5)' }}>
                   <div className="p-4">
                     <div className="mb-4">
                       <AuthModule renderSidebarButton={true} renderPopupConfig={true} />

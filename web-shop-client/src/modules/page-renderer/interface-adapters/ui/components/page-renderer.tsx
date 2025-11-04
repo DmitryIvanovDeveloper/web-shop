@@ -106,6 +106,9 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
 
   const pageStyle: React.CSSProperties = {
     padding: vm.pageStyles?.padding || undefined,
+    gap: vm.pageStyles?.gap || undefined,
+    display: vm.pageStyles?.gap ? 'flex' : undefined,
+    flexDirection: vm.pageStyles?.gap ? 'column' : undefined,
   };
 
   return (

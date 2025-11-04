@@ -317,6 +317,71 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home' }: PageCon
             </div>
             <p className="text-xs text-gray-400 mt-1">Examples: 2rem, 20px, 1em, 5vh</p>
           </div>
+          
+          {/* Page Gap */}
+          <div className="mb-4">
+            <label className="text-xs font-medium text-gray-600 block mb-1.5">
+              Page Gap
+            </label>
+            <div className="flex items-center gap-2">
+              {(() => {
+                // Parse gap value and unit
+                const parseGap = (gapString: string | number | undefined): { value: number; unit: string } => {
+                  if (!gapString) return { value: 1, unit: 'rem' };
+                  const gap = typeof gapString === 'number' ? `${gapString}px` : gapString;
+                  
+                  // Try to match simple single value (e.g., "1rem", "20px")
+                  const match = gap.match(/^([\d.]+)\s*(rem|px|em|vh|%)$/);
+                  if (match) {
+                    return { value: parseFloat(match[1]), unit: match[2] };
+                  }
+                  
+                  // Default fallback
+                  return { value: 1, unit: 'rem' };
+                };
+
+                const { value: gapValue, unit: gapUnit } = parseGap(vm.pageStyles?.gap);
+
+                const handleGapValueChange = (newValue: string): void => {
+                  if (newValue) {
+                    presenter.updatePageGap(`${newValue}${gapUnit}`);
+                  } else {
+                    presenter.updatePageGap('');
+                  }
+                };
+
+                const handleGapUnitChange = (newUnit: string): void => {
+                  presenter.updatePageGap(`${gapValue}${newUnit}`);
+                };
+
+                return (
+                  <>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={gapValue}
+                      onChange={(e) => handleGapValueChange(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                      placeholder="1"
+                    />
+                    <select
+                      value={gapUnit}
+                      onChange={(e) => handleGapUnitChange(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    >
+                      <option value="px">px</option>
+                      <option value="rem">rem</option>
+                      <option value="em">em</option>
+                      <option value="vh">vh</option>
+                      <option value="%">%</option>
+                    </select>
+                  </>
+                );
+              })()}
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Examples: 1rem, 20px, 2em</p>
+          </div>
         </div>
 
         {!vm.selectedSection && !vm.selectedComponent && (

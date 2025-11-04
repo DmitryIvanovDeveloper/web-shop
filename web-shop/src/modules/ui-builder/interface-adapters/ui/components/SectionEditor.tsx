@@ -221,6 +221,120 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
           </div>
         </div>
 
+        {/* Border */}
+        <div>
+          <label className="text-xs font-medium text-gray-600 block mb-1.5">
+            Border
+          </label>
+          
+          {/* Border Width */}
+          <div className="mb-2">
+            <div className="flex items-center gap-2">
+              {(() => {
+                const parseBorderWidth = (borderWidthString: string | number | undefined): { value: number; unit: string } => {
+                  if (!borderWidthString) return { value: 0, unit: 'px' };
+                  const borderWidth = typeof borderWidthString === 'number' ? `${borderWidthString}px` : borderWidthString;
+                  const match = borderWidth.match(/^([\d.]+)\s*(px|rem|em)$/);
+                  if (match) {
+                    return { value: parseFloat(match[1]), unit: match[2] };
+                  }
+                  return { value: 0, unit: 'px' };
+                };
+
+                const { value: borderWidthValue, unit: borderWidthUnit } = parseBorderWidth(section.styles?.borderWidth as string | number | undefined);
+
+                const handleBorderWidthValueChange = (newValue: string): void => {
+                  const newStyles = { ...section.styles };
+                  if (newValue) {
+                    newStyles.borderWidth = `${newValue}${borderWidthUnit}`;
+                  } else {
+                    delete newStyles.borderWidth;
+                  }
+                  onUpdateStyles(newStyles);
+                };
+
+                const handleBorderWidthUnitChange = (newUnit: string): void => {
+                  const newStyles = { ...section.styles };
+                  newStyles.borderWidth = `${borderWidthValue}${newUnit}`;
+                  onUpdateStyles(newStyles);
+                };
+
+                return (
+                  <>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={borderWidthValue}
+                      onChange={(e) => handleBorderWidthValueChange(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                      placeholder="0"
+                    />
+                    <select
+                      value={borderWidthUnit}
+                      onChange={(e) => handleBorderWidthUnitChange(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    >
+                      <option value="px">px</option>
+                      <option value="rem">rem</option>
+                      <option value="em">em</option>
+                    </select>
+                  </>
+                );
+              })()}
+            </div>
+            <label className="text-xs text-gray-500 mt-1 block">Width</label>
+          </div>
+
+          {/* Border Style */}
+          <div className="mb-2">
+            <select
+              value={(section.styles?.borderStyle as string) || 'none'}
+              onChange={(e) => {
+                const newStyles = { ...section.styles };
+                if (e.target.value !== 'none') {
+                  newStyles.borderStyle = e.target.value;
+                } else {
+                  delete newStyles.borderStyle;
+                }
+                onUpdateStyles(newStyles);
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            >
+              <option value="none">None</option>
+              <option value="solid">Solid</option>
+              <option value="dashed">Dashed</option>
+              <option value="dotted">Dotted</option>
+              <option value="double">Double</option>
+              <option value="groove">Groove</option>
+              <option value="ridge">Ridge</option>
+              <option value="inset">Inset</option>
+              <option value="outset">Outset</option>
+            </select>
+            <label className="text-xs text-gray-500 mt-1 block">Style</label>
+          </div>
+
+          {/* Border Color */}
+          <div>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={(section.styles?.borderColor as string) || '#000000'}
+                onChange={(e) => onUpdateStyles({ ...section.styles, borderColor: e.target.value })}
+                className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
+              />
+              <input
+                type="text"
+                value={(section.styles?.borderColor as string) || '#000000'}
+                onChange={(e) => onUpdateStyles({ ...section.styles, borderColor: e.target.value })}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                placeholder="#000000"
+              />
+            </div>
+            <label className="text-xs text-gray-500 mt-1 block">Color</label>
+          </div>
+        </div>
+
         {/* Background Image */}
         <div>
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
@@ -526,6 +640,16 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
             {(() => {
               // Parse padding value and unit
               const parsePadding = (paddingString: string | number | undefined): { value: number; unit: string } => {
+                // Explicitly handle 0 as a valid value
+                if (paddingString === 0 || paddingString === '0' || paddingString === '0px' || paddingString === '0rem' || paddingString === '0em' || paddingString === '0%') {
+                  // Extract unit if present, default to 'rem'
+                  if (typeof paddingString === 'string') {
+                    const match = paddingString.match(/^0\s*(rem|px|em|%)?$/);
+                    return { value: 0, unit: match && match[1] ? match[1] : 'rem' };
+                  }
+                  return { value: 0, unit: 'rem' };
+                }
+                
                 if (!paddingString) return { value: 2, unit: 'rem' };
                 const padding = typeof paddingString === 'number' ? `${paddingString}px` : paddingString;
                 
@@ -543,8 +667,13 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
 
               const handlePaddingValueChange = (newValue: string): void => {
                 const newStyles = { ...section.styles };
-                if (newValue) {
-                  newStyles.padding = `${newValue}${paddingUnit}`;
+                // Allow 0 as a valid value - check for empty string specifically
+                if (newValue !== '' && newValue !== null && newValue !== undefined) {
+                  const numValue = parseFloat(newValue);
+                  // Allow 0 or any positive number (including 0)
+                  if (!isNaN(numValue) && numValue >= 0) {
+                    newStyles.padding = `${newValue}${paddingUnit}`;
+                  }
                 } else {
                   delete newStyles.padding;
                 }

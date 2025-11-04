@@ -16,6 +16,7 @@ interface PageConstructorViewModel {
   selectedComponent: ComponentNode | null;
   pageStyles: {
     padding?: string;
+    gap?: string;
   };
   isLoading: boolean;
   isSaving: boolean;
@@ -434,6 +435,22 @@ export class PageConstructorPresenter {
       pageStyles: {
         ...this.vm.pageStyles,
         padding: padding || undefined,
+      },
+    };
+
+    this.notify();
+    this.saveConfigDebounced();
+    this.sendConfigToIframe();
+  }
+
+  public updatePageGap(gap: string): void {
+    this._logger.info('[PageConstructorPresenter] Updating page gap', { gap });
+
+    this.vm = {
+      ...this.vm,
+      pageStyles: {
+        ...this.vm.pageStyles,
+        gap: gap || undefined,
       },
     };
 

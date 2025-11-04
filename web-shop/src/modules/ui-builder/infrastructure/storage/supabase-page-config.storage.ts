@@ -63,7 +63,7 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
         isDraft: row.is_draft,
         isActive: row.is_active,
         sections: row.sections as any[] || [],
-        pageStyles: (row.page_styles as { padding?: string }) || {},
+        pageStyles: (row.page_styles as { padding?: string; gap?: string }) || {},
       };
 
       this._logger.info('[SupabasePageConfigStorage] Draft loaded successfully', { appId, pageSlug, version: pageConfig.version });
@@ -109,7 +109,7 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
         isDraft: row.is_draft,
         isActive: row.is_active,
         sections: row.sections as any[] || [],
-        pageStyles: (row.page_styles as { padding?: string }) || {},
+        pageStyles: (row.page_styles as { padding?: string; gap?: string }) || {},
       };
 
       this._logger.info('[SupabasePageConfigStorage] Active config loaded successfully', { appId, pageSlug, version: pageConfig.version });

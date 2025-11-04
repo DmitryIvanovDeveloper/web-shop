@@ -12,6 +12,7 @@ import { UniversalButton } from '../../../shared/components/atoms/button';
 import { UniversalText } from '../../../shared/components/atoms/text';
 import { Input } from '../../../shared/components/atoms/input';
 import { UniversalImage } from '../../../shared/components/atoms/image';
+import { UniversalVideo } from '../../../shared/components/atoms/video';
 import { Badge } from '../../../shared/components/atoms/badge';
 import { Grid } from '../../../shared/components/molecules/grid';
 import { DataGrid } from '../../../shared/components/molecules/data-grid';
@@ -75,6 +76,7 @@ export class UIComponentRegistry {
 		this.registerComponent('Text', UniversalText);
 		this.registerComponent('Input', Input);
 		this.registerComponent('Image', UniversalImage);
+		this.registerComponent('Video', UniversalVideo);
 		this.registerComponent('Badge', Badge);
 
 		// Molecules

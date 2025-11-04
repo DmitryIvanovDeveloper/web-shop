@@ -90,7 +90,7 @@ export class SupabasePageConfigRepository implements PageConfigRepositoryPort {
         isDraft: data.is_draft,
         isActive: data.is_active,
         version: data.version,
-        pageStyles: (data.page_styles as { padding?: string }) || {},
+        pageStyles: (data.page_styles as { padding?: string; gap?: string }) || {},
       };
       
       this._logger.info('[SupabasePageConfigRepository] Loaded successfully', {

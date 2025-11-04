@@ -63,10 +63,46 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       setViewModel(vm);
     });
 
-    // Initialize and load full config from Supabase on mount
-    presenter.initialize(appId);
-
     return unsubscribe;
+  }, [presenter, activeSection]);
+
+  // Send viewport mode update to iframe when it changes
+  useEffect(() => {
+    if (!iframeRef.current?.contentWindow || !isClient) return;
+    
+    const sendViewportModeUpdate = () => {
+      try {
+        const iframeWindow = iframeRef.current?.contentWindow;
+        if (iframeWindow) {
+          const clientUrl = env.NEXT_PUBLIC_CLIENT_URL;
+          if (clientUrl && iframeWindow.postMessage) {
+            iframeWindow.postMessage(
+              {
+                type: 'VIEWPORT_MODE_UPDATE',
+                payload: { viewportMode },
+              },
+              clientUrl
+            );
+            console.log('[UIBuilderPage] Sent VIEWPORT_MODE_UPDATE:', viewportMode);
+          }
+        }
+      } catch (error) {
+        console.error('[UIBuilderPage] Failed to send VIEWPORT_MODE_UPDATE:', error);
+      }
+    };
+
+    // Send immediately when viewportMode changes
+    sendViewportModeUpdate();
+
+    // Also send after a short delay to ensure iframe is ready
+    const timeoutId = setTimeout(sendViewportModeUpdate, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [viewportMode, isClient]);
+
+  // Initialize and load full config from Supabase on mount
+  useEffect(() => {
+    presenter.initialize(appId);
   }, [presenter, appId]);
 
   const handleThemeChange = (colors: Record<string, string>) => {
@@ -461,7 +497,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                           ? 'bg-blue-500 text-white'
                           : 'text-gray-600 hover:bg-gray-100'
                       }`}
-                      title="Tablet (768px)"
+                      title="Tablet (1024px)"
                     >
                       📱
                     </button>
@@ -500,7 +536,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                     src={iframeSrc}
                     className={`border border-gray-300 rounded transition-all duration-300 ${
                       viewportMode === 'mobile' ? 'w-[375px]' : 
-                      viewportMode === 'tablet' ? 'w-[768px]' : 
+                      viewportMode === 'tablet' ? 'w-[1024px]' : 
                       'w-full'
                     }`}
                     style={{ height: 'calc(100vh - 200px)' }}
