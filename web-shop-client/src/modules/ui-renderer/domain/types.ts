@@ -56,7 +56,7 @@ export interface StyleConfig {
   readonly transform?: string;
   
   // Visual
-  readonly borderRadius?: SpacingValue;
+  readonly borderRadius?: SpacingValue | string;
   readonly border?: string;
   readonly boxShadow?: string;
   

@@ -27,6 +27,7 @@ export const UI_BUILDER_TYPES = {
 
   // Presenters
   UIBuilderPresenter: Symbol.for('UIBuilder.UIBuilderPresenter'),
+  PageConstructorPresenter: Symbol.for('UIBuilder.PageConstructorPresenter'),
 };
 
 

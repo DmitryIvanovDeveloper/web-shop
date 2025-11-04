@@ -198,7 +198,7 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
   // Специальная обработка для Button - text уже в node.props, но убеждаемся что он передаётся
   const buttonProps = node.type === 'Button'
     ? { text: node.props?.text || node.props?.children }
-    : {};
+        : {};
 
   // Типобезопасные props - TypeScript знает структуру
   const componentProps = {

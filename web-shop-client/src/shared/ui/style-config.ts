@@ -34,6 +34,7 @@ export interface StyleConfig {
 	// Colors
 	readonly backgroundColor?: ColorKey | string;
 	readonly textColor?: ColorKey | string;
+	readonly color?: ColorKey | string; // Direct CSS color property (alternative to textColor)
 	readonly borderColor?: ColorKey | string;
 	
 	// Typography

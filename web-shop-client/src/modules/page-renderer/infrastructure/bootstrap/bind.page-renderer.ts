@@ -3,6 +3,7 @@ import type { PageConfigRepositoryPort } from '../../application/ports/page-conf
 import type { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
 import { SupabasePageConfigRepository } from '../repositories/supabase-page-config.repository';
 import { LoadPageConfigUseCase } from '../../application/use-cases/load-page-config.use-case';
+import { LoadPageConfigFromMessageUseCase } from '../../application/use-cases/load-page-config-from-message.use-case';
 import { PageRendererPresenter } from '../../interface-adapters/presenters/page-renderer.presenter';
 import { PageConfigLoadedHandler } from '../../interface-adapters/handlers/page-config-loaded.handler';
 import { PageConfigLoadedEvent } from '../../domain/events/page-config-loaded.event';
@@ -17,6 +18,11 @@ export function bindPageRenderer(container: Container): void {
   // Use Case
   container.bind<LoadPageConfigUseCase>(PAGE_RENDERER_TYPES.LoadPageConfigUseCase)
     .to(LoadPageConfigUseCase)
+    .inSingletonScope();
+  
+  // Use Case for message handling
+  container.bind<LoadPageConfigFromMessageUseCase>(PAGE_RENDERER_TYPES.LoadPageConfigFromMessageUseCase)
+    .to(LoadPageConfigFromMessageUseCase)
     .inSingletonScope();
   
   // Presenter

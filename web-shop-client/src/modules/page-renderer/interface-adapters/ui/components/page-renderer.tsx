@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { SectionRenderer } from './section-renderer';
-import { diContainer } from '../../../../../infrastructure/bootstrap/container';
+import { container } from '../../../../../infrastructure/bootstrap/container';
 import { PAGE_RENDERER_TYPES } from '../../../infrastructure/bootstrap/types';
 import { LoadPageConfigUseCase } from '../../../application/use-cases/load-page-config.use-case';
+import { LoadPageConfigFromMessageUseCase } from '../../../application/use-cases/load-page-config-from-message.use-case';
 import { PageRendererPresenter } from '../../presenters/page-renderer.presenter';
 import type { PageRendererViewModel } from '../../view-models/page-renderer.view-model';
 
@@ -23,8 +24,8 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
   });
 
   useEffect(() => {
-    const presenter = diContainer.get<PageRendererPresenter>(PAGE_RENDERER_TYPES.PageRendererPresenter);
-    const loadUseCase = diContainer.get<LoadPageConfigUseCase>(PAGE_RENDERER_TYPES.LoadPageConfigUseCase);
+    const presenter = container.get<PageRendererPresenter>(PAGE_RENDERER_TYPES.PageRendererPresenter);
+    const loadUseCase = container.get<LoadPageConfigUseCase>(PAGE_RENDERER_TYPES.LoadPageConfigUseCase);
 
     // Подписываемся на изменения ViewModel
     const unsubscribe = presenter.subscribe((newVm) => {
@@ -43,6 +44,34 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       unsubscribe();
     };
   }, [appId, pageSlug, previewMode]);
+
+  // Handle preview updates from UI Builder via postMessage
+  useEffect(() => {
+    if (!previewMode) return;
+
+    const loadFromMessageUseCase = container.get<LoadPageConfigFromMessageUseCase>(
+      PAGE_RENDERER_TYPES.LoadPageConfigFromMessageUseCase
+    );
+
+    const handleMessage = async (event: MessageEvent) => {
+      if (event.data.type === 'PAGE_CONFIG_UPDATE') {
+        try {
+          await loadFromMessageUseCase.execute(
+            event.data.config,
+            appId,
+            pageSlug
+          );
+        } catch (error) {
+          console.error('[PageRenderer] Failed to process config update from message', error);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [previewMode, appId, pageSlug]);
 
   if (vm.isLoading) {
     return (
@@ -75,8 +104,12 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     );
   }
 
+  const pageStyle: React.CSSProperties = {
+    padding: vm.pageStyles?.padding || undefined,
+  };
+
   return (
-    <div className="page-renderer">
+    <div className="page-renderer" style={pageStyle}>
       {vm.sections.map(section => (
         <SectionRenderer
           key={section.id}

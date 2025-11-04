@@ -12,5 +12,9 @@ export interface PageConfig {
   isDraft: boolean;
   isActive: boolean;
   version: number;
+  /** Optional page-level styles (applied to the page container) */
+  pageStyles?: {
+    padding?: string;
+  };
 }
 

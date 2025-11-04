@@ -8,6 +8,7 @@ import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 export class PageRendererPresenter {
   private _vm: PageRendererViewModel = {
     sections: [],
+    pageStyles: {},
     isLoading: true,
     error: null
   };
@@ -47,11 +48,14 @@ export class PageRendererPresenter {
   setPageConfig(pageConfig: PageConfig | null): void {
     this._logger.info('[PageRendererPresenter] Setting page config', {
       hasConfig: !!pageConfig,
-      sectionsCount: pageConfig?.sections.length || 0
+      sectionsCount: pageConfig?.sections.length || 0,
+      hasPageStyles: !!pageConfig?.pageStyles,
+      pagePadding: pageConfig?.pageStyles?.padding || 'not set'
     });
     
     this._vm = {
       sections: pageConfig?.sections || [],
+      pageStyles: pageConfig?.pageStyles || {},
       isLoading: false,
       error: null
     };

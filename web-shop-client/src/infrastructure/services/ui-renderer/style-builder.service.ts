@@ -33,6 +33,18 @@ export class UIStyleBuilder {
 	): React.CSSProperties {
 		if (!styles) return {};
 
+		console.log('[UIStyleBuilder] Building inline styles', {
+			hasStyles: !!styles,
+			stylesKeys: Object.keys(styles),
+			backgroundColor: styles.backgroundColor,
+			color: styles.color,
+			textColor: styles.textColor,
+			borderColor: styles.borderColor,
+			borderRadius: styles.borderRadius,
+			borderWidth: styles.borderWidth,
+			padding: styles.padding
+		});
+
 		const inlineStyles: React.CSSProperties = {};
 
 		// Layout
@@ -42,7 +54,9 @@ export class UIStyleBuilder {
 		if (styles.alignItems) inlineStyles.alignItems = styles.alignItems;
 		if (styles.flex) inlineStyles.flex = styles.flex;
 		if (typeof styles.gap === 'number') {
-			inlineStyles.gap = `${theme.spacing[styles.gap]}px`;
+			if (theme?.spacing) {
+				inlineStyles.gap = `${theme.spacing[styles.gap]}px`;
+			}
 		} else if (typeof styles.gap === 'string') {
 			inlineStyles.gap = styles.gap;
 		}
@@ -52,35 +66,50 @@ export class UIStyleBuilder {
 
 		// Spacing
 		if (typeof styles.padding === 'number') {
-			inlineStyles.padding = `${theme.spacing[styles.padding]}px`;
+			if (theme?.spacing) {
+				inlineStyles.padding = `${theme.spacing[styles.padding]}px`;
+			}
 		} else if (typeof styles.padding === 'string') {
 			inlineStyles.padding = styles.padding;
 		}
 		if (typeof styles.paddingX === 'number') {
-			inlineStyles.paddingLeft = `${theme.spacing[styles.paddingX]}px`;
-			inlineStyles.paddingRight = `${theme.spacing[styles.paddingX]}px`;
+			if (theme?.spacing) {
+				inlineStyles.paddingLeft = `${theme.spacing[styles.paddingX]}px`;
+				inlineStyles.paddingRight = `${theme.spacing[styles.paddingX]}px`;
+			}
 		}
 		if (typeof styles.paddingY === 'number') {
-			inlineStyles.paddingTop = `${theme.spacing[styles.paddingY]}px`;
-			inlineStyles.paddingBottom = `${theme.spacing[styles.paddingY]}px`;
+			if (theme?.spacing) {
+				inlineStyles.paddingTop = `${theme.spacing[styles.paddingY]}px`;
+				inlineStyles.paddingBottom = `${theme.spacing[styles.paddingY]}px`;
+			}
 		}
 		if (typeof styles.margin === 'number') {
-			inlineStyles.margin = `${theme.spacing[styles.margin]}px`;
+			if (theme?.spacing) {
+				inlineStyles.margin = `${theme.spacing[styles.margin]}px`;
+			}
 		} else if (typeof styles.margin === 'string') {
 			inlineStyles.margin = styles.margin;
 		}
 		if (typeof styles.marginTop === 'number') {
-			inlineStyles.marginTop = `${theme.spacing[styles.marginTop]}px`;
+			if (theme?.spacing) {
+				inlineStyles.marginTop = `${theme.spacing[styles.marginTop]}px`;
+			}
 		}
 		if (typeof styles.marginBottom === 'number') {
-			inlineStyles.marginBottom = `${theme.spacing[styles.marginBottom]}px`;
+			if (theme?.spacing) {
+				inlineStyles.marginBottom = `${theme.spacing[styles.marginBottom]}px`;
+			}
 		}
 
 		// Colors
 		if (styles.backgroundColor) {
 			inlineStyles.backgroundColor = this._resolveColor(styles.backgroundColor, theme);
 		}
-		if (styles.textColor) {
+		// Support both 'color' (direct CSS property) and 'textColor' (theme-based)
+		if (styles.color) {
+			inlineStyles.color = this._resolveColor(styles.color as string, theme);
+		} else if (styles.textColor) {
 			inlineStyles.color = this._resolveColor(styles.textColor, theme);
 		}
 
@@ -101,16 +130,24 @@ export class UIStyleBuilder {
 		// Position
 		if (styles.position) inlineStyles.position = styles.position;
 		if (typeof styles.top === 'number') {
-			inlineStyles.top = `${theme.spacing[styles.top]}px`;
+			if (theme?.spacing) {
+				inlineStyles.top = `${theme.spacing[styles.top]}px`;
+			}
 		}
 		if (typeof styles.left === 'number') {
-			inlineStyles.left = `${theme.spacing[styles.left]}px`;
+			if (theme?.spacing) {
+				inlineStyles.left = `${theme.spacing[styles.left]}px`;
+			}
 		}
 		if (typeof styles.right === 'number') {
-			inlineStyles.right = `${theme.spacing[styles.right]}px`;
+			if (theme?.spacing) {
+				inlineStyles.right = `${theme.spacing[styles.right]}px`;
+			}
 		}
 		if (typeof styles.bottom === 'number') {
-			inlineStyles.bottom = `${theme.spacing[styles.bottom]}px`;
+			if (theme?.spacing) {
+				inlineStyles.bottom = `${theme.spacing[styles.bottom]}px`;
+			}
 		}
 		if (typeof styles.zIndex === 'number') {
 			inlineStyles.zIndex = styles.zIndex;
@@ -118,9 +155,16 @@ export class UIStyleBuilder {
 
 		// Visual
 		if (typeof styles.borderRadius === 'number') {
-			inlineStyles.borderRadius = `${theme.spacing[styles.borderRadius]}px`;
+			if (theme?.spacing) {
+				inlineStyles.borderRadius = `${theme.spacing[styles.borderRadius]}px`;
+			}
+		} else if (typeof styles.borderRadius === 'string') {
+			inlineStyles.borderRadius = styles.borderRadius;
 		}
 		if (styles.border) inlineStyles.border = styles.border;
+		if (styles.borderColor) inlineStyles.borderColor = this._resolveColor(styles.borderColor, theme);
+		if (styles.borderWidth) inlineStyles.borderWidth = styles.borderWidth;
+		if (styles.borderStyle) inlineStyles.borderStyle = styles.borderStyle;
 		if (styles.overflow) inlineStyles.overflow = styles.overflow;
 		if (styles.objectFit) inlineStyles.objectFit = styles.objectFit;
 		if (styles.filter) inlineStyles.filter = styles.filter;
@@ -131,6 +175,16 @@ export class UIStyleBuilder {
 		if (styles.backgroundPosition) inlineStyles.backgroundPosition = styles.backgroundPosition;
 		if (styles.backgroundRepeat) inlineStyles.backgroundRepeat = styles.backgroundRepeat;
 
+		console.log('[UIStyleBuilder] Built inline styles', {
+			inlineStylesKeys: Object.keys(inlineStyles),
+			backgroundColor: inlineStyles.backgroundColor,
+			color: inlineStyles.color,
+			borderColor: inlineStyles.borderColor,
+			borderRadius: inlineStyles.borderRadius,
+			borderWidth: inlineStyles.borderWidth,
+			padding: inlineStyles.padding
+		});
+
 		return inlineStyles;
 	}
 
@@ -139,9 +193,11 @@ export class UIStyleBuilder {
 	 */
 	private _resolveColor(color: string, theme: ThemeConfig): string {
 		// If it's a theme color reference, resolve it
-		const colors = theme.colors as Record<string, string>;
-		if (colors[color]) {
-			return colors[color];
+		if (theme?.colors) {
+			const colors = theme.colors as Record<string, string>;
+			if (colors && colors[color]) {
+				return colors[color];
+			}
 		}
 		// Otherwise use as-is (hex, rgb, etc.)
 		return color;

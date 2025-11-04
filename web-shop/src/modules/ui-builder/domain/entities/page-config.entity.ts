@@ -27,6 +27,11 @@ export interface PageConfig {
   /** Array of sections that make up the page */
   sections: PageSection[];
   
+  /** Optional page-level styles (applied to the page container) */
+  pageStyles?: {
+    padding?: string;
+  };
+  
   /** Optional metadata about the page */
   metadata?: {
     title?: string;

@@ -35,7 +35,7 @@ export class StyleBuilder {
       // Если это hex-код (начинается с #), используем напрямую
       if (typeof styles.backgroundColor === 'string' && styles.backgroundColor.startsWith('#')) {
         inlineStyles.backgroundColor = styles.backgroundColor;
-      } else if (theme) {
+      } else if (theme?.colors) {
         // Иначе ищем в теме
         const color = (theme.colors as any)[styles.backgroundColor];
         if (color) {
@@ -48,7 +48,7 @@ export class StyleBuilder {
       // Если это hex-код (начинается с #), используем напрямую
       if (typeof styles.textColor === 'string' && styles.textColor.startsWith('#')) {
         inlineStyles.color = styles.textColor;
-      } else if (theme) {
+      } else if (theme?.colors) {
         // Иначе ищем в теме
         const color = (theme.colors as any)[styles.textColor];
         if (color) {

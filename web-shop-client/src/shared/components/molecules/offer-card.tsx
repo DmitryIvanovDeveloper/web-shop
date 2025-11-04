@@ -76,7 +76,7 @@ export interface OfferCardProps {
 
 export function OfferCard({
   id,
-  mainImage = "",
+  mainImage,
   mainImageAlt = "Product",
   sideImage,
   backgroundImage,

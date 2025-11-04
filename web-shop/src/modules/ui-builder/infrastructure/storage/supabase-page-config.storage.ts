@@ -14,6 +14,7 @@ interface PageConfigRow {
   is_active: boolean;
   is_draft: boolean;
   sections: unknown;
+  page_styles?: unknown;
   created_at?: string;
   updated_at?: string;
 }
@@ -62,6 +63,7 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
         isDraft: row.is_draft,
         isActive: row.is_active,
         sections: row.sections as any[] || [],
+        pageStyles: (row.page_styles as { padding?: string }) || {},
       };
 
       this._logger.info('[SupabasePageConfigStorage] Draft loaded successfully', { appId, pageSlug, version: pageConfig.version });
@@ -107,6 +109,7 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
         isDraft: row.is_draft,
         isActive: row.is_active,
         sections: row.sections as any[] || [],
+        pageStyles: (row.page_styles as { padding?: string }) || {},
       };
 
       this._logger.info('[SupabasePageConfigStorage] Active config loaded successfully', { appId, pageSlug, version: pageConfig.version });
@@ -146,6 +149,7 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
           .update({
             version: newVersion,
             sections: config.sections,
+            page_styles: config.pageStyles || {},
             updated_at: new Date().toISOString(),
           })
           .eq('id', existingDraft[0].id);
@@ -171,6 +175,7 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
             is_active: false,
             is_draft: true,
             sections: config.sections,
+            page_styles: config.pageStyles || {},
           });
 
         if (error) {
@@ -222,6 +227,7 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
           is_active: true,
           is_draft: false,
           sections: draft.sections,
+          page_styles: draft.pageStyles || {},
         });
 
       if (insertError) {

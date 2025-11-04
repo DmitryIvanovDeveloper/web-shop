@@ -391,6 +391,23 @@ export class UIBuilderPresenter {
     this.saveConfigToSupabase();
   }
 
+  public removeSidebarButton(buttonId: string): void {
+    const layout = (this.vm.config as any)?.modules?.uiRenderer?.sidebar?.layout;
+    if (!layout || !Array.isArray(layout.children)) return;
+
+    // Filter out the button with the matching ID
+    layout.children = layout.children.filter((child: any) => child.id !== buttonId);
+
+    // Clear selection if the deleted button was selected
+    if (this.vm.selectedElement?.id === buttonId) {
+      this.vm = { ...this.vm, selectedElement: null };
+    }
+
+    this.notify();
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
+  }
+
   public async saveDraft(): Promise<boolean> {
     // stub success
     this.vm.isDraft = true;

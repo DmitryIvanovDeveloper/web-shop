@@ -86,6 +86,16 @@ export class UIRendererService implements UIRendererPort {
 		const className = this._styleBuilder.buildClassName(node.styles || {}, theme);
 		const style = this._styleBuilder.buildInlineStyles(node.styles || {}, theme);
 
+		console.log('[UIRendererService] Rendering node with styles', {
+			nodeType: node.type,
+			nodeId: node.id,
+			hasStyles: !!node.styles,
+			stylesKeys: node.styles ? Object.keys(node.styles) : [],
+			builtStyleKeys: Object.keys(style),
+			style: style,
+			props: node.props
+		});
+
 		// Handle onClick action
 		const handleClick = this._createClickHandler(node, context);
 		
@@ -105,6 +115,11 @@ export class UIRendererService implements UIRendererPort {
 			onChange: handleChange,
 			isLoading: context?.isLoading || false
 		};
+
+		console.log('[UIRendererService] Component props for', node.type, {
+			...componentProps,
+			style: componentProps.style
+		});
 
 		// Special handling for UniversalContainer
 		if (node.type === 'Container') {

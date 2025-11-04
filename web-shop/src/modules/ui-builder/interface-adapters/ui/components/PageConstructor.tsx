@@ -61,46 +61,76 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home' }: PageCon
     );
   }
 
+  const handleSaveDraft = async (): Promise<void> => {
+    await presenter.saveDraft();
+  };
+
+  const handlePublish = async (): Promise<void> => {
+    // Confirmation dialog
+    const confirmed = window.confirm(
+      'Are you sure you want to publish this page? This will update the live page configuration for all users.'
+    );
+
+    if (!confirmed) return;
+
+    await presenter.publish();
+  };
+
   return (
-    <div className="flex h-full">
-      {/* Left Panel: Palettes */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col overflow-y-auto">
-        <SectionPalette onAddSection={(type) => presenter.addSection(type)} />
-        <ComponentPalette
-          selectedSectionId={vm.selectedSection?.id}
-          onAddComponent={(type) => {
-            if (vm.selectedSection) {
-              presenter.addComponent(vm.selectedSection.id, type);
-            }
-          }}
-        />
-        
-        {/* Actions */}
-        <div className="p-4 border-t border-gray-200 mt-auto">
+    <div className="h-full flex flex-col">
+      {/* Header with actions */}
+      <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h1 className="text-lg font-semibold text-gray-900">Page Builder</h1>
+          <span className="text-xs text-gray-500">/</span>
+          <span className="text-sm text-gray-600">{pageSlug}</span>
+          {vm.isDraft ? (
+            <span className="ml-2 text-xs px-2 py-0.5 bg-orange-100 text-orange-700 rounded font-medium">
+              Draft
+            </span>
+          ) : (
+            <span className="ml-2 text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded font-medium">
+              Published
+            </span>
+          )}
+        </div>
+        <div className="flex gap-2 items-center">
           <button
-            onClick={() => presenter.saveDraft()}
-            disabled={vm.isSaving}
-            className="w-full px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium mb-2"
+            onClick={handleSaveDraft}
+            disabled={vm.isSaving || !vm.isDraft}
+            className="px-3 py-1.5 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs"
+            title={!vm.isDraft ? 'No unsaved changes' : 'Save as draft in Supabase'}
           >
             {vm.isSaving ? 'Saving...' : '💾 Save Draft'}
           </button>
           <button
-            onClick={() => presenter.publish()}
+            onClick={handlePublish}
             disabled={vm.isSaving || !vm.isDraft}
-            className="w-full px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium"
+            className="px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs"
+            title={!vm.isDraft ? 'Already published' : 'Publish to all users'}
           >
-            🚀 Publish Page
+            {vm.isSaving ? 'Publishing...' : '✓ Publish'}
           </button>
-          {!vm.isDraft && (
-            <p className="text-xs text-center text-gray-500 mt-2">
-              Page is already published
-            </p>
-          )}
         </div>
-      </aside>
+      </header>
 
-      {/* Center Panel: Canvas/Preview */}
-      <main className="flex-1 bg-gray-50 overflow-hidden flex flex-col">
+      {/* Main content area */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Panel: Palettes */}
+        <aside className="w-64 bg-white border-r border-gray-200 flex flex-col overflow-y-auto">
+          <SectionPalette onAddSection={(type) => presenter.addSection(type)} />
+          <ComponentPalette
+            selectedSectionId={vm.selectedSection?.id}
+            onAddComponent={(type) => {
+              if (vm.selectedSection) {
+                presenter.addComponent(vm.selectedSection.id, type);
+              }
+            }}
+          />
+        </aside>
+
+        {/* Center Panel: Canvas/Preview */}
+        <main className="flex-1 bg-gray-50 overflow-hidden flex flex-col">
         {/* Preview Mode Toggle */}
         <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between">
           <div className="flex gap-2">
@@ -217,6 +247,78 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home' }: PageCon
 
       {/* Right Panel: Editor */}
       <aside className="w-80 bg-white border-l border-gray-200 overflow-y-auto">
+        {/* Page Settings */}
+        <div className="p-4 border-b border-gray-200">
+          <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-3">
+            Page Settings
+          </h3>
+          
+          {/* Page Padding */}
+          <div className="mb-4">
+            <label className="text-xs font-medium text-gray-600 block mb-1.5">
+              Page Padding
+            </label>
+            <div className="flex items-center gap-2">
+              {(() => {
+                // Parse padding value and unit
+                const parsePadding = (paddingString: string | number | undefined): { value: number; unit: string } => {
+                  if (!paddingString) return { value: 2, unit: 'rem' };
+                  const padding = typeof paddingString === 'number' ? `${paddingString}px` : paddingString;
+                  
+                  // Try to match simple single value (e.g., "2rem", "20px")
+                  const match = padding.match(/^([\d.]+)\s*(rem|px|em|vh|%)$/);
+                  if (match) {
+                    return { value: parseFloat(match[1]), unit: match[2] };
+                  }
+                  
+                  // Default fallback
+                  return { value: 2, unit: 'rem' };
+                };
+
+                const { value: paddingValue, unit: paddingUnit } = parsePadding(vm.pageStyles?.padding);
+
+                const handlePaddingValueChange = (newValue: string): void => {
+                  if (newValue) {
+                    presenter.updatePagePadding(`${newValue}${paddingUnit}`);
+                  } else {
+                    presenter.updatePagePadding('');
+                  }
+                };
+
+                const handlePaddingUnitChange = (newUnit: string): void => {
+                  presenter.updatePagePadding(`${paddingValue}${newUnit}`);
+                };
+
+                return (
+                  <>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={paddingValue}
+                      onChange={(e) => handlePaddingValueChange(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                      placeholder="2"
+                    />
+                    <select
+                      value={paddingUnit}
+                      onChange={(e) => handlePaddingUnitChange(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    >
+                      <option value="px">px</option>
+                      <option value="rem">rem</option>
+                      <option value="em">em</option>
+                      <option value="vh">vh</option>
+                      <option value="%">%</option>
+                    </select>
+                  </>
+                );
+              })()}
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Examples: 2rem, 20px, 1em, 5vh</p>
+          </div>
+        </div>
+
         {!vm.selectedSection && !vm.selectedComponent && (
           <div className="p-4 text-center py-12">
             <div className="text-gray-400 text-3xl mb-2">👈</div>
@@ -254,8 +356,9 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home' }: PageCon
               presenter.removeComponent(vm.selectedSection!.id, vm.selectedComponent!.id);
             }}
           />
-        )}
-      </aside>
+                  )}
+        </aside>
+      </div>
     </div>
   );
 }

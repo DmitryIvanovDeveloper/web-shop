@@ -28,18 +28,33 @@ export function SectionRenderer({ section, theme }: SectionRendererProps): JSX.E
     ...(section.styles as React.CSSProperties),
   };
 
+  console.log(`[SectionRenderer] Rendering section ${section.type}`, {
+    sectionId: section.id,
+    componentsCount: section.components.length,
+    components: section.components.map(c => ({ id: c.id, type: c.type, props: c.props }))
+  });
+
   return (
     <section
       className={`page-section page-section-${section.type}`}
       style={sectionStyle}
     >
-      {section.components.map(component => (
-        <DynamicRenderer
-          key={component.id}
-          node={component}
-          theme={theme}
-        />
-      ))}
+      {section.components.map(component => {
+        console.log(`[SectionRenderer] Rendering component`, {
+          sectionType: section.type,
+          componentId: component.id,
+          componentType: component.type,
+          componentProps: component.props,
+          componentStyles: component.styles
+        });
+        return (
+          <DynamicRenderer
+            key={component.id}
+            node={component}
+            theme={theme}
+          />
+        );
+      })}
     </section>
   );
 }

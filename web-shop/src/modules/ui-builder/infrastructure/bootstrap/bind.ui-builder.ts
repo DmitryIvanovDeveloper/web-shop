@@ -28,6 +28,7 @@ import { PublishPageUseCase } from '../../application/use-cases/publish-page.use
 
 // Presenters
 import { UIBuilderPresenter } from '../../interface-adapters/presenters/ui-builder.presenter';
+import { PageConstructorPresenter } from '../../interface-adapters/presenters/page-constructor.presenter';
 
 export function bindUIBuilder(container: Container): void {
   // Storage
@@ -120,6 +121,11 @@ export function bindUIBuilder(container: Container): void {
   container
     .bind<UIBuilderPresenter>(UI_BUILDER_TYPES.UIBuilderPresenter)
     .to(UIBuilderPresenter)
+    .inSingletonScope();
+
+  container
+    .bind<PageConstructorPresenter>(UI_BUILDER_TYPES.PageConstructorPresenter)
+    .to(PageConstructorPresenter)
     .inSingletonScope();
 }
 

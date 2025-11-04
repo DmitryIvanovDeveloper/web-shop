@@ -5,8 +5,12 @@ import { ThemeEditor } from '../components/ThemeEditor';
 import { ElementTreeSelector } from '../components/ElementTreeSelector';
 import { SidebarColorEditor } from '../components/SidebarColorEditor';
 import { AuthEditor } from '../components/AuthEditor';
+import { PageConstructor } from '../components/PageConstructor';
 import type { SidebarElement } from '../../../domain/types/sidebar-element.types';
+import type { PageConstructorPresenter } from '../../presenters/page-constructor.presenter';
 import { env } from '@/env';
+import { container } from '@/infrastructure/bootstrap/container';
+import { UI_BUILDER_TYPES } from '../../../infrastructure/bootstrap/types';
 
 interface UIBuilderPageProps {
   presenter: any; // Will be typed properly when presenter hook is created
@@ -20,7 +24,22 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   const clientUrl = env.NEXT_PUBLIC_CLIENT_URL;
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
-  const [activeSection, setActiveSection] = useState<'sidebar' | 'authButton' | 'authPopup'>('sidebar');
+  const [activeSection, setActiveSection] = useState<'sidebar' | 'authButton' | 'authPopup' | 'pageConstructor'>('sidebar');
+  
+  // Get PageConstructorPresenter from DI container
+  const pageConstructorPresenter = React.useMemo(() => {
+    return container.get<PageConstructorPresenter>(UI_BUILDER_TYPES.PageConstructorPresenter);
+  }, []);
+
+  // Calculate iframe src based on active section
+  const iframeSrc = React.useMemo(() => {
+    if (!clientUrl) return null;
+    if (activeSection === 'pageConstructor') {
+      const pageSlug = pageConstructorPresenter.getPageSlug();
+      return `${clientUrl}/${pageSlug}?appId=${appId}&previewMode=true&uibuilder=true`;
+    }
+    return `${clientUrl}/?appId=${appId}&previewMode=true&uibuilder=true`;
+  }, [activeSection, appId, clientUrl, pageConstructorPresenter]);
 
   // Callback ref to set iframe ref when iframe mounts
   const handleIframeRef = useCallback((el: HTMLIFrameElement | null) => {
@@ -288,6 +307,21 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             </div>
           </div>
 
+          {/* Pages section */}
+          <div className="mb-4">
+            <h3 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Pages</h3>
+            <div className="flex flex-col gap-1 pl-2">
+              <button
+                onClick={() => {
+                  setActiveSection('pageConstructor');
+                }}
+                className={`text-left px-2 py-1 rounded text-xs ${activeSection === 'pageConstructor' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
+              >
+                Page Builder
+              </button>
+            </div>
+          </div>
+
           {/* Placeholder for future components */}
           <div className="mb-4">
             <h3 className="text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Right Sidebar</h3>
@@ -307,48 +341,55 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-base font-bold text-gray-900">
-                {viewModel.selectedElement ? `Editing: ${viewModel.selectedElement.id}` : 'Left Sidebar Editor'}
+                {activeSection === 'pageConstructor' ? 'Page Builder' : 
+                 activeSection === 'authButton' ? 'Auth Button Editor' :
+                 activeSection === 'authPopup' ? 'Auth Popup Editor' :
+                 viewModel.selectedElement ? `Editing: ${viewModel.selectedElement.id}` : 'Left Sidebar Editor'}
               </h1>
-              <p className="text-gray-500 text-xs mt-0.5">
-                <span className="font-mono">{viewModel.appId}</span>
-                {viewModel.version && (
-                  <span className="ml-2">
-                    v{viewModel.version}
-                    {viewModel.isDraft ? (
-                      <span className="ml-1 text-orange-600 font-semibold">Draft</span>
-                    ) : (
-                      <span className="ml-1 text-green-600 font-semibold">Published</span>
-                    )}
-                  </span>
-                )}
-              </p>
+              {activeSection !== 'pageConstructor' && (
+                <p className="text-gray-500 text-xs mt-0.5">
+                  <span className="font-mono">{viewModel.appId}</span>
+                  {viewModel.version && (
+                    <span className="ml-2">
+                      v{viewModel.version}
+                      {viewModel.isDraft ? (
+                        <span className="ml-1 text-orange-600 font-semibold">Draft</span>
+                      ) : (
+                        <span className="ml-1 text-green-600 font-semibold">Published</span>
+                      )}
+                    </span>
+                  )}
+                </p>
+              )}
             </div>
-            <div className="flex gap-2 items-center">
-              <button
-                onClick={() => presenter.resetToActive(appId)}
-                disabled={viewModel.isSaving || !viewModel.isDraft}
-                className="px-3 py-1.5 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs"
-                title={!viewModel.isDraft ? 'No draft changes to reset' : 'Reset to last published version'}
-              >
-                🔄 Reset to Active
-              </button>
-              <button
-                onClick={handleSaveDraft}
-                disabled={viewModel.isSaving || !viewModel.isDraft}
-                className="px-3 py-1.5 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs"
-                title={!viewModel.isDraft ? 'No unsaved changes' : 'Save as draft in Supabase'}
-              >
-                {viewModel.isSaving ? 'Saving...' : '💾 Save Draft'}
-              </button>
-              <button
-                onClick={handlePublish}
-                disabled={viewModel.isSaving || !viewModel.isDraft}
-                className="px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs"
-                title={!viewModel.isDraft ? 'Already published' : 'Publish to all users'}
-              >
-                {viewModel.isSaving ? 'Publishing...' : '✓ Publish'}
-              </button>
-            </div>
+            {activeSection !== 'pageConstructor' && (
+              <div className="flex gap-2 items-center">
+                <button
+                  onClick={() => presenter.resetToActive(appId)}
+                  disabled={viewModel.isSaving || !viewModel.isDraft}
+                  className="px-3 py-1.5 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs"
+                  title={!viewModel.isDraft ? 'No draft changes to reset' : 'Reset to last published version'}
+                >
+                  🔄 Reset to Active
+                </button>
+                <button
+                  onClick={handleSaveDraft}
+                  disabled={viewModel.isSaving || !viewModel.isDraft}
+                  className="px-3 py-1.5 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs"
+                  title={!viewModel.isDraft ? 'No unsaved changes' : 'Save as draft in Supabase'}
+                >
+                  {viewModel.isSaving ? 'Saving...' : '💾 Save Draft'}
+                </button>
+                <button
+                  onClick={handlePublish}
+                  disabled={viewModel.isSaving || !viewModel.isDraft}
+                  className="px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-xs"
+                  title={!viewModel.isDraft ? 'Already published' : 'Publish to all users'}
+                >
+                  {viewModel.isSaving ? 'Publishing...' : '✓ Publish'}
+                </button>
+              </div>
+            )}
           </div>
         </header>
 
@@ -384,6 +425,14 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 onUpdateButton={(input) => presenter.updateLoginButton(input)}
                 onUpdatePopup={(input) => presenter.updateAuthPopup(input)}
                 tab="popup"
+              />
+            )}
+
+            {activeSection === 'pageConstructor' && (
+              <PageConstructor
+                presenter={pageConstructorPresenter}
+                appId={appId}
+                pageSlug="home"
               />
             )}
 
@@ -445,10 +494,10 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 </div>
               </div>
               <div className="relative flex justify-center">
-                {isClient && (
+                {isClient && iframeSrc ? (
                   <iframe
                     ref={handleIframeRef}
-                    src={`${clientUrl}/?appId=${appId}&previewMode=true&uibuilder=true`}
+                    src={iframeSrc}
                     className={`border border-gray-300 rounded transition-all duration-300 ${
                       viewportMode === 'mobile' ? 'w-[375px]' : 
                       viewportMode === 'tablet' ? 'w-[768px]' : 
@@ -458,6 +507,13 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                     title="Live Preview"
                     sandbox="allow-scripts allow-same-origin"
                   />
+                ) : (
+                  <div className="text-center p-8">
+                    <p className="text-sm text-gray-500 mb-2">Preview not available</p>
+                    <p className="text-xs text-gray-400">
+                      {!clientUrl ? 'NEXT_PUBLIC_CLIENT_URL is not configured' : 'Loading...'}
+                    </p>
+                  </div>
                 )}
               </div>
             </div>

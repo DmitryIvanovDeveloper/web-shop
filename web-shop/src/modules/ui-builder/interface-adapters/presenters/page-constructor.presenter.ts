@@ -14,6 +14,9 @@ interface PageConstructorViewModel {
   sections: PageSection[];
   selectedSection: PageSection | null;
   selectedComponent: ComponentNode | null;
+  pageStyles: {
+    padding?: string;
+  };
   isLoading: boolean;
   isSaving: boolean;
   isDraft: boolean;
@@ -31,6 +34,7 @@ export class PageConstructorPresenter {
     sections: [],
     selectedSection: null,
     selectedComponent: null,
+    pageStyles: {},
     isLoading: false,
     isSaving: false,
     isDraft: true,
@@ -84,6 +88,7 @@ export class PageConstructorPresenter {
         this.vm = { 
           ...this.vm, 
           sections: result.value.sections,
+          pageStyles: result.value.pageStyles || {},
           isLoading: false,
           isDraft: result.value.isDraft
         };
@@ -92,6 +97,7 @@ export class PageConstructorPresenter {
         this.vm = { 
           ...this.vm, 
           sections: [],
+          pageStyles: {},
           isLoading: false 
         };
       }
@@ -139,6 +145,7 @@ export class PageConstructorPresenter {
 
     this.notify();
     this.saveConfigDebounced();
+    this.sendConfigToIframe();
   }
 
   public removeSection(sectionId: string): void {
@@ -153,6 +160,7 @@ export class PageConstructorPresenter {
 
     this.notify();
     this.saveConfigDebounced();
+    this.sendConfigToIframe();
   }
 
   public selectSection(sectionId: string): void {
@@ -187,6 +195,7 @@ export class PageConstructorPresenter {
 
     this.notify();
     this.saveConfigDebounced();
+    this.sendConfigToIframe();
   }
 
   public updateSectionStyles(sectionId: string, styles: Record<string, unknown>): void {
@@ -207,6 +216,7 @@ export class PageConstructorPresenter {
 
     this.notify();
     this.saveConfigDebounced();
+    this.sendConfigToIframe();
   }
 
   // ============ Component Operations ============
@@ -218,7 +228,7 @@ export class PageConstructorPresenter {
       id: `${componentType.toLowerCase()}-${Date.now()}`,
       type: componentType,
       props: this.getDefaultProps(componentType),
-      styles: {},
+      styles: this.getDefaultStyles(componentType),
     };
 
     this.vm = {
@@ -233,6 +243,7 @@ export class PageConstructorPresenter {
 
     this.notify();
     this.saveConfigDebounced();
+    this.sendConfigToIframe();
   }
 
   public removeComponent(sectionId: string, componentId: string): void {
@@ -250,6 +261,7 @@ export class PageConstructorPresenter {
 
     this.notify();
     this.saveConfigDebounced();
+    this.sendConfigToIframe();
   }
 
   public selectComponent(sectionId: string, componentId: string): void {
@@ -269,7 +281,17 @@ export class PageConstructorPresenter {
   }
 
   public updateComponent(sectionId: string, componentId: string, props: Record<string, unknown>): void {
-    this._logger.info('[PageConstructorPresenter] Updating component', { sectionId, componentId });
+    this._logger.info('[PageConstructorPresenter] Updating component', { 
+      sectionId, 
+      componentId,
+      propsKeys: Object.keys(props),
+      hasStylesInProps: 'styles' in props,
+      stylesValue: props.styles
+    });
+
+    // Extract styles from props if present
+    const { styles, ...componentProps } = props;
+    const hasStyles = styles !== undefined;
 
     this.vm = {
       ...this.vm,
@@ -277,11 +299,26 @@ export class PageConstructorPresenter {
         section.id === sectionId
           ? {
               ...section,
-              components: section.components.map(comp =>
-                comp.id === componentId
-                  ? { ...comp, props: { ...comp.props, ...props } }
-                  : comp
-              ),
+              components: section.components.map(comp => {
+                if (comp.id === componentId) {
+                  const currentStyles = comp.styles || {};
+                  const mergedStyles = hasStyles ? { ...currentStyles, ...(styles as Record<string, unknown>) } : currentStyles;
+                  
+                  this._logger.info('[PageConstructorPresenter] Merging styles', {
+                    componentId,
+                    currentStylesKeys: Object.keys(currentStyles),
+                    newStylesKeys: hasStyles ? Object.keys(styles as Record<string, unknown>) : [],
+                    mergedStylesKeys: Object.keys(mergedStyles)
+                  });
+                  
+                  return {
+                    ...comp,
+                    props: { ...comp.props, ...componentProps },
+                    styles: mergedStyles,
+                  };
+                }
+                return comp;
+              }),
             }
           : section
       ),
@@ -295,6 +332,7 @@ export class PageConstructorPresenter {
 
     this.notify();
     this.saveConfigDebounced();
+    this.sendConfigToIframe();
   }
 
   // ============ Persistence ============
@@ -324,6 +362,7 @@ export class PageConstructorPresenter {
         isDraft: true,
         isActive: false,
         sections: this.vm.sections,
+        pageStyles: this.vm.pageStyles,
       };
 
       const result = await this._saveDraftUseCase.execute(config);
@@ -383,6 +422,70 @@ export class PageConstructorPresenter {
 
   // ============ Helper Methods ============
 
+  public getPageSlug(): string {
+    return this.vm.pageSlug;
+  }
+
+  public updatePagePadding(padding: string): void {
+    this._logger.info('[PageConstructorPresenter] Updating page padding', { padding });
+
+    this.vm = {
+      ...this.vm,
+      pageStyles: {
+        ...this.vm.pageStyles,
+        padding: padding || undefined,
+      },
+    };
+
+    this.notify();
+    this.saveConfigDebounced();
+    this.sendConfigToIframe();
+  }
+
+  private sendConfigToIframe(): void {
+    if (typeof window === 'undefined') return;
+
+    const iframe = document.querySelector('iframe');
+    if (!iframe?.contentWindow) {
+      this._logger.warn('[PageConstructorPresenter] Iframe not found for sending config');
+      return;
+    }
+
+    const pageConfig: PageConfig = {
+      id: 'draft',
+      appId: this.vm.appId,
+      pageSlug: this.vm.pageSlug,
+      version: 1,
+      isDraft: true,
+      isActive: false,
+      sections: this.vm.sections,
+      pageStyles: this.vm.pageStyles,
+    };
+
+    // Log detailed info about sections and components
+    pageConfig.sections.forEach(section => {
+      this._logger.info(`[PageConstructorPresenter] Section ${section.type} (${section.id})`, {
+        componentsCount: section.components.length,
+        components: section.components.map(c => ({
+          id: c.id,
+          type: c.type,
+          props: c.props,
+          hasStyles: !!c.styles && Object.keys(c.styles).length > 0
+        }))
+      });
+    });
+
+    iframe.contentWindow.postMessage(
+      { type: 'PAGE_CONFIG_UPDATE', config: pageConfig },
+      '*'
+    );
+
+    this._logger.info('[PageConstructorPresenter] Sent config to iframe', {
+      sectionsCount: pageConfig.sections.length,
+      pagePadding: pageConfig.pageStyles?.padding || 'not set',
+    });
+  }
+
   private getDefaultProps(componentType: string): Record<string, unknown> {
     const defaults: Record<string, Record<string, unknown>> = {
       Text: { text: 'Enter text here...' },
@@ -392,6 +495,25 @@ export class PageConstructorPresenter {
       ProductsList: {},
       OffersList: {},
       Container: {},
+    };
+
+    return defaults[componentType] || {};
+  }
+
+  private getDefaultStyles(componentType: string): Record<string, unknown> {
+    const defaults: Record<string, Record<string, unknown>> = {
+      Button: {
+        backgroundColor: '#3b82f6',
+        color: '#ffffff',
+        padding: '8px 16px',
+        borderRadius: '8px',
+        border: 'none',
+        cursor: 'pointer',
+      },
+      Text: {
+        color: '#000000',
+        fontSize: '1rem',
+      },
     };
 
     return defaults[componentType] || {};

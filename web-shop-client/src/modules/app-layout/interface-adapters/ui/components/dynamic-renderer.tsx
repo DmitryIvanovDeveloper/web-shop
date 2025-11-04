@@ -24,14 +24,31 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     return null;
   }
   
+  console.log('[DynamicRenderer] Rendering node', {
+    nodeId: node.id,
+    nodeType: node.type,
+    props: node.props,
+    styles: node.styles,
+    hasChildren: !!(node as any).children
+  });
+  
   // Получаем UIRendererService из DI контейнера
   const uiRenderer = container.get<UIRendererPort>(ROOT_TYPES.UIRenderer);
   
   // Преобразуем в UIDescriptor и рендерим
-  return uiRenderer.renderUI({
+  const result = uiRenderer.renderUI({
     layout: node,
     theme,
     context: actionContext || {}
   });
+  
+  console.log('[DynamicRenderer] Render result', {
+    nodeId: node.id,
+    nodeType: node.type,
+    hasResult: !!result,
+    resultType: typeof result
+  });
+  
+  return result;
 }
 

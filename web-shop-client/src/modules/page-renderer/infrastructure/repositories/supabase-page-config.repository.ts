@@ -32,7 +32,7 @@ function convertToComponentNode(json: any): ComponentNode | null {
     return null;
   }
   
-  return result.data;
+  return result.data || null;
 }
 
 @injectable()
@@ -89,7 +89,8 @@ export class SupabasePageConfigRepository implements PageConfigRepositoryPort {
         sections,
         isDraft: data.is_draft,
         isActive: data.is_active,
-        version: data.version
+        version: data.version,
+        pageStyles: (data.page_styles as { padding?: string }) || {},
       };
       
       this._logger.info('[SupabasePageConfigRepository] Loaded successfully', {
