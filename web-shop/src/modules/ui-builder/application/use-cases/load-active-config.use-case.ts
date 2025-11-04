@@ -23,20 +23,20 @@ export class LoadActiveConfigUseCase {
       
       if (!activeResult.isSuccess) {
         this._logger.error('[LoadActiveConfigUseCase] Failed to load active config', activeResult.error);
-        return Result.fail(activeResult.error);
+        return Result.error(activeResult.error || new Error('Failed to load active config'));
       }
 
       if (!activeResult.value) {
         const error = new Error(`No active config found for appId: ${appId}`);
         this._logger.error('[LoadActiveConfigUseCase] No active config found', { appId });
-        return Result.fail(error);
+        return Result.error(error);
       }
 
       this._logger.info('[LoadActiveConfigUseCase] Active config loaded successfully', { appId });
       return Result.ok(activeResult.value);
     } catch (error) {
       this._logger.error('[LoadActiveConfigUseCase] Error loading config', error);
-      return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 }

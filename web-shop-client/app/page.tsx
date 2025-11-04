@@ -1,15 +1,15 @@
 'use client';
 
 import { container } from '../src/infrastructure/bootstrap/container';
-import { UI_RENDERER_TYPES } from '../src/modules/ui-renderer/infrastructure/bootstrap/types';
-import { SidebarRendererPresenter } from '../src/modules/ui-renderer/interface-adapters/presenters/sidebar-renderer.presenter';
-import { SidebarRenderer } from '../src/modules/ui-renderer/interface-adapters/ui/components/sidebar-renderer';
-import type { ActionContext } from '../src/modules/ui-renderer/domain/types';
+import { APP_LAYOUT_TYPES } from '../src/modules/app-layout/infrastructure/bootstrap/types';
+import { SidebarRendererPresenter } from '../src/modules/app-layout/interface-adapters/presenters/sidebar-renderer.presenter';
+import { SidebarRenderer } from '../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
+import type { ActionContext } from '../src/shared/ui/action-context';
 import { useEffect } from 'react';
 
 export default function HomePage(): JSX.Element {
   const sidebarPresenter = container.get<SidebarRendererPresenter>(
-    UI_RENDERER_TYPES.SidebarRendererPresenter
+    APP_LAYOUT_TYPES.SidebarRendererPresenter
   );
 
   // ActionContext для обработки действий
@@ -43,6 +43,13 @@ export default function HomePage(): JSX.Element {
 
       // Set min height to ensure background covers full viewport
       document.body.style.minHeight = '100vh';
+    }
+
+    // Notify parent window (UI Builder) that preview is ready
+    if (typeof window !== 'undefined' && window.parent !== window) {
+      const targetOrigin = process.env.NEXT_PUBLIC_UI_BUILDER_URL || '*';
+      window.parent.postMessage({ type: 'PREVIEW_READY' }, targetOrigin);
+      console.log('[HomePage] Sent PREVIEW_READY to parent');
     }
 
     // Cleanup function to reset body styles when component unmounts

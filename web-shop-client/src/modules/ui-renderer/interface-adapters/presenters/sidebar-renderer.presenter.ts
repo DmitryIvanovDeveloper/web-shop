@@ -22,6 +22,7 @@ export class SidebarRendererPresenter {
    * Устанавливает конфигурации из AppConfig (вызывается через EventHandler)
    */
   public setConfigs(configs: UIRendererModuleConfig): void {
+    console.log('[SidebarRendererPresenter] setConfigs called, listeners count:', this._listeners.length);
     this._configs = configs;
     // Оповещаем всех подписчиков о готовности конфига
     this._listeners.forEach(listener => listener());

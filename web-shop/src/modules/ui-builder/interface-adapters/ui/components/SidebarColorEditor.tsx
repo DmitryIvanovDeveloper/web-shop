@@ -7,9 +7,11 @@ interface SidebarColorEditorProps {
   element: SelectedElement | null;
   onChange: (elementId: string, colors: Record<string, string>) => void;
   onGapChange?: (elementId: string, gap: string) => void;
+  onPaddingChange?: (elementId: string, padding: string) => void;
   onBorderRadiusChange?: (elementId: string, borderRadius: string) => void;
   onLabelChange?: (elementId: string, label: string) => void;
   onTextAlignChange?: (elementId: string, textAlign: string) => void;
+  onFlexDirectionChange?: (elementId: string, flexDirection: string) => void;
 }
 
 interface ColorInputProps {
@@ -46,11 +48,8 @@ function ColorInput({ label, value, onChange }: ColorInputProps): JSX.Element {
   );
 }
 
-export function SidebarColorEditor({ element, onChange, onGapChange, onBorderRadiusChange, onLabelChange, onTextAlignChange }: SidebarColorEditorProps): JSX.Element {
-  console.log('[SidebarColorEditor] Rendering with element:', element);
-  
+export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingChange, onBorderRadiusChange, onLabelChange, onTextAlignChange, onFlexDirectionChange }: SidebarColorEditorProps): JSX.Element {
   if (!element) {
-    console.log('[SidebarColorEditor] No element, showing placeholder');
     return (
       <div className="bg-white rounded-lg shadow p-4">
         <div className="text-center text-gray-500 py-6">
@@ -73,8 +72,6 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onBorderRad
       </div>
     );
   }
-  
-  console.log('[SidebarColorEditor] Rendering editor for element:', element.id);
 
   const handleColorChange = (colorKey: string, newColor: string) => {
     const updatedColors = {
@@ -85,8 +82,10 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onBorderRad
   };
 
   // Parse gap value and unit
-  const parseGap = (gapString: string): { value: number; unit: string } => {
-    const match = gapString?.match(/^([\d.]+)(rem|px)$/);
+  const parseGap = (gapString: string | number | undefined): { value: number; unit: string } => {
+    if (!gapString) return { value: 0.5, unit: 'rem' };
+    const gap = typeof gapString === 'number' ? `${gapString}px` : gapString;
+    const match = gap.match(/^([\d.]+)(rem|px)$/);
     if (match) {
       return { value: parseFloat(match[1]), unit: match[2] };
     }
@@ -108,8 +107,10 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onBorderRad
   };
 
   // Parse borderRadius value and unit
-  const parseBorderRadius = (borderRadiusString: string): { value: number; unit: string } => {
-    const match = borderRadiusString?.match(/^([\d.]+)(rem|px)$/);
+  const parseBorderRadius = (borderRadiusString: string | number | undefined): { value: number; unit: string } => {
+    if (!borderRadiusString) return { value: 0.5, unit: 'rem' };
+    const borderRadius = typeof borderRadiusString === 'number' ? `${borderRadiusString}px` : borderRadiusString;
+    const match = borderRadius.match(/^([\d.]+)(rem|px)$/);
     if (match) {
       return { value: parseFloat(match[1]), unit: match[2] };
     }
@@ -127,6 +128,31 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onBorderRad
   const handleBorderRadiusUnitChange = (newUnit: string) => {
     if (onBorderRadiusChange) {
       onBorderRadiusChange(element.id, `${borderRadiusValue}${newUnit}`);
+    }
+  };
+
+  // Parse padding value and unit
+  const parsePadding = (paddingString: string | number | undefined): { value: number; unit: string } => {
+    if (!paddingString) return { value: 1, unit: 'rem' };
+    const padding = typeof paddingString === 'number' ? `${paddingString}px` : paddingString;
+    const match = padding.match(/^([\d.]+)(rem|px)$/);
+    if (match) {
+      return { value: parseFloat(match[1]), unit: match[2] };
+    }
+    return { value: 1, unit: 'rem' };
+  };
+
+  const { value: paddingValue, unit: paddingUnit } = parsePadding(element.padding || '1rem');
+
+  const handlePaddingValueChange = (newValue: string) => {
+    if (onPaddingChange) {
+      onPaddingChange(element.id, `${newValue}${paddingUnit}`);
+    }
+  };
+
+  const handlePaddingUnitChange = (newUnit: string) => {
+    if (onPaddingChange) {
+      onPaddingChange(element.id, `${paddingValue}${newUnit}`);
     }
   };
 
@@ -187,6 +213,51 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onBorderRad
                 </select>
               </div>
             </div>
+            
+            {/* Padding editor */}
+            {onPaddingChange && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                  Padding
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={paddingValue}
+                    onChange={(e) => handlePaddingValueChange(e.target.value)}
+                    className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                    placeholder="1"
+                  />
+                  <select
+                    value={paddingUnit}
+                    onChange={(e) => handlePaddingUnitChange(e.target.value)}
+                    className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                  >
+                    <option value="rem">rem</option>
+                    <option value="px">px</option>
+                  </select>
+                </div>
+              </div>
+            )}
+            
+            {/* Flex Direction editor */}
+            {onFlexDirectionChange && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                  Direction
+                </label>
+                <select
+                  value={element.flexDirection || 'row'}
+                  onChange={(e) => onFlexDirectionChange(element.id, e.target.value)}
+                  className="w-48 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                >
+                  <option value="row">Horizontal (row)</option>
+                  <option value="column">Vertical (column)</option>
+                </select>
+              </div>
+            )}
           </div>
         )}
 

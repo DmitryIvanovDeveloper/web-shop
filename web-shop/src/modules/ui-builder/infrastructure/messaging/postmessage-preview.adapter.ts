@@ -7,14 +7,26 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
   private _iframeEl: HTMLIFrameElement | null = null;
   private _readyCallbacks: (() => void)[] = [];
   private _elementSelectedHandler: ((event: MessageEvent) => void) | null = null;
+  private _isIframeReady: boolean = false;
+  private _pendingMessages: Array<{ type: string; payload: any }> = [];
 
   private get _targetOrigin(): string {
     // Use configured client URL; fall back to '*' to avoid TS undefined and prevent crashes in dev
     return env.NEXT_PUBLIC_CLIENT_URL || '*';
   }
 
-  public setIframeRef(ref: React.RefObject<HTMLIFrameElement> | HTMLIFrameElement | null): void {
-    this._iframeEl = (ref as any)?.current || ref;
+  public setIframeRef(ref: HTMLIFrameElement | null): void {
+    const hasChanged = this._iframeEl !== ref;
+    console.log('[PostMessagePreviewAdapter] setIframeRef called', { 
+      hasRef: !!ref, 
+      wasReady: this._isIframeReady,
+      hasChanged
+    });
+    this._iframeEl = ref;
+    // Reset ready flag only when iframe ref actually changes
+    if (hasChanged) {
+      this._isIframeReady = false;
+    }
   }
 
   public sendThemeUpdate(colors: Record<string, string>): void {
@@ -121,6 +133,19 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
 
   public notifyPreviewReady(): void {
     console.log('[PostMessagePreviewAdapter] notifying callbacks', { count: this._readyCallbacks.length });
+    this._isIframeReady = true;
+    
+    // Send all pending messages
+    if (this._pendingMessages.length > 0) {
+      console.log('[PostMessagePreviewAdapter] Sending pending messages', { count: this._pendingMessages.length });
+      this._pendingMessages.forEach(msg => {
+        if (this._iframeEl?.contentWindow) {
+          this._iframeEl.contentWindow.postMessage(msg.payload, this._targetOrigin);
+        }
+      });
+      this._pendingMessages = [];
+    }
+    
     this._readyCallbacks.forEach(cb => cb());
     // Don't clear callbacks to allow re-sending updates on iframe reload
   }
@@ -141,20 +166,19 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
   }
 
   public sendConfig(config: Record<string, unknown>): void {
-    if (!this._iframeEl?.contentWindow) {
-      console.warn('[PostMessagePreviewAdapter] iframe not ready, cannot send config update');
+    const message = {
+      type: 'CONFIG_UPDATE',
+      payload: { config },
+    };
+
+    if (!this._iframeEl?.contentWindow || !this._isIframeReady) {
+      console.warn('[PostMessagePreviewAdapter] iframe not ready, queueing config update');
+      this._pendingMessages.push({ type: 'CONFIG_UPDATE', payload: message });
       return;
     }
 
     console.log('[PostMessagePreviewAdapter] Sending config update');
-
-    this._iframeEl.contentWindow.postMessage(
-      {
-        type: 'CONFIG_UPDATE',
-        payload: { config },
-      },
-      this._targetOrigin
-    );
+    this._iframeEl.contentWindow.postMessage(message, this._targetOrigin);
   }
 }
 

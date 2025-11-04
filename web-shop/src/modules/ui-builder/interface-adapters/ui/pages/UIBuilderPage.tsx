@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { ThemeEditor } from '../components/ThemeEditor';
 import { ElementTreeSelector } from '../components/ElementTreeSelector';
 import { SidebarColorEditor } from '../components/SidebarColorEditor';
@@ -22,13 +22,18 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   useEffect(() => { setIsClient(true); }, []);
   const [activeSection, setActiveSection] = useState<'sidebar' | 'authButton' | 'authPopup'>('sidebar');
 
-  // Set iframe ref when it changes
-  useEffect(() => {
-    const previewComm = presenter.getPreviewCommunication();
-    if (previewComm && previewComm.setIframeRef && iframeRef.current) {
-      previewComm.setIframeRef(iframeRef);
+  // Callback ref to set iframe ref when iframe mounts
+  const handleIframeRef = useCallback((el: HTMLIFrameElement | null) => {
+    // TypeScript expects us to use the ref object directly
+    if (el) {
+      (iframeRef as React.MutableRefObject<HTMLIFrameElement | null>).current = el;
     }
-  });
+    const previewComm = presenter.getPreviewCommunication();
+    if (previewComm && previewComm.setIframeRef && el) {
+      console.log('[UIBuilderPage] Calling setIframeRef with ref:', el);
+      previewComm.setIframeRef(el);
+    }
+  }, [presenter]);
 
   useEffect(() => {
     const unsubscribe = presenter.subscribe((vm: any) => {
@@ -254,6 +259,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               elements={extractSidebarElements()}
               selectedId={viewModel.selectedElement?.id || null}
               onSelect={handleElementSelect}
+              onDelete={(elementId) => presenter.removeSidebarButton(elementId)}
             />
           </div>
 
@@ -355,9 +361,11 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 element={viewModel.selectedElement}
                 onChange={handleElementColorChange}
                 onGapChange={(elementId, gap) => presenter.updateContainerGap(elementId, gap)}
+                onPaddingChange={(elementId, padding) => presenter.updateContainerPadding(elementId, padding)}
                 onBorderRadiusChange={(elementId, borderRadius) => presenter.updateButtonBorderRadius(elementId, borderRadius)}
                 onLabelChange={(elementId, label) => presenter.updateButtonLabel(elementId, label)}
                 onTextAlignChange={(elementId, textAlign) => presenter.updateButtonTextAlign(elementId, textAlign)}
+                onFlexDirectionChange={(elementId, flexDirection) => presenter.updateContainerFlexDirection(elementId, flexDirection)}
               />
             )}
 
@@ -439,7 +447,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               <div className="relative flex justify-center">
                 {isClient && (
                   <iframe
-                    ref={iframeRef}
+                    ref={handleIframeRef}
                     src={`${clientUrl}/?appId=${appId}&previewMode=true&uibuilder=true`}
                     className={`border border-gray-300 rounded transition-all duration-300 ${
                       viewportMode === 'mobile' ? 'w-[375px]' : 

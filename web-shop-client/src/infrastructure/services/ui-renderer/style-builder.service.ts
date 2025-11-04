@@ -43,6 +43,8 @@ export class UIStyleBuilder {
 		if (styles.flex) inlineStyles.flex = styles.flex;
 		if (typeof styles.gap === 'number') {
 			inlineStyles.gap = `${theme.spacing[styles.gap]}px`;
+		} else if (typeof styles.gap === 'string') {
+			inlineStyles.gap = styles.gap;
 		}
 
 		// Grid
@@ -51,6 +53,8 @@ export class UIStyleBuilder {
 		// Spacing
 		if (typeof styles.padding === 'number') {
 			inlineStyles.padding = `${theme.spacing[styles.padding]}px`;
+		} else if (typeof styles.padding === 'string') {
+			inlineStyles.padding = styles.padding;
 		}
 		if (typeof styles.paddingX === 'number') {
 			inlineStyles.paddingLeft = `${theme.spacing[styles.paddingX]}px`;

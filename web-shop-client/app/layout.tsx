@@ -5,15 +5,16 @@ import { container } from '../src/infrastructure/bootstrap/container';
 import "./output.css";
 import { AuthModule } from '../src/modules/authentication/interface-adapters/ui/auth-module';
 import { useState, useEffect } from 'react';
-import { UI_RENDERER_TYPES } from '../src/modules/ui-renderer/infrastructure/bootstrap/types';
-import { SidebarRendererPresenter } from '../src/modules/ui-renderer/interface-adapters/presenters/sidebar-renderer.presenter';
-import { SidebarRenderer } from '../src/modules/ui-renderer/interface-adapters/ui/components/sidebar-renderer';
-import type { ActionContext } from '../src/modules/ui-renderer/domain/types';
+import { APP_LAYOUT_TYPES } from '../src/modules/app-layout/infrastructure/bootstrap/types';
+import { SidebarRendererPresenter } from '../src/modules/app-layout/interface-adapters/presenters/sidebar-renderer.presenter';
+import { SidebarRenderer } from '../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
+import type { ActionContext } from '../src/shared/ui/action-context';
 import { LoadAppConfigUseCase } from '../src/application/use-cases/load-app-config.use-case';
+import { LoadAppConfigFromMessageUseCase } from '../src/application/use-cases/load-app-config-from-message.use-case';
 import { SubscribeToConfigUpdatesUseCase } from '../src/application/use-cases/subscribe-to-config-updates.use-case';
 import { TYPES } from '../src/infrastructure/bootstrap/types';
-import type { EventBus } from '../src/application/ports/event-bus.port';
 import { AppConfigLoadedEvent } from '../src/shared/events/app-config-events';
+import { IAsyncEventHandler } from '../src/infrastructure/events/events-handler.plugin';
 
 export default function RootLayout({ children }: { children: React.ReactNode}) {
   const [isLeftDrawerOpen, setIsLeftDrawerOpen] = useState(false);
@@ -23,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
   const [isUIBuilderMode, setIsUIBuilderMode] = useState(false);
 
   const sidebarPresenter = container.get<SidebarRendererPresenter>(
-    UI_RENDERER_TYPES.SidebarRendererPresenter
+    APP_LAYOUT_TYPES.SidebarRendererPresenter
   );
 
   const actionContext: ActionContext = {
@@ -37,12 +38,10 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       try {
         setIsConfigLoading(true);
         
-        // Determine if we should load draft config
-        const isDraft = getIsDraftFromQuery();
-        
-        // 1. Load initial config (draft or active based on isDraft)
+        // Client application always loads active config (not draft)
+        // Draft configs are only loaded in UI Builder (web-shop), not in client (web-shop-client)
         const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
-        await loadAppConfigUseCase.execute(isDraft);
+        await loadAppConfigUseCase.execute(false); // Always load active config
         console.log('[RootLayout] App config loaded and distributed via EventBus');
         
         // 2. Subscribe to real-time config updates (only if not in UI Builder preview mode)
@@ -59,7 +58,6 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         }
         
         // Ожидаем событие применения конфига, как только модули его обработают
-        // (см. LoadAppConfigUseCase: dispatch window 'appConfigLoaded')
         const safety = setTimeout(() => setIsConfigLoading(false), 2000);
         const onAppConfigLoaded = () => {
           clearTimeout(safety);
@@ -72,15 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       }
     };
 
-    const getIsDraftFromQuery = (): boolean => {
-      if (typeof window !== 'undefined') {
-        try {
-          const url = new URL(window.location.href);
-          return url.searchParams.get('previewMode') === 'true';
-        } catch {}
-      }
-      return false;
-    };
+    // Removed getIsDraftFromQuery - client always loads active config
 
     const getIsUIBuilderFromQuery = (): boolean => {
       if (typeof window !== 'undefined') {
@@ -173,14 +163,11 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         console.log('[RootLayout] Received CONFIG_UPDATE from UI Builder');
         
         try {
-          // Get EventBus from container and publish AppConfigLoadedEvent
-          const eventBus = container.get<EventBus>(TYPES.EventBus);
-          await eventBus.publishAsync(new AppConfigLoadedEvent(config));
+          // Use LoadAppConfigFromMessageUseCase to publish AppConfigLoadedEvent
+          const loadConfigFromMessageUseCase = container.get<LoadAppConfigFromMessageUseCase>(TYPES.LoadAppConfigFromMessage);
+          await loadConfigFromMessageUseCase.execute(config);
           
-          console.log('[RootLayout] AppConfigLoadedEvent published from postMessage');
-          
-          // Dispatch window event for UI components
-          window.dispatchEvent(new CustomEvent('appConfigLoaded'));
+          console.log('[RootLayout] Config processed from postMessage');
         } catch (error) {
           console.error('[RootLayout] Failed to process CONFIG_UPDATE:', error);
         }

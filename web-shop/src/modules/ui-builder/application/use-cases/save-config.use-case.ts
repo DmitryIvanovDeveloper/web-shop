@@ -42,7 +42,7 @@ export class SaveConfigUseCase {
     if (validationResult.isFailure) {
       const errors = validationResult.error ?? [];
       this._logger.error(`[SaveConfigUseCase] Validation failed`, errors);
-      return Result.fail(new ConfigValidationError(
+      return Result.error(new ConfigValidationError(
         'Config validation failed',
         errors.map(e => `${e.path}: ${e.message}`)
       ));
@@ -62,7 +62,7 @@ export class SaveConfigUseCase {
       const deactivateResult = await this._storage.deactivateConfig(appId);
       if (deactivateResult.isFailure) {
         this._logger.error(`[SaveConfigUseCase] Failed to deactivate current config`, deactivateResult.error);
-        return Result.fail(new ConfigSaveError(appId, 'Failed to deactivate current config'));
+        return Result.error(new ConfigSaveError(appId, 'Failed to deactivate current config'));
       }
     } else {
       // First version
@@ -87,7 +87,7 @@ export class SaveConfigUseCase {
     if (saveResult.isFailure) {
       this._logger.error(`[SaveConfigUseCase] Failed to save config`, saveResult.error);
       const reason = saveResult.error?.message ?? 'Failed to save config';
-      return Result.fail(new ConfigSaveError(appId, reason));
+      return Result.error(new ConfigSaveError(appId, reason));
     }
 
     this._logger.info(`[SaveConfigUseCase] Config saved successfully`, {
@@ -101,6 +101,7 @@ export class SaveConfigUseCase {
     });
   }
 }
+
 
 
 

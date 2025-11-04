@@ -28,9 +28,19 @@ export class LoadAppConfigUseCase {
       }
 
       // Use isDraft parameter to determine which config to load
-      const config = isDraft
-        ? await this._supabaseLoader.loadDraftConfig(appId)
-        : await this._supabaseLoader.loadConfig(appId);
+      let config: AppConfig | null = null;
+      
+      if (isDraft) {
+        config = await this._supabaseLoader.loadDraftConfig(appId);
+      } else {
+        config = await this._supabaseLoader.loadConfig(appId);
+        
+        // If active config not found, try to load draft as fallback (for UI Builder preview mode)
+        if (!config) {
+          this._logger.warn('[LoadAppConfigUseCase] Active config not found, trying draft as fallback', { appId });
+          config = await this._supabaseLoader.loadDraftConfig(appId);
+        }
+      }
       
       if (!config) {
         const configType = isDraft ? 'draft' : 'active';
@@ -47,12 +57,6 @@ export class LoadAppConfigUseCase {
       await this._eventBus.publishAsync(new AppConfigLoadedEvent(config as AppConfig));
 			
 			this._logger.info('[LoadAppConfigUseCase] AppConfigLoadedEvent published');
-
-			// Dispatch window event for UI components
-			if (typeof window !== 'undefined') {
-				window.dispatchEvent(new CustomEvent('appConfigLoaded'));
-				this._logger.info('[LoadAppConfigUseCase] appConfigLoaded window event dispatched');
-			}
 		} catch (error) {
 			this._logger.error('[LoadAppConfigUseCase] Failed to load app config', error);
 			throw error;

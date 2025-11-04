@@ -15,14 +15,14 @@ export interface StyleConfig {
 	readonly justifyContent?: 'center' | 'space-between' | 'flex-start' | 'flex-end';
 	readonly alignItems?: 'center' | 'flex-start' | 'flex-end' | 'stretch';
 	readonly flex?: number | string;
-	readonly gap?: SpacingValue;
+	readonly gap?: SpacingValue | string;
 	
 	// Grid
 	readonly gridTemplateColumns?: string;
 	readonly gridTemplateRows?: string;
 	
 	// Spacing
-	readonly padding?: SpacingValue;
+	readonly padding?: SpacingValue | string;
 	readonly paddingX?: SpacingValue;
 	readonly paddingY?: SpacingValue;
 	readonly margin?: SpacingValue | string;

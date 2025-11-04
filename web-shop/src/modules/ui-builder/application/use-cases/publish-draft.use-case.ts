@@ -37,7 +37,7 @@ export class PublishDraftUseCase {
     if (publishResult.isFailure) {
       const err = publishResult.error ?? new Error('Failed to publish draft');
       this._logger.error('[PublishDraftUseCase] Failed to publish draft', err);
-      return Result.fail(err);
+      return Result.error(err);
     }
 
     const publishedConfig = publishResult.value;
@@ -45,7 +45,7 @@ export class PublishDraftUseCase {
     if (!publishedConfig) {
       const error = new DraftConfigError(`Draft version ${draftVersion} not found for app_id: ${appId}`);
       this._logger.error('[PublishDraftUseCase] Draft not found', error);
-      return Result.fail(error);
+      return Result.error(error);
     }
 
     this._logger.info('[PublishDraftUseCase] Draft published successfully', {
@@ -59,6 +59,7 @@ export class PublishDraftUseCase {
     });
   }
 }
+
 
 
 

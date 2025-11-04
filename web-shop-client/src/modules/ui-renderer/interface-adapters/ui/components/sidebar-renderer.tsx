@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { DynamicRenderer } from './dynamic-renderer';
 import type { SidebarRendererPresenter } from '../../presenters/sidebar-renderer.presenter';
 import type { ActionContext } from '../../../domain/types';
@@ -16,31 +16,17 @@ export function SidebarRenderer({
   actionContext,
   layoutType = 'sidebar' 
 }: SidebarRendererProps): JSX.Element {
-  const [isReady, setIsReady] = useState(false);
   const [configVersion, setConfigVersion] = useState(0);
-
-  // Subscribe to config changes
-  useEffect(() => {
-    
-    // Check if already ready
-    if (presenter.isReady()) {
-      setIsReady(true);
-      return;
-    }
-
-    // Subscribe to config loaded event
-    const unsubscribe = presenter.subscribe(() => {
-      setIsReady(true);
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [presenter, layoutType]);
 
   // Subscribe to config updates (for live preview updates)
   useEffect(() => {
+    // Check if already ready and trigger initial render
+    if (presenter.isReady()) {
+      setConfigVersion(1);
+    }
+
     const unsubscribe = presenter.subscribe(() => {
+      console.log('[SidebarRenderer] Config updated, incrementing configVersion');
       // Force re-render when config changes
       setConfigVersion(prev => prev + 1);
     });
@@ -51,21 +37,23 @@ export function SidebarRenderer({
   }, [presenter]);
 
   // Синхронно получаем конфигурацию из presenter
-  let config = null;
-  
-  if (isReady) {
+  // configVersion инкрементируется при каждом subscribe callback
+  const config = useMemo(() => {
+    console.log('[SidebarRenderer] useMemo triggered, configVersion:', configVersion, 'layoutType:', layoutType);
+    if (configVersion === 0) return null;
+    
     switch (layoutType) {
       case 'sidebar':
-        config = presenter.getSidebar();
-        break;
+        return presenter.getSidebar();
       case 'rightSidebar':
-        config = presenter.getRightSidebar();
-        break;
+        return presenter.getRightSidebar();
       case 'store':
-        config = presenter.getStore();
-        break;
+        return presenter.getStore();
+      default:
+        return null;
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [configVersion, layoutType]);
 
   // Если конфигурация еще не загружена
   if (!config) {

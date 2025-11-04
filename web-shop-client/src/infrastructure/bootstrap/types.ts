@@ -43,6 +43,7 @@ export const TYPES = {
 	UIStyleBuilder: Symbol.for('UIStyleBuilder'),
 	UIActionHandler: Symbol.for('UIActionHandler'),
 	LoadAppConfig: Symbol.for('LoadAppConfig'),
+	LoadAppConfigFromMessage: Symbol.for('LoadAppConfigFromMessage'),
 	SupabaseConfigLoader: Symbol.for('SupabaseConfigLoader'),
 	ConfigSubscriptionPort: Symbol.for('ConfigSubscriptionPort'),
 	SubscribeToConfigUpdates: Symbol.for('SubscribeToConfigUpdates')

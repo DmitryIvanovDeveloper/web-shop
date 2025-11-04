@@ -42,7 +42,7 @@ export class SaveDraftUseCase {
     
     if (saveResult.isFailure) {
       this._logger.error('[SaveDraftUseCase] Failed to save draft', saveResult.error);
-      return Result.fail(saveResult.error || new Error('Failed to save draft'));
+      return Result.error(saveResult.error || new Error('Failed to save draft'));
     }
 
     this._logger.info('[SaveDraftUseCase] Draft saved successfully', { appId });

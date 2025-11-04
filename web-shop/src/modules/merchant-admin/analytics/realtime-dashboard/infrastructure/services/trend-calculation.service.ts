@@ -125,3 +125,4 @@ export class TrendCalculationService implements ITrendCalculationService {
 
 
 
+

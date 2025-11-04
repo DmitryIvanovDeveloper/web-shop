@@ -41,12 +41,6 @@ export class SubscribeToConfigUpdatesUseCase {
 			// Publish event through EventBus so all modules can react
 			await this._eventBus.publishAsync(new AppConfigLoadedEvent(config));
 			this._logger.info('[SubscribeToConfigUpdatesUseCase] AppConfigLoadedEvent published');
-
-			// Also dispatch window event for UI components
-			if (typeof window !== 'undefined') {
-				window.dispatchEvent(new CustomEvent('appConfigLoaded'));
-				this._logger.info('[SubscribeToConfigUpdatesUseCase] appConfigLoaded window event dispatched');
-			}
 		});
 
 		this._logger.info('[SubscribeToConfigUpdatesUseCase] Successfully subscribed to config updates');

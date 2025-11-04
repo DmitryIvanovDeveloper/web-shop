@@ -106,6 +106,20 @@ export class UIRendererService implements UIRendererPort {
 			isLoading: context?.isLoading || false
 		};
 
+		// Special handling for UniversalContainer
+		if (node.type === 'Container') {
+			const isVertical = node.styles?.flexDirection === 'column';
+			const isSidebar = node.id.includes('sidebar') || node.id.includes('Sidebar');
+			console.log(`[UIRendererService] Container ${node.id} - isVertical: ${isVertical}, flexDirection: ${node.styles?.flexDirection}, isSidebar: ${isSidebar}`);
+			componentProps.vertical = isVertical;
+			componentProps.sidebar = isSidebar;
+			
+			// Extract gap from style if present
+			if (style.gap) {
+				componentProps.gap = style.gap;
+			}
+		}
+
 		try {
 			return createElement(Component, componentProps as never);
 		} catch (error) {

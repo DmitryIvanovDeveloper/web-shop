@@ -5,11 +5,13 @@ import { UI_BUILDER_TYPES } from './types';
 import type { ConfigStoragePort } from '../../application/ports/config-storage.port';
 import type { ConfigValidatorPort } from '../../application/ports/config-validator.port';
 import type { PreviewCommunicationPort } from '../../application/ports/preview-communication.port';
+import type { PageConfigStoragePort } from '../../application/ports/page-config-storage.port';
 
 // Implementations
 import { SupabaseConfigStorage } from '../storage/supabase-config.storage';
 import { JsonSchemaValidator } from '../storage/json-schema-validator';
 import { PostMessagePreviewAdapter } from '../messaging/postmessage-preview.adapter';
+import { SupabasePageConfigStorage } from '../storage/supabase-page-config.storage';
 
 // Use Cases
 import { LoadConfigUseCase } from '../../application/use-cases/load-config.use-case';
@@ -20,6 +22,9 @@ import { LoadDraftUseCase } from '../../application/use-cases/load-draft.use-cas
 import { LoadDraftConfigUseCase } from '../../application/use-cases/load-draft-config.use-case';
 import { LoadActiveConfigUseCase } from '../../application/use-cases/load-active-config.use-case';
 import { PublishDraftUseCase } from '../../application/use-cases/publish-draft.use-case';
+import { LoadPageDraftUseCase } from '../../application/use-cases/load-page-draft.use-case';
+import { SavePageDraftUseCase } from '../../application/use-cases/save-page-draft.use-case';
+import { PublishPageUseCase } from '../../application/use-cases/publish-page.use-case';
 
 // Presenters
 import { UIBuilderPresenter } from '../../interface-adapters/presenters/ui-builder.presenter';
@@ -46,6 +51,12 @@ export function bindUIBuilder(container: Container): void {
   container
     .bind<PreviewCommunicationPort>(UI_BUILDER_TYPES.PreviewCommunication)
     .to(PostMessagePreviewAdapter)
+    .inSingletonScope();
+
+  // Page Config Storage
+  container
+    .bind<PageConfigStoragePort>(UI_BUILDER_TYPES.PageConfigStorage)
+    .to(SupabasePageConfigStorage)
     .inSingletonScope();
 
   // Use Cases
@@ -87,6 +98,22 @@ export function bindUIBuilder(container: Container): void {
   container
     .bind<PublishDraftUseCase>(UI_BUILDER_TYPES.PublishDraftUseCase)
     .to(PublishDraftUseCase)
+    .inSingletonScope();
+
+  // Page Config Use Cases
+  container
+    .bind<LoadPageDraftUseCase>(UI_BUILDER_TYPES.LoadPageDraftUseCase)
+    .to(LoadPageDraftUseCase)
+    .inSingletonScope();
+
+  container
+    .bind<SavePageDraftUseCase>(UI_BUILDER_TYPES.SavePageDraftUseCase)
+    .to(SavePageDraftUseCase)
+    .inSingletonScope();
+
+  container
+    .bind<PublishPageUseCase>(UI_BUILDER_TYPES.PublishPageUseCase)
+    .to(PublishPageUseCase)
     .inSingletonScope();
 
   // Presenters

@@ -12,9 +12,24 @@ import { HttpClientMode, resolveHttpClientMode, TYPES } from './types';
 import { ConsoleLogger } from '../logging/console-logger';
 import { SupabaseClient } from '../database/supabase-client';
 import { bindAuthentication } from '../../modules/authentication/infrastructure/bootstrap/bind.authentication';
-import { bindUIRenderer } from '../../modules/ui-renderer/infrastructure/bootstrap/bind.ui-renderer';
+import { bindAppLayout } from '../../modules/app-layout/infrastructure/bootstrap/bind.ui-renderer';
 import { bindOffers } from '../../modules/offers/infrastructure/bootstrap/bind.offers';
 import { bindProducts } from '../../modules/products/infrastructure/bootstrap/bind.products';
+import { bindPageRenderer } from '../../modules/page-renderer/infrastructure/bootstrap/bind.page-renderer';
+import { UIRendererService } from '../services/ui-renderer/ui-renderer.service';
+import { UIComponentRegistry } from '../services/ui-renderer/component-registry.service';
+import { UIStyleBuilder } from '../services/ui-renderer/style-builder.service';
+import { UIActionHandler } from '../services/ui-renderer/action-handler.service';
+import type { UIRendererPort } from '../../application/ports/ui-renderer.port';
+import { LoadAppConfigUseCase } from '../../application/use-cases/load-app-config.use-case';
+import { LoadAppConfigFromMessageUseCase } from '../../application/use-cases/load-app-config-from-message.use-case';
+import { SupabaseConfigLoader } from '../config/supabase-config-loader';
+import { ConfigSubscriptionPort } from '../../application/ports/config-subscription.port';
+import { SupabaseConfigSubscriptionAdapter } from '../config/supabase-config-subscription.adapter';
+import { SubscribeToConfigUpdatesUseCase } from '../../application/use-cases/subscribe-to-config-updates.use-case';
+import { UIConfigLoadedHandler } from '../handlers/ui-config-loaded.handler';
+import { IAsyncEventHandler } from '../events/events-handler.plugin';
+import { AppConfigLoadedEvent } from '../../shared/events/app-config-events';
 
 // Create Inversify container
 const container = new Container();
@@ -38,8 +53,8 @@ container.bind<DatabaseClientPort>(TYPES.DatabaseClient).to(SupabaseClient).inSi
 // Register Authentication module
 bindAuthentication(container);
 
-// Register UI Renderer module
-bindUIRenderer(container);
+// Register App Layout module
+bindAppLayout(container);
 
 // Register Offers module
 bindOffers(container);
@@ -47,19 +62,10 @@ bindOffers(container);
 // Register Products module
 bindProducts(container);
 
-// Register UI Renderer Service (universal infrastructure service)
-import { UIRendererService } from '../services/ui-renderer/ui-renderer.service';
-import { UIComponentRegistry } from '../services/ui-renderer/component-registry.service';
-import { UIStyleBuilder } from '../services/ui-renderer/style-builder.service';
-import { UIActionHandler } from '../services/ui-renderer/action-handler.service';
-import type { UIRendererPort } from '../../application/ports/ui-renderer.port';
-import { LoadAppConfigUseCase } from '../../application/use-cases/load-app-config.use-case';
-import { SupabaseConfigLoader } from '../config/supabase-config-loader';
-import { ConfigSubscriptionPort } from '../../application/ports/config-subscription.port';
-import { SupabaseConfigSubscriptionAdapter } from '../config/supabase-config-subscription.adapter';
-import { SubscribeToConfigUpdatesUseCase } from '../../application/use-cases/subscribe-to-config-updates.use-case';
+// Register Page Renderer module
+bindPageRenderer(container);
 
-// Universal UI Renderer Service and its dependencies
+// Register UI Renderer Service (universal infrastructure service)
 container.bind(TYPES.UIComponentRegistry).to(UIComponentRegistry).inSingletonScope();
 container.bind(TYPES.UIStyleBuilder).to(UIStyleBuilder).inSingletonScope();
 container.bind(TYPES.UIActionHandler).to(UIActionHandler).inSingletonScope();
@@ -68,9 +74,18 @@ container.bind<UIRendererPort>(TYPES.UIRenderer).to(UIRendererService).inSinglet
 // App Config
 container.bind(TYPES.SupabaseConfigLoader).to(SupabaseConfigLoader).inSingletonScope();
 container.bind(TYPES.LoadAppConfig).to(LoadAppConfigUseCase).inSingletonScope();
+container.bind(TYPES.LoadAppConfigFromMessage).to(LoadAppConfigFromMessageUseCase).inSingletonScope();
 
 // Config Subscription for real-time updates
 container.bind<ConfigSubscriptionPort>(TYPES.ConfigSubscriptionPort).to(SupabaseConfigSubscriptionAdapter).inSingletonScope();
 container.bind(TYPES.SubscribeToConfigUpdates).to(SubscribeToConfigUpdatesUseCase).inSingletonScope();
+
+// UI Handler for AppConfigLoadedEvent (dispatches window event for UI components)
+container
+  .bind<IAsyncEventHandler<AppConfigLoadedEvent>>(
+    Symbol.for('IAsyncEventHandler<AppConfigLoadedEvent>')
+  )
+  .to(UIConfigLoadedHandler)
+  .inTransientScope();
 
 export { container };

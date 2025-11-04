@@ -2,6 +2,7 @@ import { injectable, inject } from 'inversify';
 import type { ConfigStoragePort } from '../../application/ports/config-storage.port';
 import { Result } from '@/shared/result/result';
 import type { AppConfig } from '../../domain/entities/app-config.entity';
+import { ConfigVersion } from '../../domain/value-objects/config-version.vo';
 import type { Logger } from '@/application/ports/logger.port';
 import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import type { DatabaseClientPort } from '@/application/ports/database-client.port';
@@ -63,6 +64,7 @@ export class SupabaseConfigStorage implements ConfigStoragePort {
           .update({
             version: newVersion,
             config: config.config,
+            is_active: false, // Ensure draft is never active
             updated_at: new Date().toISOString(),
           })
           .eq('id', existingDraft[0].id);
@@ -107,7 +109,7 @@ export class SupabaseConfigStorage implements ConfigStoragePort {
     try {
       const { data, error } = await this._db
         .from('app_configs')
-        .select('config')
+        .select('id, app_id, version, is_active, is_draft, config, created_at')
         .eq('app_id', appId)
         .eq('is_draft', true)
         .order('version', { ascending: false })
@@ -123,8 +125,19 @@ export class SupabaseConfigStorage implements ConfigStoragePort {
         return Result.ok<AppConfig | null, Error>(null);
       }
       
+      const row = data[0] as AppConfigRow;
+      const appConfig: AppConfig = {
+        id: row.id,
+        appId: row.app_id,
+        version: ConfigVersion.of(Number.parseInt(row.version, 10)),
+        isDraft: row.is_draft ?? false,
+        isActive: row.is_active ?? false,
+        config: row.config,
+        createdAt: row.created_at ? new Date(row.created_at) : undefined,
+      };
+      
       this._logger.info('[SupabaseConfigStorage] Draft config loaded successfully', { appId });
-      return Result.ok<AppConfig | null, Error>(data[0].config as AppConfig);
+      return Result.ok<AppConfig | null, Error>(appConfig);
     } catch (error) {
       this._logger.error('[SupabaseConfigStorage] Error loading draft', error);
       return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
@@ -137,7 +150,7 @@ export class SupabaseConfigStorage implements ConfigStoragePort {
     try {
       const { data, error } = await this._db
         .from('app_configs')
-        .select('config')
+        .select('id, app_id, version, is_active, is_draft, config, created_at')
         .eq('app_id', appId)
         .eq('is_active', true)
         .limit(1);
@@ -152,8 +165,19 @@ export class SupabaseConfigStorage implements ConfigStoragePort {
         return Result.ok<AppConfig | null, Error>(null);
       }
       
+      const row = data[0] as AppConfigRow;
+      const appConfig: AppConfig = {
+        id: row.id,
+        appId: row.app_id,
+        version: ConfigVersion.of(Number.parseInt(row.version, 10)),
+        isDraft: row.is_draft ?? false,
+        isActive: row.is_active ?? false,
+        config: row.config,
+        createdAt: row.created_at ? new Date(row.created_at) : undefined,
+      };
+      
       this._logger.info('[SupabaseConfigStorage] Active config loaded successfully', { appId });
-      return Result.ok<AppConfig | null, Error>(data[0].config as AppConfig);
+      return Result.ok<AppConfig | null, Error>(appConfig);
     } catch (error) {
       this._logger.error('[SupabaseConfigStorage] Error loading active config', error);
       return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
@@ -161,7 +185,87 @@ export class SupabaseConfigStorage implements ConfigStoragePort {
   }
 
   async publishDraft(appId: string, draftVersion: number): Promise<Result<AppConfig, Error>> {
-    return Result.fail(new Error('Not implemented'));
+    this._logger.info('[SupabaseConfigStorage] Publishing draft', { appId, version: draftVersion });
+    
+    try {
+      // Find the draft config - first find the latest draft for this app if version not specified
+      let draftData: any;
+      
+      if (draftVersion > 0) {
+        // Find specific version
+        const { data, error: draftError } = await this._db
+          .from('app_configs')
+          .select('id, config, version')
+          .eq('app_id', appId)
+          .eq('version', draftVersion)
+          .eq('is_draft', true)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        
+        if (draftError) {
+          this._logger.error('[SupabaseConfigStorage] Draft not found', draftError);
+          return Result.fail(new Error(`Draft not found: ${draftError?.message}`));
+        }
+        
+        if (!data || (Array.isArray(data) && data.length === 0)) {
+          this._logger.error('[SupabaseConfigStorage] Draft not found', { appId, version: draftVersion });
+          return Result.fail(new Error(`Draft not found for app_id: ${appId}, version: ${draftVersion}`));
+        }
+        
+        draftData = Array.isArray(data) ? data[0] : data;
+      } else {
+        // Find latest draft
+        const { data, error: draftError } = await this._db
+          .from('app_configs')
+          .select('id, config, version')
+          .eq('app_id', appId)
+          .eq('is_draft', true)
+          .order('version', { ascending: false })
+          .limit(1);
+        
+        if (draftError || !data || data.length === 0) {
+          this._logger.error('[SupabaseConfigStorage] No draft found', draftError);
+          return Result.fail(new Error(`No draft found: ${draftError?.message}`));
+        }
+        draftData = data[0];
+      }
+
+      // Deactivate all current active configs for this app
+      const { error: deactivateError } = await this._db
+        .from('app_configs')
+        .update({ is_active: false })
+        .eq('app_id', appId)
+        .eq('is_active', true);
+
+      if (deactivateError) {
+        this._logger.error('[SupabaseConfigStorage] Failed to deactivate active configs', deactivateError);
+        return Result.fail(new Error(`Failed to deactivate active configs: ${deactivateError.message}`));
+      }
+
+      // Activate the draft config (mark as both active and not draft)
+      const { error: activateError } = await this._db
+        .from('app_configs')
+        .update({ 
+          is_active: true, 
+          is_draft: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', draftData.id);
+
+      if (activateError) {
+        this._logger.error('[SupabaseConfigStorage] Failed to activate draft', activateError);
+        return Result.fail(new Error(`Failed to activate draft: ${activateError.message}`));
+      }
+
+      this._logger.info('[SupabaseConfigStorage] Draft published successfully', { 
+        appId, 
+        version: draftData.version 
+      });
+      return Result.ok<AppConfig, Error>(draftData.config as AppConfig);
+    } catch (error) {
+      this._logger.error('[SupabaseConfigStorage] Error publishing draft', error);
+      return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
+    }
   }
 }
 

@@ -12,10 +12,12 @@ export interface SelectedElement {
   path?: string[];
   colors?: Record<string, string>;
   gap?: string;
+  padding?: string;
   type?: string;
   borderRadius?: string;
   label?: string;
   textAlign?: string;
+  flexDirection?: string;
 }
 
 

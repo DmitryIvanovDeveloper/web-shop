@@ -4,6 +4,7 @@ import type { PreviewCommunicationPort } from '../../application/ports/preview-c
 import type { LoadDraftConfigUseCase } from '../../application/use-cases/load-draft-config.use-case';
 import type { LoadActiveConfigUseCase } from '../../application/use-cases/load-active-config.use-case';
 import type { SaveDraftUseCase } from '../../application/use-cases/save-draft.use-case';
+import type { PublishDraftUseCase } from '../../application/use-cases/publish-draft.use-case';
 import type { Logger } from '@/application/ports/logger.port';
 import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import type { SelectedElement } from '../../domain/types/sidebar-element.types';
@@ -72,6 +73,8 @@ export class UIBuilderPresenter {
     private readonly _loadActiveConfigUseCase: LoadActiveConfigUseCase,
     @inject(UI_BUILDER_TYPES.SaveDraftUseCase)
     private readonly _saveDraftUseCase: SaveDraftUseCase,
+    @inject(UI_BUILDER_TYPES.PublishDraftUseCase)
+    private readonly _publishDraftUseCase: PublishDraftUseCase,
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: Logger
   ) {}
@@ -107,7 +110,18 @@ export class UIBuilderPresenter {
       
       if (result.isSuccess && result.value) {
         this._logger.info('[UIBuilderPresenter] Config loaded successfully', { appId });
-        this.vm = { ...this.vm, config: result.value as unknown as Record<string, unknown>, isLoading: false };
+        const appConfig = result.value as any;
+        const version = appConfig.version;
+        const versionValue = typeof version === 'object' && version !== null && 'value' in version 
+          ? (version as { value: number }).value 
+          : (typeof version === 'number' ? version : null);
+        this.vm = { 
+          ...this.vm, 
+          config: appConfig.config as unknown as Record<string, unknown>, 
+          isLoading: false,
+          isDraft: appConfig.isDraft ?? false, // Set isDraft from AppConfig
+          version: versionValue
+        };
         this.sendConfigToIframe();
       } else {
         this._logger.warn('[UIBuilderPresenter] Failed to load config, using default', { appId, error: result.error });
@@ -228,6 +242,8 @@ export class UIBuilderPresenter {
         id: elementId, 
         colors: colors || undefined,
         gap: node?.styles?.gap,
+        padding: node?.styles?.padding,
+        flexDirection: node?.styles?.flexDirection,
         type: node?.type,
         borderRadius: node?.styles?.borderRadius,
         label: node?.props?.text || node?.props?.children,
@@ -253,6 +269,20 @@ export class UIBuilderPresenter {
       node.styles = {};
     }
     node.styles.gap = gap;
+    
+    this.selectElement(elementId);
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
+  }
+
+  public updateContainerPadding(elementId: string, padding: string): void {
+    const node = this.findNode(elementId);
+    if (!node) return;
+    
+    if (!node.styles) {
+      node.styles = {};
+    }
+    node.styles.padding = padding;
     
     this.selectElement(elementId);
     this.sendConfigToIframe();
@@ -369,10 +399,119 @@ export class UIBuilderPresenter {
   }
 
   public async publishDraft(): Promise<boolean> {
-    // stub publish success
-    this.vm.isDraft = false;
+    this._logger.info('[UIBuilderPresenter] Publishing draft', { appId: this.vm.appId });
+    this.vm = { ...this.vm, isLoading: true };
     this.notify();
-    return true;
+
+    try {
+      // Always use version 0 to publish the latest draft
+      // Using a specific version can fail if that draft was already published
+      const result = await this._publishDraftUseCase.execute({
+        appId: this.vm.appId,
+        merchantId: this.vm.appId, // Use appId as merchantId for now
+        draftVersion: 0, // Always use 0 to get the latest draft
+      });
+
+      if (result.isSuccess && result.value) {
+        const version = result.value.version;
+        const versionValue = typeof version === 'object' && version !== null && 'value' in version 
+          ? (version as { value: number }).value 
+          : (typeof version === 'number' ? version : null);
+        this._logger.info('[UIBuilderPresenter] Draft published successfully', { 
+          appId: this.vm.appId, 
+          version: versionValue
+        });
+
+        // After publishing, create a new draft from the published config for further editing
+        // This ensures we can continue editing after publish
+        if (this.vm.config) {
+          const newDraftResult = await this._saveDraftUseCase.execute({
+            appId: this.vm.appId,
+            config: this.vm.config as any,
+          });
+
+          if (newDraftResult.isSuccess) {
+            // Reload the new draft to get the updated version
+            const draftLoadResult = await this._loadDraftConfigUseCase.execute(this.vm.appId);
+            if (draftLoadResult.isSuccess && draftLoadResult.value) {
+              const appConfig = draftLoadResult.value as any;
+              const draftVersion = appConfig.version;
+              const draftVersionValue = typeof draftVersion === 'object' && draftVersion !== null && 'value' in draftVersion 
+                ? (draftVersion as { value: number }).value 
+                : (typeof draftVersion === 'number' ? draftVersion : null);
+              
+              this.vm = { 
+                ...this.vm, 
+                config: appConfig.config as unknown as Record<string, unknown>,
+                isDraft: true, // New draft created
+                isLoading: false,
+                version: draftVersionValue,
+              };
+              this.sendConfigToIframe();
+              this._logger.info('[UIBuilderPresenter] New draft created after publish', { 
+                appId: this.vm.appId, 
+                version: draftVersionValue
+              });
+            } else {
+              // Fallback: keep current config, mark as draft
+              this.vm = { 
+                ...this.vm, 
+                isDraft: true, 
+                isLoading: false,
+                version: versionValue,
+              };
+            }
+          } else {
+            // Failed to create new draft, but publish was successful
+            this._logger.warn('[UIBuilderPresenter] Failed to create new draft after publish', { 
+              appId: this.vm.appId, 
+              error: newDraftResult.error 
+            });
+            this.vm = { 
+              ...this.vm, 
+              isDraft: false, 
+              isLoading: false,
+              version: versionValue,
+            };
+          }
+        } else {
+          // No config to create draft from
+          this.vm = { 
+            ...this.vm, 
+            isDraft: false, 
+            isLoading: false,
+            version: versionValue,
+          };
+        }
+        
+        this.notify();
+        return true;
+      } else {
+        this._logger.error('[UIBuilderPresenter] Failed to publish draft', { 
+          appId: this.vm.appId, 
+          error: result.error 
+        });
+        this.vm = { 
+          ...this.vm, 
+          isLoading: false, 
+          error: result.error?.message || 'Failed to publish draft' 
+        };
+        this.notify();
+        return false;
+      }
+    } catch (error) {
+      this._logger.error('[UIBuilderPresenter] Error publishing draft', { 
+        appId: this.vm.appId, 
+        error 
+      });
+      this.vm = { 
+        ...this.vm, 
+        isLoading: false, 
+        error: error instanceof Error ? error.message : 'Failed to publish draft' 
+      };
+      this.notify();
+      return false;
+    }
   }
 
   public previewAuthPopup(visible: boolean): void {

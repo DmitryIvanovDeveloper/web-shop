@@ -42,7 +42,8 @@ export class SupabaseConfigLoader {
       .select('*')
       .eq('app_id', appId)
       .eq('is_active', true)
-      .order('created_at', { ascending: false })
+      .eq('is_draft', false) // Исключаем draft конфиги, даже если они по ошибке помечены как active
+      .order('version', { ascending: false }) // Сортируем по version, а не created_at для корректного выбора последнего активного
       .limit(1);
 
     if (error) {
