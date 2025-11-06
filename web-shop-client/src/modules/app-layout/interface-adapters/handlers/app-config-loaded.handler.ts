@@ -23,10 +23,16 @@ export class AppLayoutConfigLoadedHandler implements IAsyncEventHandler<AppConfi
 		this._logger.info('[AppLayoutConfigLoadedHandler] Processing AppConfigLoadedEvent');
 
 		try {
+			// Check if config and modules exist
+			if (!event.payload?.config?.modules) {
+				this._logger.warn('[AppLayoutConfigLoadedHandler] Config modules not found in AppConfig');
+				return;
+			}
+
 			const appLayoutConfig = event.payload.config.modules.uiRenderer;
 			
 			if (!appLayoutConfig) {
-				this._logger.error('[AppLayoutConfigLoadedHandler] App Layout config not found in AppConfig');
+				this._logger.warn('[AppLayoutConfigLoadedHandler] App Layout config (uiRenderer) not found in AppConfig');
 				return;
 			}
 

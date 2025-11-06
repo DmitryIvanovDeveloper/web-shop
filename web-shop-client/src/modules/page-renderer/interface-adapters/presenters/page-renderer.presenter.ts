@@ -3,6 +3,7 @@ import type { PageRendererViewModel } from '../view-models/page-renderer.view-mo
 import type { PageConfig } from '../../domain/entities/page-config.entity';
 import type { Logger } from '../../../../application/ports/logger.port';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
+import type { OfferCardTemplate } from '../../../../shared/config/app-config.types';
 
 @injectable()
 export class PageRendererPresenter {
@@ -10,7 +11,9 @@ export class PageRendererPresenter {
     sections: [],
     pageStyles: {},
     isLoading: true,
-    error: null
+    error: null,
+    selectedOfferCardId: null,
+    offerCards: []
   };
   
   private _listeners: Array<(vm: PageRendererViewModel) => void> = [];
@@ -54,10 +57,38 @@ export class PageRendererPresenter {
     });
     
     this._vm = {
+      ...this._vm,
       sections: pageConfig?.sections || [],
       pageStyles: pageConfig?.pageStyles || {},
       isLoading: false,
       error: null
+    };
+    this._notify();
+  }
+
+  setSelectedOfferCardId(cardId: string | null): void {
+    this._logger.info('[PageRendererPresenter] Setting selected offer card ID', { cardId });
+    this._vm = {
+      ...this._vm,
+      selectedOfferCardId: cardId
+    };
+    this._notify();
+  }
+
+  setOfferCards(offerCards: OfferCardTemplate[]): void {
+    this._logger.info('[PageRendererPresenter] Setting offer cards', { 
+      count: offerCards.length,
+      selectedCardId: this._vm.selectedOfferCardId,
+      selectedCardBuyButtonBg: offerCards.find(c => c.id === this._vm.selectedOfferCardId)?.styles?.buyButton?.backgroundColor
+    });
+    // Create deep copy to ensure React detects changes
+    this._vm = {
+      ...this._vm,
+      offerCards: offerCards.map(card => ({
+        ...card,
+        styles: { ...card.styles },
+        media: card.media ? { ...card.media } : undefined,
+      }))
     };
     this._notify();
   }

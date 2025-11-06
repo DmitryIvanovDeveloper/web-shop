@@ -3,10 +3,13 @@ import { UI_BUILDER_TYPES } from '../../infrastructure/bootstrap/types';
 import type { LoadPageDraftUseCase } from '../../application/use-cases/load-page-draft.use-case';
 import type { SavePageDraftUseCase } from '../../application/use-cases/save-page-draft.use-case';
 import type { PublishPageUseCase } from '../../application/use-cases/publish-page.use-case';
+import type { LoadDraftConfigUseCase } from '../../application/use-cases/load-draft-config.use-case';
+import type { UpdateOfferCardsUseCase } from '../../application/use-cases/update-offer-cards.use-case';
 import type { Logger } from '@/application/ports/logger.port';
 import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import type { PageConfig } from '../../domain/entities/page-config.entity';
 import type { PageSection, SectionLayout, ComponentNode } from '../../domain/entities/page-section.entity';
+import type { OfferCardTemplate, AppConfigStructure, AppConfig } from '../../domain/entities/app-config.entity';
 
 interface PageConstructorViewModel {
   appId: string;
@@ -14,10 +17,6 @@ interface PageConstructorViewModel {
   sections: PageSection[];
   selectedSection: PageSection | null;
   selectedComponent: ComponentNode | null;
-  pageStyles: {
-    padding?: string;
-    gap?: string;
-  };
   isLoading: boolean;
   isSaving: boolean;
   isDraft: boolean;
@@ -29,13 +28,19 @@ export class PageConstructorPresenter {
   private readonly subscribers: Array<(vm: PageConstructorViewModel) => void> = [];
   private saveDraftDebounceTimer: NodeJS.Timeout | null = null;
   
+  // Store pageStyles separately (not in ViewModel)
+  private pageStyles: { padding?: string; gap?: string } = {};
+  
+  // Store offerCards separately (not in ViewModel)
+  private offerCards: OfferCardTemplate[] = [];
+  private selectedOfferCardId: string | null = null;
+  
   private vm: PageConstructorViewModel = {
     appId: '',
     pageSlug: 'home',
     sections: [],
     selectedSection: null,
     selectedComponent: null,
-    pageStyles: {},
     isLoading: false,
     isSaving: false,
     isDraft: true,
@@ -49,6 +54,10 @@ export class PageConstructorPresenter {
     private readonly _saveDraftUseCase: SavePageDraftUseCase,
     @inject(UI_BUILDER_TYPES.PublishPageUseCase)
     private readonly _publishUseCase: PublishPageUseCase,
+    @inject(UI_BUILDER_TYPES.LoadDraftConfigUseCase)
+    private readonly _loadDraftConfigUseCase: LoadDraftConfigUseCase,
+    @inject(UI_BUILDER_TYPES.UpdateOfferCardsUseCase)
+    private readonly _updateOfferCardsUseCase: UpdateOfferCardsUseCase,
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: Logger
   ) {}
@@ -86,24 +95,29 @@ export class PageConstructorPresenter {
       }
 
       if (result.value) {
+        this.pageStyles = result.value.pageStyles || {};
         this.vm = { 
           ...this.vm, 
           sections: result.value.sections,
-          pageStyles: result.value.pageStyles || {},
           isLoading: false,
           isDraft: result.value.isDraft
         };
       } else {
         // No draft exists, start with empty page
+        this.pageStyles = {};
         this.vm = { 
           ...this.vm, 
           sections: [],
-          pageStyles: {},
           isLoading: false 
         };
       }
 
+      // Load offer cards from app config
+      await this.loadOfferCards();
+
       this.notify();
+      this.sendConfigToIframe();
+      await this.sendAppConfigToIframe();
       this._logger.info('[PageConstructorPresenter] Initialized successfully', { 
         appId, 
         pageSlug, 
@@ -164,7 +178,17 @@ export class PageConstructorPresenter {
     this.sendConfigToIframe();
   }
 
-  public selectSection(sectionId: string): void {
+  public selectSection(sectionId: string | null): void {
+    if (sectionId === null) {
+      this.vm = {
+        ...this.vm,
+        selectedSection: null,
+        selectedComponent: null,
+      };
+      this.notify();
+      return;
+    }
+
     const section = this.vm.sections.find(s => s.id === sectionId);
     if (!section) return;
 
@@ -217,7 +241,6 @@ export class PageConstructorPresenter {
 
     this.notify();
     this.saveConfigDebounced();
-    this.sendConfigToIframe();
   }
 
   // ============ Component Operations ============
@@ -229,7 +252,7 @@ export class PageConstructorPresenter {
       id: `${componentType.toLowerCase()}-${Date.now()}`,
       type: componentType,
       props: this.getDefaultProps(componentType),
-      styles: this.getDefaultStyles(componentType),
+      styles: {},
     };
 
     this.vm = {
@@ -244,7 +267,6 @@ export class PageConstructorPresenter {
 
     this.notify();
     this.saveConfigDebounced();
-    this.sendConfigToIframe();
   }
 
   public removeComponent(sectionId: string, componentId: string): void {
@@ -265,7 +287,16 @@ export class PageConstructorPresenter {
     this.sendConfigToIframe();
   }
 
-  public selectComponent(sectionId: string, componentId: string): void {
+  public selectComponent(sectionId: string | null, componentId: string | null): void {
+    if (sectionId === null || componentId === null) {
+      this.vm = {
+        ...this.vm,
+        selectedComponent: null,
+      };
+      this.notify();
+      return;
+    }
+
     const section = this.vm.sections.find(s => s.id === sectionId);
     if (!section) return;
 
@@ -282,17 +313,7 @@ export class PageConstructorPresenter {
   }
 
   public updateComponent(sectionId: string, componentId: string, props: Record<string, unknown>): void {
-    this._logger.info('[PageConstructorPresenter] Updating component', { 
-      sectionId, 
-      componentId,
-      propsKeys: Object.keys(props),
-      hasStylesInProps: 'styles' in props,
-      stylesValue: props.styles
-    });
-
-    // Extract styles from props if present
-    const { styles, ...componentProps } = props;
-    const hasStyles = styles !== undefined;
+    this._logger.info('[PageConstructorPresenter] Updating component', { sectionId, componentId });
 
     this.vm = {
       ...this.vm,
@@ -300,26 +321,11 @@ export class PageConstructorPresenter {
         section.id === sectionId
           ? {
               ...section,
-              components: section.components.map(comp => {
-                if (comp.id === componentId) {
-                  const currentStyles = comp.styles || {};
-                  const mergedStyles = hasStyles ? { ...currentStyles, ...(styles as Record<string, unknown>) } : currentStyles;
-                  
-                  this._logger.info('[PageConstructorPresenter] Merging styles', {
-                    componentId,
-                    currentStylesKeys: Object.keys(currentStyles),
-                    newStylesKeys: hasStyles ? Object.keys(styles as Record<string, unknown>) : [],
-                    mergedStylesKeys: Object.keys(mergedStyles)
-                  });
-                  
-                  return {
-                    ...comp,
-                    props: { ...comp.props, ...componentProps },
-                    styles: mergedStyles,
-                  };
-                }
-                return comp;
-              }),
+              components: section.components.map(comp =>
+                comp.id === componentId
+                  ? { ...comp, props: { ...comp.props, ...props } }
+                  : comp
+              ),
             }
           : section
       ),
@@ -363,7 +369,7 @@ export class PageConstructorPresenter {
         isDraft: true,
         isActive: false,
         sections: this.vm.sections,
-        pageStyles: this.vm.pageStyles,
+        pageStyles: this.pageStyles,
       };
 
       const result = await this._saveDraftUseCase.execute(config);
@@ -421,21 +427,14 @@ export class PageConstructorPresenter {
     }
   }
 
-  // ============ Helper Methods ============
-
-  public getPageSlug(): string {
-    return this.vm.pageSlug;
-  }
+  // ============ Page Settings ============
 
   public updatePagePadding(padding: string): void {
     this._logger.info('[PageConstructorPresenter] Updating page padding', { padding });
 
-    this.vm = {
-      ...this.vm,
-      pageStyles: {
-        ...this.vm.pageStyles,
-        padding: padding || undefined,
-      },
+    this.pageStyles = {
+      ...this.pageStyles,
+      padding: padding || undefined,
     };
 
     this.notify();
@@ -446,17 +445,18 @@ export class PageConstructorPresenter {
   public updatePageGap(gap: string): void {
     this._logger.info('[PageConstructorPresenter] Updating page gap', { gap });
 
-    this.vm = {
-      ...this.vm,
-      pageStyles: {
-        ...this.vm.pageStyles,
-        gap: gap || undefined,
-      },
+    this.pageStyles = {
+      ...this.pageStyles,
+      gap: gap || undefined,
     };
 
     this.notify();
     this.saveConfigDebounced();
     this.sendConfigToIframe();
+  }
+
+  public getPageStyles(): { padding?: string; gap?: string } {
+    return { ...this.pageStyles };
   }
 
   private sendConfigToIframe(): void {
@@ -468,6 +468,12 @@ export class PageConstructorPresenter {
       return;
     }
 
+    // Ensure we have sections - don't send empty config
+    if (!this.vm.sections || this.vm.sections.length === 0) {
+      this._logger.warn('[PageConstructorPresenter] No sections to send to iframe, skipping update');
+      return;
+    }
+
     const pageConfig: PageConfig = {
       id: 'draft',
       appId: this.vm.appId,
@@ -475,33 +481,81 @@ export class PageConstructorPresenter {
       version: 1,
       isDraft: true,
       isActive: false,
-      sections: this.vm.sections,
-      pageStyles: this.vm.pageStyles,
+      sections: [...this.vm.sections],
+      pageStyles: this.pageStyles ? { ...this.pageStyles } : undefined,
     };
 
-    // Log detailed info about sections and components
-    pageConfig.sections.forEach(section => {
-      this._logger.info(`[PageConstructorPresenter] Section ${section.type} (${section.id})`, {
-        componentsCount: section.components.length,
-        components: section.components.map(c => ({
-          id: c.id,
-          type: c.type,
-          props: c.props,
-          hasStyles: !!c.styles && Object.keys(c.styles).length > 0
-        }))
+    try {
+      iframe.contentWindow.postMessage(
+        { type: 'PAGE_CONFIG_UPDATE', config: pageConfig },
+        '*'
+      );
+
+      this._logger.info('[PageConstructorPresenter] Sent config to iframe', {
+        sectionsCount: pageConfig.sections.length,
+        pagePadding: pageConfig.pageStyles?.padding || 'not set',
+        pageGap: pageConfig.pageStyles?.gap || 'not set',
       });
-    });
-
-    iframe.contentWindow.postMessage(
-      { type: 'PAGE_CONFIG_UPDATE', config: pageConfig },
-      '*'
-    );
-
-    this._logger.info('[PageConstructorPresenter] Sent config to iframe', {
-      sectionsCount: pageConfig.sections.length,
-      pagePadding: pageConfig.pageStyles?.padding || 'not set',
-    });
+    } catch (error) {
+      this._logger.error('[PageConstructorPresenter] Failed to send config to iframe', error);
+    }
   }
+
+  private async sendAppConfigToIframe(): Promise<void> {
+    if (typeof window === 'undefined') return;
+
+    const iframe = document.querySelector('iframe');
+    if (!iframe?.contentWindow) {
+      this._logger.warn('[PageConstructorPresenter] Iframe not found for sending app config');
+      return;
+    }
+
+    try {
+      // Load app-config
+      const result = await this._loadDraftConfigUseCase.execute(this.vm.appId);
+      
+      if (!result.isSuccess || !result.value) {
+        this._logger.warn('[PageConstructorPresenter] Failed to load app-config for iframe', result.error);
+        return;
+      }
+
+      // Update offerCards in config
+      const appConfig = result.value;
+      const config = appConfig.config as AppConfigStructure;
+      const updatedConfig: AppConfigStructure = {
+        ...config,
+        offerCards: [...this.offerCards],
+      };
+
+      // Create updated AppConfig
+      const updatedAppConfig: AppConfig = {
+        ...appConfig,
+        config: updatedConfig,
+      };
+
+      // Send CONFIG_UPDATE message with app-config, offerCards, and selectedOfferCardId
+      iframe.contentWindow.postMessage(
+        {
+          type: 'CONFIG_UPDATE',
+          payload: {
+            config: updatedAppConfig,
+            offerCards: [...this.offerCards],
+            selectedOfferCardId: this.selectedOfferCardId,
+          },
+        },
+        '*'
+      );
+
+      this._logger.info('[PageConstructorPresenter] Sent app-config to iframe', {
+        offerCardsCount: this.offerCards.length,
+        selectedOfferCardId: this.selectedOfferCardId,
+      });
+    } catch (error) {
+      this._logger.error('[PageConstructorPresenter] Failed to send app-config to iframe', error);
+    }
+  }
+
+  // ============ Helper Methods ============
 
   private getDefaultProps(componentType: string): Record<string, unknown> {
     const defaults: Record<string, Record<string, unknown>> = {
@@ -517,23 +571,295 @@ export class PageConstructorPresenter {
     return defaults[componentType] || {};
   }
 
-  private getDefaultStyles(componentType: string): Record<string, unknown> {
-    const defaults: Record<string, Record<string, unknown>> = {
-      Button: {
-        backgroundColor: '#3b82f6',
-        color: '#ffffff',
-        padding: '8px 16px',
-        borderRadius: '8px',
-        border: 'none',
-        cursor: 'pointer',
+  // ============ Offer Cards Methods ============
+
+  public async loadOfferCards(): Promise<void> {
+    try {
+      const result = await this._loadDraftConfigUseCase.execute(this.vm.appId);
+      
+      if (!result.isSuccess || !result.value) {
+        this._logger.warn('[PageConstructorPresenter] Failed to load offer cards, using empty array', result.error);
+        this.offerCards = [];
+        return;
+      }
+
+      const config = result.value.config as AppConfigStructure;
+      const loadedCards = config.offerCards || [];
+      
+      // Ensure all cards have complete styles from getDefaultFigmaStyles()
+      // This ensures cards look correct even if DB has incomplete styles
+      const figmaStyles = this.getDefaultFigmaStyles();
+      this.offerCards = loadedCards.map(card => {
+        // Deep merge: start with Figma defaults, then apply DB styles
+        const mergedStyles: OfferCardTemplate['styles'] = {
+          container: { ...figmaStyles.container, ...(card.styles?.container || {}) },
+          topLabel: { ...figmaStyles.topLabel, ...(card.styles?.topLabel || {}) },
+          image: { ...figmaStyles.image, ...(card.styles?.image || {}) },
+          discountBadge: { ...figmaStyles.discountBadge, ...(card.styles?.discountBadge || {}) },
+          title: { ...figmaStyles.title, ...(card.styles?.title || {}) },
+          description: { ...figmaStyles.description, ...(card.styles?.description || {}) },
+          priceBlock: { ...figmaStyles.priceBlock, ...(card.styles?.priceBlock || {}) },
+          originalPrice: { ...figmaStyles.originalPrice, ...(card.styles?.originalPrice || {}) },
+          currentPrice: { ...figmaStyles.currentPrice, ...(card.styles?.currentPrice || {}) },
+          rarity: { ...figmaStyles.rarity, ...(card.styles?.rarity || {}) },
+          buyButton: { 
+            ...figmaStyles.buyButton,
+            ...(card.styles?.buyButton || {}),
+            // Fix incorrect old backgroundColor value
+            backgroundColor: (card.styles?.buyButton?.backgroundColor === '#99ff00' || 
+                             card.styles?.buyButton?.backgroundColor === '#99FF00')
+              ? figmaStyles.buyButton?.backgroundColor
+              : (card.styles?.buyButton?.backgroundColor || figmaStyles.buyButton?.backgroundColor),
+          },
+          purchasedBadge: { ...figmaStyles.purchasedBadge, ...(card.styles?.purchasedBadge || {}) },
+          bonuses: { ...figmaStyles.bonuses, ...(card.styles?.bonuses || {}) },
+          includedItems: { ...figmaStyles.includedItems, ...(card.styles?.includedItems || {}) },
+        };
+
+        if (mergedStyles.priceBlock && 'backgroundColor' in mergedStyles.priceBlock) {
+          delete (mergedStyles.priceBlock as Record<string, unknown>).backgroundColor;
+        }
+        
+        return {
+          ...card,
+        styles: mergedStyles,
+        media: card.media ? { ...card.media } : undefined,
+        };
+      });
+      
+      // If styles were updated, save them back to DB
+      const needsSave = loadedCards.some((card, index) => {
+        const loaded = card.styles || {};
+        const merged = this.offerCards[index].styles;
+        // Check if any styles were added from defaults
+        return JSON.stringify(loaded) !== JSON.stringify(merged);
+      });
+      
+      if (needsSave) {
+        this._logger.info('[PageConstructorPresenter] Offer cards styles were incomplete, saving merged styles to DB');
+        await this.saveOfferCards();
+      }
+      
+      this._logger.info('[PageConstructorPresenter] Loaded offer cards', { count: this.offerCards.length });
+    } catch (error) {
+      this._logger.error('[PageConstructorPresenter] Error loading offer cards', error);
+      this.offerCards = [];
+    }
+  }
+
+  public getOfferCards(): OfferCardTemplate[] {
+    return [...this.offerCards];
+  }
+
+  public getSelectedOfferCardId(): string | null {
+    return this.selectedOfferCardId;
+  }
+
+  public getSelectedOfferCard(): OfferCardTemplate | null {
+    if (!this.selectedOfferCardId) return null;
+    return this.offerCards.find(card => card.id === this.selectedOfferCardId) || null;
+  }
+
+  public selectOfferCard(cardId: string | null): void {
+    this.selectedOfferCardId = cardId;
+    this._logger.info('[PageConstructorPresenter] Selected offer card', { cardId });
+    this.sendAppConfigToIframe();
+  }
+
+  /**
+   * Get default Figma-based styles for offer card
+   */
+  private getDefaultFigmaStyles(): OfferCardTemplate['styles'] {
+    return {
+      container: {
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        borderRadius: '20px',
+        shadow: 'lg',
       },
-      Text: {
-        color: '#000000',
-        fontSize: '1rem',
+      topLabel: {
+        backgroundColor: '#ffb63e',
+        color: '#FFFFFF',
+        fontSize: '12px',
+        fontWeight: '600',
+        padding: '8px 4px',
+        borderRadius: '20px',
+      },
+      image: {
+        backgroundColor: '#374151',
+        aspectRatio: '1.5 / 1',
+        height: '274px',
+      },
+      discountBadge: {
+        backgroundColor: '#ff2060',
+        color: '#FFFFFF',
+        fontSize: '12px',
+        fontWeight: '500',
+        padding: '8px 4px',
+        borderRadius: '20px',
+      },
+      includedItems: {
+        backgroundColor: '#374151',
+        itemBackgroundColor: '#4B5563',
+      },
+      title: {
+        fontSize: '18px',
+        fontWeight: '500',
+        color: '#FAF9F6',
+      },
+      description: {
+        fontSize: '16px',
+        fontWeight: '400',
+        color: '#FAF9F6',
+        lineHeight: '23px',
+      },
+      priceBlock: {
+        borderRadius: '20px',
+        padding: '16px 12px',
+        minHeight: '60px',
+        alignment: 'left',
+      },
+      originalPrice: {
+        fontSize: '16px',
+        fontWeight: '500',
+        color: '#FFFFFF',
+      },
+      currentPrice: {
+        fontSize: '16px',
+        fontWeight: '500',
+        color: '#FAF9F6',
+      },
+      rarity: {
+        backgroundColor: '#8A2BE2',
+        color: '#FFFFFF',
+      },
+      buyButton: {
+        backgroundColor: '#FF6B35',
+        color: '#FFFFFF',
+        borderRadius: '8px',
+        fontSize: 'clamp(12px, 4cqw, 18px)',
+        fontWeight: 'bold',
+        padding: '12px 8px',
+        minHeight: '48px',
+      },
+      purchasedBadge: {
+        backgroundColor: '#10B981',
+        color: '#FFFFFF',
+      },
+      bonuses: {
+        rpColor: '#FBBF24',
+        lpColor: '#3B82F6',
+        fontSize: '12px',
+      },
+    };
+  }
+
+  /**
+   * Migrate existing offer cards to Figma styles (merges with existing styles)
+   * Ensures all values from getDefaultFigmaStyles() are in the config (DB)
+   */
+  public async migrateOfferCardsToFigmaStyles(): Promise<void> {
+    this._logger.info('[PageConstructorPresenter] Migrating offer cards to Figma styles');
+    
+    const figmaStyles = this.getDefaultFigmaStyles();
+    
+    this.offerCards = this.offerCards.map(card => {
+      // Deep merge: start with Figma defaults, then apply user customizations
+      // This ensures all values from getDefaultFigmaStyles() are present in config
+      const mergedStyles: OfferCardTemplate['styles'] = {
+        container: { ...figmaStyles.container, ...(card.styles.container || {}) },
+        topLabel: { ...figmaStyles.topLabel, ...(card.styles.topLabel || {}) },
+        image: { ...figmaStyles.image, ...(card.styles.image || {}) },
+        discountBadge: { ...figmaStyles.discountBadge, ...(card.styles.discountBadge || {}) },
+        title: { ...figmaStyles.title, ...(card.styles.title || {}) },
+        description: { ...figmaStyles.description, ...(card.styles.description || {}) },
+        priceBlock: { ...figmaStyles.priceBlock, ...(card.styles.priceBlock || {}) },
+        originalPrice: { ...figmaStyles.originalPrice, ...(card.styles.originalPrice || {}) },
+        currentPrice: { ...figmaStyles.currentPrice, ...(card.styles.currentPrice || {}) },
+        rarity: { ...figmaStyles.rarity, ...(card.styles.rarity || {}) },
+        buyButton: { 
+          ...figmaStyles.buyButton,
+          ...(card.styles.buyButton || {}),
+          // Fix incorrect old backgroundColor value - always use correct from Figma if wrong
+          backgroundColor: (card.styles.buyButton?.backgroundColor === '#99ff00' || 
+                           card.styles.buyButton?.backgroundColor === '#99FF00')
+            ? figmaStyles.buyButton?.backgroundColor
+            : (card.styles.buyButton?.backgroundColor || figmaStyles.buyButton?.backgroundColor),
+        },
+        purchasedBadge: { ...figmaStyles.purchasedBadge, ...(card.styles.purchasedBadge || {}) },
+        bonuses: { ...figmaStyles.bonuses, ...(card.styles.bonuses || {}) },
+        includedItems: { ...figmaStyles.includedItems, ...(card.styles.includedItems || {}) },
+      };
+      
+      return {
+        ...card,
+        styles: mergedStyles,
+        media: card.media ? { ...card.media } : undefined,
+      };
+    });
+    
+    await this.saveOfferCards();
+    await this.sendAppConfigToIframe();
+    this._logger.info('[PageConstructorPresenter] Offer cards migrated to Figma styles', { count: this.offerCards.length });
+  }
+
+  public async addOfferCard(name?: string): Promise<void> {
+    const newCard: OfferCardTemplate = {
+      id: `offer-card-${Date.now()}`,
+      name: name || `Offer Card ${this.offerCards.length + 1}`,
+      styles: this.getDefaultFigmaStyles(),
+      media: {
+        mainImageAlt: 'Offer card image',
       },
     };
 
-    return defaults[componentType] || {};
+    this.offerCards = [...this.offerCards, newCard];
+    this.selectedOfferCardId = newCard.id;
+    
+    await this.saveOfferCards();
+    await this.sendAppConfigToIframe();
+    this._logger.info('[PageConstructorPresenter] Added offer card', { cardId: newCard.id, name: newCard.name });
+  }
+
+  public async updateOfferCard(cardId: string, template: OfferCardTemplate): Promise<void> {
+    const index = this.offerCards.findIndex(card => card.id === cardId);
+    if (index === -1) {
+      this._logger.warn('[PageConstructorPresenter] Offer card not found for update', { cardId });
+      return;
+    }
+
+    this.offerCards = [
+      ...this.offerCards.slice(0, index),
+      template,
+      ...this.offerCards.slice(index + 1),
+    ];
+
+    await this.saveOfferCards();
+    await this.sendAppConfigToIframe();
+    this._logger.info('[PageConstructorPresenter] Updated offer card', { cardId });
+  }
+
+  public async removeOfferCard(cardId: string): Promise<void> {
+    this.offerCards = this.offerCards.filter(card => card.id !== cardId);
+    
+    if (this.selectedOfferCardId === cardId) {
+      this.selectedOfferCardId = null;
+    }
+
+    await this.saveOfferCards();
+    await this.sendAppConfigToIframe();
+    this._logger.info('[PageConstructorPresenter] Removed offer card', { cardId });
+  }
+
+  private async saveOfferCards(): Promise<void> {
+    try {
+      const result = await this._updateOfferCardsUseCase.execute(this.vm.appId, this.offerCards);
+      
+      if (!result.isSuccess) {
+        this._logger.error('[PageConstructorPresenter] Failed to save offer cards', result.error);
+      }
+    } catch (error) {
+      this._logger.error('[PageConstructorPresenter] Error saving offer cards', error);
+    }
   }
 }
 

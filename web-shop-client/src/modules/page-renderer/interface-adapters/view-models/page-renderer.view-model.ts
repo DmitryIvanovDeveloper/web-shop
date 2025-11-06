@@ -1,5 +1,7 @@
 import type { PageSection } from '../../domain/entities/page-section';
 
+import type { OfferCardTemplate } from '../../../../shared/config/app-config.types';
+
 export interface PageRendererViewModel {
   sections: PageSection[];
   pageStyles?: {
@@ -8,5 +10,7 @@ export interface PageRendererViewModel {
   };
   isLoading: boolean;
   error: string | null;
+  selectedOfferCardId: string | null;
+  offerCards: OfferCardTemplate[];
 }
 

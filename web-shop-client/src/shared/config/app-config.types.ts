@@ -57,6 +57,100 @@ export interface GlobalBackground {
 	readonly backgroundColor?: string;
 }
 
+export interface OfferCardStyles {
+	readonly container?: {
+		readonly backgroundColor?: string;
+		readonly borderRadius?: string;
+		readonly shadow?: string;
+	};
+	readonly topLabel?: {
+		readonly backgroundColor?: string;
+		readonly color?: string;
+		readonly fontSize?: string;
+		readonly fontWeight?: string;
+		readonly padding?: string;
+		readonly borderRadius?: string;
+	};
+	readonly image?: {
+		readonly backgroundColor?: string;
+		readonly aspectRatio?: string;
+		readonly height?: string;
+	};
+	readonly discountBadge?: {
+		readonly backgroundColor?: string;
+		readonly color?: string;
+		readonly fontSize?: string;
+		readonly fontWeight?: string;
+		readonly padding?: string;
+		readonly borderRadius?: string;
+	};
+	readonly includedItems?: {
+		readonly backgroundColor?: string;
+		readonly itemBackgroundColor?: string;
+	};
+	readonly title?: {
+		readonly fontSize?: string;
+		readonly fontWeight?: string;
+		readonly color?: string;
+	};
+	readonly description?: {
+		readonly fontSize?: string;
+		readonly fontWeight?: string;
+		readonly color?: string;
+		readonly lineHeight?: string;
+	};
+	readonly priceBlock?: {
+		readonly borderRadius?: string;
+		readonly padding?: string;
+		readonly minHeight?: string;
+		readonly alignment?: 'left' | 'center' | 'right';
+	};
+	readonly originalPrice?: {
+		readonly fontSize?: string;
+		readonly fontWeight?: string;
+		readonly color?: string;
+	};
+	readonly currentPrice?: {
+		readonly fontSize?: string;
+		readonly fontWeight?: string;
+		readonly color?: string;
+	};
+	readonly rarity?: {
+		readonly backgroundColor?: string;
+		readonly color?: string;
+	};
+	readonly buyButton?: {
+		readonly backgroundColor?: string;
+		readonly color?: string;
+		readonly borderRadius?: string;
+		readonly fontSize?: string;
+		readonly fontWeight?: string;
+		readonly padding?: string;
+		readonly minHeight?: string;
+	};
+	readonly purchasedBadge?: {
+		readonly backgroundColor?: string;
+		readonly color?: string;
+	};
+	readonly bonuses?: {
+		readonly rpColor?: string;
+		readonly lpColor?: string;
+		readonly fontSize?: string;
+	};
+}
+
+export interface OfferCardMedia {
+	readonly mainImage?: string;
+	readonly mainImageAlt?: string;
+}
+
+export interface OfferCardTemplate {
+	readonly id: string;
+	readonly name: string;
+	readonly styles: OfferCardStyles;
+	readonly media?: OfferCardMedia;
+}
+
 export interface SharedConfig {
 	readonly offerCardUI?: ComponentNodeData;
 	readonly productCardUI?: ComponentNodeData;

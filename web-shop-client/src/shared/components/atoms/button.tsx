@@ -42,7 +42,7 @@ export function UniversalButton({
     
   // Удаляем justifyContent из inline styles, так как он уже применён через CSS класс
   const { justifyContent, ...styleWithoutJustify } = style || {};
-  
+    
   const buttonStyle = fullWidth 
     ? { 
         ...styleWithoutJustify, 

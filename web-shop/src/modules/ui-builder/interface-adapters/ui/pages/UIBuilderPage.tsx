@@ -6,6 +6,8 @@ import { ElementTreeSelector } from '../components/ElementTreeSelector';
 import { SidebarColorEditor } from '../components/SidebarColorEditor';
 import { AuthEditor } from '../components/AuthEditor';
 import { PageConstructor } from '../components/PageConstructor';
+import { OfferCardsManager } from '../components/OfferCardsManager';
+import { OfferCardEditor } from '../components/OfferCardEditor';
 import type { SidebarElement } from '../../../domain/types/sidebar-element.types';
 import type { PageConstructorPresenter } from '../../presenters/page-constructor.presenter';
 import { env } from '@/env';
@@ -26,20 +28,61 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   useEffect(() => { setIsClient(true); }, []);
   const [activeSection, setActiveSection] = useState<'sidebar' | 'authButton' | 'authPopup' | 'pageConstructor'>('sidebar');
   
+  // Get pageSlug from URL or default to 'home'
+  const getPageSlugFromUrl = (): string => {
+    if (typeof window === 'undefined') return 'home';
+    const params = new URLSearchParams(window.location.search);
+    return params.get('pageSlug') || 'home';
+  };
+  
+  const [selectedPageSlug, setSelectedPageSlug] = useState<string>(getPageSlugFromUrl());
+  
+  // Update selectedPageSlug when URL changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const pageSlug = params.get('pageSlug') || 'home';
+      setSelectedPageSlug(pageSlug);
+    }
+  }, []);
+  
   // Get PageConstructorPresenter from DI container
   const pageConstructorPresenter = React.useMemo(() => {
     return container.get<PageConstructorPresenter>(UI_BUILDER_TYPES.PageConstructorPresenter);
   }, []);
 
+  // Offer Cards state
+  const [offerCards, setOfferCards] = useState(pageConstructorPresenter.getOfferCards());
+  const [selectedOfferCardId, setSelectedOfferCardId] = useState<string | null>(pageConstructorPresenter.getSelectedOfferCardId());
+
+  // Initialize pageConstructorPresenter and load offer cards
+  useEffect(() => {
+    const initializeOfferCards = async () => {
+      await pageConstructorPresenter.initialize(appId, selectedPageSlug);
+      setOfferCards(pageConstructorPresenter.getOfferCards());
+      setSelectedOfferCardId(pageConstructorPresenter.getSelectedOfferCardId());
+    };
+    initializeOfferCards();
+  }, [appId, selectedPageSlug, pageConstructorPresenter]);
+
+  // Update offer cards periodically
+  useEffect(() => {
+    const updateOfferCards = () => {
+      setOfferCards(pageConstructorPresenter.getOfferCards());
+      setSelectedOfferCardId(pageConstructorPresenter.getSelectedOfferCardId());
+    };
+    const interval = setInterval(updateOfferCards, 500);
+    return () => clearInterval(interval);
+  }, [pageConstructorPresenter]);
+
   // Calculate iframe src based on active section
   const iframeSrc = React.useMemo(() => {
     if (!clientUrl) return null;
     if (activeSection === 'pageConstructor') {
-      const pageSlug = pageConstructorPresenter.getPageSlug();
-      return `${clientUrl}/${pageSlug}?appId=${appId}&previewMode=true&uibuilder=true`;
+      return `${clientUrl}/${selectedPageSlug}?appId=${appId}&previewMode=true&uibuilder=true`;
     }
     return `${clientUrl}/?appId=${appId}&previewMode=true&uibuilder=true`;
-  }, [activeSection, appId, clientUrl, pageConstructorPresenter]);
+  }, [activeSection, appId, clientUrl, selectedPageSlug]);
 
   // Callback ref to set iframe ref when iframe mounts
   const handleIframeRef = useCallback((el: HTMLIFrameElement | null) => {
@@ -103,6 +146,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   // Initialize and load full config from Supabase on mount
   useEffect(() => {
     presenter.initialize(appId);
+    presenter.loadPages();
   }, [presenter, appId]);
 
   const handleThemeChange = (colors: Record<string, string>) => {
@@ -134,13 +178,18 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     }
   };
 
-  const handleElementSelect = (elementId: string) => {
+  const handleElementSelect = (elementId: string | null) => {
     console.log('[UIBuilderPage] handleElementSelect called:', elementId);
+    // Clear offer card selection when selecting sidebar element
+    if (elementId && selectedOfferCardId) {
+      pageConstructorPresenter.selectOfferCard(null);
+      setSelectedOfferCardId(null);
+    }
     // Ensure we're on sidebar section
     if (activeSection !== 'sidebar') {
       setActiveSection('sidebar');
     }
-    presenter.selectElement(elementId);
+    presenter.selectElement(elementId || '');
   };
 
   // Force re-render when selectedElement changes
@@ -345,16 +394,60 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
           {/* Pages section */}
           <div className="mb-4">
-            <h3 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Pages</h3>
-            <div className="flex flex-col gap-1 pl-2">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Pages</h3>
               <button
-                onClick={() => {
-                  setActiveSection('pageConstructor');
+                onClick={async () => {
+                  const pageSlug = prompt('Enter page slug (e.g., "about", "contact"):');
+                  if (pageSlug && pageSlug.trim()) {
+                                         const normalizedSlug = pageSlug.trim().toLowerCase().replace(/\s+/g, '-');
+                     const success = await presenter.createPage(normalizedSlug);
+                     if (success) {
+                       // Switch to pageConstructor with the new page
+                       setActiveSection('pageConstructor');
+                       setSelectedPageSlug(normalizedSlug);
+                       // Update URL to include pageSlug
+                       const url = new URL(window.location.href);
+                       url.searchParams.set('pageSlug', normalizedSlug);
+                       window.history.pushState({}, '', url);
+                     } else {
+                       alert(`Failed to create page: ${viewModel.error || 'Unknown error'}`);
+                     }
+                  }
                 }}
-                className={`text-left px-2 py-1 rounded text-xs ${activeSection === 'pageConstructor' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
+                className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                title="Add New Page"
               >
-                Page Builder
+                + Add
               </button>
+            </div>
+            <div className="flex flex-col gap-1 pl-2">
+              {viewModel.isLoadingPages ? (
+                <div className="text-xs text-gray-400 px-2 py-1">Loading pages...</div>
+              ) : viewModel.pages && viewModel.pages.length > 0 ? (
+                viewModel.pages.map((pageSlug: string) => (
+                  <button
+                    key={pageSlug}
+                    onClick={() => {
+                      setActiveSection('pageConstructor');
+                      setSelectedPageSlug(pageSlug);
+                      // Update URL to include pageSlug
+                      const url = new URL(window.location.href);
+                      url.searchParams.set('pageSlug', pageSlug);
+                      window.history.pushState({}, '', url);
+                    }}
+                    className={`text-left px-2 py-1 rounded text-xs ${
+                      activeSection === 'pageConstructor' && selectedPageSlug === pageSlug
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 hover:bg-gray-200'
+                    }`}
+                  >
+                    {pageSlug}
+                  </button>
+                ))
+              ) : (
+                <div className="text-xs text-gray-400 px-2 py-1">No pages yet</div>
+              )}
             </div>
           </div>
 
@@ -363,9 +456,37 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             <h3 className="text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Right Sidebar</h3>
             <p className="text-[10px] text-gray-400 italic pl-2">Coming soon...</p>
           </div>
+          
+          {/* Offer Cards Manager */}
           <div className="mb-4">
-            <h3 className="text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Offer Card</h3>
-            <p className="text-[10px] text-gray-400 italic pl-2">Coming soon...</p>
+            <OfferCardsManager
+              offerCards={offerCards}
+              selectedCardId={selectedOfferCardId}
+              onSelect={(cardId) => {
+                pageConstructorPresenter.selectOfferCard(cardId);
+                setSelectedOfferCardId(cardId);
+                // Clear sidebar element selection when selecting offer card
+                if (viewModel.selectedElement) {
+                  handleElementSelect(null);
+                }
+              }}
+              onMigrate={async () => {
+                if (window.confirm('Migrate all offer cards to Figma styles? This will update existing styles but preserve your customizations.')) {
+                  await pageConstructorPresenter.migrateOfferCardsToFigmaStyles();
+                  setOfferCards(pageConstructorPresenter.getOfferCards());
+                }
+              }}
+              onAdd={async () => {
+                await pageConstructorPresenter.addOfferCard();
+                setOfferCards(pageConstructorPresenter.getOfferCards());
+                setSelectedOfferCardId(pageConstructorPresenter.getSelectedOfferCardId());
+              }}
+              onDelete={async (cardId) => {
+                await pageConstructorPresenter.removeOfferCard(cardId);
+                setOfferCards(pageConstructorPresenter.getOfferCards());
+                setSelectedOfferCardId(pageConstructorPresenter.getSelectedOfferCardId());
+              }}
+            />
           </div>
         </div>
       </aside>
@@ -380,6 +501,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 {activeSection === 'pageConstructor' ? 'Page Builder' : 
                  activeSection === 'authButton' ? 'Auth Button Editor' :
                  activeSection === 'authPopup' ? 'Auth Popup Editor' :
+                 selectedOfferCardId ? 'Offer Card Editor' :
                  viewModel.selectedElement ? `Editing: ${viewModel.selectedElement.id}` : 'Left Sidebar Editor'}
               </h1>
               {activeSection !== 'pageConstructor' && (
@@ -432,8 +554,26 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
           <div className="space-y-4">
+            {/* Offer Card Editor */}
+            {selectedOfferCardId && activeSection !== 'pageConstructor' && (() => {
+              const selectedCard = offerCards.find(card => card.id === selectedOfferCardId) || pageConstructorPresenter.getSelectedOfferCard();
+              if (!selectedCard) return null;
+              
+              return (
+                <div className="bg-white rounded-lg shadow">
+                  <OfferCardEditor
+                    card={selectedCard}
+                    onUpdate={async (updatedCard) => {
+                      await pageConstructorPresenter.updateOfferCard(selectedOfferCardId, updatedCard);
+                      setOfferCards(pageConstructorPresenter.getOfferCards());
+                    }}
+                  />
+                </div>
+              );
+            })()}
+
             {/* Color Editor for Selected Element */}
-            {activeSection === 'sidebar' && (
+            {activeSection === 'sidebar' && !selectedOfferCardId && (
               <SidebarColorEditor
                 element={viewModel.selectedElement}
                 onChange={handleElementColorChange}
@@ -468,7 +608,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               <PageConstructor
                 presenter={pageConstructorPresenter}
                 appId={appId}
-                pageSlug="home"
+                pageSlug={selectedPageSlug}
               />
             )}
 
@@ -573,6 +713,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     </div>
   );
 }
+
 
 
 

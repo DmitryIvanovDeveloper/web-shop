@@ -10,3 +10,7 @@ COMMENT ON COLUMN public.page_configs.page_styles IS
 {
   "padding": "2rem" | "20px" | "1rem 2rem"
 }';
+
+
+
+

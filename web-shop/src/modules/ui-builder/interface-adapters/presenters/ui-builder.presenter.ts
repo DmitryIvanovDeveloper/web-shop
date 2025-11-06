@@ -5,6 +5,8 @@ import type { LoadDraftConfigUseCase } from '../../application/use-cases/load-dr
 import type { LoadActiveConfigUseCase } from '../../application/use-cases/load-active-config.use-case';
 import type { SaveDraftUseCase } from '../../application/use-cases/save-draft.use-case';
 import type { PublishDraftUseCase } from '../../application/use-cases/publish-draft.use-case';
+import type { CreatePageUseCase } from '../../application/use-cases/create-page.use-case';
+import type { ListPagesUseCase } from '../../application/use-cases/list-pages.use-case';
 import type { Logger } from '@/application/ports/logger.port';
 import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import type { SelectedElement } from '../../domain/types/sidebar-element.types';
@@ -19,6 +21,8 @@ interface ViewModel {
   validationErrors: any[];
   config: Record<string, unknown> | null;
   selectedElement: SelectedElement | null;
+  pages: string[];
+  isLoadingPages: boolean;
 }
 
 @injectable()
@@ -62,6 +66,8 @@ export class UIBuilderPresenter {
       },
     },
     selectedElement: null,
+    pages: [],
+    isLoadingPages: false,
   };
 
   constructor(
@@ -75,6 +81,10 @@ export class UIBuilderPresenter {
     private readonly _saveDraftUseCase: SaveDraftUseCase,
     @inject(UI_BUILDER_TYPES.PublishDraftUseCase)
     private readonly _publishDraftUseCase: PublishDraftUseCase,
+    @inject(UI_BUILDER_TYPES.CreatePageUseCase)
+    private readonly _createPageUseCase: CreatePageUseCase,
+    @inject(UI_BUILDER_TYPES.ListPagesUseCase)
+    private readonly _listPagesUseCase: ListPagesUseCase,
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: Logger
   ) {}
@@ -620,6 +630,71 @@ export class UIBuilderPresenter {
     this.saveDraftDebounceTimer = setTimeout(() => {
       this.saveConfigToSupabase();
     }, 500); // 500ms debounce
+  }
+
+  public async loadPages(): Promise<void> {
+    if (!this.vm.appId) {
+      this._logger.warn('[UIBuilderPresenter] Cannot load pages: appId is empty');
+      return;
+    }
+
+    this.vm = { ...this.vm, isLoadingPages: true };
+    this.notify();
+
+    try {
+      const result = await this._listPagesUseCase.execute(this.vm.appId);
+
+      if (!result.isSuccess) {
+        this._logger.error('[UIBuilderPresenter] Failed to load pages', result.error);
+        this.vm = { ...this.vm, isLoadingPages: false, error: result.error?.message || 'Failed to load pages' };
+        this.notify();
+        return;
+      }
+
+      this.vm = { ...this.vm, pages: result.value || [], isLoadingPages: false };
+      this.notify();
+    } catch (error) {
+      this._logger.error('[UIBuilderPresenter] Error loading pages', error);
+      this.vm = { ...this.vm, isLoadingPages: false, error: error instanceof Error ? error.message : 'Unknown error' };
+      this.notify();
+    }
+  }
+
+  public async createPage(pageSlug: string): Promise<boolean> {
+    if (!this.vm.appId) {
+      this._logger.warn('[UIBuilderPresenter] Cannot create page: appId is empty');
+      return false;
+    }
+
+    if (!pageSlug || pageSlug.trim() === '') {
+      this._logger.warn('[UIBuilderPresenter] Cannot create page: pageSlug is empty');
+      return false;
+    }
+
+    // Normalize pageSlug (lowercase, replace spaces with hyphens)
+    const normalizedSlug = pageSlug.trim().toLowerCase().replace(/\s+/g, '-');
+
+    try {
+      const result = await this._createPageUseCase.execute(this.vm.appId, normalizedSlug);
+
+      if (!result.isSuccess) {
+        this._logger.error('[UIBuilderPresenter] Failed to create page', result.error);
+        this.vm = { ...this.vm, error: result.error?.message || 'Failed to create page' };
+        this.notify();
+        return false;
+      }
+
+      // Reload pages list after creating a new page
+      await this.loadPages();
+
+      this._logger.info('[UIBuilderPresenter] Page created successfully', { pageSlug: normalizedSlug });
+      return true;
+    } catch (error) {
+      this._logger.error('[UIBuilderPresenter] Error creating page', error);
+      this.vm = { ...this.vm, error: error instanceof Error ? error.message : 'Unknown error' };
+      this.notify();
+      return false;
+    }
   }
 }
 

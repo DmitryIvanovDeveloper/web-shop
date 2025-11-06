@@ -30,6 +30,7 @@ export interface PageConfig {
   /** Optional page-level styles (applied to the page container) */
   pageStyles?: {
     padding?: string;
+    gap?: string;
   };
   
   /** Optional metadata about the page */

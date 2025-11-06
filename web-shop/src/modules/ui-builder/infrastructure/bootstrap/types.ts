@@ -18,12 +18,15 @@ export const UI_BUILDER_TYPES = {
   LoadDraftConfigUseCase: Symbol.for('UIBuilder.LoadDraftConfigUseCase'),
   LoadActiveConfigUseCase: Symbol.for('UIBuilder.LoadActiveConfigUseCase'),
   PublishDraftUseCase: Symbol.for('UIBuilder.PublishDraftUseCase'),
+  UpdateOfferCardsUseCase: Symbol.for('UIBuilder.UpdateOfferCardsUseCase'),
   
   // Page Config Storage & Use Cases
   PageConfigStorage: Symbol.for('UIBuilder.PageConfigStorage'),
   LoadPageDraftUseCase: Symbol.for('UIBuilder.LoadPageDraftUseCase'),
   SavePageDraftUseCase: Symbol.for('UIBuilder.SavePageDraftUseCase'),
   PublishPageUseCase: Symbol.for('UIBuilder.PublishPageUseCase'),
+  CreatePageUseCase: Symbol.for('UIBuilder.CreatePageUseCase'),
+  ListPagesUseCase: Symbol.for('UIBuilder.ListPagesUseCase'),
 
   // Presenters
   UIBuilderPresenter: Symbol.for('UIBuilder.UIBuilderPresenter'),

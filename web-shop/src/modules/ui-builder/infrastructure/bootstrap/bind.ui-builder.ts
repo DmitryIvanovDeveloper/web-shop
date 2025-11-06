@@ -22,9 +22,12 @@ import { LoadDraftUseCase } from '../../application/use-cases/load-draft.use-cas
 import { LoadDraftConfigUseCase } from '../../application/use-cases/load-draft-config.use-case';
 import { LoadActiveConfigUseCase } from '../../application/use-cases/load-active-config.use-case';
 import { PublishDraftUseCase } from '../../application/use-cases/publish-draft.use-case';
+import { UpdateOfferCardsUseCase } from '../../application/use-cases/update-offer-cards.use-case';
 import { LoadPageDraftUseCase } from '../../application/use-cases/load-page-draft.use-case';
 import { SavePageDraftUseCase } from '../../application/use-cases/save-page-draft.use-case';
 import { PublishPageUseCase } from '../../application/use-cases/publish-page.use-case';
+import { CreatePageUseCase } from '../../application/use-cases/create-page.use-case';
+import { ListPagesUseCase } from '../../application/use-cases/list-pages.use-case';
 
 // Presenters
 import { UIBuilderPresenter } from '../../interface-adapters/presenters/ui-builder.presenter';
@@ -101,6 +104,11 @@ export function bindUIBuilder(container: Container): void {
     .to(PublishDraftUseCase)
     .inSingletonScope();
 
+  container
+    .bind<UpdateOfferCardsUseCase>(UI_BUILDER_TYPES.UpdateOfferCardsUseCase)
+    .to(UpdateOfferCardsUseCase)
+    .inSingletonScope();
+
   // Page Config Use Cases
   container
     .bind<LoadPageDraftUseCase>(UI_BUILDER_TYPES.LoadPageDraftUseCase)
@@ -115,6 +123,16 @@ export function bindUIBuilder(container: Container): void {
   container
     .bind<PublishPageUseCase>(UI_BUILDER_TYPES.PublishPageUseCase)
     .to(PublishPageUseCase)
+    .inSingletonScope();
+
+  container
+    .bind<CreatePageUseCase>(UI_BUILDER_TYPES.CreatePageUseCase)
+    .to(CreatePageUseCase)
+    .inSingletonScope();
+
+  container
+    .bind<ListPagesUseCase>(UI_BUILDER_TYPES.ListPagesUseCase)
+    .to(ListPagesUseCase)
     .inSingletonScope();
 
   // Presenters

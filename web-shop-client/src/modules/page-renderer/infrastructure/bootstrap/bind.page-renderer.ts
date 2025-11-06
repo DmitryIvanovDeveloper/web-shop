@@ -7,6 +7,8 @@ import { LoadPageConfigFromMessageUseCase } from '../../application/use-cases/lo
 import { PageRendererPresenter } from '../../interface-adapters/presenters/page-renderer.presenter';
 import { PageConfigLoadedHandler } from '../../interface-adapters/handlers/page-config-loaded.handler';
 import { PageConfigLoadedEvent } from '../../domain/events/page-config-loaded.event';
+import { PageRendererAppConfigLoadedHandler } from '../../interface-adapters/handlers/app-config-loaded.handler';
+import { AppConfigLoadedEvent } from '../../../../shared/events/app-config-events';
 import { PAGE_RENDERER_TYPES } from './types';
 
 export function bindPageRenderer(container: Container): void {
@@ -30,12 +32,20 @@ export function bindPageRenderer(container: Container): void {
     .to(PageRendererPresenter)
     .inSingletonScope();
   
-  // Event Handler
+  // Event Handlers
   container
     .bind<IAsyncEventHandler<PageConfigLoadedEvent>>(
       Symbol.for('IAsyncEventHandler<PageConfigLoadedEvent>')
     )
     .to(PageConfigLoadedHandler)
+    .inTransientScope();
+
+  // Handler for AppConfigLoadedEvent (updates offerCards from config)
+  container
+    .bind<IAsyncEventHandler<AppConfigLoadedEvent>>(
+      Symbol.for('IAsyncEventHandler<AppConfigLoadedEvent>')
+    )
+    .to(PageRendererAppConfigLoadedHandler)
     .inTransientScope();
 }
 

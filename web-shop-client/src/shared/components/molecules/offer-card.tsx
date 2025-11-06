@@ -60,6 +60,8 @@ export interface OfferCardProps {
   readonly playerLimit?: string;
   readonly timer?: Date;
   readonly title?: string;
+  readonly description?: string;
+  readonly topLabel?: string;
   readonly titleStyle?: TitleStyle;
   readonly rarity?: string;
   readonly originalPrice?: string;
@@ -76,7 +78,7 @@ export interface OfferCardProps {
 
 export function OfferCard({
   id,
-  mainImage,
+  mainImage = "",
   mainImageAlt = "Product",
   sideImage,
   backgroundImage,
@@ -85,6 +87,8 @@ export function OfferCard({
   playerLimit,
   timer,
   title = "",
+  description,
+  topLabel,
   titleStyle,
   rarity,
   originalPrice,
@@ -118,11 +122,17 @@ export function OfferCard({
     return () => clearInterval(interval);
   }, [timer]);
   
-  // Загружаем стили из window после AppConfigLoadedEvent
+  // Загружаем стили из window после AppConfigLoadedEvent и обновляем при изменении
   useEffect(() => {
     const loadStyles = () => {
       if (typeof window !== 'undefined' && (window as any).__offerCardStyles) {
-        setUiConfigNode((window as any).__offerCardStyles);
+        const newStyles = (window as any).__offerCardStyles;
+        console.log('[OfferCard] Loading/updating styles from window.__offerCardStyles', {
+          cardId: id,
+          buyButtonBg: newStyles.styles?.buyButton?.backgroundColor,
+          hasStyles: !!newStyles.styles
+        });
+        setUiConfigNode(newStyles);
       }
     };
 
@@ -130,6 +140,7 @@ export function OfferCard({
 
     // Слушаем событие загрузки конфига
     const handleConfigLoaded = () => {
+      console.log('[OfferCard] appConfigLoaded event received, reloading styles', { cardId: id });
       loadStyles();
     };
 
@@ -137,62 +148,241 @@ export function OfferCard({
       window.addEventListener('appConfigLoaded', handleConfigLoaded);
       return () => window.removeEventListener('appConfigLoaded', handleConfigLoaded);
     }
-  }, []);
+  }, [id]);
   
-  // Применяем стили из ComponentNode формата с fallback на хардкод
+  // Применяем стили из ComponentNode формата
   // uiConfigNode.styles содержит вложенные секции (container, image, title, etc)
+  // Стили загружаются из window.__offerCardStyles, который устанавливается в page-renderer.tsx
+  // Все стили должны приходить из Supabase app_config через UI Builder (БД)
+  // Нет fallback значений - если стиль не указан в БД, он не применяется
   const styles = uiConfigNode?.styles || {};
-  const containerBg = styles.container?.backgroundColor || '#1F2937';
-  const containerRadius = styles.container?.borderRadius || '8px';
-  const imageBg = styles.image?.backgroundColor || '#374151';
-  const titleFontSize = styles.title?.fontSize || 'clamp(10px, 4cqw, 18px)';
-  const titleColor = styles.title?.color || '#FFFFFF';
-  const rarityBg = styles.rarity?.backgroundColor || '#8A2BE2';
-  const rarityColor = styles.rarity?.color || '#FFFFFF';
-  const buyButtonBg = styles.buyButton?.backgroundColor || '#FF6B35';
-  const buyButtonColor = styles.buyButton?.color || '#FFFFFF';
-  const purchasedBg = styles.purchasedBadge?.backgroundColor || '#10B981';
-  const rpColor = styles.bonuses?.rpColor || '#FBBF24';
-  const lpColor = styles.bonuses?.lpColor || '#3B82F6';
   
-  // Simplified, safe JSX to avoid unclosed tag issues during build
+  // Container styles (only from config/DB)
+  const containerBg = styles.container?.backgroundColor;
+  const containerRadius = styles.container?.borderRadius;
+  const imageBg = styles.image?.backgroundColor;
+  const imageHeight = styles.image?.height;
+  
+  // Top Label styles (only from config/DB)
+  const topLabelBg = styles.topLabel?.backgroundColor;
+  const topLabelColor = styles.topLabel?.color;
+  const topLabelFontSize = styles.topLabel?.fontSize;
+  const topLabelFontWeight = styles.topLabel?.fontWeight;
+  const topLabelPadding = styles.topLabel?.padding;
+  const topLabelRadius = styles.topLabel?.borderRadius;
+  
+  // Discount Badge styles (only from config/DB)
+  const discountBadgeBg = styles.discountBadge?.backgroundColor;
+  const discountBadgeColor = styles.discountBadge?.color;
+  const discountBadgeFontSize = styles.discountBadge?.fontSize;
+  const discountBadgePadding = styles.discountBadge?.padding;
+  const discountBadgeRadius = styles.discountBadge?.borderRadius;
+  
+  // Title styles (only from config/DB)
+  const titleFontSize = styles.title?.fontSize;
+  const titleFontWeight = styles.title?.fontWeight;
+  const titleColor = styles.title?.color;
+  
+  // Description styles (only from config/DB)
+  const descriptionFontSize = styles.description?.fontSize;
+  const descriptionFontWeight = styles.description?.fontWeight;
+  const descriptionColor = styles.description?.color;
+  const descriptionLineHeight = styles.description?.lineHeight;
+  
+  // Price Block styles (only from config/DB)
+  const priceBlockRadius = styles.priceBlock?.borderRadius;
+  const priceBlockPadding = styles.priceBlock?.padding;
+  const priceBlockMinHeight = styles.priceBlock?.minHeight;
+  const priceBlockAlignment = styles.priceBlock?.alignment;
+  const priceBlockAlignItems = priceBlockAlignment === 'center'
+    ? 'center'
+    : priceBlockAlignment === 'right'
+      ? 'flex-end'
+      : 'flex-start';
+  const priceBlockTextAlign = priceBlockAlignment === 'center'
+    ? 'center'
+    : priceBlockAlignment === 'right'
+      ? 'right'
+      : 'left';
+  const priceBlockJustify = priceBlockAlignment === 'center'
+    ? 'center'
+    : priceBlockAlignment === 'right'
+      ? 'flex-end'
+      : 'flex-start';
+  
+  // Original Price styles (only from config/DB)
+  const originalPriceFontSize = styles.originalPrice?.fontSize;
+  const originalPriceColor = styles.originalPrice?.color;
+  
+  // Current Price styles (only from config/DB)
+  const currentPriceFontSize = styles.currentPrice?.fontSize;
+  const currentPriceColor = styles.currentPrice?.color;
+  
+  // Legacy styles (only from config/DB)
+  const rarityBg = styles.rarity?.backgroundColor;
+  const rarityColor = styles.rarity?.color;
+  const buyButtonBg = styles.buyButton?.backgroundColor;
+  const buyButtonColor = styles.buyButton?.color;
+  const purchasedBg = styles.purchasedBadge?.backgroundColor;
+  const rpColor = styles.bonuses?.rpColor;
+  const lpColor = styles.bonuses?.lpColor;
+  
+  // Parse prices for display
+  const parsePrice = (price: string | undefined): { value: string; symbol: string } => {
+    if (!price) return { value: '', symbol: '' };
+    const match = price.match(/^([^$]*)\s*\$?\s*(.*)$/);
+    if (match) {
+      return { value: match[1].trim(), symbol: match[2] || '$' };
+    }
+    return { value: price, symbol: '$' };
+  };
+  
+  const originalPriceParsed = parsePrice(originalPrice);
+  const currentPriceParsed = parsePrice(currentPrice);
+  
   return (
     <div
-      className={`relative overflow-hidden w-full ${className}`}
+      className={`relative overflow-hidden w-full !flex !flex-col ${className}`}
       style={{
-        display: 'flex',
-        flexDirection: 'column',
         height: '100%',
-        backgroundColor: containerBg,
-        borderRadius: containerRadius,
-        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
         ...style
       }}
       onClick={onClick}
     >
-      <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {title && (
-          <h3 style={{ color: titleColor, fontSize: titleFontSize, fontWeight: 'bold', textAlign: 'center' }}>{title}</h3>
-        )}
+      {/* Top Label */}
+      {topLabel && (
+        <div
+          style={{
+            backgroundColor: topLabelBg,
+            color: topLabelColor,
+            fontSize: topLabelFontSize,
+            fontWeight: topLabelFontWeight,
+            padding: topLabelPadding,
+            borderRadius: `${topLabelRadius} ${topLabelRadius} 0 0`,
+            width: '100%',
+            textAlign: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxSizing: 'border-box',
+          }}
+        >
+          {topLabel}
+        </div>
+      )}
+      
+      {/* Main Card Container */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          width: '100%',
+          backgroundColor: containerBg,
+          borderRadius: topLabel ? (containerRadius ? `0 0 ${containerRadius} ${containerRadius}` : undefined) : containerRadius,
+          overflow: 'hidden',
+          boxSizing: 'border-box',
+        }}
+      >
+        {/* Image Container with Discount Badge */}
         {mainImage && (
-          <div style={{ position: 'relative', width: '100%', aspectRatio: '3 / 2', backgroundColor: imageBg }}>
-            <img src={mainImage} alt={mainImageAlt} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
+          <div
+            style={{
+              position: 'relative',
+              width: '100%',
+              height: imageHeight,
+              backgroundColor: imageBg,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              boxSizing: 'border-box',
+            }}
+          >
+            <img
+              src={mainImage}
+              alt={mainImageAlt}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: '50% 50%',
+              }}
+            />
+            {/* Discount Badge */}
+            {discount && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '10px',
+                  right: '10px',
+                  backgroundColor: discountBadgeBg,
+                  color: discountBadgeColor,
+                  fontSize: discountBadgeFontSize,
+                  fontWeight: styles.discountBadge?.fontWeight,
+                  padding: discountBadgePadding,
+                  borderRadius: discountBadgeRadius,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {discount}
+              </div>
+            )}
           </div>
         )}
-            {rarity && (
-          <Badge text={rarity} variant="rarity" style={{ backgroundColor: rarityBg, color: rarityColor, padding: '4px 8px' }} />
-        )}
+        
+        {/* Card Body */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            padding: '16px',
+            width: '100%',
+          }}
+        >
+          {/* Title */}
+          {title && (
+            <div
+              style={{
+                fontSize: titleFontSize,
+                fontWeight: titleFontWeight,
+                color: titleColor,
+                width: '100%',
+              }}
+            >
+              {title}
+            </div>
+          )}
+          
+          {/* Description */}
+          {description && (
+            <div
+              style={{
+                fontSize: descriptionFontSize,
+                fontWeight: descriptionFontWeight,
+                color: descriptionColor,
+                lineHeight: descriptionLineHeight,
+                width: '100%',
+              }}
+            >
+              {description}
+            </div>
+          )}
+          
+          {/* Legacy Rarity Badge (for backward compatibility) - only show if no price block */}
+          {rarity && !(originalPrice || currentPrice) && (
+            <Badge text={rarity} variant="rarity" style={{ backgroundColor: rarityBg, color: rarityColor }} />
+          )}
+          
+          {/* Buy Button or Purchased Badge */}
           {isPurchased ? (
             <div
               style={{
                 width: '100%',
-              backgroundColor: purchasedBg,
-              color: '#FFFFFF',
-              borderRadius: '8px',
-              fontWeight: 'bold',
-              fontSize: '14px',
-                padding: '12px 8px',
-                minHeight: '48px',
+                backgroundColor: purchasedBg,
+                color: styles.purchasedBadge?.color,
                 textAlign: 'center',
                 display: 'flex',
                 alignItems: 'center',
@@ -202,26 +392,96 @@ export function OfferCard({
               PURCHASED
             </div>
           ) : (
-            buyButton && buyButton.enabled && (
-            <button
-              className="w-full transition-colors hover:opacity-90"
-              style={{
-                backgroundColor: buyButton.style?.backgroundColor || buyButtonBg,
-                color: buyButton.style?.textColor || buyButtonColor,
-                borderRadius: buyButton.style?.borderRadius || '8px',
-                fontWeight: buyButton.style?.fontWeight || 'bold',
-                fontSize: buyButton.style?.fontSize || '14px',
-                padding: buyButton.style?.padding || '12px 8px',
-                minHeight: '48px'
-              }}
-            >
-              {buyButton.text ?? 'Buy'}
-            </button>
+            (buyButton?.enabled !== false) && (
+              <button
+                type="button"
+                className="w-full transition-colors hover:opacity-90 cursor-pointer"
+                style={{
+                  backgroundColor: buyButtonBg,
+                  color: buyButtonColor,
+                  borderRadius: styles.buyButton?.borderRadius,
+                  fontWeight: styles.buyButton?.fontWeight,
+                  fontSize: styles.buyButton?.fontSize,
+                  padding: originalPrice || currentPrice ? undefined : styles.buyButton?.padding,
+                  minHeight: styles.buyButton?.minHeight,
+                  border: 'none',
+                  outline: 'none',
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onClick) {
+                    onClick();
+                  }
+                }}
+                aria-label={buyButton?.text || 'Buy'}
+              >
+                {(originalPrice || currentPrice) ? (
+                  <div
+                    style={{
+                      borderRadius: priceBlockRadius,
+                      padding: priceBlockPadding,
+                      minHeight: priceBlockMinHeight,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                      width: '100%',
+                      alignItems: priceBlockAlignItems,
+                    }}
+                  >
+                    {originalPrice && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '4px',
+                          alignItems: 'center',
+                          fontSize: originalPriceFontSize,
+                          fontWeight: styles.originalPrice?.fontWeight,
+                          color: originalPriceColor,
+                          textDecoration: 'line-through',
+                          textAlign: priceBlockTextAlign,
+                          width: '100%',
+                          justifyContent: priceBlockJustify,
+                        }}
+                      >
+                        <span>{originalPriceParsed.value}</span>
+                        <span>{originalPriceParsed.symbol}</span>
+                      </div>
+                    )}
+                    {currentPrice && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '4px',
+                          alignItems: 'center',
+                          fontSize: currentPriceFontSize,
+                          fontWeight: styles.currentPrice?.fontWeight,
+                          color: currentPriceColor,
+                          textAlign: priceBlockTextAlign,
+                          width: '100%',
+                          justifyContent: priceBlockJustify,
+                        }}
+                      >
+                        <span>{currentPriceParsed.value}</span>
+                        <span>{currentPriceParsed.symbol}</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  buyButton?.text ?? 'Buy'
+                )}
+              </button>
             )
           )}
-        {timer && (
-          <div style={{ color: '#A0A0A0', fontSize: 12, textAlign: 'center' }}>{countdown}</div>
-        )}
+          
+          {/* Timer - only show if no price block */}
+          {timer && !(originalPrice || currentPrice) && (
+            <div style={{ textAlign: 'center' }}>{countdown}</div>
+          )}
+        </div>
       </div>
     </div>
   );

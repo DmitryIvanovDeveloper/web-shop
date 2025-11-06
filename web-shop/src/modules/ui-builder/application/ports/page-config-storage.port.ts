@@ -37,5 +37,12 @@ export interface PageConfigStoragePort {
    * @returns Success or error result
    */
   publish(appId: string, pageSlug: string): Promise<Result<void, Error>>;
+
+  /**
+   * List all pages for an app (returns unique page slugs)
+   * @param appId Application identifier
+   * @returns Array of page slugs
+   */
+  listPages(appId: string): Promise<Result<string[], Error>>;
 }
 

@@ -168,6 +168,8 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       }
 
       // Handle CONFIG_UPDATE message
+      // Note: CONFIG_UPDATE is also handled in PageRenderer for offerCards and selectedOfferCardId
+      // This handler only processes the app-config part for AppConfigLoadedEvent
       if (event.data.type === 'CONFIG_UPDATE') {
         const config = event.data.payload?.config;
         if (!config) {
@@ -179,6 +181,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         
         try {
           // Use LoadAppConfigFromMessageUseCase to publish AppConfigLoadedEvent
+          // This is needed for other modules that listen to AppConfigLoadedEvent
           const loadConfigFromMessageUseCase = container.get<LoadAppConfigFromMessageUseCase>(TYPES.LoadAppConfigFromMessage);
           await loadConfigFromMessageUseCase.execute(config);
           

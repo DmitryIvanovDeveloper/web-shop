@@ -63,7 +63,7 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
         isDraft: row.is_draft,
         isActive: row.is_active,
         sections: row.sections as any[] || [],
-        pageStyles: (row.page_styles as { padding?: string; gap?: string }) || {},
+          pageStyles: (row.page_styles as { padding?: string; gap?: string }) || {},
       };
 
       this._logger.info('[SupabasePageConfigStorage] Draft loaded successfully', { appId, pageSlug, version: pageConfig.version });
@@ -243,6 +243,37 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
       return Result.ok<void, Error>(undefined as void);
     } catch (error) {
       this._logger.error('[SupabasePageConfigStorage] Error publishing', error);
+      return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
+    }
+  }
+
+  async listPages(appId: string): Promise<Result<string[], Error>> {
+    this._logger.info('[SupabasePageConfigStorage] Listing pages for app', { appId });
+
+    try {
+      // Get all unique page slugs for this app
+      const { data, error } = await this._db
+        .from('page_configs')
+        .select('page_slug')
+        .eq('app_id', appId);
+
+      if (error) {
+        this._logger.error('[SupabasePageConfigStorage] Error listing pages', error);
+        return Result.fail(new Error(`Failed to list pages: ${error.message}`));
+      }
+
+      // Extract unique page slugs
+      const pageSlugs: string[] = Array.from(new Set(
+        (data || []).map((row: { page_slug: string }) => row.page_slug as string)
+      ));
+
+      this._logger.info('[SupabasePageConfigStorage] Pages listed successfully', { 
+        appId, 
+        count: pageSlugs.length 
+      });
+      return Result.ok<string[], Error>(pageSlugs);
+    } catch (error) {
+      this._logger.error('[SupabasePageConfigStorage] Error listing pages', error);
       return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
