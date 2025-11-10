@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import { Badge } from "../atoms/badge";
 import type { OfferCardUIConfig } from "../../config/app-config.types";
@@ -94,6 +94,57 @@ function applyOpacityToColor(color: string | undefined, alpha: number | undefine
 
   return color;
 }
+
+type LayoutMode = 'mobile' | 'tablet' | 'desktop';
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+};
+
+const resolveResponsiveValue = <T,>(value: unknown, layout: LayoutMode): T | undefined => {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  if (isPlainObject(value)) {
+    const record = value as Record<string, unknown>;
+    const layoutSpecific = record[layout];
+    if (layoutSpecific !== undefined && layoutSpecific !== null) {
+      return layoutSpecific as T;
+    }
+    if (record.desktop !== undefined && record.desktop !== null) {
+      return record.desktop as T;
+    }
+    if (record.default !== undefined && record.default !== null) {
+      return record.default as T;
+    }
+    return undefined;
+  }
+
+  return value as T;
+};
+
+const pickSpacingForLayout = (
+  value: unknown,
+  layout: LayoutMode,
+  defaults: Record<LayoutMode, string>
+): string => {
+  const resolved = resolveResponsiveValue<string>(value, layout);
+  if (resolved) {
+    return resolved;
+  }
+  return defaults[layout];
+};
+
+const detectLayoutMode = (width: number): LayoutMode => {
+  if (width < 360) {
+    return 'mobile';
+  }
+  if (width < 720) {
+    return 'tablet';
+  }
+  return 'desktop';
+};
 
 // Функция для форматирования countdown как у Pixel Gun (4D 10:36:27)
 function formatCountdown(targetDate: Date): string {
@@ -192,25 +243,47 @@ export function OfferCard({
   style,
   onClick,
 }: OfferCardProps): JSX.Element {
-  // Живой countdown - обновляется каждую секунду
-  const [countdown, setCountdown] = useState<string>('');
-  
   // Стили из app-config.json (загружаются через AppConfigLoadedEvent)
   // ComponentNode формат: styles содержит вложенные секции (container, image, title, etc)
   const [uiConfigNode, setUiConfigNode] = useState<any>(null);
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>('desktop');
   
   useEffect(() => {
-    if (!timer) return;
-    
-    const updateCountdown = () => {
-      setCountdown(formatCountdown(timer));
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const measureAndSet = () => {
+      const width = cardRef.current?.getBoundingClientRect().width ?? window.innerWidth;
+      setLayoutMode(detectLayoutMode(width));
     };
-    
-    updateCountdown(); // Сразу обновляем
-    const interval = setInterval(updateCountdown, 1000); // Обновляем каждую секунду
-    
-    return () => clearInterval(interval);
-  }, [timer]);
+
+    if (cardRef.current && typeof ResizeObserver === 'function') {
+      const observer = new ResizeObserver((entries) => {
+        const entry = entries[0];
+        const width = entry?.contentRect.width ?? entry?.target?.clientWidth ?? 0;
+        setLayoutMode(detectLayoutMode(width));
+      });
+
+      observer.observe(cardRef.current);
+      measureAndSet();
+
+      return () => {
+        observer.disconnect();
+      };
+    }
+
+    measureAndSet();
+    window.addEventListener('resize', measureAndSet);
+
+    return () => {
+      window.removeEventListener('resize', measureAndSet);
+    };
+  }, []);
+  
+  // Живой countdown - обновляется каждую секунду
+  const [countdown, setCountdown] = useState<string>('');
   
   // Загружаем стили из window после AppConfigLoadedEvent и обновляем при изменении
   useEffect(() => {
@@ -246,83 +319,116 @@ export function OfferCard({
   // Все стили должны приходить из Supabase app_config через UI Builder (БД)
   // Нет fallback значений - если стиль не указан в БД, он не применяется
   const styles = uiConfigNode?.styles || {};
-  
-  // Container styles (only from config/DB)
-  const containerBg = styles.container?.backgroundColor;
-  const containerOpacity = parseOpacityValue(styles.container?.backgroundOpacity);
+  const responsive = <T,>(value: unknown): T | undefined =>
+    resolveResponsiveValue<T>(value, layoutMode);
+
+  const containerBg = responsive<string>(styles.container?.backgroundColor);
+  const containerOpacityValue = responsive<string | number>(styles.container?.backgroundOpacity);
+  const containerOpacity = parseOpacityValue(
+    containerOpacityValue !== undefined ? `${containerOpacityValue}` : undefined
+  );
   const containerBackgroundColor = applyOpacityToColor(containerBg, containerOpacity);
-  const containerRadius = styles.container?.borderRadius;
-  const containerBlurAmount = styles.container?.blurAmount;
-  const containerBlurValue = containerBlurAmount && !Number.isNaN(Number(containerBlurAmount))
-    ? Number(containerBlurAmount)
-    : 0;
-  const containerBackdropFilter = containerBlurValue > 0 ? `blur(${containerBlurValue}px)` : undefined;
-  const imageBg = styles.image?.backgroundColor;
-  const imageHeight = styles.image?.height;
-  
-  // Top Label styles (only from config/DB)
-  const topLabelBg = styles.topLabel?.backgroundColor;
-  const topLabelColor = styles.topLabel?.color;
-  const topLabelFontSize = styles.topLabel?.fontSize;
-  const topLabelFontWeight = styles.topLabel?.fontWeight;
-  const topLabelPadding = styles.topLabel?.padding;
-  const topLabelRadius = styles.topLabel?.borderRadius;
-  
-  // Discount Badge styles (only from config/DB)
-  const discountBadgeBg = styles.discountBadge?.backgroundColor;
-  const discountBadgeColor = styles.discountBadge?.color;
-  const discountBadgeFontSize = styles.discountBadge?.fontSize;
-  const discountBadgePadding = styles.discountBadge?.padding;
-  const discountBadgeRadius = styles.discountBadge?.borderRadius;
-  
-  // Title styles (only from config/DB)
-  const titleFontSize = styles.title?.fontSize;
-  const titleFontWeight = styles.title?.fontWeight;
-  const titleColor = styles.title?.color;
-  
-  // Description styles (only from config/DB)
-  const descriptionFontSize = styles.description?.fontSize;
-  const descriptionFontWeight = styles.description?.fontWeight;
-  const descriptionColor = styles.description?.color;
-  const descriptionLineHeight = styles.description?.lineHeight;
-  
-  // Price Block styles (only from config/DB)
-  const priceBlockRadius = styles.priceBlock?.borderRadius;
-  const priceBlockPadding = styles.priceBlock?.padding;
-  const priceBlockMinHeight = styles.priceBlock?.minHeight;
-  const priceBlockAlignment = styles.priceBlock?.alignment;
-  const priceBlockAlignItems = priceBlockAlignment === 'center'
-    ? 'center'
-    : priceBlockAlignment === 'right'
-      ? 'flex-end'
-      : 'flex-start';
-  const priceBlockTextAlign = priceBlockAlignment === 'center'
-    ? 'center'
-    : priceBlockAlignment === 'right'
-      ? 'right'
-      : 'left';
-  const priceBlockJustify = priceBlockAlignment === 'center'
-    ? 'center'
-    : priceBlockAlignment === 'right'
-      ? 'flex-end'
-      : 'flex-start';
-  
-  // Original Price styles (only from config/DB)
-  const originalPriceFontSize = styles.originalPrice?.fontSize;
-  const originalPriceColor = styles.originalPrice?.color;
-  
-  // Current Price styles (only from config/DB)
-  const currentPriceFontSize = styles.currentPrice?.fontSize;
-  const currentPriceColor = styles.currentPrice?.color;
-  
-  // Legacy styles (only from config/DB)
-  const rarityBg = styles.rarity?.backgroundColor;
-  const rarityColor = styles.rarity?.color;
-  const buyButtonBg = styles.buyButton?.backgroundColor;
-  const buyButtonColor = styles.buyButton?.color;
-  const purchasedBg = styles.purchasedBadge?.backgroundColor;
-  const rpColor = styles.bonuses?.rpColor;
-  const lpColor = styles.bonuses?.lpColor;
+  const containerRadius = responsive<string>(styles.container?.borderRadius);
+  const containerBlurInput = responsive<string | number>(styles.container?.blurAmount);
+  const containerBlurValue =
+    typeof containerBlurInput === 'number'
+      ? containerBlurInput
+      : typeof containerBlurInput === 'string'
+        ? Number.parseFloat(containerBlurInput)
+        : 0;
+  const containerBackdropFilter =
+    Number.isFinite(containerBlurValue) && containerBlurValue > 0
+      ? `blur(${containerBlurValue}px)`
+      : undefined;
+  const imageBg = responsive<string>(styles.image?.backgroundColor);
+  const imageHeightRaw = responsive<string | number>(styles.image?.height);
+  const imageHeight =
+    imageHeightRaw ??
+    (layoutMode === 'mobile'
+      ? '180px'
+      : layoutMode === 'tablet'
+        ? '220px'
+        : '260px');
+
+  const bodyGapRaw = responsive<string | number>(styles.body?.gap);
+  const bodyGap =
+    bodyGapRaw ??
+    (layoutMode === 'mobile' ? '0.75rem' : layoutMode === 'tablet' ? '0.875rem' : '1rem');
+  const bodyPadding = pickSpacingForLayout(
+    styles.body?.padding ?? styles.container?.padding,
+    layoutMode,
+    { mobile: '12px', tablet: '14px', desktop: '16px' }
+  );
+
+  const topLabelBg = responsive<string>(styles.topLabel?.backgroundColor);
+  const topLabelColor = responsive<string>(styles.topLabel?.color);
+  const topLabelFontSize = responsive<string | number>(styles.topLabel?.fontSize);
+  const topLabelFontWeight = responsive<string | number>(styles.topLabel?.fontWeight);
+  const topLabelPadding = responsive<string>(styles.topLabel?.padding);
+  const topLabelRadius = responsive<string>(styles.topLabel?.borderRadius);
+
+  const discountBadgeBg = responsive<string>(styles.discountBadge?.backgroundColor);
+  const discountBadgeColor = responsive<string>(styles.discountBadge?.color);
+  const discountBadgeFontSize = responsive<string | number>(styles.discountBadge?.fontSize);
+  const discountBadgeFontWeight = responsive<string | number>(styles.discountBadge?.fontWeight);
+  const discountBadgePadding = responsive<string>(styles.discountBadge?.padding);
+  const discountBadgeRadius = responsive<string>(styles.discountBadge?.borderRadius);
+
+  const titleFontSize = responsive<string | number>(styles.title?.fontSize);
+  const titleFontWeight = responsive<string | number>(styles.title?.fontWeight);
+  const titleColor = responsive<string>(styles.title?.color);
+
+  const descriptionFontSize = responsive<string | number>(styles.description?.fontSize);
+  const descriptionFontWeight = responsive<string | number>(styles.description?.fontWeight);
+  const descriptionColor = responsive<string>(styles.description?.color);
+  const descriptionLineHeight = responsive<string | number>(styles.description?.lineHeight);
+
+  const priceBlockRadius = responsive<string>(styles.priceBlock?.borderRadius);
+  const priceBlockPadding = responsive<string | number>(styles.priceBlock?.padding);
+  const priceBlockMinHeight = responsive<string | number>(styles.priceBlock?.minHeight);
+  const priceBlockAlignment = responsive<'center' | 'left' | 'right'>(
+    styles.priceBlock?.alignment
+  ) ?? styles.priceBlock?.alignment;
+  const priceBlockAlignItems =
+    priceBlockAlignment === 'center'
+      ? 'center'
+      : priceBlockAlignment === 'right'
+        ? 'flex-end'
+        : 'flex-start';
+  const priceBlockTextAlign =
+    priceBlockAlignment === 'center'
+      ? 'center'
+      : priceBlockAlignment === 'right'
+        ? 'right'
+        : 'left';
+  const priceBlockJustify =
+    priceBlockAlignment === 'center'
+      ? 'center'
+      : priceBlockAlignment === 'right'
+        ? 'flex-end'
+        : 'flex-start';
+
+  const originalPriceFontSize = responsive<string | number>(styles.originalPrice?.fontSize);
+  const originalPriceFontWeight = responsive<string | number>(styles.originalPrice?.fontWeight);
+  const originalPriceColor = responsive<string>(styles.originalPrice?.color);
+
+  const currentPriceFontSize = responsive<string | number>(styles.currentPrice?.fontSize);
+  const currentPriceFontWeight = responsive<string | number>(styles.currentPrice?.fontWeight);
+  const currentPriceColor = responsive<string>(styles.currentPrice?.color);
+
+  const rarityBg = responsive<string>(styles.rarity?.backgroundColor);
+  const rarityColor = responsive<string>(styles.rarity?.color);
+  const buyButtonBg = responsive<string>(styles.buyButton?.backgroundColor);
+  const buyButtonColor = responsive<string>(styles.buyButton?.color);
+  const buyButtonBorderRadius = responsive<string>(styles.buyButton?.borderRadius);
+  const buyButtonFontWeight = responsive<string | number>(styles.buyButton?.fontWeight);
+  const buyButtonFontSize = responsive<string | number>(styles.buyButton?.fontSize);
+  const buyButtonPadding = responsive<string | number>(styles.buyButton?.padding);
+  const buyButtonMinHeight = responsive<string | number>(styles.buyButton?.minHeight);
+  const purchasedBg = responsive<string>(styles.purchasedBadge?.backgroundColor);
+  const purchasedColor = responsive<string>(styles.purchasedBadge?.color);
+  const rpColor = responsive<string>(styles.bonuses?.rpColor);
+  const lpColor = responsive<string>(styles.bonuses?.lpColor);
   
   // Parse prices for display
   const parsePrice = (price: string | undefined): { value: string; symbol: string } => {
@@ -339,6 +445,7 @@ export function OfferCard({
   
   return (
     <div
+      ref={cardRef}
       className={`relative overflow-hidden w-full !flex !flex-col ${className}`}
       style={{
         height: '100%',
@@ -417,7 +524,7 @@ export function OfferCard({
                   backgroundColor: discountBadgeBg,
                   color: discountBadgeColor,
                   fontSize: discountBadgeFontSize,
-                  fontWeight: styles.discountBadge?.fontWeight,
+                  fontWeight: discountBadgeFontWeight,
                   padding: discountBadgePadding,
                   borderRadius: discountBadgeRadius,
                   display: 'flex',
@@ -436,8 +543,8 @@ export function OfferCard({
           style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '12px',
-            padding: '16px',
+            gap: bodyGap,
+            padding: bodyPadding,
             width: '100%',
           }}
         >
@@ -480,8 +587,8 @@ export function OfferCard({
             <div
               style={{
                 width: '100%',
-              backgroundColor: purchasedBg,
-                color: styles.purchasedBadge?.color,
+                backgroundColor: purchasedBg,
+                color: purchasedColor,
                 textAlign: 'center',
                 display: 'flex',
                 alignItems: 'center',
@@ -498,11 +605,11 @@ export function OfferCard({
                 style={{
                   backgroundColor: buyButtonBg,
                   color: buyButtonColor,
-                  borderRadius: styles.buyButton?.borderRadius,
-                  fontWeight: styles.buyButton?.fontWeight,
-                  fontSize: styles.buyButton?.fontSize,
-                  padding: originalPrice || currentPrice ? undefined : styles.buyButton?.padding,
-                  minHeight: styles.buyButton?.minHeight,
+                  borderRadius: buyButtonBorderRadius,
+                  fontWeight: buyButtonFontWeight,
+                  fontSize: buyButtonFontSize,
+                  padding: originalPrice || currentPrice ? undefined : buyButtonPadding,
+                  minHeight: buyButtonMinHeight,
                   border: 'none',
                   outline: 'none',
                   width: '100%',
@@ -538,7 +645,7 @@ export function OfferCard({
                           gap: '4px',
                           alignItems: 'center',
                           fontSize: originalPriceFontSize,
-                          fontWeight: styles.originalPrice?.fontWeight,
+                          fontWeight: originalPriceFontWeight,
                           color: originalPriceColor,
                           textDecoration: 'line-through',
                           textAlign: priceBlockTextAlign,
@@ -557,7 +664,7 @@ export function OfferCard({
                           gap: '4px',
                           alignItems: 'center',
                           fontSize: currentPriceFontSize,
-                          fontWeight: styles.currentPrice?.fontWeight,
+                          fontWeight: currentPriceFontWeight,
                           color: currentPriceColor,
                           textAlign: priceBlockTextAlign,
                           width: '100%',
