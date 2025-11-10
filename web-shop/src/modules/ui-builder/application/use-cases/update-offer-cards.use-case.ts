@@ -3,22 +3,12 @@ import { Result } from '@/shared/result/result';
 import type {
   AppConfigStructure,
   OfferCardTemplate,
-  OfferCardStyles,
-  OfferCardMedia,
 } from '../../domain/entities/app-config.entity';
 import type { ConfigStoragePort } from '../ports/config-storage.port';
 import { UI_BUILDER_TYPES } from '../../infrastructure/bootstrap/types';
 import type { Logger } from '@/application/ports/logger.port';
 import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import { SaveDraftUseCase } from './save-draft.use-case';
-
-export interface OfferCardSharedConfig {
-  readonly type: 'OfferCard';
-  readonly id: string;
-  readonly name?: string;
-  readonly styles: OfferCardStyles;
-  readonly media?: OfferCardMedia;
-}
 
 @injectable()
 export class UpdateOfferCardsUseCase {
@@ -34,12 +24,10 @@ export class UpdateOfferCardsUseCase {
   async execute(
     appId: string,
     offerCards: OfferCardTemplate[],
-    sharedOfferCard: OfferCardSharedConfig | null,
   ): Promise<Result<void, Error>> {
     this._logger.info('[UpdateOfferCardsUseCase] Updating offer cards', {
       appId,
       count: offerCards.length,
-      hasSharedConfig: Boolean(sharedOfferCard),
     });
 
     try {
@@ -73,28 +61,10 @@ export class UpdateOfferCardsUseCase {
         currentConfig = activeResult.value;
       }
 
-      // Prepare shared config updates
-      if (offerCards.length > 0 && !sharedOfferCard) {
-        const error = new Error('Primary offer card shared config is required when offer cards exist');
-        this._logger.error('[UpdateOfferCardsUseCase] Missing shared offer card config', { appId });
-        return Result.fail(error);
-      }
-
       const config = currentConfig.config as AppConfigStructure;
-      const sharedConfig = this.cloneSharedConfig(config.shared);
-
-      if (sharedOfferCard) {
-        const clonedSharedOfferCard = this.cloneSharedOfferCard(sharedOfferCard);
-        sharedConfig.offerCardUI = clonedSharedOfferCard;
-        sharedConfig.productCardUI = clonedSharedOfferCard;
-      } else {
-        delete sharedConfig.offerCardUI;
-        delete sharedConfig.productCardUI;
-      }
 
       const updatedConfig: AppConfigStructure = {
         ...config,
-        shared: sharedConfig,
         offerCards: [...offerCards],
       };
 
@@ -118,24 +88,6 @@ export class UpdateOfferCardsUseCase {
       this._logger.error('[UpdateOfferCardsUseCase] Error updating offer cards', error);
       return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
-  }
-
-  private cloneSharedConfig(shared: unknown): Record<string, unknown> {
-    if (shared && typeof shared === 'object' && !Array.isArray(shared)) {
-      return { ...(shared as Record<string, unknown>) };
-    }
-
-    return {};
-  }
-
-  private cloneSharedOfferCard(sharedOfferCard: OfferCardSharedConfig): OfferCardSharedConfig {
-    return {
-      type: 'OfferCard',
-      id: sharedOfferCard.id,
-      name: sharedOfferCard.name,
-      styles: JSON.parse(JSON.stringify(sharedOfferCard.styles ?? {})),
-      media: sharedOfferCard.media ? JSON.parse(JSON.stringify(sharedOfferCard.media)) : undefined,
-    };
   }
 }
 

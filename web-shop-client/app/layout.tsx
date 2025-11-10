@@ -5,7 +5,7 @@ import { container } from '../src/infrastructure/bootstrap/container';
 import "./output.css";
 import { AuthModule } from '../src/modules/authentication/interface-adapters/ui/auth-module';
 import { useState, useEffect } from 'react';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { APP_LAYOUT_TYPES } from '../src/modules/app-layout/infrastructure/bootstrap/types';
 import { SidebarRendererPresenter } from '../src/modules/app-layout/interface-adapters/presenters/sidebar-renderer.presenter';
 import { SidebarRenderer } from '../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
@@ -46,12 +46,17 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
   );
 
   const [sidebarRootStyles, setSidebarRootStyles] = useState<CSSProperties>({});
+  const [sidebarMenuIcon, setSidebarMenuIcon] = useState<string | null>(null);
   useEffect(() => {
     const resolveSidebarRootStyles = (): void => {
       try {
         const sidebarConfig = sidebarPresenter.getSidebar();
         const styles = (sidebarConfig?.layout?.styles ?? {}) as Record<string, unknown>;
         const colors = (sidebarConfig?.theme?.colors ?? {}) as Record<string, string>;
+        const iconValue = typeof sidebarConfig?.layout?.props?.icon === 'string'
+          ? sidebarConfig.layout.props.icon.trim()
+          : '';
+        setSidebarMenuIcon(iconValue.length > 0 ? iconValue : null);
 
         if (!styles || Object.keys(styles).length === 0) {
           setSidebarRootStyles({});
@@ -85,6 +90,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       } catch (error) {
         console.error('[RootLayout] Failed to resolve sidebar root styles:', error);
         setSidebarRootStyles({});
+        setSidebarMenuIcon(null);
       }
     };
 
@@ -272,6 +278,32 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     };
   }, []);
 
+  const renderSidebarMenuIcon = (): ReactNode => {
+    if (!sidebarMenuIcon) {
+      return (
+        <svg className="w-6 h-6" fill="none" stroke="#ffffff" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      );
+    }
+
+    if (sidebarMenuIcon.startsWith('data:image')) {
+      return (
+        <img
+          src={sidebarMenuIcon}
+          alt=""
+          className="w-6 h-6 object-contain"
+        />
+      );
+    }
+
+    return (
+      <span className="text-white text-xl leading-none" aria-hidden="true">
+        {sidebarMenuIcon}
+      </span>
+    );
+  };
+
   return (
     <html lang="en">
       <head>
@@ -362,14 +394,12 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                 })()}
               >
                 <button 
-                  className="p-2 hover:bg-[#34495e] rounded transition-colors bg-[#34495e]" 
+                  className="p-2 hover:bg-[#34495e] rounded transition-colors bg-[#34495e] flex items-center justify-center" 
                   aria-label="Menu"
                   onClick={() => setIsLeftDrawerOpen(true)}
                   style={{ minWidth: '40px', minHeight: '40px' }}
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="#ffffff" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
+                  {renderSidebarMenuIcon()}
                 </button>
                 <span className="text-white font-semibold text-lg">Web Shop</span>
                 <button 

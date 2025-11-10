@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import type { ComponentNode } from '../../../domain/entities/page-section.entity';
 
 interface ComponentEditorProps {
@@ -9,7 +9,61 @@ interface ComponentEditorProps {
   onRemove: () => void;
 }
 
+const readFileAsDataUrl = (file: File): Promise<string> => {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+      } else {
+        reject(new Error('Failed to read file'));
+      }
+    };
+
+    reader.onerror = () => {
+      reject(reader.error ?? new Error('Failed to read file'));
+    };
+
+    reader.readAsDataURL(file);
+  });
+};
+
 export function ComponentEditor({ component, onUpdate, onRemove }: ComponentEditorProps): JSX.Element {
+  const [isIconUploading, setIsIconUploading] = useState(false);
+
+  const updateButtonIcon = (icon: string | null): void => {
+    const currentProps = (component.props as Record<string, unknown>) || {};
+    const nextProps = { ...currentProps };
+
+    if (icon && icon.trim() !== '') {
+      nextProps.icon = icon;
+    } else {
+      delete nextProps.icon;
+    }
+
+    onUpdate(nextProps);
+  };
+
+  const handleButtonIconUpload = async (event: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    setIsIconUploading(true);
+
+    try {
+      const base64 = await readFileAsDataUrl(file);
+      updateButtonIcon(base64);
+    } catch {
+      // ignore upload errors for now
+    } finally {
+      setIsIconUploading(false);
+      event.target.value = '';
+    }
+  };
+
   const renderPropsEditor = () => {
     switch (component.type) {
       case 'Text':
@@ -29,6 +83,9 @@ export function ComponentEditor({ component, onUpdate, onRemove }: ComponentEdit
         );
 
       case 'Button':
+        const iconValue = (component.props?.icon as string) || '';
+        const hasImageIcon = iconValue.startsWith('data:image');
+
         return (
           <div className="space-y-3">
             <div>
@@ -42,6 +99,60 @@ export function ComponentEditor({ component, onUpdate, onRemove }: ComponentEdit
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 placeholder="Click me"
               />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 block mb-1.5">
+                Icon (emoji, symbol or image)
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={iconValue}
+                  onChange={(e) => updateButtonIcon(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  placeholder="🛒 or data:image/png;base64,..."
+                />
+                {iconValue && (
+                  <button
+                    type="button"
+                    onClick={() => updateButtonIcon(null)}
+                    className="px-2 py-1 text-xs text-gray-500 border border-gray-300 rounded hover:bg-gray-50"
+                    title="Remove icon"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <label
+                  className={`inline-flex px-3 py-2 border border-gray-300 rounded text-xs ${
+                    isIconUploading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'
+                  }`}
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={isIconUploading}
+                    onChange={handleButtonIconUpload}
+                  />
+                  {isIconUploading ? '📤 Uploading…' : '📤 Upload Icon'}
+                </label>
+                {iconValue && (
+                  hasImageIcon ? (
+                    <img
+                      src={iconValue}
+                      alt="Button icon preview"
+                      className="w-10 h-10 object-contain rounded border border-gray-200"
+                    />
+                  ) : (
+                    <span className="text-xl leading-none">{iconValue}</span>
+                  )
+                )}
+              </div>
+              <p className="text-[10px] text-gray-500 mt-1">
+                Изображение сохраняется как base64 прямо в конфиге. Можно также использовать emoji или текстовый символ.
+              </p>
             </div>
             <div>
               <label className="text-xs font-medium text-gray-600 block mb-1.5">

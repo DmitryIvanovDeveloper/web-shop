@@ -610,6 +610,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 onLabelChange={(elementId, label) => presenter.updateButtonLabel(elementId, label)}
                 onTextAlignChange={(elementId, textAlign) => presenter.updateButtonTextAlign(elementId, textAlign)}
                 onFlexDirectionChange={(elementId, flexDirection) => presenter.updateContainerFlexDirection(elementId, flexDirection)}
+                onIconChange={(elementId, icon) => presenter.updateButtonIcon(elementId, icon)}
               />
             )}
 

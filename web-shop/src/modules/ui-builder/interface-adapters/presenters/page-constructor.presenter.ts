@@ -10,7 +10,6 @@ import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import type { PageConfig } from '../../domain/entities/page-config.entity';
 import type { PageSection, SectionLayout, ComponentNode } from '../../domain/entities/page-section.entity';
 import type { OfferCardTemplate, AppConfigStructure, AppConfig } from '../../domain/entities/app-config.entity';
-import type { OfferCardSharedConfig } from '../../application/use-cases/update-offer-cards.use-case';
 
 interface PageConstructorViewModel {
   appId: string;
@@ -40,7 +39,6 @@ export class PageConstructorPresenter {
   // Store offerCards separately (not in ViewModel)
   private offerCards: OfferCardTemplate[] = [];
   private selectedOfferCardId: string | null = null;
-  private primaryOfferCardId: string | null = null;
   private lastAppConfig: AppConfig | null = null;
   
   private vm: PageConstructorViewModel = {
@@ -538,28 +536,9 @@ export class PageConstructorPresenter {
         this.lastAppConfig = result.value;
       }
 
-      const primaryCard = this.offerCards.length > 0 ? this.getPrimaryOfferCard() : null;
-      if (this.offerCards.length > 0 && !primaryCard) {
-        this._logger.warn('[PageConstructorPresenter] Skipping iframe update: no primary offer card selected');
-        return;
-      }
-
-      // Update offerCards and shared UI config in config
       const config = appConfig.config as AppConfigStructure;
-      const sharedConfig = this.cloneSharedConfig(config.shared);
-
-      if (primaryCard) {
-        const sharedNode = this.buildSharedOfferCardConfig(primaryCard);
-        sharedConfig.offerCardUI = sharedNode;
-        sharedConfig.productCardUI = sharedNode;
-      } else {
-        delete sharedConfig.offerCardUI;
-        delete sharedConfig.productCardUI;
-      }
-
       const updatedConfig: AppConfigStructure = {
         ...config,
-        shared: sharedConfig,
         offerCards: [...this.offerCards],
       };
 
@@ -665,15 +644,17 @@ export class PageConstructorPresenter {
         media: card.media ? { ...card.media } : undefined,
         };
       });
-      
-      const sharedPrimaryId = this.extractSharedOfferCardId(config.shared);
-      this.primaryOfferCardId = sharedPrimaryId && this.offerCards.some(card => card.id === sharedPrimaryId)
-        ? sharedPrimaryId
-        : null;
 
-      if (!this.selectedOfferCardId && this.primaryOfferCardId) {
-        this.selectedOfferCardId = this.primaryOfferCardId;
+      if (!this.selectedOfferCardId || !this.offerCards.some(card => card.id === this.selectedOfferCardId)) {
+        this.selectedOfferCardId = this.offerCards.length > 0 ? this.offerCards[0].id : null;
+        if (this.selectedOfferCardId) {
+          this._logger.info('[PageConstructorPresenter] Auto-selected offer card after load', {
+            selectedCardId: this.selectedOfferCardId,
+          });
+        }
       }
+
+      this.updateLastAppConfigOfferCards();
       
       // If styles were updated, save them back to DB
       const needsSave = loadedCards.some((card, index) => {
@@ -691,8 +672,6 @@ export class PageConstructorPresenter {
       }
       
       this._logger.info('[PageConstructorPresenter] Loaded offer cards', { count: this.offerCards.length });
-
-      this.ensurePrimaryOfferCard();
     } catch (error) {
       this._logger.error('[PageConstructorPresenter] Error loading offer cards', error);
       this.offerCards = [];
@@ -712,99 +691,15 @@ export class PageConstructorPresenter {
     return this.offerCards.find(card => card.id === this.selectedOfferCardId) || null;
   }
 
-  private ensurePrimaryOfferCard(): void {
-    if (this.offerCards.length === 0) {
-      this.primaryOfferCardId = null;
-      this.selectedOfferCardId = null;
-      return;
-    }
-
-    const hasPrimary = this.primaryOfferCardId && this.offerCards.some(card => card.id === this.primaryOfferCardId);
-    if (!hasPrimary) {
-      this.primaryOfferCardId = this.offerCards[0].id;
-      this._logger.info('[PageConstructorPresenter] Auto-assigned primary offer card', {
-        primaryOfferCardId: this.primaryOfferCardId,
-      });
-    }
-
-    if (this.selectedOfferCardId && !this.offerCards.some(card => card.id === this.selectedOfferCardId)) {
-      this.selectedOfferCardId = this.primaryOfferCardId;
-    }
-  }
-
-  private getPrimaryOfferCard(): OfferCardTemplate | null {
-    if (this.offerCards.length === 0) {
-      return null;
-    }
-
-    if (!this.primaryOfferCardId) {
-      this._logger.error('[PageConstructorPresenter] Primary offer card is not defined');
-      return null;
-    }
-
-    const card = this.offerCards.find(item => item.id === this.primaryOfferCardId);
-    if (!card) {
-      this._logger.error('[PageConstructorPresenter] Primary offer card not found in collection', {
-        primaryOfferCardId: this.primaryOfferCardId,
-      });
-      return null;
-    }
-
-    return card;
-  }
-
-  private buildSharedOfferCardConfig(card: OfferCardTemplate): OfferCardSharedConfig {
-    return {
-      type: 'OfferCard',
-      id: card.id,
-      name: card.name,
-      styles: JSON.parse(JSON.stringify(card.styles ?? {})),
-      media: card.media ? JSON.parse(JSON.stringify(card.media)) : undefined,
-    };
-  }
-
-  private cloneSharedConfig(shared: unknown): Record<string, unknown> {
-    if (shared && typeof shared === 'object' && !Array.isArray(shared)) {
-      return { ...(shared as Record<string, unknown>) };
-    }
-
-    return {};
-  }
-
-  private extractSharedOfferCardId(shared: unknown): string | null {
-    if (!shared || typeof shared !== 'object') {
-      return null;
-    }
-
-    const sharedRecord = shared as Record<string, unknown>;
-    const candidate = sharedRecord.offerCardUI ?? sharedRecord.productCardUI;
-
-    if (candidate && typeof candidate === 'object' && 'id' in candidate && typeof (candidate as { id: unknown }).id === 'string') {
-      return (candidate as { id: string }).id;
-    }
-
-    return null;
-  }
-
-  private updateLastAppConfigShared(shared: OfferCardSharedConfig | null): void {
+  private updateLastAppConfigOfferCards(): void {
     if (!this.lastAppConfig) {
       return;
     }
 
     const config = (this.lastAppConfig.config as AppConfigStructure) || {};
-    const sharedConfig = this.cloneSharedConfig(config.shared);
-
-    if (shared) {
-      sharedConfig.offerCardUI = shared;
-      sharedConfig.productCardUI = shared;
-    } else {
-      delete sharedConfig.offerCardUI;
-      delete sharedConfig.productCardUI;
-    }
 
     const nextConfig: AppConfigStructure = {
       ...config,
-      shared: sharedConfig,
       offerCards: [...this.offerCards],
     };
 
@@ -815,10 +710,8 @@ export class PageConstructorPresenter {
     this.selectedOfferCardId = cardId;
 
     if (cardId) {
-      this.primaryOfferCardId = cardId;
       this._logger.info('[PageConstructorPresenter] Selected offer card', {
         cardId,
-        primaryOfferCardId: this.primaryOfferCardId,
       });
     } else {
       this._logger.info('[PageConstructorPresenter] Cleared offer card selection');
@@ -977,8 +870,6 @@ export class PageConstructorPresenter {
 
     this.offerCards = [...this.offerCards, newCard];
     this.selectedOfferCardId = newCard.id;
-    this.primaryOfferCardId = newCard.id;
-    this.ensurePrimaryOfferCard();
     
     this.scheduleSaveOfferCards();
     await this.sendAppConfigToIframe();
@@ -1007,14 +898,8 @@ export class PageConstructorPresenter {
     this.offerCards = this.offerCards.filter(card => card.id !== cardId);
     
     if (this.selectedOfferCardId === cardId) {
-      this.selectedOfferCardId = null;
+      this.selectedOfferCardId = this.offerCards.length > 0 ? this.offerCards[0].id : null;
     }
-
-    if (this.primaryOfferCardId === cardId) {
-      this.primaryOfferCardId = null;
-    }
-
-    this.ensurePrimaryOfferCard();
 
     this.scheduleSaveOfferCards();
     await this.sendAppConfigToIframe();
@@ -1102,19 +987,9 @@ export class PageConstructorPresenter {
 
   private async saveOfferCards(): Promise<void> {
     try {
-      const primaryCard = this.offerCards.length > 0 ? this.getPrimaryOfferCard() : null;
-
-      if (this.offerCards.length > 0 && !primaryCard) {
-        this._logger.error('[PageConstructorPresenter] Skipping save: no primary offer card selected');
-        return;
-      }
-
-      const sharedConfig = primaryCard ? this.buildSharedOfferCardConfig(primaryCard) : null;
-
       const result = await this._updateOfferCardsUseCase.execute(
         this.vm.appId,
         this.offerCards,
-        sharedConfig,
       );
       
       if (!result.isSuccess) {
@@ -1122,7 +997,7 @@ export class PageConstructorPresenter {
         return;
       }
 
-      this.updateLastAppConfigShared(sharedConfig);
+      this.updateLastAppConfigOfferCards();
     } catch (error) {
       this._logger.error('[PageConstructorPresenter] Error saving offer cards', error);
     }

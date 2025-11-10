@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import type { SelectedElement } from '../../../domain/types/sidebar-element.types';
 
 interface SidebarColorEditorProps {
@@ -12,7 +12,28 @@ interface SidebarColorEditorProps {
   onLabelChange?: (elementId: string, label: string) => void;
   onTextAlignChange?: (elementId: string, textAlign: string) => void;
   onFlexDirectionChange?: (elementId: string, flexDirection: string) => void;
+  onIconChange?: (elementId: string, icon: string | null) => void;
 }
+
+const readFileAsDataUrl = (file: File): Promise<string> => {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+      } else {
+        reject(new Error('Failed to read file'));
+      }
+    };
+
+    reader.onerror = () => {
+      reject(reader.error ?? new Error('Failed to read file'));
+    };
+
+    reader.readAsDataURL(file);
+  });
+};
 
 interface ColorInputProps {
   label: string;
@@ -48,7 +69,9 @@ function ColorInput({ label, value, onChange }: ColorInputProps): JSX.Element {
   );
 }
 
-export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingChange, onBorderRadiusChange, onLabelChange, onTextAlignChange, onFlexDirectionChange }: SidebarColorEditorProps): JSX.Element {
+export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingChange, onBorderRadiusChange, onLabelChange, onTextAlignChange, onFlexDirectionChange, onIconChange }: SidebarColorEditorProps): JSX.Element {
+  const [isIconUploading, setIsIconUploading] = useState(false);
+
   if (!element) {
     return (
       <div className="bg-white rounded-lg shadow p-4">
@@ -156,8 +179,118 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
     }
   };
 
+  const handleIconValueChange = (value: string) => {
+    if (onIconChange) {
+      const normalized = value.trim();
+      onIconChange(element.id, normalized.length > 0 ? normalized : null);
+    }
+  };
+
+  const handleIconFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!onIconChange) {
+      return;
+    }
+
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    setIsIconUploading(true);
+
+    try {
+      const base64 = await readFileAsDataUrl(file);
+      onIconChange(element.id, base64);
+    } catch {
+      // ignore upload errors for now
+    } finally {
+      setIsIconUploading(false);
+      event.target.value = '';
+    }
+  };
+
+  const handleIconClear = () => {
+    if (onIconChange) {
+      onIconChange(element.id, null);
+    }
+  };
+
   const isContainer = element.type === 'Container' || element.id.includes('container');
   const isButton = element.type === 'Button' || element.id.includes('button');
+  const hasImageIcon = Boolean(element.icon && element.icon.startsWith('data:image'));
+
+  const renderIconEditor = (): JSX.Element | null => {
+    if (!onIconChange) {
+      return null;
+    }
+
+    return (
+      <div className="space-y-3">
+        <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+          Icon
+        </h4>
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+            Icon Value
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={element.icon || ''}
+              onChange={(e) => handleIconValueChange(e.target.value)}
+              className="w-48 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              placeholder="Emoji or data URL"
+            />
+            {element.icon && (
+              <button
+                type="button"
+                onClick={handleIconClear}
+                className="px-2 py-1 border border-gray-300 rounded text-xs text-gray-500 hover:bg-gray-50"
+                title="Remove icon"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+            Icon Upload
+          </label>
+          <div className="flex items-center gap-2">
+            <label
+              className={`inline-flex px-3 py-2 border border-gray-300 rounded text-xs ${
+                isIconUploading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'
+              }`}
+            >
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={isIconUploading}
+                onChange={handleIconFileUpload}
+              />
+              {isIconUploading ? '📤 Uploading…' : '📤 Upload Icon'}
+            </label>
+            {element.icon && (
+              hasImageIcon ? (
+                <img
+                  src={element.icon}
+                  alt="Icon preview"
+                  className="w-10 h-10 object-contain rounded border border-gray-200"
+                />
+              ) : (
+                <span className="text-xl leading-none">{element.icon}</span>
+              )
+            )}
+          </div>
+          <p className="text-[10px] text-gray-500">
+            Можно использовать emoji, текстовые символы или загрузить PNG/SVG — изображение сохраняется как base64 в конфиге.
+          </p>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -292,6 +425,37 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
           </div>
         )}
 
+        {/* Spacing editor for buttons */}
+        {isButton && onPaddingChange && (
+          <div className="space-y-3">
+            <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Spacing</h4>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                Padding
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={paddingValue}
+                  onChange={(e) => handlePaddingValueChange(e.target.value)}
+                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                  placeholder="1"
+                />
+                <select
+                  value={paddingUnit}
+                  onChange={(e) => handlePaddingUnitChange(e.target.value)}
+                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                >
+                  <option value="rem">rem</option>
+                  <option value="px">px</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Content editor for buttons */}
         {isButton && (onLabelChange || onTextAlignChange) && (
           <div className="space-y-3">
@@ -332,6 +496,8 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
             )}
           </div>
         )}
+
+        {renderIconEditor()}
       </div>
     </div>
   );

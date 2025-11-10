@@ -18,6 +18,7 @@ export interface SelectedElement {
   label?: string;
   textAlign?: string;
   flexDirection?: string;
+  icon?: string;
 }
 
 

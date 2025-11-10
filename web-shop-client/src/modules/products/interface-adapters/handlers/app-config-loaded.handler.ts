@@ -11,6 +11,9 @@ import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import { PRODUCTS_TYPES } from '../../infrastructure/bootstrap/types';
 import { ProductStyleService } from '../../infrastructure/services/product-style.service';
 import { ProductsListPresenter } from '../presenters/products-list.presenter';
+import type { OfferCardTemplate } from '../../../../shared/config/app-config.types';
+
+const PRIMARY_OFFER_CARD_ID = 'offer-card-1762760704585';
 
 @injectable()
 export class ProductsAppConfigLoadedHandler implements IAsyncEventHandler<AppConfigLoadedEvent> {
@@ -31,19 +34,35 @@ export class ProductsAppConfigLoadedHandler implements IAsyncEventHandler<AppCon
 		this._logger.info('[ProductsAppConfigLoadedHandler] Processing AppConfigLoadedEvent');
 
 		try {
-			const sharedConfig = event.payload.config.shared;
-			const cardStyles = sharedConfig?.productCardUI || sharedConfig?.offerCardUI;
-			
-			if (!cardStyles) {
-				this._logger.warn('[ProductsAppConfigLoadedHandler] No card UI config found in shared config');
+			const offerCards = Array.isArray((event.payload.config as { offerCards?: OfferCardTemplate[] })?.offerCards)
+				? ((event.payload.config as { offerCards?: OfferCardTemplate[] }).offerCards as OfferCardTemplate[])
+				: [];
+
+			const matchingCard =
+				offerCards.find(card => card.id === PRIMARY_OFFER_CARD_ID) ??
+				offerCards[0] ??
+				null;
+
+			if (!matchingCard) {
+				this._logger.warn('[ProductsAppConfigLoadedHandler] No offer cards available for products styling');
 				this._productStyleService.applyAppConfigStyles(null);
 				await this._productsListPresenter.refreshStyles();
 				return;
 			}
 
-			this._productStyleService.applyAppConfigStyles(cardStyles);
+			if (matchingCard.id !== PRIMARY_OFFER_CARD_ID) {
+				this._logger.warn('[ProductsAppConfigLoadedHandler] Primary offer card not found, using first available', {
+					fallbackCardId: matchingCard.id,
+					availableIds: offerCards.map(card => card.id),
+				});
+			}
+
+			this._productStyleService.applyAppConfigStyles(matchingCard);
 			await this._productsListPresenter.refreshStyles();
-			this._logger.info('[ProductsAppConfigLoadedHandler] App-config styles applied to products list');
+			this._logger.info('[ProductsAppConfigLoadedHandler] App-config styles applied from offerCards array', {
+				cardId: matchingCard.id,
+				cardName: matchingCard.name
+			});
 		} catch (error) {
 			this._logger.error('[ProductsAppConfigLoadedHandler] Error handling event', error);
 		}

@@ -311,7 +311,8 @@ export class UIBuilderPresenter {
         type: node?.type,
         borderRadius: node?.styles?.borderRadius,
         label: node?.props?.text || node?.props?.children,
-        textAlign: node?.styles?.textAlign
+        textAlign: node?.styles?.textAlign,
+        icon: node?.props?.icon,
       } 
     };
     console.log('[UIBuilderPresenter] Updated viewModel.selectedElement:', this.vm.selectedElement);
@@ -390,6 +391,27 @@ export class UIBuilderPresenter {
     }
     node.styles.textAlign = textAlign;
     
+    this.selectElement(elementId);
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
+  }
+
+  public updateButtonIcon(elementId: string, icon: string | null): void {
+    const node = this.findNode(elementId);
+    if (!node) {
+      return;
+    }
+
+    if (!node.props) {
+      node.props = {};
+    }
+
+    if (icon && icon.trim() !== '') {
+      node.props.icon = icon;
+    } else {
+      delete node.props.icon;
+    }
+
     this.selectElement(elementId);
     this.sendConfigToIframe();
     this.saveConfigToSupabaseDebounced();

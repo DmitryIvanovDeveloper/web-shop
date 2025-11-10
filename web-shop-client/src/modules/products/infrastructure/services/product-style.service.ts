@@ -2,7 +2,7 @@ import { inject, injectable } from 'inversify';
 import { BuyButtonStyle } from '../../domain/types';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
-import type { ComponentNodeData } from '../../../../shared/config/app-config.types';
+import type { OfferCardTemplate } from '../../../../shared/config/app-config.types';
 
 /**
  * Product Style Service
@@ -12,49 +12,68 @@ import type { ComponentNodeData } from '../../../../shared/config/app-config.typ
  */
 @injectable()
 export class ProductStyleService {
-  private _appConfigCardStyles: ComponentNodeData | null = null;
+  private _offerCardTemplate: OfferCardTemplate | null = null;
 
   constructor(
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: Logger
   ) {}
 
-  public applyAppConfigStyles(styles: ComponentNodeData | null): void {
-    this._appConfigCardStyles = styles;
-    this._logger.info('[ProductStyleService] App-config card styles updated', {
-      hasStyles: Boolean(styles)
+  public applyAppConfigStyles(template: OfferCardTemplate | null): void {
+    this._offerCardTemplate = template;
+    this._logger.info('[ProductStyleService] App-config card template updated', {
+      hasTemplate: Boolean(template),
+      cardId: template?.id,
+      cardName: template?.name,
     });
+
+    if (typeof window !== 'undefined') {
+      if (template?.styles) {
+        (window as any).__offerCardStyles = {
+          styles: template.styles,
+          media: template.media,
+        };
+        this._logger.debug('[ProductStyleService] window.__offerCardStyles updated from offer card template', {
+          cardId: template.id,
+        });
+      } else {
+        delete (window as any).__offerCardStyles;
+        this._logger.debug('[ProductStyleService] Cleared window.__offerCardStyles (no template styles)');
+      }
+
+      window.dispatchEvent(new Event('appConfigLoaded'));
+    }
   }
 
   /**
-   * Load button style from products.json
+   * Load button style from app config or products.json
    */
   async getButtonStyle(): Promise<BuyButtonStyle> {
-    if (this._appConfigCardStyles?.styles?.buyButton) {
-      const style = this._appConfigCardStyles.styles.buyButton as Record<string, string | undefined>;
+    const buyButton = this._offerCardTemplate?.styles?.buyButton;
+    if (buyButton) {
+      this._logger.debug('[ProductStyleService] Using buy button style from offer card template', {
+        cardId: this._offerCardTemplate?.id,
+      });
 
-      const mappedStyle: BuyButtonStyle = {
-        backgroundColor: style.backgroundColor,
-        textColor: style.color,
-        borderRadius: style.borderRadius,
-        padding: style.padding,
-        fontWeight: style.fontWeight,
-        fontSize: style.fontSize,
+      return {
+        backgroundColor: buyButton.backgroundColor,
+        textColor: buyButton.color,
+        borderRadius: buyButton.borderRadius,
+        padding: buyButton.padding,
+        fontWeight: buyButton.fontWeight,
+        fontSize: buyButton.fontSize,
       };
-
-      this._logger.debug('[ProductStyleService] Using buy button style from app-config');
-      return mappedStyle;
     }
 
     try {
       const response = await fetch('/mocks/api/products/products.json');
-      
+
       if (!response.ok) {
         throw new Error(`Failed to load product styles: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       // Return the button style from the JSON
       return data.buyButton?.style || this._getDefaultButtonStyle();
     } catch (error) {
@@ -65,10 +84,10 @@ export class ProductStyleService {
   }
 
   /**
-   * Load badge styles from products.json
+   * Load badge styles from app config or products.json
    */
   async getBadgeStyles(): Promise<Record<string, { bg: string; text: string; skew: string }>> {
-    const styles = this._appConfigCardStyles?.styles as Record<string, Record<string, string | undefined>> | undefined;
+    const styles = this._offerCardTemplate?.styles;
 
     if (styles) {
       const result: Record<string, { bg: string; text: string; skew: string }> = {};
@@ -77,7 +96,7 @@ export class ProductStyleService {
         result.discount = {
           bg: styles.discountBadge.backgroundColor ?? '#FF4500',
           text: styles.discountBadge.color ?? '#FFFFFF',
-          skew: styles.discountBadge.backgroundColor ?? '#FF4500'
+          skew: styles.discountBadge.backgroundColor ?? '#FF4500',
         };
       }
 
@@ -85,7 +104,7 @@ export class ProductStyleService {
         result.rarity = {
           bg: styles.rarity.backgroundColor ?? '#8A2BE2',
           text: styles.rarity.color ?? '#FFFFFF',
-          skew: styles.rarity.backgroundColor ?? '#8A2BE2'
+          skew: styles.rarity.backgroundColor ?? '#8A2BE2',
         };
       }
 
@@ -93,13 +112,14 @@ export class ProductStyleService {
         result.purchased = {
           bg: styles.purchasedBadge.backgroundColor ?? '#10B981',
           text: styles.purchasedBadge.color ?? '#FFFFFF',
-          skew: styles.purchasedBadge.backgroundColor ?? '#10B981'
+          skew: styles.purchasedBadge.backgroundColor ?? '#10B981',
         };
       }
 
       if (Object.keys(result).length > 0) {
-        this._logger.debug('[ProductStyleService] Using badge styles from app-config', {
-          keys: Object.keys(result)
+        this._logger.debug('[ProductStyleService] Using badge styles from offer card template', {
+          cardId: this._offerCardTemplate?.id,
+          keys: Object.keys(result),
         });
         return result;
       }
@@ -107,13 +127,13 @@ export class ProductStyleService {
 
     try {
       const response = await fetch('/mocks/api/products/products.json');
-      
+
       if (!response.ok) {
         throw new Error(`Failed to load product styles: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       // Return the badge styles from the JSON
       return data.badges || this._getDefaultBadgeStyles();
     } catch (error) {
