@@ -7,7 +7,6 @@ export interface AppConfig {
 	readonly version: string;
 	readonly environment: string;
 	readonly theme: GlobalTheme;
-	readonly background?: GlobalBackground;
 	readonly shared?: SharedConfig;
 	readonly moduleSchemas?: Record<string, ModuleSchema>;
 	readonly modules: ModulesConfig;
@@ -19,6 +18,7 @@ export interface GlobalTheme {
 	readonly spacing: readonly number[];
 	readonly borderRadius: BorderRadius;
 	readonly typography: Typography;
+	readonly background?: GlobalBackground;
 }
 
 export interface ThemeColors {
@@ -62,6 +62,8 @@ export interface OfferCardStyles {
 		readonly backgroundColor?: string;
 		readonly borderRadius?: string;
 		readonly shadow?: string;
+		readonly backgroundOpacity?: string;
+		readonly blurAmount?: string;
 	};
 	readonly topLabel?: {
 		readonly backgroundColor?: string;

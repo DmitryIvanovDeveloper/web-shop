@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { ThemeEditor } from '../components/ThemeEditor';
+import { BackgroundEditor } from '../components/BackgroundEditor';
 import { ElementTreeSelector } from '../components/ElementTreeSelector';
 import { SidebarColorEditor } from '../components/SidebarColorEditor';
 import { AuthEditor } from '../components/AuthEditor';
@@ -9,6 +9,7 @@ import { PageConstructor } from '../components/PageConstructor';
 import { OfferCardsManager } from '../components/OfferCardsManager';
 import { OfferCardEditor } from '../components/OfferCardEditor';
 import type { SidebarElement } from '../../../domain/types/sidebar-element.types';
+import type { AppConfigStructure } from '../../../domain/entities/app-config.entity';
 import type { PageConstructorPresenter } from '../../presenters/page-constructor.presenter';
 import { env } from '@/env';
 import { container } from '@/infrastructure/bootstrap/container';
@@ -26,7 +27,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   const clientUrl = env.NEXT_PUBLIC_CLIENT_URL;
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
-  const [activeSection, setActiveSection] = useState<'sidebar' | 'authButton' | 'authPopup' | 'pageConstructor'>('sidebar');
+  const [activeSection, setActiveSection] = useState<'background' | 'sidebar' | 'authButton' | 'authPopup' | 'pageConstructor'>('sidebar');
   
   // Get pageSlug from URL or default to 'home'
   const getPageSlugFromUrl = (): string => {
@@ -108,6 +109,11 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
     return unsubscribe;
   }, [presenter, activeSection]);
+
+  useEffect(() => {
+    const config = viewModel.config as AppConfigStructure | null;
+    pageConstructorPresenter.updateAppConfigSnapshot(config);
+  }, [viewModel.config, pageConstructorPresenter]);
 
   // Send viewport mode update to iframe when it changes
   useEffect(() => {
@@ -336,6 +342,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   }
 
   const theme = viewModel.config.theme as any;
+  const backgroundSettings = theme?.background;
 
   return (
     <div className="w-full h-screen flex bg-gray-100">
@@ -343,6 +350,18 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       <aside className="w-72 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
         <div className="p-3">
           <h2 className="text-sm font-bold text-gray-900 mb-3 pb-2 border-b border-gray-200">Components</h2>
+
+          <div className="mb-4">
+            <h3 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Theme</h3>
+            <div className="flex flex-col gap-1 pl-2">
+              <button
+                onClick={() => setActiveSection('background')}
+                className={`text-left px-2 py-1 rounded text-xs ${activeSection === 'background' ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+              >
+                Application Background
+              </button>
+            </div>
+          </div>
           
           {/* Left Sidebar Elements */}
           <div className="mb-4">
@@ -554,6 +573,14 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
           <div className="space-y-4">
+            {/* Background Editor */}
+            {activeSection === 'background' && (
+              <BackgroundEditor
+                value={backgroundSettings}
+                onChange={(updates) => presenter.updateBackground(updates)}
+              />
+            )}
+
             {/* Offer Card Editor */}
             {selectedOfferCardId && activeSection !== 'pageConstructor' && (() => {
               const selectedCard = offerCards.find(card => card.id === selectedOfferCardId) || pageConstructorPresenter.getSelectedOfferCard();

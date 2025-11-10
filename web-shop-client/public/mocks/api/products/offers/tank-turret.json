@@ -1,12 +1,12 @@
 {
   "id": "tank-turret",
-  "mainImage": "https://static-platform.aghanim.com/sku/d3/52/32/20/d3523220-e5df-44cc-947c-e1e8b8486ccd.webp",
-  "backgroundImage": "/assets/product-card-background.webp",
-  "title": "Tank Turret",
+  "mainImage": "/assets/offer-card-background.png",
+  "backgroundImage": "/assets/offer-card-background.png",
+  "title": "8 Months",
   "titleStyle": {
     "fontSize": "18px"
   },
-  "rarity": "MYTHICAL WEAPON",
+  "rarity": "WEAPON",
   "discount": "-50% OFF",
   "playerLimit": "1 PER PLAYER",
   "timer": "2024-12-30T18:30:00.000Z",

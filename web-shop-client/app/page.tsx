@@ -78,7 +78,7 @@ export default function HomePage(): JSX.Element {
           // Load app-config (this will publish AppConfigLoadedEvent)
           if (event.data.payload?.config) {
             await loadAppConfigFromMessageUseCase.execute(event.data.payload.config);
-          }
+      }
 
           // Set offer cards and selected offer card ID in presenter
           if (event.data.payload?.offerCards) {
@@ -146,49 +146,17 @@ export default function HomePage(): JSX.Element {
     }
   }, [previewMode, selectedOfferCard]);
 
-  // Apply background styles from JSON config to body
   useEffect(() => {
-    const storeConfig = sidebarPresenter.getStore();
-    
-    if (storeConfig?.layout?.styles) {
-      const styles = storeConfig.layout.styles;
-      
-      if (styles.backgroundImage) {
-        document.body.style.backgroundImage = styles.backgroundImage;
-      }
-      
-      if (styles.backgroundSize) {
-        document.body.style.backgroundSize = styles.backgroundSize;
-      }
-      
-      if (styles.backgroundPosition) {
-        document.body.style.backgroundPosition = styles.backgroundPosition;
-      }
-      
-      if (styles.backgroundRepeat) {
-        document.body.style.backgroundRepeat = styles.backgroundRepeat;
-      }
-
-      // Set min height to ensure background covers full viewport
-      document.body.style.minHeight = '100vh';
+    if (typeof window === 'undefined') {
+      return;
     }
 
-    // Notify parent window (UI Builder) that preview is ready
-    if (typeof window !== 'undefined' && window.parent !== window) {
+    if (window.parent && window.parent !== window) {
       const targetOrigin = process.env.NEXT_PUBLIC_UI_BUILDER_URL || '*';
       window.parent.postMessage({ type: 'PREVIEW_READY' }, targetOrigin);
       console.log('[HomePage] Sent PREVIEW_READY to parent');
     }
-
-    // Cleanup function to reset body styles when component unmounts
-    return () => {
-      document.body.style.backgroundImage = '';
-      document.body.style.backgroundSize = '';
-      document.body.style.backgroundPosition = '';
-      document.body.style.backgroundRepeat = '';
-      document.body.style.minHeight = '';
-    };
-  }, [sidebarPresenter]);
+  }, []);
 
   return (
     <main className="flex-1 overflow-y-auto w-full mx-auto" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>

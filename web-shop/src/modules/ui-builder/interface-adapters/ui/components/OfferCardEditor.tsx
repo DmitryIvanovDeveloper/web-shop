@@ -108,6 +108,62 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
     });
   };
 
+  const handleContainerOpacityChange = (nextValue: string): void => {
+    const normalized = nextValue.trim();
+    if (normalized === '') {
+      updateStyleField('container', 'backgroundOpacity', '');
+      return;
+    }
+
+    const numeric = Number(normalized);
+    if (Number.isNaN(numeric)) {
+      return;
+    }
+
+    const clamped = Math.min(Math.max(numeric, 0), 1);
+    updateStyleField('container', 'backgroundOpacity', clamped.toString());
+  };
+
+  const handleContainerBlurChange = (nextValue: string): void => {
+    const normalized = nextValue.trim();
+    if (normalized === '') {
+      updateStyleField('container', 'blurAmount', '');
+      return;
+    }
+
+    const numeric = Number(normalized);
+    if (Number.isNaN(numeric)) {
+      return;
+    }
+
+    const clamped = Math.max(numeric, 0);
+    updateStyleField('container', 'blurAmount', clamped.toString());
+  };
+
+  const containerOpacityRaw = card.styles.container?.backgroundOpacity;
+  const containerOpacitySliderValue = (() => {
+    if (typeof containerOpacityRaw !== 'string' || containerOpacityRaw.trim() === '') {
+      return 1;
+    }
+    const numeric = Number(containerOpacityRaw);
+    if (Number.isNaN(numeric)) {
+      return 1;
+    }
+    return Math.min(Math.max(numeric, 0), 1);
+  })();
+
+  const containerBlurRaw = card.styles.container?.blurAmount;
+  const containerBlurSliderValue = (() => {
+    if (typeof containerBlurRaw !== 'string' || containerBlurRaw.trim() === '') {
+      return 0;
+    }
+    const numeric = Number(containerBlurRaw);
+    if (Number.isNaN(numeric)) {
+      return 0;
+    }
+    return Math.max(numeric, 0);
+  })();
+
   return (
     <div className="p-4 space-y-6">
       {/* Header */}
@@ -155,6 +211,84 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
               placeholder="#1F2937"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="text-xs font-medium text-gray-600 block mb-1.5">
+            Background Opacity
+          </label>
+          <div className="flex items-center gap-3">
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={containerOpacitySliderValue}
+              onChange={(e) => handleContainerOpacityChange(e.target.value)}
+              className="flex-1"
+            />
+            <input
+              type="number"
+              min="0"
+              max="1"
+              step="0.05"
+              value={containerOpacityRaw ?? ''}
+              onChange={(e) => handleContainerOpacityChange(e.target.value)}
+              className="w-20 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs text-right"
+              placeholder="1"
+            />
+            {typeof containerOpacityRaw === 'string' && containerOpacityRaw.trim() !== '' && (
+              <button
+                type="button"
+                onClick={() => handleContainerOpacityChange('')}
+                className="px-2 py-1 text-xs text-gray-500 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+          <p className="text-[10px] text-gray-500 mt-1">
+            Значение от 0 (полностью прозрачный) до 1 (непрозрачный). По умолчанию 1.
+          </p>
+        </div>
+
+        <div>
+          <label className="text-xs font-medium text-gray-600 block mb-1.5">
+            Background Blur (px)
+          </label>
+          <div className="flex items-center gap-3">
+            <input
+              type="range"
+              min="0"
+              max="50"
+              step="1"
+              value={containerBlurSliderValue}
+              onChange={(e) => handleContainerBlurChange(e.target.value)}
+              className="flex-1"
+            />
+            <input
+              type="number"
+              min="0"
+              max="200"
+              step="1"
+              value={containerBlurRaw ?? ''}
+              onChange={(e) => handleContainerBlurChange(e.target.value)}
+              className="w-24 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs text-right"
+              placeholder="0"
+            />
+            {containerBlurSliderValue > 0 && (
+              <button
+                type="button"
+                onClick={() => handleContainerBlurChange('0')}
+                className="px-2 py-1 text-xs text-gray-500 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+          <p className="text-[10px] text-gray-500 mt-1">
+            Применяет CSS backdrop-filter: blur(...) только к фону карточки. Контент внутри остаётся чётким. Значение 0 отключает эффект.
+          </p>
         </div>
 
         <div>
@@ -1105,5 +1239,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
     </div>
   );
 }
+
+
 
 

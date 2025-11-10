@@ -161,13 +161,13 @@ export class UIStyleBuilder {
 		} else if (typeof styles.borderRadius === 'string') {
 			inlineStyles.borderRadius = styles.borderRadius;
 		}
-		if (styles.border) inlineStyles.border = styles.border;
+        if (styles.border) inlineStyles.border = styles.border;
 		if (styles.borderColor) inlineStyles.borderColor = this._resolveColor(styles.borderColor, theme);
 		if (styles.borderWidth) inlineStyles.borderWidth = styles.borderWidth;
 		if (styles.borderStyle) inlineStyles.borderStyle = styles.borderStyle;
 		if (styles.overflow) inlineStyles.overflow = styles.overflow;
 		if (styles.objectFit) inlineStyles.objectFit = styles.objectFit;
-		if (styles.filter) inlineStyles.filter = styles.filter;
+        if (styles.filter) inlineStyles.filter = styles.filter;
 
 		// Background
 		if (styles.backgroundImage) inlineStyles.backgroundImage = styles.backgroundImage;

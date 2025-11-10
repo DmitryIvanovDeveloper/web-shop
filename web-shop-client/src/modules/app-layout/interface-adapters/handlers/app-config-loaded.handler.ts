@@ -48,4 +48,3 @@ export class AppLayoutConfigLoadedHandler implements IAsyncEventHandler<AppConfi
 
 // Legacy export for backward compatibility
 export const UIRendererAppConfigLoadedHandler = AppLayoutConfigLoadedHandler;
-

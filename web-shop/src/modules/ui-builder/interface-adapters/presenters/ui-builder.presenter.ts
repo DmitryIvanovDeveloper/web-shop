@@ -38,7 +38,10 @@ export class UIBuilderPresenter {
     error: null,
     validationErrors: [],
     config: {
-      theme: { colors: { primary: '#1d4ed8', background: '#ffffff', text: '#111827' } },
+      theme: {
+        colors: { primary: '#1d4ed8', background: '#ffffff', text: '#111827' },
+        background: { backgroundColor: '#12141A' },
+      },
       modules: {
         uiRenderer: {
           sidebar: {
@@ -188,7 +191,10 @@ export class UIBuilderPresenter {
 
   private getDefaultConfig(): Record<string, unknown> {
     return {
-      theme: { colors: { primary: '#1d4ed8', background: '#ffffff', text: '#111827' } },
+      theme: {
+        colors: { primary: '#1d4ed8', background: '#ffffff', text: '#111827' },
+        background: { backgroundColor: '#12141A' },
+      },
       modules: {
         uiRenderer: {
           sidebar: {
@@ -230,13 +236,61 @@ export class UIBuilderPresenter {
 
 
   public updateTheme(colors: Record<string, string>): void {
-    // Update config
-    if (this.vm.config) {
-      (this.vm.config as any).theme = { ...(this.vm.config as any).theme, colors };
+    if (!this.vm.config) {
+      return;
     }
+
+    const newConfig = {
+      ...(this.vm.config as Record<string, unknown>),
+      theme: { ...(this.vm.config as any).theme, colors },
+    };
+
+    this.vm = {
+      ...this.vm,
+      config: newConfig,
+      isDraft: true,
+    };
+
     this.notify();
     this.sendConfigToIframe();
     this.saveConfigToSupabase();
+  }
+
+  public updateBackground(newBackground: Record<string, string | undefined>): void {
+    if (!this.vm.config) {
+      return;
+    }
+
+    const sanitizedBackground: Record<string, string> = {};
+    for (const [key, value] of Object.entries(newBackground)) {
+      if (value !== undefined && value !== null && value !== '') {
+        sanitizedBackground[key] = value;
+      }
+    }
+
+    const theme = (this.vm.config as any).theme ?? {};
+    const nextTheme = { ...theme };
+
+    if (Object.keys(sanitizedBackground).length > 0) {
+      nextTheme.background = sanitizedBackground;
+    } else if ('background' in nextTheme) {
+      delete nextTheme.background;
+    }
+
+    const updatedConfig = {
+      ...(this.vm.config as Record<string, unknown>),
+      theme: nextTheme,
+    };
+
+    this.vm = {
+      ...this.vm,
+      config: updatedConfig,
+      isDraft: true,
+    };
+
+    this.notify();
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
   }
 
   public selectElement(elementId: string): void {
@@ -511,8 +565,8 @@ export class UIBuilderPresenter {
           };
         }
         
-        this.notify();
-        return true;
+    this.notify();
+    return true;
       } else {
         this._logger.error('[UIBuilderPresenter] Failed to publish draft', { 
           appId: this.vm.appId, 

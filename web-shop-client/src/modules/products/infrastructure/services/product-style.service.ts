@@ -1,7 +1,8 @@
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { BuyButtonStyle } from '../../domain/types';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
+import type { ComponentNodeData } from '../../../../shared/config/app-config.types';
 
 /**
  * Product Style Service
@@ -11,14 +12,40 @@ import type { Logger } from '../../../../application/ports/logger.port';
  */
 @injectable()
 export class ProductStyleService {
+  private _appConfigCardStyles: ComponentNodeData | null = null;
+
   constructor(
-    // Note: Logger injection would be added here if needed
+    @inject(ROOT_TYPES.Logger)
+    private readonly _logger: Logger
   ) {}
+
+  public applyAppConfigStyles(styles: ComponentNodeData | null): void {
+    this._appConfigCardStyles = styles;
+    this._logger.info('[ProductStyleService] App-config card styles updated', {
+      hasStyles: Boolean(styles)
+    });
+  }
 
   /**
    * Load button style from products.json
    */
   async getButtonStyle(): Promise<BuyButtonStyle> {
+    if (this._appConfigCardStyles?.styles?.buyButton) {
+      const style = this._appConfigCardStyles.styles.buyButton as Record<string, string | undefined>;
+
+      const mappedStyle: BuyButtonStyle = {
+        backgroundColor: style.backgroundColor,
+        textColor: style.color,
+        borderRadius: style.borderRadius,
+        padding: style.padding,
+        fontWeight: style.fontWeight,
+        fontSize: style.fontSize,
+      };
+
+      this._logger.debug('[ProductStyleService] Using buy button style from app-config');
+      return mappedStyle;
+    }
+
     try {
       const response = await fetch('/mocks/api/products/products.json');
       
@@ -31,7 +58,7 @@ export class ProductStyleService {
       // Return the button style from the JSON
       return data.buyButton?.style || this._getDefaultButtonStyle();
     } catch (error) {
-      console.error('[ProductStyleService] Failed to load button style:', error);
+      this._logger.error('[ProductStyleService] Failed to load button style from JSON, using default', error);
       // Return default style on error
       return this._getDefaultButtonStyle();
     }
@@ -41,6 +68,43 @@ export class ProductStyleService {
    * Load badge styles from products.json
    */
   async getBadgeStyles(): Promise<Record<string, { bg: string; text: string; skew: string }>> {
+    const styles = this._appConfigCardStyles?.styles as Record<string, Record<string, string | undefined>> | undefined;
+
+    if (styles) {
+      const result: Record<string, { bg: string; text: string; skew: string }> = {};
+
+      if (styles.discountBadge) {
+        result.discount = {
+          bg: styles.discountBadge.backgroundColor ?? '#FF4500',
+          text: styles.discountBadge.color ?? '#FFFFFF',
+          skew: styles.discountBadge.backgroundColor ?? '#FF4500'
+        };
+      }
+
+      if (styles.rarity) {
+        result.rarity = {
+          bg: styles.rarity.backgroundColor ?? '#8A2BE2',
+          text: styles.rarity.color ?? '#FFFFFF',
+          skew: styles.rarity.backgroundColor ?? '#8A2BE2'
+        };
+      }
+
+      if (styles.purchasedBadge) {
+        result.purchased = {
+          bg: styles.purchasedBadge.backgroundColor ?? '#10B981',
+          text: styles.purchasedBadge.color ?? '#FFFFFF',
+          skew: styles.purchasedBadge.backgroundColor ?? '#10B981'
+        };
+      }
+
+      if (Object.keys(result).length > 0) {
+        this._logger.debug('[ProductStyleService] Using badge styles from app-config', {
+          keys: Object.keys(result)
+        });
+        return result;
+      }
+    }
+
     try {
       const response = await fetch('/mocks/api/products/products.json');
       
@@ -53,7 +117,7 @@ export class ProductStyleService {
       // Return the badge styles from the JSON
       return data.badges || this._getDefaultBadgeStyles();
     } catch (error) {
-      console.error('[ProductStyleService] Failed to load badge styles:', error);
+      this._logger.error('[ProductStyleService] Failed to load badge styles from JSON, using default', error);
       // Return default styles on error
       return this._getDefaultBadgeStyles();
     }

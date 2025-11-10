@@ -28,6 +28,7 @@ import { ConfigSubscriptionPort } from '../../application/ports/config-subscript
 import { SupabaseConfigSubscriptionAdapter } from '../config/supabase-config-subscription.adapter';
 import { SubscribeToConfigUpdatesUseCase } from '../../application/use-cases/subscribe-to-config-updates.use-case';
 import { UIConfigLoadedHandler } from '../handlers/ui-config-loaded.handler';
+import { ApplyBackgroundOnConfigHandler } from '../handlers/apply-background-on-config.handler';
 import { IAsyncEventHandler } from '../events/events-handler.plugin';
 import { AppConfigLoadedEvent } from '../../shared/events/app-config-events';
 
@@ -86,6 +87,13 @@ container
     Symbol.for('IAsyncEventHandler<AppConfigLoadedEvent>')
   )
   .to(UIConfigLoadedHandler)
+  .inTransientScope();
+
+container
+  .bind<IAsyncEventHandler<AppConfigLoadedEvent>>(
+    Symbol.for('IAsyncEventHandler<AppConfigLoadedEvent>')
+  )
+  .to(ApplyBackgroundOnConfigHandler)
   .inTransientScope();
 
 export { container };

@@ -6,6 +6,8 @@ export interface OfferCardStyles {
     backgroundColor?: string;
     borderRadius?: string;
     shadow?: string;
+    backgroundOpacity?: string;
+    blurAmount?: string;
   };
   topLabel?: {
     backgroundColor?: string;
@@ -141,9 +143,4 @@ export class AppConfigFactory {
     };
   }
 }
-
-
-
-
-
 

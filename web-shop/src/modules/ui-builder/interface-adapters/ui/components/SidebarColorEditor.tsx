@@ -185,36 +185,37 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
           </div>
         )}
 
-        {/* Gap editor for containers */}
-        {isContainer && onGapChange && (
+        {/* Layout editor for containers */}
+        {isContainer && (onGapChange || onPaddingChange || onFlexDirectionChange) && (
           <div className="space-y-3">
             <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Layout</h4>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                Gap (Spacing)
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={gapValue}
-                  onChange={(e) => handleGapValueChange(e.target.value)}
-                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                  placeholder="0.5"
-                />
-                <select
-                  value={gapUnit}
-                  onChange={(e) => handleGapUnitChange(e.target.value)}
-                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
-                >
-                  <option value="rem">rem</option>
-                  <option value="px">px</option>
-                </select>
+            {onGapChange && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                  Gap (Spacing)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={gapValue}
+                    onChange={(e) => handleGapValueChange(e.target.value)}
+                    className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                    placeholder="0.5"
+                  />
+                  <select
+                    value={gapUnit}
+                    onChange={(e) => handleGapUnitChange(e.target.value)}
+                    className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                  >
+                    <option value="rem">rem</option>
+                    <option value="px">px</option>
+                  </select>
+                </div>
               </div>
-            </div>
-            
-            {/* Padding editor */}
+            )}
+
             {onPaddingChange && (
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
@@ -241,8 +242,7 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
                 </div>
               </div>
             )}
-            
-            {/* Flex Direction editor */}
+
             {onFlexDirectionChange && (
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">

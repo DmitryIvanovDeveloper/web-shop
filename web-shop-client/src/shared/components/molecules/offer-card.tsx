@@ -5,6 +5,96 @@ import type { CSSProperties } from "react";
 import { Badge } from "../atoms/badge";
 import type { OfferCardUIConfig } from "../../config/app-config.types";
 
+const HEX_SHORT_REGEX = /^#([0-9a-f]{3})$/i;
+const HEX_LONG_REGEX = /^#([0-9a-f]{6})$/i;
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+function parseOpacityValue(raw?: string): number | undefined {
+  if (raw === undefined || raw === null) {
+    return undefined;
+  }
+
+  const trimmed = `${raw}`.trim();
+  if (trimmed === '') {
+    return undefined;
+  }
+
+  const parsed = Number(trimmed);
+  if (Number.isNaN(parsed)) {
+    return undefined;
+  }
+
+  return clamp(parsed, 0, 1);
+}
+
+function expandShortHex(hex: string): string {
+  if (!HEX_SHORT_REGEX.test(hex)) {
+    return hex;
+  }
+
+  const match = HEX_SHORT_REGEX.exec(hex);
+  if (!match) {
+    return hex;
+  }
+
+  const [, value] = match;
+  return `#${value
+    .split('')
+    .map((char) => `${char}${char}`)
+    .join('')}`;
+}
+
+function convertHexToRgba(hex: string, alpha: number): string {
+  const normalizedHex = expandShortHex(hex);
+  if (!HEX_LONG_REGEX.test(normalizedHex)) {
+    return hex;
+  }
+
+  const value = normalizedHex.slice(1);
+  const r = parseInt(value.slice(0, 2), 16);
+  const g = parseInt(value.slice(2, 4), 16);
+  const b = parseInt(value.slice(4, 6), 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function applyOpacityToColor(color: string | undefined, alpha: number | undefined): string | undefined {
+  if (!color) {
+    return color;
+  }
+
+  if (alpha === undefined) {
+    return color;
+  }
+
+  const clampedAlpha = clamp(alpha, 0, 1);
+
+  if (HEX_SHORT_REGEX.test(color) || HEX_LONG_REGEX.test(color)) {
+    return convertHexToRgba(color, clampedAlpha);
+  }
+
+  if (/^rgba\(/i.test(color)) {
+    const parts = color.replace(/rgba\(|\)/gi, '').split(',');
+    if (parts.length >= 4) {
+      const [r, g, b] = parts;
+      return `rgba(${r.trim()}, ${g.trim()}, ${b.trim()}, ${clampedAlpha})`;
+    }
+  }
+
+  if (/^rgb\(/i.test(color)) {
+    const parts = color.replace(/rgb\(|\)/gi, '').split(',');
+    if (parts.length >= 3) {
+      const [r, g, b] = parts;
+      return `rgba(${r.trim()}, ${g.trim()}, ${b.trim()}, ${clampedAlpha})`;
+    }
+  }
+
+  return color;
+}
+
 // Функция для форматирования countdown как у Pixel Gun (4D 10:36:27)
 function formatCountdown(targetDate: Date): string {
   // Проверка на Invalid Date
@@ -159,7 +249,14 @@ export function OfferCard({
   
   // Container styles (only from config/DB)
   const containerBg = styles.container?.backgroundColor;
+  const containerOpacity = parseOpacityValue(styles.container?.backgroundOpacity);
+  const containerBackgroundColor = applyOpacityToColor(containerBg, containerOpacity);
   const containerRadius = styles.container?.borderRadius;
+  const containerBlurAmount = styles.container?.blurAmount;
+  const containerBlurValue = containerBlurAmount && !Number.isNaN(Number(containerBlurAmount))
+    ? Number(containerBlurAmount)
+    : 0;
+  const containerBackdropFilter = containerBlurValue > 0 ? `blur(${containerBlurValue}px)` : undefined;
   const imageBg = styles.image?.backgroundColor;
   const imageHeight = styles.image?.height;
   
@@ -277,10 +374,12 @@ export function OfferCard({
           display: 'flex',
           flexDirection: 'column',
           width: '100%',
-          backgroundColor: containerBg,
+          backgroundColor: containerBackgroundColor,
           borderRadius: topLabel ? (containerRadius ? `0 0 ${containerRadius} ${containerRadius}` : undefined) : containerRadius,
           overflow: 'hidden',
           boxSizing: 'border-box',
+          backdropFilter: containerBackdropFilter,
+          WebkitBackdropFilter: containerBackdropFilter,
         }}
       >
         {/* Image Container with Discount Badge */}
@@ -374,14 +473,14 @@ export function OfferCard({
           {/* Legacy Rarity Badge (for backward compatibility) - only show if no price block */}
           {rarity && !(originalPrice || currentPrice) && (
             <Badge text={rarity} variant="rarity" style={{ backgroundColor: rarityBg, color: rarityColor }} />
-          )}
+        )}
           
           {/* Buy Button or Purchased Badge */}
           {isPurchased ? (
             <div
               style={{
                 width: '100%',
-                backgroundColor: purchasedBg,
+              backgroundColor: purchasedBg,
                 color: styles.purchasedBadge?.color,
                 textAlign: 'center',
                 display: 'flex',
@@ -393,7 +492,7 @@ export function OfferCard({
             </div>
           ) : (
             (buyButton?.enabled !== false) && (
-              <button
+            <button
                 type="button"
                 className="w-full transition-colors hover:opacity-90 cursor-pointer"
                 style={{
@@ -453,7 +552,7 @@ export function OfferCard({
                     )}
                     {currentPrice && (
                       <div
-                        style={{
+              style={{
                           display: 'flex',
                           gap: '4px',
                           alignItems: 'center',
@@ -473,14 +572,14 @@ export function OfferCard({
                 ) : (
                   buyButton?.text ?? 'Buy'
                 )}
-              </button>
+            </button>
             )
           )}
           
           {/* Timer - only show if no price block */}
           {timer && !(originalPrice || currentPrice) && (
             <div style={{ textAlign: 'center' }}>{countdown}</div>
-          )}
+        )}
         </div>
       </div>
     </div>

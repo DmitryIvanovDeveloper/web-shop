@@ -5,6 +5,7 @@ import { container } from '../src/infrastructure/bootstrap/container';
 import "./output.css";
 import { AuthModule } from '../src/modules/authentication/interface-adapters/ui/auth-module';
 import { useState, useEffect } from 'react';
+import type { CSSProperties } from 'react';
 import { APP_LAYOUT_TYPES } from '../src/modules/app-layout/infrastructure/bootstrap/types';
 import { SidebarRendererPresenter } from '../src/modules/app-layout/interface-adapters/presenters/sidebar-renderer.presenter';
 import { SidebarRenderer } from '../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
@@ -44,6 +45,57 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     APP_LAYOUT_TYPES.SidebarRendererPresenter
   );
 
+  const [sidebarRootStyles, setSidebarRootStyles] = useState<CSSProperties>({});
+  useEffect(() => {
+    const resolveSidebarRootStyles = (): void => {
+      try {
+        const sidebarConfig = sidebarPresenter.getSidebar();
+        const styles = (sidebarConfig?.layout?.styles ?? {}) as Record<string, unknown>;
+        const colors = (sidebarConfig?.theme?.colors ?? {}) as Record<string, string>;
+
+        if (!styles || Object.keys(styles).length === 0) {
+          setSidebarRootStyles({});
+          return;
+        }
+
+        const resolveColor = (value: unknown): string | undefined => {
+          if (typeof value !== 'string') return undefined;
+          return colors[value] ?? value;
+        };
+
+        const nextStyles: CSSProperties = {};
+        const backgroundColor = resolveColor(styles.backgroundColor);
+        if (backgroundColor) {
+          nextStyles.backgroundColor = backgroundColor;
+        }
+        if (typeof styles.backgroundImage === 'string') {
+          nextStyles.backgroundImage = styles.backgroundImage;
+        }
+        if (typeof styles.backgroundSize === 'string') {
+          nextStyles.backgroundSize = styles.backgroundSize as string;
+        }
+        if (typeof styles.backgroundPosition === 'string') {
+          nextStyles.backgroundPosition = styles.backgroundPosition as string;
+        }
+        if (typeof styles.backgroundRepeat === 'string') {
+          nextStyles.backgroundRepeat = styles.backgroundRepeat as string;
+        }
+
+        setSidebarRootStyles(nextStyles);
+      } catch (error) {
+        console.error('[RootLayout] Failed to resolve sidebar root styles:', error);
+        setSidebarRootStyles({});
+      }
+    };
+
+    const unsubscribe = sidebarPresenter.subscribe(resolveSidebarRootStyles);
+    resolveSidebarRootStyles();
+
+    return () => {
+      unsubscribe();
+    };
+  }, [sidebarPresenter]);
+
   const actionContext: ActionContext = {
     onPopupOpen: () => {},
     onPopupClose: () => {},
@@ -55,10 +107,9 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       try {
         setIsConfigLoading(true);
         
-        // Client application always loads active config (not draft)
-        // Draft configs are only loaded in UI Builder (web-shop), not in client (web-shop-client)
         const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
-        await loadAppConfigUseCase.execute(false); // Always load active config
+        const shouldLoadDraft = resolveShouldLoadDraft();
+        await loadAppConfigUseCase.execute(shouldLoadDraft);
         console.log('[RootLayout] App config loaded and distributed via EventBus');
         
         // 2. Subscribe to real-time config updates (only if not in UI Builder preview mode)
@@ -87,8 +138,6 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       }
     };
 
-    // Removed getIsDraftFromQuery - client always loads active config
-
     const getIsUIBuilderFromQuery = (): boolean => {
       if (typeof window !== 'undefined') {
         try {
@@ -108,6 +157,20 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         } catch {}
       }
       return process.env.NEXT_PUBLIC_APP_ID || null;
+    };
+
+    const resolveShouldLoadDraft = (): boolean => {
+      if (typeof window === 'undefined') {
+        return false;
+      }
+
+      try {
+        const url = new URL(window.location.href);
+        const draftParams = ['previewMode', 'pagePreview', 'uibuilder'];
+        return draftParams.some((param) => url.searchParams.get(param) === 'true');
+      } catch {
+        return false;
+      }
     };
 
     initializeConfig();
@@ -272,7 +335,32 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
 
             {/* Mobile Header - показывается только на мобилке */}
             {isMobile && (
-              <header className="px-4 flex items-center justify-between relative" style={{ height: '56px', minHeight: '56px', zIndex: 100, backgroundColor: '#2c3e50' }}>
+              <header
+                className="px-4 flex items-center justify-between relative"
+                style={(() => {
+                  const {
+                    backgroundColor,
+                    backgroundImage,
+                    backgroundSize,
+                    backgroundPosition,
+                    backgroundRepeat
+                  } = sidebarRootStyles;
+
+                  const style: CSSProperties = {
+                    height: '56px',
+                    minHeight: '56px',
+                    zIndex: 100,
+                    backgroundColor: backgroundColor ?? '#2c3e50'
+                  };
+
+                  if (backgroundImage) style.backgroundImage = backgroundImage;
+                  if (backgroundSize) style.backgroundSize = backgroundSize;
+                  if (backgroundPosition) style.backgroundPosition = backgroundPosition;
+                  if (backgroundRepeat) style.backgroundRepeat = backgroundRepeat;
+
+                  return style;
+                })()}
+              >
                 <button 
                   className="p-2 hover:bg-[#34495e] rounded transition-colors bg-[#34495e]" 
                   aria-label="Menu"
@@ -300,7 +388,14 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
             <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex relative h-screen md:h-screen" style={{ height: isMobile ? 'calc(100vh - 56px)' : '100vh' }}>
               {/* Left Sidebar - скрывается на экранах < 1280px (xl breakpoint), но всегда показывается в UI Builder */}
               {!isMobile && (
-                <aside data-element-id="left-sidebar" className={isUIBuilderMode ? "block w-64 border-r border-gray-700 bg-gray-900 flex-shrink-0" : "hidden xl:block w-64 border-r border-gray-700 bg-gray-900 flex-shrink-0"} style={{ borderLeft: '2px solid rgba(251, 191, 36, 0.3)' }}>
+                <aside
+                  data-element-id="left-sidebar"
+                  className={isUIBuilderMode ? "block w-64 border-r border-gray-700 flex-shrink-0" : "hidden xl:block w-64 border-r border-gray-700 flex-shrink-0"}
+                  style={{
+                    borderLeft: '2px solid rgba(251, 191, 36, 0.3)',
+                    ...sidebarRootStyles
+                  }}
+                >
                   <SidebarRenderer presenter={sidebarPresenter} actionContext={actionContext} />
                 </aside>
               )}
@@ -336,7 +431,31 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                   style={{ zIndex: 9998 }}
                   onClick={() => setIsLeftDrawerOpen(false)}
                 />
-                <div className="fixed left-0 top-0 bottom-0 shadow-2xl animate-slide-in-left overflow-y-auto w-full" style={{ zIndex: 9999, width: '85%' }}>
+                <div
+                  className="fixed left-0 top-0 bottom-0 shadow-2xl animate-slide-in-left overflow-y-auto w-full"
+                  style={(() => {
+                    const {
+                      backgroundColor,
+                      backgroundImage,
+                      backgroundSize,
+                      backgroundPosition,
+                      backgroundRepeat
+                    } = sidebarRootStyles;
+
+                    const style: CSSProperties = {
+                      zIndex: 9999,
+                      width: '85%',
+                      backgroundColor: backgroundColor ?? '#1f2937'
+                    };
+
+                    if (backgroundImage) style.backgroundImage = backgroundImage;
+                    if (backgroundSize) style.backgroundSize = backgroundSize;
+                    if (backgroundPosition) style.backgroundPosition = backgroundPosition;
+                    if (backgroundRepeat) style.backgroundRepeat = backgroundRepeat;
+
+                    return style;
+                  })()}
+                >
                   <div className="w-full h-full">
                     <SidebarRenderer presenter={sidebarPresenter} actionContext={actionContext} />
                   </div>

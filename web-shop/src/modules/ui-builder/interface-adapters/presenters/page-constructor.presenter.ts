@@ -10,6 +10,7 @@ import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import type { PageConfig } from '../../domain/entities/page-config.entity';
 import type { PageSection, SectionLayout, ComponentNode } from '../../domain/entities/page-section.entity';
 import type { OfferCardTemplate, AppConfigStructure, AppConfig } from '../../domain/entities/app-config.entity';
+import type { OfferCardSharedConfig } from '../../application/use-cases/update-offer-cards.use-case';
 
 interface PageConstructorViewModel {
   appId: string;
@@ -27,6 +28,11 @@ interface PageConstructorViewModel {
 export class PageConstructorPresenter {
   private readonly subscribers: Array<(vm: PageConstructorViewModel) => void> = [];
   private saveDraftDebounceTimer: NodeJS.Timeout | null = null;
+
+  private readonly saveOfferCardsDebounceMs = 350;
+  private saveOfferCardsTimer: ReturnType<typeof setTimeout> | undefined;
+  private saveOfferCardsPending = false;
+  private saveOfferCardsPromise: Promise<void> | null = null;
   
   // Store pageStyles separately (not in ViewModel)
   private pageStyles: { padding?: string; gap?: string } = {};
@@ -34,6 +40,8 @@ export class PageConstructorPresenter {
   // Store offerCards separately (not in ViewModel)
   private offerCards: OfferCardTemplate[] = [];
   private selectedOfferCardId: string | null = null;
+  private primaryOfferCardId: string | null = null;
+  private lastAppConfig: AppConfig | null = null;
   
   private vm: PageConstructorViewModel = {
     appId: '',
@@ -511,19 +519,47 @@ export class PageConstructorPresenter {
     }
 
     try {
-      // Load app-config
-      const result = await this._loadDraftConfigUseCase.execute(this.vm.appId);
-      
-      if (!result.isSuccess || !result.value) {
-        this._logger.warn('[PageConstructorPresenter] Failed to load app-config for iframe', result.error);
+      let appConfig: AppConfig | null = this.lastAppConfig
+        ? {
+            ...this.lastAppConfig,
+            config: { ...(this.lastAppConfig.config as AppConfigStructure) },
+          }
+        : null;
+
+      if (!appConfig) {
+        const result = await this._loadDraftConfigUseCase.execute(this.vm.appId);
+        
+        if (!result.isSuccess || !result.value) {
+          this._logger.warn('[PageConstructorPresenter] Failed to load app-config for iframe', result.error);
+          return;
+        }
+
+        appConfig = result.value;
+        this.lastAppConfig = result.value;
+      }
+
+      const primaryCard = this.offerCards.length > 0 ? this.getPrimaryOfferCard() : null;
+      if (this.offerCards.length > 0 && !primaryCard) {
+        this._logger.warn('[PageConstructorPresenter] Skipping iframe update: no primary offer card selected');
         return;
       }
 
-      // Update offerCards in config
-      const appConfig = result.value;
+      // Update offerCards and shared UI config in config
       const config = appConfig.config as AppConfigStructure;
+      const sharedConfig = this.cloneSharedConfig(config.shared);
+
+      if (primaryCard) {
+        const sharedNode = this.buildSharedOfferCardConfig(primaryCard);
+        sharedConfig.offerCardUI = sharedNode;
+        sharedConfig.productCardUI = sharedNode;
+      } else {
+        delete sharedConfig.offerCardUI;
+        delete sharedConfig.productCardUI;
+      }
+
       const updatedConfig: AppConfigStructure = {
         ...config,
+        shared: sharedConfig,
         offerCards: [...this.offerCards],
       };
 
@@ -532,6 +568,8 @@ export class PageConstructorPresenter {
         ...appConfig,
         config: updatedConfig,
       };
+
+      this.lastAppConfig = updatedAppConfig;
 
       // Send CONFIG_UPDATE message with app-config, offerCards, and selectedOfferCardId
       iframe.contentWindow.postMessage(
@@ -583,6 +621,7 @@ export class PageConstructorPresenter {
         return;
       }
 
+      this.lastAppConfig = result.value;
       const config = result.value.config as AppConfigStructure;
       const loadedCards = config.offerCards || [];
       
@@ -627,6 +666,15 @@ export class PageConstructorPresenter {
         };
       });
       
+      const sharedPrimaryId = this.extractSharedOfferCardId(config.shared);
+      this.primaryOfferCardId = sharedPrimaryId && this.offerCards.some(card => card.id === sharedPrimaryId)
+        ? sharedPrimaryId
+        : null;
+
+      if (!this.selectedOfferCardId && this.primaryOfferCardId) {
+        this.selectedOfferCardId = this.primaryOfferCardId;
+      }
+      
       // If styles were updated, save them back to DB
       const needsSave = loadedCards.some((card, index) => {
         const loaded = card.styles || {};
@@ -636,11 +684,15 @@ export class PageConstructorPresenter {
       });
       
       if (needsSave) {
-        this._logger.info('[PageConstructorPresenter] Offer cards styles were incomplete, saving merged styles to DB');
-        await this.saveOfferCards();
+        this._logger.info('[PageConstructorPresenter] Offer cards styles were incomplete (autosave temporarily disabled)');
+        // TODO: re-enable auto-save once debugging is finished
+        // this.scheduleSaveOfferCards(0);
+        // await this.flushSaveOfferCards();
       }
       
       this._logger.info('[PageConstructorPresenter] Loaded offer cards', { count: this.offerCards.length });
+
+      this.ensurePrimaryOfferCard();
     } catch (error) {
       this._logger.error('[PageConstructorPresenter] Error loading offer cards', error);
       this.offerCards = [];
@@ -660,9 +712,118 @@ export class PageConstructorPresenter {
     return this.offerCards.find(card => card.id === this.selectedOfferCardId) || null;
   }
 
+  private ensurePrimaryOfferCard(): void {
+    if (this.offerCards.length === 0) {
+      this.primaryOfferCardId = null;
+      this.selectedOfferCardId = null;
+      return;
+    }
+
+    const hasPrimary = this.primaryOfferCardId && this.offerCards.some(card => card.id === this.primaryOfferCardId);
+    if (!hasPrimary) {
+      this.primaryOfferCardId = this.offerCards[0].id;
+      this._logger.info('[PageConstructorPresenter] Auto-assigned primary offer card', {
+        primaryOfferCardId: this.primaryOfferCardId,
+      });
+    }
+
+    if (this.selectedOfferCardId && !this.offerCards.some(card => card.id === this.selectedOfferCardId)) {
+      this.selectedOfferCardId = this.primaryOfferCardId;
+    }
+  }
+
+  private getPrimaryOfferCard(): OfferCardTemplate | null {
+    if (this.offerCards.length === 0) {
+      return null;
+    }
+
+    if (!this.primaryOfferCardId) {
+      this._logger.error('[PageConstructorPresenter] Primary offer card is not defined');
+      return null;
+    }
+
+    const card = this.offerCards.find(item => item.id === this.primaryOfferCardId);
+    if (!card) {
+      this._logger.error('[PageConstructorPresenter] Primary offer card not found in collection', {
+        primaryOfferCardId: this.primaryOfferCardId,
+      });
+      return null;
+    }
+
+    return card;
+  }
+
+  private buildSharedOfferCardConfig(card: OfferCardTemplate): OfferCardSharedConfig {
+    return {
+      type: 'OfferCard',
+      id: card.id,
+      name: card.name,
+      styles: JSON.parse(JSON.stringify(card.styles ?? {})),
+      media: card.media ? JSON.parse(JSON.stringify(card.media)) : undefined,
+    };
+  }
+
+  private cloneSharedConfig(shared: unknown): Record<string, unknown> {
+    if (shared && typeof shared === 'object' && !Array.isArray(shared)) {
+      return { ...(shared as Record<string, unknown>) };
+    }
+
+    return {};
+  }
+
+  private extractSharedOfferCardId(shared: unknown): string | null {
+    if (!shared || typeof shared !== 'object') {
+      return null;
+    }
+
+    const sharedRecord = shared as Record<string, unknown>;
+    const candidate = sharedRecord.offerCardUI ?? sharedRecord.productCardUI;
+
+    if (candidate && typeof candidate === 'object' && 'id' in candidate && typeof (candidate as { id: unknown }).id === 'string') {
+      return (candidate as { id: string }).id;
+    }
+
+    return null;
+  }
+
+  private updateLastAppConfigShared(shared: OfferCardSharedConfig | null): void {
+    if (!this.lastAppConfig) {
+      return;
+    }
+
+    const config = (this.lastAppConfig.config as AppConfigStructure) || {};
+    const sharedConfig = this.cloneSharedConfig(config.shared);
+
+    if (shared) {
+      sharedConfig.offerCardUI = shared;
+      sharedConfig.productCardUI = shared;
+    } else {
+      delete sharedConfig.offerCardUI;
+      delete sharedConfig.productCardUI;
+    }
+
+    const nextConfig: AppConfigStructure = {
+      ...config,
+      shared: sharedConfig,
+      offerCards: [...this.offerCards],
+    };
+
+    this.lastAppConfig = { ...this.lastAppConfig, config: nextConfig };
+  }
+
   public selectOfferCard(cardId: string | null): void {
     this.selectedOfferCardId = cardId;
-    this._logger.info('[PageConstructorPresenter] Selected offer card', { cardId });
+
+    if (cardId) {
+      this.primaryOfferCardId = cardId;
+      this._logger.info('[PageConstructorPresenter] Selected offer card', {
+        cardId,
+        primaryOfferCardId: this.primaryOfferCardId,
+      });
+    } else {
+      this._logger.info('[PageConstructorPresenter] Cleared offer card selection');
+    }
+
     this.sendAppConfigToIframe();
   }
 
@@ -675,6 +836,8 @@ export class PageConstructorPresenter {
         backgroundColor: 'rgba(255,255,255,0.15)',
         borderRadius: '20px',
         shadow: 'lg',
+        backgroundOpacity: '1',
+        blurAmount: '0',
       },
       topLabel: {
         backgroundColor: '#ffb63e',
@@ -797,7 +960,7 @@ export class PageConstructorPresenter {
       };
     });
     
-    await this.saveOfferCards();
+    this.scheduleSaveOfferCards();
     await this.sendAppConfigToIframe();
     this._logger.info('[PageConstructorPresenter] Offer cards migrated to Figma styles', { count: this.offerCards.length });
   }
@@ -814,8 +977,10 @@ export class PageConstructorPresenter {
 
     this.offerCards = [...this.offerCards, newCard];
     this.selectedOfferCardId = newCard.id;
+    this.primaryOfferCardId = newCard.id;
+    this.ensurePrimaryOfferCard();
     
-    await this.saveOfferCards();
+    this.scheduleSaveOfferCards();
     await this.sendAppConfigToIframe();
     this._logger.info('[PageConstructorPresenter] Added offer card', { cardId: newCard.id, name: newCard.name });
   }
@@ -833,7 +998,7 @@ export class PageConstructorPresenter {
       ...this.offerCards.slice(index + 1),
     ];
 
-    await this.saveOfferCards();
+    this.scheduleSaveOfferCards();
     await this.sendAppConfigToIframe();
     this._logger.info('[PageConstructorPresenter] Updated offer card', { cardId });
   }
@@ -845,18 +1010,119 @@ export class PageConstructorPresenter {
       this.selectedOfferCardId = null;
     }
 
-    await this.saveOfferCards();
+    if (this.primaryOfferCardId === cardId) {
+      this.primaryOfferCardId = null;
+    }
+
+    this.ensurePrimaryOfferCard();
+
+    this.scheduleSaveOfferCards();
     await this.sendAppConfigToIframe();
     this._logger.info('[PageConstructorPresenter] Removed offer card', { cardId });
   }
 
+  public updateAppConfigSnapshot(config: AppConfigStructure | null): void {
+    if (!config) {
+      return;
+    }
+
+    if (this.lastAppConfig) {
+      this.lastAppConfig = {
+        ...this.lastAppConfig,
+        config: { ...config },
+      };
+    } else {
+      this.lastAppConfig = {
+        id: undefined,
+        appId: this.vm.appId,
+        version: { value: 1 } as any,
+        isDraft: true,
+        isActive: false,
+        config: { ...config },
+      };
+    }
+  }
+
+  private scheduleSaveOfferCards(delayMs: number = this.saveOfferCardsDebounceMs): void {
+    this._logger.debug?.('[PageConstructorPresenter] Scheduling auto-save', { delayMs });
+    this.saveOfferCardsPending = true;
+
+    if (this.saveOfferCardsTimer) {
+      clearTimeout(this.saveOfferCardsTimer);
+    }
+
+    this.saveOfferCardsTimer = setTimeout(() => {
+      this.saveOfferCardsTimer = undefined;
+      void this.runOfferCardsSave();
+    }, Math.max(0, delayMs));
+  }
+
+  private async flushSaveOfferCards(): Promise<void> {
+    if (this.saveOfferCardsTimer) {
+      clearTimeout(this.saveOfferCardsTimer);
+      this.saveOfferCardsTimer = undefined;
+    }
+
+    if (!this.saveOfferCardsPending && !this.saveOfferCardsPromise) {
+      return;
+    }
+
+    this.saveOfferCardsPending = true;
+    await this.runOfferCardsSave();
+  }
+
+  private async runOfferCardsSave(): Promise<void> {
+    this._logger.debug?.('[PageConstructorPresenter] Running auto-save');
+    if (this.saveOfferCardsPromise) {
+      try {
+        await this.saveOfferCardsPromise;
+      } catch {
+        // Ошибка уже залогирована в saveOfferCards
+      }
+    }
+
+    if (!this.saveOfferCardsPending) {
+      return;
+    }
+
+    this.saveOfferCardsPending = false;
+
+    const savePromise = this.saveOfferCards();
+    this.saveOfferCardsPromise = savePromise;
+
+    try {
+      await savePromise;
+    } finally {
+      this.saveOfferCardsPromise = null;
+      if (this.saveOfferCardsPending) {
+        await this.runOfferCardsSave();
+      }
+    }
+  }
+
   private async saveOfferCards(): Promise<void> {
     try {
-      const result = await this._updateOfferCardsUseCase.execute(this.vm.appId, this.offerCards);
+      const primaryCard = this.offerCards.length > 0 ? this.getPrimaryOfferCard() : null;
+
+      if (this.offerCards.length > 0 && !primaryCard) {
+        this._logger.error('[PageConstructorPresenter] Skipping save: no primary offer card selected');
+        return;
+      }
+
+      const sharedConfig = primaryCard ? this.buildSharedOfferCardConfig(primaryCard) : null;
+
+      const result = await this._updateOfferCardsUseCase.execute(
+        this.vm.appId,
+        this.offerCards,
+        sharedConfig,
+      );
       
       if (!result.isSuccess) {
         this._logger.error('[PageConstructorPresenter] Failed to save offer cards', result.error);
+        return;
       }
+
+      this.updateLastAppConfigShared(sharedConfig);
     } catch (error) {
       this._logger.error('[PageConstructorPresenter] Error saving offer cards', error);
     }

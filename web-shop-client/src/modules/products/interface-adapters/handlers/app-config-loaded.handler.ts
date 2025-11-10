@@ -8,12 +8,19 @@ import type { IAsyncEventHandler } from '../../../../infrastructure/events/event
 import { AppConfigLoadedEvent } from '../../../../shared/events/app-config-events';
 import type { Logger } from '../../../../application/ports/logger.port';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
+import { PRODUCTS_TYPES } from '../../infrastructure/bootstrap/types';
+import { ProductStyleService } from '../../infrastructure/services/product-style.service';
+import { ProductsListPresenter } from '../presenters/products-list.presenter';
 
 @injectable()
 export class ProductsAppConfigLoadedHandler implements IAsyncEventHandler<AppConfigLoadedEvent> {
 	constructor(
 		@inject(ROOT_TYPES.Logger)
-		private readonly _logger: Logger
+		private readonly _logger: Logger,
+		@inject(PRODUCTS_TYPES.ProductStyleService)
+		private readonly _productStyleService: ProductStyleService,
+		@inject(PRODUCTS_TYPES.ProductsListPresenter)
+		private readonly _productsListPresenter: ProductsListPresenter,
 	) {}
 
 	public canHandle(event: AppConfigLoadedEvent): boolean {
@@ -25,22 +32,18 @@ export class ProductsAppConfigLoadedHandler implements IAsyncEventHandler<AppCon
 
 		try {
 			const sharedConfig = event.payload.config.shared;
-			
-			// Products использует OfferCard, но с productCardUI стилями (если они есть)
-			// Если productCardUI нет, используем offerCardUI
 			const cardStyles = sharedConfig?.productCardUI || sharedConfig?.offerCardUI;
 			
 			if (!cardStyles) {
 				this._logger.warn('[ProductsAppConfigLoadedHandler] No card UI config found in shared config');
+				this._productStyleService.applyAppConfigStyles(null);
+				await this._productsListPresenter.refreshStyles();
 				return;
 			}
 
-			// Сохраняем стили в window для доступа из компонентов
-			// Products будет использовать те же стили, что и offers (OfferCard компонент)
-			if (typeof window !== 'undefined') {
-				(window as any).__productCardStyles = cardStyles;
-				this._logger.info('[ProductsAppConfigLoadedHandler] ProductCard styles applied to window');
-			}
+			this._productStyleService.applyAppConfigStyles(cardStyles);
+			await this._productsListPresenter.refreshStyles();
+			this._logger.info('[ProductsAppConfigLoadedHandler] App-config styles applied to products list');
 		} catch (error) {
 			this._logger.error('[ProductsAppConfigLoadedHandler] Error handling event', error);
 		}

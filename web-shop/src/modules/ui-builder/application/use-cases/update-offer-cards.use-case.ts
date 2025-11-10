@@ -1,11 +1,24 @@
 import { injectable, inject } from 'inversify';
 import { Result } from '@/shared/result/result';
-import type { AppConfigStructure, OfferCardTemplate } from '../../domain/entities/app-config.entity';
+import type {
+  AppConfigStructure,
+  OfferCardTemplate,
+  OfferCardStyles,
+  OfferCardMedia,
+} from '../../domain/entities/app-config.entity';
 import type { ConfigStoragePort } from '../ports/config-storage.port';
 import { UI_BUILDER_TYPES } from '../../infrastructure/bootstrap/types';
 import type { Logger } from '@/application/ports/logger.port';
 import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import { SaveDraftUseCase } from './save-draft.use-case';
+
+export interface OfferCardSharedConfig {
+  readonly type: 'OfferCard';
+  readonly id: string;
+  readonly name?: string;
+  readonly styles: OfferCardStyles;
+  readonly media?: OfferCardMedia;
+}
 
 @injectable()
 export class UpdateOfferCardsUseCase {
@@ -15,33 +28,73 @@ export class UpdateOfferCardsUseCase {
     @inject(UI_BUILDER_TYPES.SaveDraftUseCase)
     private readonly _saveDraftUseCase: SaveDraftUseCase,
     @inject(ROOT_TYPES.Logger)
-    private readonly _logger: Logger
+    private readonly _logger: Logger,
   ) {}
 
-  async execute(appId: string, offerCards: OfferCardTemplate[]): Promise<Result<void, Error>> {
-    this._logger.info('[UpdateOfferCardsUseCase] Updating offer cards', { appId, count: offerCards.length });
+  async execute(
+    appId: string,
+    offerCards: OfferCardTemplate[],
+    sharedOfferCard: OfferCardSharedConfig | null,
+  ): Promise<Result<void, Error>> {
+    this._logger.info('[UpdateOfferCardsUseCase] Updating offer cards', {
+      appId,
+      count: offerCards.length,
+      hasSharedConfig: Boolean(sharedOfferCard),
+    });
 
     try {
-      // Load current draft config
+      // Load current draft config (fallback to active if draft is missing)
       const draftResult = await this._storage.loadDraft(appId);
-      
-      if (!draftResult.isSuccess) {
-        this._logger.error('[UpdateOfferCardsUseCase] Failed to load draft config', draftResult.error);
-        return Result.fail(draftResult.error || new Error('Failed to load draft config'));
+      let currentConfig = draftResult.isSuccess ? draftResult.value : null;
+
+      if (!currentConfig) {
+        if (!draftResult.isSuccess) {
+          this._logger.warn('[UpdateOfferCardsUseCase] Failed to load draft config, falling back to active', {
+            appId,
+            error: draftResult.error?.message,
+          });
+        } else {
+          this._logger.info('[UpdateOfferCardsUseCase] No draft config found, loading active config', { appId });
+        }
+
+        const activeResult = await this._storage.loadActive(appId);
+
+        if (!activeResult.isSuccess) {
+          this._logger.error('[UpdateOfferCardsUseCase] Failed to load active config as fallback', activeResult.error);
+          return Result.fail(activeResult.error || new Error('Failed to load active config as fallback'));
+        }
+
+        if (!activeResult.value) {
+          const error = new Error(`No draft or active config found for appId: ${appId}`);
+          this._logger.error('[UpdateOfferCardsUseCase] No config available to update', { appId });
+          return Result.fail(error);
+        }
+
+        currentConfig = activeResult.value;
       }
 
-      if (!draftResult.value) {
-        const error = new Error(`No draft config found for appId: ${appId}`);
-        this._logger.error('[UpdateOfferCardsUseCase] No draft config found', { appId });
+      // Prepare shared config updates
+      if (offerCards.length > 0 && !sharedOfferCard) {
+        const error = new Error('Primary offer card shared config is required when offer cards exist');
+        this._logger.error('[UpdateOfferCardsUseCase] Missing shared offer card config', { appId });
         return Result.fail(error);
       }
 
-      const currentConfig = draftResult.value;
-      
-      // Update config with new offerCards
       const config = currentConfig.config as AppConfigStructure;
+      const sharedConfig = this.cloneSharedConfig(config.shared);
+
+      if (sharedOfferCard) {
+        const clonedSharedOfferCard = this.cloneSharedOfferCard(sharedOfferCard);
+        sharedConfig.offerCardUI = clonedSharedOfferCard;
+        sharedConfig.productCardUI = clonedSharedOfferCard;
+      } else {
+        delete sharedConfig.offerCardUI;
+        delete sharedConfig.productCardUI;
+      }
+
       const updatedConfig: AppConfigStructure = {
         ...config,
+        shared: sharedConfig,
         offerCards: [...offerCards],
       };
 
@@ -50,18 +103,39 @@ export class UpdateOfferCardsUseCase {
         appId,
         config: updatedConfig as Record<string, unknown>,
       });
-      
+
       if (!saveResult.isSuccess) {
         this._logger.error('[UpdateOfferCardsUseCase] Failed to save updated config', saveResult.error);
         return Result.fail(saveResult.error || new Error('Failed to save updated config'));
       }
 
-      this._logger.info('[UpdateOfferCardsUseCase] Offer cards updated successfully', { appId, count: offerCards.length });
+      this._logger.info('[UpdateOfferCardsUseCase] Offer cards updated successfully', {
+        appId,
+        count: offerCards.length,
+      });
       return Result.ok<void, Error>(undefined as void);
     } catch (error) {
       this._logger.error('[UpdateOfferCardsUseCase] Error updating offer cards', error);
       return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
+  }
+
+  private cloneSharedConfig(shared: unknown): Record<string, unknown> {
+    if (shared && typeof shared === 'object' && !Array.isArray(shared)) {
+      return { ...(shared as Record<string, unknown>) };
+    }
+
+    return {};
+  }
+
+  private cloneSharedOfferCard(sharedOfferCard: OfferCardSharedConfig): OfferCardSharedConfig {
+    return {
+      type: 'OfferCard',
+      id: sharedOfferCard.id,
+      name: sharedOfferCard.name,
+      styles: JSON.parse(JSON.stringify(sharedOfferCard.styles ?? {})),
+      media: sharedOfferCard.media ? JSON.parse(JSON.stringify(sharedOfferCard.media)) : undefined,
+    };
   }
 }
 
