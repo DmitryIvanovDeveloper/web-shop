@@ -13,6 +13,7 @@ interface SidebarColorEditorProps {
   onTextAlignChange?: (elementId: string, textAlign: string) => void;
   onFlexDirectionChange?: (elementId: string, flexDirection: string) => void;
   onIconChange?: (elementId: string, icon: string | null) => void;
+  onBackgroundOpacityChange?: (elementId: string, opacity: string) => void;
 }
 
 const readFileAsDataUrl = (file: File): Promise<string> => {
@@ -69,7 +70,7 @@ function ColorInput({ label, value, onChange }: ColorInputProps): JSX.Element {
   );
 }
 
-export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingChange, onBorderRadiusChange, onLabelChange, onTextAlignChange, onFlexDirectionChange, onIconChange }: SidebarColorEditorProps): JSX.Element {
+export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingChange, onBorderRadiusChange, onLabelChange, onTextAlignChange, onFlexDirectionChange, onIconChange, onBackgroundOpacityChange }: SidebarColorEditorProps): JSX.Element {
   const [isIconUploading, setIsIconUploading] = useState(false);
 
   if (!element) {
@@ -218,6 +219,20 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
   const isContainer = element.type === 'Container' || element.id.includes('container');
   const isButton = element.type === 'Button' || element.id.includes('button');
   const hasImageIcon = Boolean(element.icon && element.icon.startsWith('data:image'));
+  const backgroundOpacityRaw = element.backgroundOpacity ?? '1';
+  const parsedBackgroundOpacity = Number.parseFloat(backgroundOpacityRaw);
+  const backgroundOpacity = Number.isNaN(parsedBackgroundOpacity) ? 1 : parsedBackgroundOpacity;
+
+  const handleBackgroundOpacityChange = (newValue: string) => {
+    if (onBackgroundOpacityChange) {
+      const numeric = Number.parseFloat(newValue);
+      if (Number.isNaN(numeric)) {
+        return;
+      }
+      const clamped = Math.min(1, Math.max(0, numeric));
+      onBackgroundOpacityChange(element.id, clamped.toString());
+    }
+  };
 
   const renderIconEditor = (): JSX.Element | null => {
     if (!onIconChange) {
@@ -319,9 +334,39 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
         )}
 
         {/* Layout editor for containers */}
-        {isContainer && (onGapChange || onPaddingChange || onFlexDirectionChange) && (
+        {isContainer && (onGapChange || onPaddingChange || onFlexDirectionChange || onBackgroundOpacityChange) && (
           <div className="space-y-3">
             <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Layout</h4>
+            {onBackgroundOpacityChange && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                  Background Opacity
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={backgroundOpacity}
+                    onChange={(e) => handleBackgroundOpacityChange(e.target.value)}
+                    className="flex-1"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={backgroundOpacity.toFixed(2)}
+                    onChange={(e) => handleBackgroundOpacityChange(e.target.value)}
+                    className="w-20 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                  />
+                </div>
+                <p className="text-[10px] text-gray-500">
+                  Значение от 0 до 1. Применяется только к фону контейнера, не затрагивает вложенные элементы.
+                </p>
+              </div>
+            )}
             {onGapChange && (
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">

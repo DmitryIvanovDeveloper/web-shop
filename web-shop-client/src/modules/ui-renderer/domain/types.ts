@@ -28,6 +28,7 @@ export interface StyleConfig {
   // Colors
   readonly backgroundColor?: ColorKey | string;
   readonly textColor?: ColorKey | string;
+  readonly backgroundOpacity?: number | string;
   
   // Typography
   readonly fontSize?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';

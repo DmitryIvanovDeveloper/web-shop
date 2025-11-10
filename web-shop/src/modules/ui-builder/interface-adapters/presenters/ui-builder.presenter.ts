@@ -29,6 +29,7 @@ interface ViewModel {
 export class UIBuilderPresenter {
   private readonly subscribers: Array<(vm: ViewModel) => void> = [];
   private saveDraftDebounceTimer: NodeJS.Timeout | null = null;
+  private selectedElementArea: 'sidebar' | 'rightSidebar' | null = null;
   private vm: ViewModel = {
     appId: '',
     version: 1,
@@ -54,7 +55,7 @@ export class UIBuilderPresenter {
               id: 'left-sidebar',
               type: 'Container',
               props: { text: 'Left Sidebar' },
-              styles: { backgroundColor: '#f3f4f6', textColor: '#111827', borderColor: '#e5e7eb' },
+              styles: { backgroundColor: '#f3f4f6', textColor: '#111827', borderColor: '#e5e7eb', backgroundOpacity: '1' },
               children: [
                 {
                   id: 'store-button',
@@ -63,6 +64,20 @@ export class UIBuilderPresenter {
                   styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af' },
                 },
               ],
+            },
+          },
+          rightSidebar: {
+            version: '1.0',
+            theme: {
+              colors: { primary: '#1d4ed8', background: '#ffffff', surface: '#ffffff', text: '#111827' },
+              spacing: [4, 8, 12, 16, 24, 32, 48, 64]
+            },
+            layout: {
+              id: 'right-sidebar',
+              type: 'Container',
+              props: { text: 'Right Sidebar' },
+              styles: { backgroundColor: '#f9fafb', textColor: '#111827', borderColor: '#d1d5db', backgroundOpacity: '1' },
+              children: [],
             },
           },
         },
@@ -207,7 +222,7 @@ export class UIBuilderPresenter {
               id: 'left-sidebar',
               type: 'Container',
               props: { text: 'Left Sidebar' },
-              styles: { backgroundColor: '#f3f4f6', textColor: '#111827', borderColor: '#e5e7eb' },
+              styles: { backgroundColor: '#f3f4f6', textColor: '#111827', borderColor: '#e5e7eb', backgroundOpacity: '1' },
               children: [
                 {
                   id: 'store-button',
@@ -216,6 +231,20 @@ export class UIBuilderPresenter {
                   styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af' },
                 },
               ],
+            },
+          },
+          rightSidebar: {
+            version: '1.0',
+            theme: {
+              colors: { primary: '#1d4ed8', background: '#ffffff', surface: '#ffffff', text: '#111827' },
+              spacing: [4, 8, 12, 16, 24, 32, 48, 64]
+            },
+            layout: {
+              id: 'right-sidebar',
+              type: 'Container',
+              props: { text: 'Right Sidebar' },
+              styles: { backgroundColor: '#f9fafb', textColor: '#111827', borderColor: '#d1d5db', backgroundOpacity: '1' },
+              children: [],
             },
           },
         },
@@ -295,15 +324,31 @@ export class UIBuilderPresenter {
 
   public selectElement(elementId: string): void {
     console.log('[UIBuilderPresenter] selectElement called:', elementId);
-    const node = this.findNode(elementId);
-    const colors = this.getElementColorsFromConfig(elementId);
+    if (!elementId) {
+      this.selectedElementArea = null;
+      this.vm = { ...this.vm, selectedElement: null };
+      this.notify();
+      return;
+    }
+
+    const located = this.locateElement(elementId);
+    if (!located) {
+      this._logger.warn('[UIBuilderPresenter] selectElement: element not found', { elementId });
+      this.selectedElementArea = null;
+      this.vm = { ...this.vm, selectedElement: null };
+      this.notify();
+      return;
+    }
+
+    const { node, layout } = located;
+    const colors = this.readColorsFromNode(node);
     console.log('[UIBuilderPresenter] Found colors:', colors);
-    
-    // Create new viewModel object to trigger React re-render
-    this.vm = { 
-      ...this.vm, 
-      selectedElement: { 
-        id: elementId, 
+    this.selectedElementArea = layout;
+
+    this.vm = {
+      ...this.vm,
+      selectedElement: {
+        id: elementId,
         colors: colors || undefined,
         gap: node?.styles?.gap,
         padding: node?.styles?.padding,
@@ -313,7 +358,9 @@ export class UIBuilderPresenter {
         label: node?.props?.text || node?.props?.children,
         textAlign: node?.styles?.textAlign,
         icon: node?.props?.icon,
-      } 
+        area: layout,
+        backgroundOpacity: node?.styles?.backgroundOpacity,
+      },
     };
     console.log('[UIBuilderPresenter] Updated viewModel.selectedElement:', this.vm.selectedElement);
     this.notify();
@@ -326,6 +373,23 @@ export class UIBuilderPresenter {
     this.saveConfigToSupabaseDebounced();
   }
 
+  public updateContainerBackgroundOpacity(elementId: string, opacity: string): void {
+    const node = this.findNode(elementId);
+    if (!node) {
+      return;
+    }
+
+    if (!node.styles) {
+      node.styles = {};
+    }
+
+    node.styles.backgroundOpacity = opacity;
+
+    this.selectElement(elementId);
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
+  }
+ 
   public updateContainerGap(elementId: string, gap: string): void {
     const node = this.findNode(elementId);
     if (!node) return;
@@ -467,10 +531,11 @@ export class UIBuilderPresenter {
     this.vm = {
       ...this.vm,
       config: clonedConfig,
-      selectedElement: { id: newId, colors: this.getElementColorsFromConfig(newId) || undefined },
       isDraft: true,
     };
-    this.notify();
+
+    this.selectedElementArea = 'sidebar';
+    this.selectElement(newId);
     this.sendConfigToIframe();
     
     // Save to Supabase
@@ -486,6 +551,7 @@ export class UIBuilderPresenter {
 
     // Clear selection if the deleted button was selected
     if (this.vm.selectedElement?.id === buttonId) {
+      this.selectedElementArea = null;
       this.vm = { ...this.vm, selectedElement: null };
     }
 
@@ -636,14 +702,12 @@ export class UIBuilderPresenter {
   }
 
   private getElementColorsFromConfig(elementId: string): Record<string, string> | null {
-    const node = this.findNode(elementId);
-    if (!node) return null;
-    const s = node.styles || {};
-    const colors: Record<string, string> = {};
-    if (s.backgroundColor) colors.backgroundColor = s.backgroundColor;
-    if (s.textColor) colors.textColor = s.textColor;
-    if (s.borderColor) colors.borderColor = s.borderColor;
-    return colors;
+    const located = this.locateElement(elementId);
+    if (!located) {
+      return null;
+    }
+
+    return this.readColorsFromNode(located.node);
   }
 
   private applyColorsToConfig(elementId: string, colors: Record<string, string>): void {
@@ -652,20 +716,157 @@ export class UIBuilderPresenter {
     node.styles = { ...(node.styles || {}), ...colors };
   }
 
-  private findNode(elementId: string): any | null {
-    const layout = (this.vm.config as any)?.modules?.uiRenderer?.sidebar?.layout;
-    if (!layout) return null;
+
+
+  private findNodeInLayout(layoutKey: 'sidebar' | 'rightSidebar', elementId: string): any | null {
+    const layout = (this.vm.config as any)?.modules?.uiRenderer?.[layoutKey]?.layout;
+    if (!layout) {
+      return null;
+    }
+
     const dfs = (n: any): any | null => {
       if (n.id === elementId) return n;
       if (Array.isArray(n.children)) {
-        for (const c of n.children) {
-          const r = dfs(c);
-          if (r) return r;
+        for (const child of n.children) {
+          const found = dfs(child);
+          if (found) return found;
         }
       }
       return null;
     };
+
     return dfs(layout);
+  }
+
+  private locateElement(elementId: string): { node: any; layout: 'sidebar' | 'rightSidebar' } | null {
+    const layouts: Array<'sidebar' | 'rightSidebar'> = ['sidebar', 'rightSidebar'];
+    const preferred = this.selectedElementArea ? [this.selectedElementArea] : layouts;
+    const searchOrder = Array.from(new Set([...preferred, ...layouts]));
+
+    for (const layoutKey of searchOrder) {
+      const node = this.findNodeInLayout(layoutKey, elementId);
+      if (node) {
+        return { node, layout: layoutKey };
+      }
+    }
+
+    return null;
+  }
+
+  private readColorsFromNode(node: any): Record<string, string> | null {
+    if (!node || !node.styles) {
+      return null;
+    }
+
+    const colors: Record<string, string> = {};
+    const styles = node.styles || {};
+    if (styles.backgroundColor) colors.backgroundColor = styles.backgroundColor;
+    if (styles.textColor) colors.textColor = styles.textColor;
+    if (styles.borderColor) colors.borderColor = styles.borderColor;
+    return Object.keys(colors).length > 0 ? colors : null;
+  }
+ 
+  private findNode(elementId: string): any | null {
+    if (this.selectedElementArea) {
+      const preferred = this.findNodeInLayout(this.selectedElementArea, elementId);
+      if (preferred) {
+        return preferred;
+      }
+    }
+
+    const located = this.locateElement(elementId);
+    return located?.node ?? null;
+  }
+
+  private createDefaultSidebarLayout(section: 'sidebar' | 'rightSidebar'): any {
+    if (section === 'sidebar') {
+      return {
+        id: 'left-sidebar',
+        type: 'Container',
+        props: { text: 'Left Sidebar' },
+        styles: { backgroundColor: '#f3f4f6', textColor: '#111827', borderColor: '#e5e7eb', backgroundOpacity: '1' },
+        children: [
+          {
+            id: 'store-button',
+            type: 'Button',
+            props: { text: 'Store' },
+            styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af' },
+          },
+        ],
+      };
+    }
+
+    return {
+      id: 'right-sidebar',
+      type: 'Container',
+      props: { text: 'Right Sidebar' },
+      styles: { backgroundColor: '#f9fafb', textColor: '#111827', borderColor: '#d1d5db', backgroundOpacity: '1' },
+      children: [],
+    };
+  }
+
+  public ensureSidebarLayout(section: 'sidebar' | 'rightSidebar'): string | null {
+    if (!this.vm.config) {
+      return null;
+    }
+ 
+    const currentConfig = this.vm.config as Record<string, any>;
+    const modules = currentConfig.modules ? { ...currentConfig.modules } : {};
+    const uiRenderer = modules.uiRenderer ? { ...modules.uiRenderer } : {};
+    let sectionConfig = uiRenderer[section] ? { ...uiRenderer[section] } : undefined;
+    let updated = false;
+ 
+    if (!sectionConfig) {
+      sectionConfig = {
+        version: '1.0',
+        theme: {
+          colors: { primary: '#1d4ed8', background: '#ffffff', surface: '#ffffff', text: '#111827' },
+          spacing: [4, 8, 12, 16, 24, 32, 48, 64],
+        },
+        layout: this.createDefaultSidebarLayout(section),
+      };
+      updated = true;
+    } else if (!sectionConfig.layout) {
+      sectionConfig.layout = this.createDefaultSidebarLayout(section);
+      updated = true;
+    } else if (typeof sectionConfig.layout?.styles?.backgroundOpacity === 'undefined') {
+      sectionConfig = {
+        ...sectionConfig,
+        layout: {
+          ...sectionConfig.layout,
+          styles: {
+            ...(sectionConfig.layout.styles || {}),
+            backgroundOpacity: '1',
+          },
+        },
+      };
+      updated = true;
+    }
+ 
+    if (updated) {
+      uiRenderer[section] = sectionConfig;
+      const nextConfig = {
+        ...currentConfig,
+        modules: {
+          ...modules,
+          uiRenderer: {
+            ...uiRenderer,
+          },
+        },
+      };
+ 
+      this.vm = {
+        ...this.vm,
+        config: nextConfig,
+        isDraft: true,
+      };
+ 
+      this.notify();
+      this.sendConfigToIframe();
+      this.saveConfigToSupabaseDebounced();
+    }
+ 
+    return (sectionConfig?.layout?.id as string | undefined) ?? null;
   }
 
   private sendConfigToIframe(): void {

@@ -19,6 +19,8 @@ export interface SelectedElement {
   textAlign?: string;
   flexDirection?: string;
   icon?: string;
+  area?: 'sidebar' | 'rightSidebar';
+  backgroundOpacity?: string;
 }
 
 

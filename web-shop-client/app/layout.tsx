@@ -10,12 +10,131 @@ import { APP_LAYOUT_TYPES } from '../src/modules/app-layout/infrastructure/boots
 import { SidebarRendererPresenter } from '../src/modules/app-layout/interface-adapters/presenters/sidebar-renderer.presenter';
 import { SidebarRenderer } from '../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
 import type { ActionContext } from '../src/shared/ui/action-context';
+import type { PageConfig } from '../src/modules/app-layout/domain/value-objects/page-config.value-object';
+import type { StyleConfig } from '../src/shared/ui/style-config';
 import { LoadAppConfigUseCase } from '../src/application/use-cases/load-app-config.use-case';
 import { LoadAppConfigFromMessageUseCase } from '../src/application/use-cases/load-app-config-from-message.use-case';
 import { SubscribeToConfigUpdatesUseCase } from '../src/application/use-cases/subscribe-to-config-updates.use-case';
 import { TYPES } from '../src/infrastructure/bootstrap/types';
 import { AppConfigLoadedEvent } from '../src/shared/events/app-config-events';
 import { IAsyncEventHandler } from '../src/infrastructure/events/events-handler.plugin';
+
+const clampOpacity = (value: number): number => Math.min(1, Math.max(0, value));
+
+const parseOpacityValue = (value: unknown): number | undefined => {
+  if (typeof value === 'number' && !Number.isNaN(value)) {
+    return clampOpacity(value);
+  }
+  if (typeof value === 'string') {
+    const parsed = Number.parseFloat(value);
+    if (!Number.isNaN(parsed)) {
+      return clampOpacity(parsed);
+    }
+  }
+  return undefined;
+};
+
+const applyOpacityToColor = (color: string, opacity: number): string => {
+  const clamped = clampOpacity(opacity);
+
+  if (color.startsWith('#')) {
+    let hex = color.slice(1);
+    if (hex.length === 3) {
+      hex = hex.split('').map(char => char + char).join('');
+    }
+    if (hex.length === 6) {
+      const r = Number.parseInt(hex.slice(0, 2), 16);
+      const g = Number.parseInt(hex.slice(2, 4), 16);
+      const b = Number.parseInt(hex.slice(4, 6), 16);
+      return `rgba(${r}, ${g}, ${b}, ${clamped})`;
+    }
+  }
+
+  const rgbaMatch = color.match(/^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*[\d.]+\s*\)$/i);
+  if (rgbaMatch) {
+    const [, r, g, b] = rgbaMatch;
+    return `rgba(${r}, ${g}, ${b}, ${clamped})`;
+  }
+
+  const rgbMatch = color.match(/^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i);
+  if (rgbMatch) {
+    const [, r, g, b] = rgbMatch;
+    return `rgba(${r}, ${g}, ${b}, ${clamped})`;
+  }
+
+  return color;
+};
+
+const resolveColorToken = (value: unknown, palette: Record<string, string>): string | undefined => {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    return undefined;
+  }
+  return palette[value] ?? value;
+};
+
+const resolveRootStylesFromConfig = (config: PageConfig | null): { styles: CSSProperties; icon: string | null } => {
+  if (!config) {
+    return { styles: {}, icon: null };
+  }
+
+  const palette = (config.theme?.colors ?? {}) as unknown as Record<string, string>;
+  const layoutStyles = (config.layout?.styles ?? {}) as Partial<StyleConfig>;
+  const layoutProps = (config.layout?.props ?? {}) as Record<string, unknown>;
+
+  const iconRaw = typeof layoutProps.icon === 'string' ? layoutProps.icon.trim() : '';
+  const icon = iconRaw.length > 0 ? iconRaw : null;
+
+  const styles: CSSProperties = {};
+
+  const backgroundColor = resolveColorToken(layoutStyles.backgroundColor, palette);
+  const backgroundOpacity = parseOpacityValue(layoutStyles.backgroundOpacity);
+  if (backgroundColor) {
+    styles.backgroundColor =
+      backgroundOpacity !== undefined
+        ? applyOpacityToColor(backgroundColor, backgroundOpacity)
+        : backgroundColor;
+  }
+
+  if (layoutStyles.backgroundImage) {
+    styles.backgroundImage = layoutStyles.backgroundImage;
+  }
+  if (layoutStyles.backgroundSize) {
+    styles.backgroundSize = layoutStyles.backgroundSize as CSSProperties['backgroundSize'];
+  }
+  if (layoutStyles.backgroundPosition) {
+    styles.backgroundPosition = layoutStyles.backgroundPosition as CSSProperties['backgroundPosition'];
+  }
+  if (layoutStyles.backgroundRepeat) {
+    styles.backgroundRepeat = layoutStyles.backgroundRepeat as CSSProperties['backgroundRepeat'];
+  }
+
+  if (layoutStyles.border) {
+    styles.border = layoutStyles.border as CSSProperties['border'];
+  }
+  const borderColor = resolveColorToken(layoutStyles.borderColor, palette);
+  if (borderColor) {
+    styles.borderColor = borderColor;
+  }
+  if (layoutStyles.borderWidth !== undefined) {
+    styles.borderWidth = layoutStyles.borderWidth as CSSProperties['borderWidth'];
+  }
+  if (layoutStyles.borderStyle) {
+    styles.borderStyle = layoutStyles.borderStyle as CSSProperties['borderStyle'];
+  }
+  if (layoutStyles.boxShadow) {
+    styles.boxShadow = layoutStyles.boxShadow;
+  }
+
+  const rawLayoutStyles = layoutStyles as Record<string, unknown>;
+  if (typeof rawLayoutStyles.backdropFilter === 'string') {
+    styles.backdropFilter = rawLayoutStyles.backdropFilter as string;
+  }
+  if (layoutStyles.filter) {
+    styles.filter = layoutStyles.filter;
+  }
+
+  return { styles, icon };
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode}) {
   const [isLeftDrawerOpen, setIsLeftDrawerOpen] = useState(false);
@@ -46,56 +165,27 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
   );
 
   const [sidebarRootStyles, setSidebarRootStyles] = useState<CSSProperties>({});
+  const [rightSidebarRootStyles, setRightSidebarRootStyles] = useState<CSSProperties>({});
   const [sidebarMenuIcon, setSidebarMenuIcon] = useState<string | null>(null);
   useEffect(() => {
-    const resolveSidebarRootStyles = (): void => {
+    const handleSidebarStylesUpdate = (): void => {
       try {
-        const sidebarConfig = sidebarPresenter.getSidebar();
-        const styles = (sidebarConfig?.layout?.styles ?? {}) as Record<string, unknown>;
-        const colors = (sidebarConfig?.theme?.colors ?? {}) as Record<string, string>;
-        const iconValue = typeof sidebarConfig?.layout?.props?.icon === 'string'
-          ? sidebarConfig.layout.props.icon.trim()
-          : '';
-        setSidebarMenuIcon(iconValue.length > 0 ? iconValue : null);
+        const leftSidebar = resolveRootStylesFromConfig(sidebarPresenter.getSidebar());
+        const rightSidebar = resolveRootStylesFromConfig(sidebarPresenter.getRightSidebar());
 
-        if (!styles || Object.keys(styles).length === 0) {
-          setSidebarRootStyles({});
-          return;
-        }
-
-        const resolveColor = (value: unknown): string | undefined => {
-          if (typeof value !== 'string') return undefined;
-          return colors[value] ?? value;
-        };
-
-        const nextStyles: CSSProperties = {};
-        const backgroundColor = resolveColor(styles.backgroundColor);
-        if (backgroundColor) {
-          nextStyles.backgroundColor = backgroundColor;
-        }
-        if (typeof styles.backgroundImage === 'string') {
-          nextStyles.backgroundImage = styles.backgroundImage;
-        }
-        if (typeof styles.backgroundSize === 'string') {
-          nextStyles.backgroundSize = styles.backgroundSize as string;
-        }
-        if (typeof styles.backgroundPosition === 'string') {
-          nextStyles.backgroundPosition = styles.backgroundPosition as string;
-        }
-        if (typeof styles.backgroundRepeat === 'string') {
-          nextStyles.backgroundRepeat = styles.backgroundRepeat as string;
-        }
-
-        setSidebarRootStyles(nextStyles);
+        setSidebarRootStyles(leftSidebar.styles);
+        setRightSidebarRootStyles(rightSidebar.styles);
+        setSidebarMenuIcon(leftSidebar.icon);
       } catch (error) {
         console.error('[RootLayout] Failed to resolve sidebar root styles:', error);
         setSidebarRootStyles({});
+        setRightSidebarRootStyles({});
         setSidebarMenuIcon(null);
       }
     };
 
-    const unsubscribe = sidebarPresenter.subscribe(resolveSidebarRootStyles);
-    resolveSidebarRootStyles();
+    const unsubscribe = sidebarPresenter.subscribe(handleSidebarStylesUpdate);
+    handleSidebarStylesUpdate();
 
     return () => {
       unsubscribe();
@@ -437,12 +527,20 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
 
               {/* Right Sidebar - скрывается на экранах < 1280px (xl breakpoint), но всегда показывается в UI Builder */}
               {!isMobile && (
-                <aside className={isUIBuilderMode ? "block w-64 border-l border-yellow-400/30 flex-shrink-0" : "hidden xl:block w-64 border-l border-yellow-400/30 flex-shrink-0"} style={{ backgroundColor: 'rgba(0, 0, 0, 0.1)', backdropFilter: 'blur(2px)', borderLeft: '0.5px solid rgba(156, 163, 175, 0.5)' }}>
+                <aside
+                  data-element-id="right-sidebar"
+                  className={isUIBuilderMode ? "block w-64 border-l border-yellow-400/30 flex-shrink-0" : "hidden xl:block w-64 border-l border-yellow-400/30 flex-shrink-0"}
+                  style={{
+                    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                    borderLeft: '0.5px solid rgba(156, 163, 175, 0.5)',
+                    ...rightSidebarRootStyles
+                  }}
+                >
                   <div className="p-4">
                     <div className="mb-4">
                       <AuthModule renderSidebarButton={true} renderPopupConfig={true} />
                     </div>
-                  
+                
                     <SidebarRenderer 
                       presenter={sidebarPresenter} 
                       layoutType="rightSidebar"
@@ -501,7 +599,47 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                   style={{ zIndex: 9998 }}
                   onClick={() => setIsRightDrawerOpen(false)}
                 />
-                <div className="fixed right-0 top-0 bottom-0 shadow-2xl animate-slide-in-right overflow-y-auto border-l border-yellow-400/30" style={{ zIndex: 9999, backgroundColor: '#1f2937', borderLeft: '0.5px solid rgba(156, 163, 175, 0.5)', width: '85%' }}>
+                <div className="fixed right-0 top-0 bottom-0 shadow-2xl animate-slide-in-right overflow-y-auto border-l border-yellow-400/30" style={(() => {
+                  const {
+                    backgroundColor,
+                    backgroundImage,
+                    backgroundSize,
+                    backgroundPosition,
+                    backgroundRepeat,
+                    border: borderValue,
+                    borderLeft,
+                    borderColor,
+                    borderWidth,
+                    borderStyle,
+                    boxShadow,
+                    backdropFilter,
+                    filter
+                  } = rightSidebarRootStyles;
+
+                  const style: CSSProperties = {
+                    zIndex: 9999,
+                    width: '85%',
+                    backgroundColor: (backgroundColor as string | undefined) ?? '#1f2937',
+                    borderLeft: '0.5px solid rgba(156, 163, 175, 0.5)'
+                  };
+
+                  if (backgroundImage) style.backgroundImage = backgroundImage as string;
+                  if (backgroundSize) style.backgroundSize = backgroundSize as CSSProperties['backgroundSize'];
+                  if (backgroundPosition) style.backgroundPosition = backgroundPosition as CSSProperties['backgroundPosition'];
+                  if (backgroundRepeat) style.backgroundRepeat = backgroundRepeat as CSSProperties['backgroundRepeat'];
+
+                  if (borderValue) style.border = borderValue as CSSProperties['border'];
+                  if (borderColor) style.borderColor = borderColor as CSSProperties['borderColor'];
+                  if (borderWidth) style.borderWidth = borderWidth as CSSProperties['borderWidth'];
+                  if (borderStyle) style.borderStyle = borderStyle as CSSProperties['borderStyle'];
+                  if (boxShadow) style.boxShadow = boxShadow as CSSProperties['boxShadow'];
+
+                  if (borderLeft) style.borderLeft = borderLeft as CSSProperties['borderLeft'];
+                  if (backdropFilter) style.backdropFilter = backdropFilter as CSSProperties['backdropFilter'];
+                  if (filter) style.filter = filter as CSSProperties['filter'];
+
+                  return style;
+                })()}>
                   <div className="p-4">
                     <div className="mb-4">
                       <AuthModule renderSidebarButton={true} renderPopupConfig={true} />

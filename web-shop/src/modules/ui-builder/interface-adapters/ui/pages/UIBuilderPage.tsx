@@ -27,7 +27,8 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   const clientUrl = env.NEXT_PUBLIC_CLIENT_URL;
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
-  const [activeSection, setActiveSection] = useState<'background' | 'sidebar' | 'authButton' | 'authPopup' | 'pageConstructor'>('sidebar');
+  const [activeSection, setActiveSection] = useState<'background' | 'sidebar' | 'rightSidebar' | 'authButton' | 'authPopup' | 'pageConstructor'>('sidebar');
+  const ensuredSectionsRef = useRef<Set<'sidebar' | 'rightSidebar'>>(new Set());
   
   // Get pageSlug from URL or default to 'home'
   const getPageSlugFromUrl = (): string => {
@@ -115,6 +116,10 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     pageConstructorPresenter.updateAppConfigSnapshot(config);
   }, [viewModel.config, pageConstructorPresenter]);
 
+  useEffect(() => {
+    ensuredSectionsRef.current.clear();
+  }, [viewModel.config]);
+
   // Send viewport mode update to iframe when it changes
   useEffect(() => {
     if (!iframeRef.current?.contentWindow || !isClient) return;
@@ -155,6 +160,25 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     presenter.loadPages();
   }, [presenter, appId]);
 
+  useEffect(() => {
+    if (!viewModel.config) {
+      return;
+    }
+
+    (['sidebar', 'rightSidebar'] as const).forEach(section => {
+      const config = viewModel.config as any;
+      const hasLayout = config?.modules?.uiRenderer?.[section]?.layout;
+      if (!hasLayout && !ensuredSectionsRef.current.has(section)) {
+        const rootId = presenter.ensureSidebarLayout(section);
+        ensuredSectionsRef.current.add(section);
+
+        if (section === 'rightSidebar' && activeSection === 'rightSidebar' && rootId) {
+          presenter.selectElement(rootId);
+        }
+      }
+    });
+  }, [viewModel.config, presenter, activeSection]);
+
   const handleThemeChange = (colors: Record<string, string>) => {
     presenter.updateTheme(colors);
   };
@@ -184,18 +208,32 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     }
   };
 
-  const handleElementSelect = (elementId: string | null) => {
+  const handleSidebarElementSelect = (elementId: string | null, section: 'sidebar' | 'rightSidebar') => {
     console.log('[UIBuilderPage] handleElementSelect called:', elementId);
-    // Clear offer card selection when selecting sidebar element
-    if (elementId && selectedOfferCardId) {
+    const ensuredRootId = presenter.ensureSidebarLayout(section);
+    let normalizedId = elementId || '';
+
+    if (!normalizedId && viewModel.config) {
+      normalizedId = ensuredRootId || '';
+      if (!normalizedId) {
+        const config = viewModel.config as any;
+        const rootNode = config?.modules?.uiRenderer?.[section]?.layout;
+        if (rootNode?.id) {
+          normalizedId = rootNode.id as string;
+        }
+      }
+    }
+ 
+    if (normalizedId && selectedOfferCardId) {
       pageConstructorPresenter.selectOfferCard(null);
       setSelectedOfferCardId(null);
     }
-    // Ensure we're on sidebar section
-    if (activeSection !== 'sidebar') {
-      setActiveSection('sidebar');
+ 
+    if (activeSection !== section) {
+      setActiveSection(section);
     }
-    presenter.selectElement(elementId || '');
+ 
+    presenter.selectElement(normalizedId);
   };
 
   // Force re-render when selectedElement changes
@@ -209,11 +247,11 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   };
 
   // Extract sidebar elements from config
-  const extractSidebarElements = (): SidebarElement[] => {
+  const extractSidebarElements = (layoutKey: 'sidebar' | 'rightSidebar'): SidebarElement[] => {
     if (!viewModel.config) return [];
 
     const config = viewModel.config as any;
-    const sidebarConfig = config?.modules?.uiRenderer?.sidebar;
+    const sidebarConfig = config?.modules?.uiRenderer?.[layoutKey];
 
     if (!sidebarConfig?.layout) return [];
 
@@ -267,7 +305,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   useEffect(() => {
     const previewComm = presenter.getPreviewCommunication();
     if (previewComm && previewComm.onElementSelected) {
-      previewComm.onElementSelected(handleElementSelect);
+      previewComm.onElementSelected((elementId: string | null) => handleSidebarElementSelect(elementId, 'sidebar'));
     }
   }, [presenter]);
 
@@ -344,6 +382,34 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   const theme = viewModel.config.theme as any;
   const backgroundSettings = theme?.background;
 
+  const headerTitle = (() => {
+    if (activeSection === 'pageConstructor') {
+      return 'Page Builder';
+    }
+    if (activeSection === 'authButton') {
+      return 'Auth Button Editor';
+    }
+    if (activeSection === 'authPopup') {
+      return 'Auth Popup Editor';
+    }
+    if (selectedOfferCardId) {
+      return 'Offer Card Editor';
+    }
+    if (viewModel.selectedElement) {
+      if (viewModel.selectedElement.area === 'rightSidebar') {
+        return `Right Sidebar — ${viewModel.selectedElement.id}`;
+      }
+      if (viewModel.selectedElement.area === 'sidebar') {
+        return `Left Sidebar — ${viewModel.selectedElement.id}`;
+      }
+      return `Editing: ${viewModel.selectedElement.id}`;
+    }
+    if (activeSection === 'rightSidebar') {
+      return 'Right Sidebar Editor';
+    }
+    return 'Left Sidebar Editor';
+  })();
+
   return (
     <div className="w-full h-screen flex bg-gray-100">
       {/* Edit Elements Sidebar - список компонентов для редактирования */}
@@ -365,24 +431,34 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           
           {/* Left Sidebar Elements */}
           <div className="mb-4">
-            <h3 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Left Sidebar</h3>
+            <h3 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Left Sidebar</h3>                                                 
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] text-gray-500">Manage buttons</span>
               <button
                 onClick={() => {
                   presenter.addSidebarButton('New Button');
                 }}
-                className="px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600"
+                className="px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600"                                                                  
                 title="Add new button to Left Sidebar"
               >
                 + Add Button
               </button>
             </div>
             <ElementTreeSelector
-              elements={extractSidebarElements()}
-              selectedId={viewModel.selectedElement?.id || null}
-              onSelect={handleElementSelect}
+              elements={extractSidebarElements('sidebar')}
+              selectedId={viewModel.selectedElement?.area === 'sidebar' ? (viewModel.selectedElement?.id || null) : null}
+              onSelect={(elementId) => handleSidebarElementSelect(elementId, 'sidebar')}
               onDelete={(elementId) => presenter.removeSidebarButton(elementId)}
+            />
+          </div>
+
+          {/* Right Sidebar Elements */}
+          <div className="mb-4">
+            <h3 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Right Sidebar</h3>
+            <ElementTreeSelector
+              elements={extractSidebarElements('rightSidebar')}
+              selectedId={viewModel.selectedElement?.area === 'rightSidebar' ? (viewModel.selectedElement?.id || null) : null}
+              onSelect={(elementId) => handleSidebarElementSelect(elementId, 'rightSidebar')}
             />
           </div>
 
@@ -418,62 +494,39 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               <button
                 onClick={async () => {
                   const pageSlug = prompt('Enter page slug (e.g., "about", "contact"):');
-                  if (pageSlug && pageSlug.trim()) {
-                                         const normalizedSlug = pageSlug.trim().toLowerCase().replace(/\s+/g, '-');
-                     const success = await presenter.createPage(normalizedSlug);
-                     if (success) {
-                       // Switch to pageConstructor with the new page
-                       setActiveSection('pageConstructor');
-                       setSelectedPageSlug(normalizedSlug);
-                       // Update URL to include pageSlug
-                       const url = new URL(window.location.href);
-                       url.searchParams.set('pageSlug', normalizedSlug);
-                       window.history.pushState({}, '', url);
-                     } else {
-                       alert(`Failed to create page: ${viewModel.error || 'Unknown error'}`);
-                     }
+                  if (!pageSlug) return;
+                  const normalizedSlug = pageSlug.trim().toLowerCase().replace(/\s+/g, '-');
+                  const success = await presenter.createPage(normalizedSlug);
+                  if (success) {
+                    setActiveSection('pageConstructor');
+                    setSelectedPageSlug(normalizedSlug);
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('pageSlug', normalizedSlug);
+                    window.history.replaceState({}, '', url.toString());
                   }
                 }}
-                className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                title="Add New Page"
+                className="px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600"
               >
                 + Add
               </button>
             </div>
-            <div className="flex flex-col gap-1 pl-2">
-              {viewModel.isLoadingPages ? (
-                <div className="text-xs text-gray-400 px-2 py-1">Loading pages...</div>
-              ) : viewModel.pages && viewModel.pages.length > 0 ? (
-                viewModel.pages.map((pageSlug: string) => (
-                  <button
-                    key={pageSlug}
-                    onClick={() => {
-                      setActiveSection('pageConstructor');
-                      setSelectedPageSlug(pageSlug);
-                      // Update URL to include pageSlug
-                      const url = new URL(window.location.href);
-                      url.searchParams.set('pageSlug', pageSlug);
-                      window.history.pushState({}, '', url);
-                    }}
-                    className={`text-left px-2 py-1 rounded text-xs ${
-                      activeSection === 'pageConstructor' && selectedPageSlug === pageSlug
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 hover:bg-gray-200'
-                    }`}
-                  >
-                    {pageSlug}
-                  </button>
-                ))
-              ) : (
-                <div className="text-xs text-gray-400 px-2 py-1">No pages yet</div>
-              )}
+            <div className="space-y-1">
+              {viewModel.pages.map((pageSlug: string) => (
+                <button
+                  key={pageSlug}
+                  onClick={() => {
+                    setActiveSection('pageConstructor');
+                    setSelectedPageSlug(pageSlug);
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('pageSlug', pageSlug);
+                    window.history.replaceState({}, '', url.toString());
+                  }}
+                  className={`w-full text-left px-2 py-1 rounded text-xs ${selectedPageSlug === pageSlug ? 'bg-blue-500 text-white' : 'hover:bg-gray-100 text-gray-700'}`}
+                >
+                  {pageSlug}
+                </button>
+              ))}
             </div>
-          </div>
-
-          {/* Placeholder for future components */}
-          <div className="mb-4">
-            <h3 className="text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wide">Right Sidebar</h3>
-            <p className="text-[10px] text-gray-400 italic pl-2">Coming soon...</p>
           </div>
           
           {/* Offer Cards Manager */}
@@ -486,7 +539,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 setSelectedOfferCardId(cardId);
                 // Clear sidebar element selection when selecting offer card
                 if (viewModel.selectedElement) {
-                  handleElementSelect(null);
+                  handleSidebarElementSelect(null, 'sidebar'); // Assuming 'sidebar' is the default for now
                 }
               }}
               onMigrate={async () => {
@@ -517,11 +570,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-base font-bold text-gray-900">
-                {activeSection === 'pageConstructor' ? 'Page Builder' : 
-                 activeSection === 'authButton' ? 'Auth Button Editor' :
-                 activeSection === 'authPopup' ? 'Auth Popup Editor' :
-                 selectedOfferCardId ? 'Offer Card Editor' :
-                 viewModel.selectedElement ? `Editing: ${viewModel.selectedElement.id}` : 'Left Sidebar Editor'}
+                {headerTitle}
               </h1>
               {activeSection !== 'pageConstructor' && (
                 <p className="text-gray-500 text-xs mt-0.5">
@@ -600,7 +649,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             })()}
 
             {/* Color Editor for Selected Element */}
-            {activeSection === 'sidebar' && !selectedOfferCardId && (
+            {(activeSection === 'sidebar' || activeSection === 'rightSidebar') && !selectedOfferCardId && (
               <SidebarColorEditor
                 element={viewModel.selectedElement}
                 onChange={handleElementColorChange}
@@ -611,6 +660,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 onTextAlignChange={(elementId, textAlign) => presenter.updateButtonTextAlign(elementId, textAlign)}
                 onFlexDirectionChange={(elementId, flexDirection) => presenter.updateContainerFlexDirection(elementId, flexDirection)}
                 onIconChange={(elementId, icon) => presenter.updateButtonIcon(elementId, icon)}
+                onBackgroundOpacityChange={(elementId, opacity) => presenter.updateContainerBackgroundOpacity(elementId, opacity)}
               />
             )}
 

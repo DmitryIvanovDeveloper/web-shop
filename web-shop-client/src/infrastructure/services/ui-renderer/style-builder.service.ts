@@ -37,6 +37,7 @@ export class UIStyleBuilder {
 			hasStyles: !!styles,
 			stylesKeys: Object.keys(styles),
 			backgroundColor: styles.backgroundColor,
+			backgroundOpacity: styles.backgroundOpacity,
 			color: styles.color,
 			textColor: styles.textColor,
 			borderColor: styles.borderColor,
@@ -103,8 +104,21 @@ export class UIStyleBuilder {
 		}
 
 		// Colors
+		let resolvedBackgroundColor: string | undefined;
 		if (styles.backgroundColor) {
-			inlineStyles.backgroundColor = this._resolveColor(styles.backgroundColor, theme);
+			resolvedBackgroundColor = this._resolveColor(styles.backgroundColor, theme);
+			inlineStyles.backgroundColor = resolvedBackgroundColor;
+		}
+		if (styles.backgroundOpacity !== undefined) {
+			const opacity = typeof styles.backgroundOpacity === 'number'
+				? styles.backgroundOpacity
+				: Number.parseFloat(styles.backgroundOpacity as string);
+			if (!Number.isNaN(opacity)) {
+				const baseColor = resolvedBackgroundColor ?? (inlineStyles.backgroundColor as string | undefined);
+				if (baseColor) {
+					inlineStyles.backgroundColor = this._applyOpacityToColor(baseColor, opacity);
+				}
+			}
 		}
 		// Support both 'color' (direct CSS property) and 'textColor' (theme-based)
 		if (styles.color) {
@@ -178,6 +192,10 @@ export class UIStyleBuilder {
 		console.log('[UIStyleBuilder] Built inline styles', {
 			inlineStylesKeys: Object.keys(inlineStyles),
 			backgroundColor: inlineStyles.backgroundColor,
+			backgroundOpacity:
+				typeof styles.backgroundOpacity !== 'undefined'
+					? styles.backgroundOpacity
+					: undefined,
 			color: inlineStyles.color,
 			borderColor: inlineStyles.borderColor,
 			borderRadius: inlineStyles.borderRadius,
@@ -200,6 +218,37 @@ export class UIStyleBuilder {
 			}
 		}
 		// Otherwise use as-is (hex, rgb, etc.)
+		return color;
+	}
+
+	private _applyOpacityToColor(color: string, opacity: number): string {
+		const clamped = Math.min(1, Math.max(0, opacity));
+
+		if (color.startsWith('#')) {
+			let hex = color.slice(1);
+			if (hex.length === 3) {
+				hex = hex.split('').map((char) => char + char).join('');
+			}
+			if (hex.length === 6) {
+				const r = Number.parseInt(hex.slice(0, 2), 16);
+				const g = Number.parseInt(hex.slice(2, 4), 16);
+				const b = Number.parseInt(hex.slice(4, 6), 16);
+				return `rgba(${r}, ${g}, ${b}, ${clamped})`;
+			}
+		}
+
+		const rgbaMatch = color.match(/^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*[\d.]+\s*\)$/i);
+		if (rgbaMatch) {
+			const [, r, g, b] = rgbaMatch;
+			return `rgba(${r}, ${g}, ${b}, ${clamped})`;
+		}
+
+		const rgbMatch = color.match(/^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i);
+		if (rgbMatch) {
+			const [, r, g, b] = rgbMatch;
+			return `rgba(${r}, ${g}, ${b}, ${clamped})`;
+		}
+
 		return color;
 	}
 }
