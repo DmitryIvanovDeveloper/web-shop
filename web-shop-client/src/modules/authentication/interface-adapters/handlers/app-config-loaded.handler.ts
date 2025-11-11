@@ -11,6 +11,14 @@ import { AuthPresenter } from '../presenters/auth.presenter';
 import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
+import type { AuthSettings } from '../../../../shared/config/app-config.types';
+
+const DEFAULT_AUTH_SETTINGS: AuthSettings = {
+	closeDelay: 1500,
+	showHelpSection: true,
+	showAgreement: true,
+	rememberUser: true
+};
 
 @injectable()
 export class AuthAppConfigLoadedHandler implements IAsyncEventHandler<AppConfigLoadedEvent> {
@@ -40,7 +48,8 @@ export class AuthAppConfigLoadedHandler implements IAsyncEventHandler<AppConfigL
 
 		this._authPresenter.setConfig({
 			labels: authConfig.labels,
-			settings: authConfig.settings,
+			settings: authConfig.settings ?? DEFAULT_AUTH_SETTINGS,
+			loginButtonUI: authConfig.loginButtonUI,
 			theme
 		});
 

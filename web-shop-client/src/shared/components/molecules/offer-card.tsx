@@ -384,7 +384,8 @@ export function OfferCard({
   const descriptionLineHeight = responsive<string | number>(styles.description?.lineHeight);
 
   const priceBlockRadius = responsive<string>(styles.priceBlock?.borderRadius);
-  const priceBlockPadding = responsive<string | number>(styles.priceBlock?.padding);
+  const priceBlockPadding =
+    responsive<string | number>(styles.priceBlock?.padding) ?? '12px 16px';
   const priceBlockMinHeight = responsive<string | number>(styles.priceBlock?.minHeight);
   const priceBlockAlignment = responsive<'center' | 'left' | 'right'>(
     styles.priceBlock?.alignment
@@ -419,11 +420,11 @@ export function OfferCard({
   const rarityBg = responsive<string>(styles.rarity?.backgroundColor);
   const rarityColor = responsive<string>(styles.rarity?.color);
   const buyButtonBg = responsive<string>(styles.buyButton?.backgroundColor);
-  const buyButtonColor = responsive<string>(styles.buyButton?.color);
+  const buyButtonColor = responsive<string>(styles.buyButton?.color) ?? '#FFFFFF';
   const buyButtonBorderRadius = responsive<string>(styles.buyButton?.borderRadius);
   const buyButtonFontWeight = responsive<string | number>(styles.buyButton?.fontWeight);
   const buyButtonFontSize = responsive<string | number>(styles.buyButton?.fontSize);
-  const buyButtonPadding = responsive<string | number>(styles.buyButton?.padding);
+  const buyButtonPadding = responsive<string | number>(styles.buyButton?.padding) ?? '12px 16px';
   const buyButtonMinHeight = responsive<string | number>(styles.buyButton?.minHeight);
   const purchasedBg = responsive<string>(styles.purchasedBadge?.backgroundColor);
   const purchasedColor = responsive<string>(styles.purchasedBadge?.color);
@@ -608,24 +609,70 @@ export function OfferCard({
                   borderRadius: buyButtonBorderRadius,
                   fontWeight: buyButtonFontWeight,
                   fontSize: buyButtonFontSize,
-                  padding: originalPrice || currentPrice ? undefined : buyButtonPadding,
-                  minHeight: buyButtonMinHeight,
+                  padding: buyButtonPadding,
+                  minHeight:
+                    buyButtonMinHeight ?? (originalPrice || currentPrice ? '48px' : '44px'),
                   border: 'none',
                   outline: 'none',
                   width: '100%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  gap: '8px',
+                  opacity: isLoading ? 0.85 : 1,
+                  cursor: isLoading ? 'wait' : 'pointer'
                 }}
+                disabled={isLoading}
+                aria-busy={isLoading}
+                aria-live={isLoading ? 'assertive' : 'off'}
                 onClick={(e) => {
                   e.stopPropagation();
+                  if (isLoading) {
+                    e.preventDefault();
+                    return;
+                  }
                   if (onClick) {
                     onClick();
                   }
                 }}
-                aria-label={buyButton?.text || 'Buy'}
               >
-                {(originalPrice || currentPrice) ? (
+                {isLoading ? (
+                  <>
+                    <svg
+                      aria-hidden="true"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      style={{ display: 'inline-block' }}
+                    >
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke={buyButtonColor}
+                        strokeWidth="2"
+                        fill="none"
+                        opacity={0.35}
+                      />
+                      <path
+                        d="M22 12a10 10 0 0 0-10-10"
+                        stroke={buyButtonColor}
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        fill="none"
+                      >
+                        <animateTransform
+                          attributeName="transform"
+                          type="rotate"
+                          from="0 12 12"
+                          to="360 12 12"
+                          dur="0.8s"
+                          repeatCount="indefinite"
+                        />
+                      </path>
+                    </svg>
+                  </>
+                ) : (originalPrice || currentPrice) ? (
                   <div
                     style={{
                       borderRadius: priceBlockRadius,
@@ -659,7 +706,7 @@ export function OfferCard({
                     )}
                     {currentPrice && (
                       <div
-              style={{
+                        style={{
                           display: 'flex',
                           gap: '4px',
                           alignItems: 'center',

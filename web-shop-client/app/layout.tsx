@@ -491,7 +491,6 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                 >
                   {renderSidebarMenuIcon()}
                 </button>
-                <span className="text-white font-semibold text-lg">Web Shop</span>
                 <button 
                   className="p-2 hover:bg-[#34495e] rounded transition-colors bg-[#34495e]" 
                   aria-label="Profile"
