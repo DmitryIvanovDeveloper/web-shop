@@ -13,7 +13,6 @@ export class HandleUserReturnedUseCase {
   public async execute(event: UserReturnedEvent): Promise<void> {
     const { appId, userId, lastActiveAt } = event.payload;
     await this.writer.upsert(appId, userId, {
-      'user.flags.isReturning': true,
       'user.flags.isNew': false, // Returning users are not new
       'user.metrics.daysSinceLastActive': this.computeDaysSince(lastActiveAt),
     });

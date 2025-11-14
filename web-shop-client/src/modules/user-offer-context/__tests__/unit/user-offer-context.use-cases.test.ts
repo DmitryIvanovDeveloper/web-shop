@@ -56,7 +56,6 @@ describe('User offer context use cases', () => {
 
     expect(writer.upsert).toHaveBeenCalledWith('APP123', 'user-1', {
       'user.flags.isNew': true,
-      'user.flags.isReturning': false,
     });
   });
 
@@ -74,7 +73,6 @@ describe('User offer context use cases', () => {
       'APP123',
       'user-1',
       expect.objectContaining({
-        'user.flags.isReturning': true,
         'user.flags.isNew': false,
         'user.metrics.daysSinceLastActive': 0,
       })
@@ -98,7 +96,6 @@ describe('User offer context use cases', () => {
     expect(writer.upsert).toHaveBeenCalledWith('APP123', 'user-1', {
       'user.flags.isFirstPayment': true,
       'user.flags.isNew': false,
-      'user.flags.isReturning': true,
       'user.purchases.length': 3,
       'user.metrics.totalSpend': 49.99,
     });
