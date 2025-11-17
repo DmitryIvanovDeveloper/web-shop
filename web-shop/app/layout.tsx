@@ -3,6 +3,7 @@ import 'reflect-metadata';
 import '../src/env';
 import '../src/infrastructure/bootstrap/container';
 import '../src/modules/merchant-admin/analytics/realtime-dashboard/infrastructure/bootstrap/realtime-dashboard.container';
+import '../src/modules/merchant-admin/offers/infrastructure/bootstrap/offers.container';
 import "./globals.css";
 import "./output.css";
 import Sidebar from "@/shared/ui/Sidebar";
@@ -12,13 +13,16 @@ import { useRouter } from "next/navigation";
 
 export default function RootLayout({ children }: { children: React.ReactNode}) {
   const router = useRouter();
-  // const pathname = usePathname();
+  const routes: Record<string, string> = {
+    home: '/',
+    'analytics-dashboard': '/dashboard',
+    'merchant-admin-offers': '/merchant-admin/offers',
+  };
 
   const handleSelect = (key: string) => {
-    if (key === "dashboard") {
-      router.push('/dashboard');
-    } else if (key === "home") {
-      router.push('/');
+    const target = routes[key];
+    if (target) {
+      router.push(target);
     }
   };
 

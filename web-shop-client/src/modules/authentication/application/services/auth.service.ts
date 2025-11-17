@@ -12,9 +12,16 @@ import { AuthPresenter } from '../../interface-adapters/presenters/auth.presente
  * Port (Interface) для изоляции модулей
  * Другие модули зависят от этого интерфейса, НЕ от реализации
  */
+export interface AuthenticatedUserInfo {
+  readonly userId: string;
+  readonly appId: string;
+  readonly username: string;
+}
+
 export interface AuthServicePort {
   isUserAuthenticated(): boolean;
   getCurrentUserId(): string | null;
+  getCurrentUser(): AuthenticatedUserInfo | null;
 }
 
 /**
@@ -41,6 +48,19 @@ export class AuthService implements AuthServicePort {
   public getCurrentUserId(): string | null {
     const user = this._authPresenter.getCurrentUser();
     return user?.userId || null;
+  }
+
+  public getCurrentUser(): AuthenticatedUserInfo | null {
+    const user = this._authPresenter.getCurrentUser();
+    if (!user) {
+      return null;
+    }
+
+    return {
+      userId: user.userId,
+      appId: user.appId,
+      username: user.username,
+    };
   }
 }
 

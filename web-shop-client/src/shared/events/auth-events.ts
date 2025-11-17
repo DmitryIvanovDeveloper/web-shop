@@ -1,5 +1,10 @@
 import { IEvent } from '../../infrastructure/events/event';
 
+export interface UserAuthenticatedEventMetadata {
+  readonly isNewUser?: boolean;
+  readonly lastActiveAt?: string; // Old last_active_at value (before update) for calculating daysSinceLastActive
+}
+
 export class UserAuthenticatedEvent implements IEvent {
   public readonly id: string;
   public readonly type = 'UserAuthenticatedEvent';
@@ -9,17 +14,19 @@ export class UserAuthenticatedEvent implements IEvent {
     userId: string;
     username: string;
     appId: string;
+    metadata?: UserAuthenticatedEventMetadata;
   };
   
   constructor(
     public readonly userId: string,
     public readonly username: string,
-    public readonly appId: string
+    public readonly appId: string,
+    metadata?: UserAuthenticatedEventMetadata
   ) {
     this.id = crypto.randomUUID();
     this.timestamp = new Date();
     this.source = 'authentication';
-    this.payload = { userId, username, appId };
+    this.payload = { userId, username, appId, metadata };
   }
 }
 

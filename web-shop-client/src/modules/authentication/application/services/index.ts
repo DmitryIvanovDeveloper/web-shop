@@ -2,6 +2,6 @@
  * Application Services exports
  */
 
-export { AuthService, type AuthServicePort } from './auth.service';
+export { AuthService, type AuthServicePort, type AuthenticatedUserInfo } from './auth.service';
 
 

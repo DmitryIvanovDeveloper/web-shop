@@ -2,6 +2,8 @@ import { inject, injectable } from 'inversify';
 import type { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
 import type { UserAuthenticatedEvent } from '../../../../shared/events/auth-events';
 import { USER_OFFER_CONTEXT_TYPES } from '../../infrastructure/bootstrap/types';
+import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
+import type { Logger } from '../../../../application/ports/logger.port';
 import { HandleUserRegisteredUseCase } from '../../application/use-cases/handle-user-registered.use-case';
 import { HandleUserReturnedUseCase } from '../../application/use-cases/handle-user-returned.use-case';
 import {
@@ -17,7 +19,9 @@ export class UserAuthenticatedEventHandler
     @inject(USER_OFFER_CONTEXT_TYPES.HandleUserRegisteredUseCase)
     private readonly userRegistered: HandleUserRegisteredUseCase,
     @inject(USER_OFFER_CONTEXT_TYPES.HandleUserReturnedUseCase)
-    private readonly userReturned: HandleUserReturnedUseCase
+    private readonly userReturned: HandleUserReturnedUseCase,
+    @inject(ROOT_TYPES.Logger)
+    private readonly logger: Logger
   ) {}
 
   public canHandle(event: UserAuthenticatedEvent): boolean {
@@ -37,11 +41,29 @@ export class UserAuthenticatedEventHandler
       return;
     }
 
+    // For returning users, use lastActiveAt from event metadata (old value before update)
+    // This ensures we use the real last active time, not the current timestamp
+    // If not provided in metadata, fallback to current timestamp
+    const lastActiveAt = event.payload.metadata?.lastActiveAt ?? event.timestamp.toISOString();
+    
+    if (event.payload.metadata?.lastActiveAt) {
+      this.logger.info('[UserAuthenticatedEventHandler] Using lastActiveAt from event metadata', {
+        appId: event.appId,
+        userId: event.userId,
+        lastActiveAt,
+      });
+    } else {
+      this.logger.warn('[UserAuthenticatedEventHandler] lastActiveAt not in metadata, using current timestamp', {
+        appId: event.appId,
+        userId: event.userId,
+      });
+    }
+
     await this.userReturned.execute(
       new UserReturnedEvent({
         appId: event.appId,
         userId: event.userId,
-        lastActiveAt: event.timestamp.toISOString(),
+        lastActiveAt,
       })
     );
   }

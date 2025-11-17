@@ -54,8 +54,8 @@ export function OffersPopup({
         {/* Offers Grid */}
         <div className="flex-1 overflow-y-auto">
           <Grid className="justify-center" style={{ width: '100%', maxWidth: '100%', margin: '0 auto' }}>
-            {offers.map((offer) => (
-              <div key={offer.id} className="@container">
+            {offers.map((offer, index) => (
+              <div key={offer.id || `offer-${index}`} className="@container">
                 <OfferCard
                   {...offer}
                   timer={offer.timer ? new Date(offer.timer) : undefined}

@@ -1,0 +1,43 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary "Sidebar" [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]: WS
+        - generic [ref=e6]: Web Shop
+      - navigation [ref=e7]:
+        - link "Home" [ref=e8] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e9]: 🏠
+          - generic [ref=e10]: Home
+        - link "Analytics Dashboard" [ref=e11] [cursor=pointer]:
+          - /url: /dashboard
+          - generic [ref=e12]: 📈
+          - generic [ref=e13]: Analytics Dashboard
+        - link "Offers" [ref=e14] [cursor=pointer]:
+          - /url: /merchant-admin/offers
+          - generic [ref=e15]: 🎁
+          - generic [ref=e16]: Offers
+        - link "Builder" [ref=e17] [cursor=pointer]:
+          - /url: /ui-builder?appId=APP123&pageSlug=store
+          - generic [ref=e18]: 🛠️
+          - generic [ref=e19]: Builder
+    - main [ref=e20]:
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - heading "Offer Engine Scenarios" [level=1] [ref=e24]
+          - paragraph [ref=e25]: Configure personalised offers and publish rule trees to LiveOps Offer Engine
+        - generic [ref=e26]:
+          - button "Refresh" [ref=e27] [cursor=pointer]
+          - button "Publish rule tree" [ref=e28] [cursor=pointer]
+  - status [ref=e36]:
+    - generic [ref=e37]:
+      - img [ref=e39]
+      - generic [ref=e41]:
+        - text: Static route
+        - button "Hide static indicator" [ref=e42] [cursor=pointer]:
+          - img [ref=e43]
+  - alert [ref=e46]
+```

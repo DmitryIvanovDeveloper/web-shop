@@ -4,6 +4,7 @@ import 'reflect-metadata';
 import { container } from '../src/infrastructure/bootstrap/container';
 import "./output.css";
 import { AuthModule } from '../src/modules/authentication/interface-adapters/ui/auth-module';
+import { PersonalOffersWidget } from '../src/modules/personal-offers/interface-adapters/ui/components/personal-offers-widget';
 import { useState, useEffect } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { APP_LAYOUT_TYPES } from '../src/modules/app-layout/infrastructure/bootstrap/types';
@@ -454,6 +455,9 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
 
             {/* AuthModule - управляет авторизацией и рендерит popup */}
             <AuthModule renderSidebarButton={false} renderPopupConfig={true} />
+
+            {/* Personal Offers popup */}
+            <PersonalOffersWidget />
 
             {/* Mobile Header - показывается только на мобилке */}
             {isMobile && (

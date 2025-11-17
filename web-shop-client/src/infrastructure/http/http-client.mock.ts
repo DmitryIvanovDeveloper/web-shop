@@ -10,9 +10,31 @@ import { HttpClient, HttpRequest, HttpResponse } from '../../application/ports/h
  */
 @injectable()
 export class HttpClientMock implements HttpClient {
+  private readonly manualResponses: Map<string, { data: any; status: number; statusText: string }> =
+    new Map();
+
   constructor(private readonly publicBasePath: string = '/mocks') {}
 
+  public setMockResponse(url: string, data: any, status = 200, statusText = 'OK'): void {
+    this.manualResponses.set(url, { data, status, statusText });
+  }
+
   async request<T>(request: HttpRequest): Promise<HttpResponse<T>> {
+    const manualResponse =
+      this.manualResponses.get(request.url) ??
+      (request.url.includes('?')
+        ? this.manualResponses.get(request.url.split('?')[0]!)
+        : undefined);
+
+    if (manualResponse) {
+      return {
+        data: manualResponse.data as T,
+        status: manualResponse.status,
+        statusText: manualResponse.statusText,
+        headers: {},
+      };
+    }
+
     const mockPath = this.mapToMockPath(request.url);
     console.log('[HttpClientMock] Request URL:', request.url);
     console.log('[HttpClientMock] Mapped to mock path:', mockPath);

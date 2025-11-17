@@ -14,8 +14,10 @@ import { SupabaseClient } from '../database/supabase-client';
 import { bindAuthentication } from '../../modules/authentication/infrastructure/bootstrap/bind.authentication';
 import { bindAppLayout } from '../../modules/app-layout/infrastructure/bootstrap/bind.ui-renderer';
 import { bindOffers } from '../../modules/offers/infrastructure/bootstrap/bind.offers';
+import { bindPersonalOffers } from '../../modules/personal-offers/infrastructure/bootstrap/bind.personal-offers';
 import { bindProducts } from '../../modules/products/infrastructure/bootstrap/bind.products';
 import { bindPageRenderer } from '../../modules/page-renderer/infrastructure/bootstrap/bind.page-renderer';
+import { bindUserOfferContext } from '../../modules/user-offer-context/infrastructure/bootstrap/bind.user-offer-context';
 import { UIRendererService } from '../services/ui-renderer/ui-renderer.service';
 import { UIComponentRegistry } from '../services/ui-renderer/component-registry.service';
 import { UIStyleBuilder } from '../services/ui-renderer/style-builder.service';
@@ -57,8 +59,14 @@ bindAuthentication(container);
 // Register App Layout module
 bindAppLayout(container);
 
+// Register User Offer Context module
+bindUserOfferContext(container);
+
 // Register Offers module
 bindOffers(container);
+
+// Register Personal Offers module
+bindPersonalOffers(container);
 
 // Register Products module
 bindProducts(container);

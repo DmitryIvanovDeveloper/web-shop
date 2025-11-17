@@ -39,6 +39,20 @@ describe('OfferRuleTreeBuilder', () => {
     expect(vipScenario).toBeDefined();
     expect(vipScenario?.offerIds).toEqual(['vip-box']);
   });
+
+  it('builds returning-trial-offer scenario from catalog', () => {
+    const tree = buildOfferRuleTreeFromCatalog({
+      appId: 'app-liveops',
+      version: 'v1',
+    });
+
+    const returningTrialScenario = tree.scenarios.find(
+      (scenario) => scenario.slug === 'returning-trial-offer'
+    );
+    expect(returningTrialScenario).toBeDefined();
+    expect(returningTrialScenario?.triggerCode).toBe('returning_no_purchase');
+    expect(returningTrialScenario?.offerIds).toEqual(['returning-trial-offer']);
+  });
 });
 
 

@@ -35,52 +35,27 @@ export class PersonalOffersUserAuthenticatedHandler
     });
 
     try {
-      // Check both event metadata and offer context to determine if user is new
-      // This handles race conditions where user might be created before event is processed
-      let isNewUser = isNewUserFromEvent;
+      // Load context once at the beginning (no waiting loops - use defaults if not ready)
+      // This context will be reused in SelectOffersInteractor to avoid double loading
+      const context = await this.contextReader.load(event.appId, event.userId);
       
-      if (!isNewUser) {
-        // Load offer context to check user.flags.isNew
-        // This handles race conditions where user might be created before event is processed
-        // Wait a bit for UserRegisteredEvent to be processed and offer context to be updated
-        this.logger.info('[PersonalOffersHandler] Checking offer context for user.flags.isNew', {
+      this.logger.info('[PersonalOffersHandler] Context loaded', {
+        userId: event.userId,
+        appId: event.appId,
+        hasContext: !!context,
+        contextData: context?.data,
+        isNewUserFromEvent,
+      });
+      
+      // Determine if user is new from event metadata or context
+      // Use event metadata as primary source, fallback to context if available
+      let isNewUser = isNewUserFromEvent;
+      if (!isNewUser && context?.data?.['user.flags.isNew'] === true) {
+        isNewUser = true;
+        this.logger.info('[PersonalOffersHandler] User is new according to offer context', {
           userId: event.userId,
           appId: event.appId,
         });
-        
-        // Wait for UserRegisteredEvent to be processed (up to 2 seconds)
-        let context = await this.contextReader.load(event.appId, event.userId);
-        let attempts = 0;
-        const maxAttempts = 10;
-        
-        while (attempts < maxAttempts && context?.data?.['user.flags.isNew'] !== true) {
-          await new Promise(resolve => setTimeout(resolve, 200)); // Wait 200ms
-          context = await this.contextReader.load(event.appId, event.userId);
-          attempts++;
-        }
-        
-        this.logger.info('[PersonalOffersHandler] Offer context loaded', {
-          userId: event.userId,
-          appId: event.appId,
-          hasContext: !!context,
-          contextData: context?.data,
-          isNewFlag: context?.data?.['user.flags.isNew'],
-          attempts,
-        });
-        
-        if (context?.data?.['user.flags.isNew'] === true) {
-          isNewUser = true;
-          this.logger.info('[PersonalOffersHandler] User is new according to offer context', {
-            userId: event.userId,
-            appId: event.appId,
-          });
-        } else {
-          this.logger.info('[PersonalOffersHandler] User is not new according to offer context', {
-            userId: event.userId,
-            appId: event.appId,
-            isNewFlag: context?.data?.['user.flags.isNew'],
-          });
-        }
       }
 
       // For new users, show welcome-new-user scenario
@@ -96,40 +71,26 @@ export class PersonalOffersUserAuthenticatedHandler
       });
 
       // Pass user flags via overrides to ensure condition evaluation works
-      // This handles race conditions where offer context might not be updated yet
-      // IMPORTANT: UserAuthenticatedEvent handlers run in parallel (Promise.all),
-      // so UserReturnedEvent might not be processed yet when we check offer context.
-      // We set user.flags.isNew directly via overrides to avoid race condition.
+      // Use context values if available, otherwise use defaults (handled by PropertyReadersService)
+      // This avoids race conditions and eliminates the need for waiting loops
       const overrides: Record<string, any> = {};
       if (isNewUser) {
         overrides['user.flags.isNew'] = true;
       } else {
         // For returning users, set isNew flag to false directly via overrides
-        // This avoids race condition where UserReturnedEvent handler might not have
-        // updated offer context yet (both handlers run in parallel via Promise.all)
         overrides['user.flags.isNew'] = false;
         
-        // Also need to check purchases.length - wait a bit for context to load
-        // But don't wait too long, as UserReturnedEvent handler runs in parallel
-        let context = await this.contextReader.load(event.appId, event.userId);
-        let attempts = 0;
-        const maxAttempts = 5;
-        
-        while (attempts < maxAttempts && context?.data?.['user.purchases.length'] === undefined) {
-          await new Promise(resolve => setTimeout(resolve, 200)); // Wait 200ms
-          context = await this.contextReader.load(event.appId, event.userId);
-          attempts++;
+        // Use context value if available, otherwise PropertyReadersService will use default (0)
+        const purchasesLength = context?.data?.['user.purchases.length'];
+        if (purchasesLength !== undefined) {
+          overrides['user.purchases.length'] = purchasesLength;
         }
         
-        const purchasesLength = context?.data?.['user.purchases.length'] ?? 0;
-        overrides['user.purchases.length'] = purchasesLength;
-        
-        this.logger.info('[PersonalOffersHandler] Returning user context loaded', {
+        this.logger.info('[PersonalOffersHandler] Returning user context prepared', {
           userId: event.userId,
           appId: event.appId,
-          purchasesLength,
-          attempts,
-          note: 'user.flags.isNew set to false via overrides to avoid race condition with UserReturnedEvent handler',
+          purchasesLength: purchasesLength ?? 'will use default',
+          note: 'No waiting loops - using context if available, defaults otherwise',
         });
       }
 
@@ -138,6 +99,7 @@ export class PersonalOffersUserAuthenticatedHandler
         userId: event.userId,
         scenarioSlugs,
         overrides: Object.keys(overrides).length > 0 ? overrides : undefined,
+        contextSnapshot: context ?? undefined, // Pass context to avoid reloading
       });
 
       this.logger.info('[PersonalOffersHandler] Personal offers handled successfully.');

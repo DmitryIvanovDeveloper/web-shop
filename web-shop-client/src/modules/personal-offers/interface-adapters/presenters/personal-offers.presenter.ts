@@ -4,6 +4,7 @@ import { OFFERS_TYPES } from '../../../offers/infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { PersonalOffersViewModel } from '../view-models/personal-offers.view-model';
+import type { UserOfferContextSnapshot } from '../../../user-offer-context/application/ports/context.types';
 
 import type { ComparableValue } from '../../../offers/domain/types';
 
@@ -12,6 +13,7 @@ export interface ShowPersonalOffersInput {
   readonly userId: string;
   readonly scenarioSlugs?: readonly string[];
   readonly overrides?: Readonly<Record<string, ComparableValue>>;
+  readonly contextSnapshot?: UserOfferContextSnapshot;
 }
 
 @injectable()
@@ -48,7 +50,7 @@ export class PersonalOffersPresenter {
   }
 
   public async showOffers(input: ShowPersonalOffersInput): Promise<void> {
-    const { appId, userId, scenarioSlugs, overrides } = input;
+    const { appId, userId, scenarioSlugs, overrides, contextSnapshot } = input;
 
     if (!appId || !userId) {
       this.logger.warn('[PersonalOffersPresenter] Missing appId or userId. Popup will stay hidden.', {
@@ -83,6 +85,7 @@ export class PersonalOffersPresenter {
         userId,
         scenarioSlugs,
         overrides,
+        contextSnapshot: input.contextSnapshot,
       });
 
       this.logger.info('[PersonalOffersPresenter] SelectOffersUseCase returned', {

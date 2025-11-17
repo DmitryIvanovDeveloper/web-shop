@@ -19,7 +19,10 @@ export interface AuthRepositoryPort {
    * Проверить существует ли пользователь в Supabase, если нет - создать (Supabase flow)
    * @param appId - ID приложения
    * @param userId - ID пользователя
-   * @returns Result с AppUser или Error
+   * @returns Result с AppUser, isNew и lastActiveAt (старое значение до обновления) или Error
    */
-  ensureUserExists(appId: string, userId: string): Promise<Result<AppUser, Error>>;
+  ensureUserExists(
+    appId: string,
+    userId: string
+  ): Promise<Result<{ user: AppUser; isNew: boolean; lastActiveAt?: string }, Error>>;
 }

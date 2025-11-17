@@ -73,7 +73,7 @@ export class ValidateAppLoginUseCase {
 
       // 4. Успешная валидация
       if (result.isSuccess()) {
-        const user = result.data;
+        const { user, isNew, lastActiveAt } = result.data;
         
         // Сохранение в localStorage
         if (typeof window !== 'undefined') {
@@ -85,16 +85,22 @@ export class ValidateAppLoginUseCase {
         console.log('[ValidateAppLoginUseCase] Publishing UserAuthenticatedEvent', {
           userId: user.userId,
           username: user.username,
-          appId: user.appId
+          appId: user.appId,
+          isNew,
+          lastActiveAt
         });
         await this._eventBus.publishAsync(
           new UserAuthenticatedEvent(
             user.userId,
             user.username,
-            user.appId
+            user.appId,
+            { isNewUser: isNew, lastActiveAt }
           )
         );
         console.log('[ValidateAppLoginUseCase] Event published successfully');
+        
+        // UserRegisteredEvent and UserReturnedEvent are now handled by UserAuthenticatedEventHandler
+        // which listens to UserAuthenticatedEvent and publishes the appropriate event based on isNewUser
         
         return Result.ok(user);
       }

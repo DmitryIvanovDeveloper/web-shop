@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Container } from 'inversify';
 import { bindAuthentication } from '../../modules/authentication/infrastructure/bootstrap/bind.authentication';
 import { bindOffers } from '../../modules/offers/infrastructure/bootstrap/bind.offers';
+import { bindUserOfferContext } from '../../modules/user-offer-context/infrastructure/bootstrap/bind.user-offer-context';
 import { ValidateAppLoginUseCase } from '../../modules/authentication/application/use-cases/validate-app-login.use-case';
 import { EvaluateOffersUseCase } from '../../modules/offers/application/use-cases/evaluate-offers.use-case';
 import { AuthUserAuthenticatedHandler } from '../../modules/authentication/interface-adapters/handlers/user-authenticated.handler';
@@ -33,24 +34,63 @@ describe('E2E: 3 Authentication Scenarios', () => {
       get: vi.fn().mockImplementation((url: string) => {
         if (url.includes('/api/auth/users.json')) {
           return Promise.resolve({
-            users: [
-              { userId: '1', username: 'player1', appId: 'APP123' },
-              { userId: '2', username: 'player2', appId: 'APP456' }
-            ]
+            data: {
+              users: [
+                { userId: '1', username: 'player1', appId: 'APP123' },
+                { userId: '2', username: 'player2', appId: 'APP456' }
+              ]
+            },
+            status: 200,
+            statusText: 'OK',
+            headers: {}
           });
         }
         if (url.includes('/api/offers')) {
           return Promise.resolve({
-            offers: [
-              { id: 'offer-1', title: 'Premium Bundle', price: 9.99 }
-            ]
+            data: {
+              offers: [
+                { id: 'offer-1', title: 'Premium Bundle', price: 9.99 }
+              ]
+            },
+            status: 200,
+            statusText: 'OK',
+            headers: {}
           });
         }
         if (url.includes('/api/rules')) {
-          return Promise.resolve({ rules: [] });
+          return Promise.resolve({
+            data: { rules: [] },
+            status: 200,
+            statusText: 'OK',
+            headers: {}
+          });
         }
-        return Promise.resolve({});
-      })
+        return Promise.resolve({
+          data: {},
+          status: 200,
+          statusText: 'OK',
+          headers: {}
+        });
+      }),
+      post: vi.fn().mockResolvedValue({
+        data: { context: {}, updatedAt: new Date().toISOString() },
+        status: 200,
+        statusText: 'OK',
+        headers: {}
+      }),
+      put: vi.fn().mockResolvedValue({
+        data: {},
+        status: 200,
+        statusText: 'OK',
+        headers: {}
+      }),
+      delete: vi.fn().mockResolvedValue({
+        data: {},
+        status: 200,
+        statusText: 'OK',
+        headers: {}
+      }),
+      request: vi.fn()
     } as unknown as HttpClient;
     
     container.bind<Logger>(ROOT_TYPES.Logger).toConstantValue(mockLogger);
@@ -58,6 +98,7 @@ describe('E2E: 3 Authentication Scenarios', () => {
     container.bind(ROOT_TYPES.EventBus).to(EventBus).inSingletonScope();
     
     bindAuthentication(container);
+    bindUserOfferContext(container);
     bindOffers(container);
   });
 

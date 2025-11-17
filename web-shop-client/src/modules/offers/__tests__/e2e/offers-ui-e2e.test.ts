@@ -5,13 +5,17 @@ import { Container } from 'inversify';
 import { OffersList } from '../../interface-adapters/ui/components/offers-list';
 import { OffersListPresenter } from '../../interface-adapters/presenters/offers-list.presenter';
 import { EvaluateOffersUseCase } from '../../application/use-cases/evaluate-offers.use-case';
+import { SelectOffersInteractor } from '../../application/use-cases/select-offers.use-case';
 import { RulesRepository } from '../../infrastructure/repositories/rules.repository';
 import { OfferRepository } from '../../infrastructure/repositories/offer.repository';
 import { PropertyReadersService } from '../../infrastructure/services/property-readers.service';
 import { OFFERS_TYPES } from '../../infrastructure/bootstrap/types';
 import { HttpClientMock } from '../../../../infrastructure/http/http-client.mock';
-import { TYPES } from '../../../../infrastructure/bootstrap/types';
+import { AUTH_TYPES, TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { OffersListViewModel } from '../../interface-adapters/view-models/offers-list.view-model';
+import { USER_OFFER_CONTEXT_TYPES } from '../../../user-offer-context/infrastructure/bootstrap/types';
+import type { UserOfferContextReaderPort } from '../../../user-offer-context/application/ports/user-offer-context-reader.port';
+import type { AuthServicePort, AuthenticatedUserInfo } from '../../../authentication/application/services';
 
 // Mock React component for testing
 const MockOffersList = ({ presenter }: { presenter: OffersListPresenter }) => {
@@ -55,6 +59,35 @@ const MockOffersList = ({ presenter }: { presenter: OffersListPresenter }) => {
   return React.createElement('div', { 'data-testid': 'unknown-state' }, 'Unknown state');
 };
 
+class StubUserOfferContextReader implements UserOfferContextReaderPort {
+  public async load(appId: string, userId: string) {
+    return {
+      appId,
+      userId,
+      data: {},
+      updatedAt: new Date().toISOString(),
+    };
+  }
+}
+
+class StubAuthService implements AuthServicePort {
+  public isUserAuthenticated(): boolean {
+    return true;
+  }
+
+  public getCurrentUserId(): string | null {
+    return 'user-1';
+  }
+
+  public getCurrentUser(): AuthenticatedUserInfo | null {
+    return {
+      userId: 'user-1',
+      appId: 'APP123',
+      username: 'test-user',
+    };
+  }
+}
+
 describe('Offers UI E2E Tests', () => {
   let container: Container;
   let presenter: OffersListPresenter;
@@ -68,6 +101,9 @@ describe('Offers UI E2E Tests', () => {
     container.bind(OFFERS_TYPES.OfferRepository).to(OfferRepository).inSingletonScope();
     container.bind(OFFERS_TYPES.ConditionReader).to(PropertyReadersService).inSingletonScope();
     container.bind(OFFERS_TYPES.EvaluateOffersUseCase).to(EvaluateOffersUseCase).inSingletonScope();
+    container.bind(OFFERS_TYPES.SelectOffersUseCase).to(SelectOffersInteractor).inSingletonScope();
+    container.bind(USER_OFFER_CONTEXT_TYPES.ContextReader).toConstantValue(new StubUserOfferContextReader());
+    container.bind(AUTH_TYPES.AuthService).toConstantValue(new StubAuthService());
     container.bind(OFFERS_TYPES.OffersListPresenter).to(OffersListPresenter).inSingletonScope();
     
     presenter = container.get(OFFERS_TYPES.OffersListPresenter);

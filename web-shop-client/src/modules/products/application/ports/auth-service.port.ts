@@ -4,6 +4,8 @@
  * Реализация находится в Authentication модуле
  */
 
+import type { AuthenticatedUserInfo } from '../../../authentication/application/services';
+
 export interface AuthServicePort {
   /**
    * Проверка авторизации пользователя
@@ -15,6 +17,11 @@ export interface AuthServicePort {
    * @returns userId или null если не авторизован
    */
   getCurrentUserId(): string | null;
+
+  /**
+   * Получение полной информации о текущем пользователе
+   */
+  getCurrentUser(): AuthenticatedUserInfo | null;
 }
 
 

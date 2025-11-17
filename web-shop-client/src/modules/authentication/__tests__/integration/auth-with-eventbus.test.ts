@@ -27,9 +27,9 @@ const ROOT_TYPES = {
 
 // Create a mock EventBus that implements IEventBus interface
 const mockEventBus = {
-  async publishAsync<TEvent extends any>(event: TEvent): Promise<void> {
-    console.log('[MockEventBus] Publishing event:', (event as any).type);
-  }
+  publishAsync: vi.fn().mockImplementation(async (event: any) => {
+    console.log('[MockEventBus] Publishing event:', event.type);
+  }),
 };
 
 describe('Authentication with EventBus Integration', () => {
@@ -85,8 +85,6 @@ describe('Authentication with EventBus Integration', () => {
   });
 
   it('should publish UserAuthenticatedEvent after successful login', async () => {
-    const publishAsyncSpy = vi.spyOn(mockEventBus, 'publishAsync');
-    
     const result = await useCase.execute({ appId: 'APP123' });
     
     expect(result.isSuccess()).toBe(true);
@@ -98,13 +96,14 @@ describe('Authentication with EventBus Integration', () => {
     );
     
     // Проверка вызова EventBus
-    expect(publishAsyncSpy).toHaveBeenCalledTimes(1);
-    expect(publishAsyncSpy).toHaveBeenCalledWith(
+    // UserRegisteredEvent is now published by UserAuthenticatedEventHandler, not directly from ValidateAppLoginUseCase
+    expect(mockEventBus.publishAsync).toHaveBeenCalledTimes(1);
+    expect(mockEventBus.publishAsync).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'UserAuthenticatedEvent',
         userId: '1',
         username: 'testuser',
-        appId: 'APP123'
+        appId: 'APP123',
       })
     );
   });
@@ -150,40 +149,34 @@ describe('Authentication with EventBus Integration', () => {
   it('should handle network errors gracefully', async () => {
     vi.mocked(mockHttpClient.get).mockRejectedValue(new Error('Network error'));
     
-    const publishAsyncSpy = vi.spyOn(mockEventBus, 'publishAsync');
-    
     const result = await useCase.execute({ appId: 'APP123' });
     
     expect(result.isFailure()).toBe(true);
-    expect(publishAsyncSpy).not.toHaveBeenCalled();
+    expect(mockEventBus.publishAsync).not.toHaveBeenCalled();
     // Логирование ошибок происходит в AuthRepository, не в UseCase
   });
 
   it('should handle empty appId validation', async () => {
-    const publishAsyncSpy = vi.spyOn(mockEventBus, 'publishAsync');
-    
     const result = await useCase.execute({ appId: '' });
     
     expect(result.isFailure()).toBe(true);
-    expect(publishAsyncSpy).not.toHaveBeenCalled();
+    expect(mockEventBus.publishAsync).not.toHaveBeenCalled();
   });
 
   it('should handle multiple successful logins', async () => {
-    const publishAsyncSpy = vi.spyOn(mockEventBus, 'publishAsync');
-    
     await useCase.execute({ appId: 'APP123' });
     await useCase.execute({ appId: 'APP123' });
     
-    expect(publishAsyncSpy).toHaveBeenCalledTimes(2);
+    // Each login publishes only UserAuthenticatedEvent (UserRegisteredEvent is handled by UserAuthenticatedEventHandler)
+    expect(mockEventBus.publishAsync).toHaveBeenCalledTimes(2);
     expect(mockLogger.info).toHaveBeenCalledTimes(2);
   });
 
   it('should integrate with EventBus publishAsync method', async () => {
-    const publishAsyncSpy = vi.spyOn(mockEventBus, 'publishAsync');
-    
     await useCase.execute({ appId: 'APP123' });
     
-    expect(publishAsyncSpy).toHaveBeenCalledWith(
+    // UserRegisteredEvent is now published by UserAuthenticatedEventHandler, not directly from ValidateAppLoginUseCase
+    expect(mockEventBus.publishAsync).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'UserAuthenticatedEvent',
         userId: '1',
@@ -191,6 +184,12 @@ describe('Authentication with EventBus Integration', () => {
         appId: 'APP123'
       })
     );
+    // Verify that UserAuthenticatedEvent contains isNewUser metadata
+    const authenticatedEventCall = mockEventBus.publishAsync.mock.calls.find(
+      call => call[0]?.type === 'UserAuthenticatedEvent'
+    );
+    expect(authenticatedEventCall).toBeDefined();
+    expect(authenticatedEventCall[0].payload.metadata?.isNewUser).toBeDefined();
   });
 });
  

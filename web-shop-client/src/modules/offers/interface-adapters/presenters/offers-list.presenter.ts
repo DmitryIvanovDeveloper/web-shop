@@ -1,18 +1,33 @@
-import { injectable, inject } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { OFFERS_TYPES } from '../../infrastructure/bootstrap/types';
-import { EvaluateOffersUseCase } from '../../application/use-cases/evaluate-offers.use-case';
+import type { SelectOffersUseCase } from '../../application/use-cases/select-offers.contract';
 import type { OffersListViewModel } from '../view-models/offers-list.view-model';
+import type { AuthServicePort } from '../../../authentication/application/services';
+import { AUTH_TYPES } from '../../../../infrastructure/bootstrap/types';
 
 @injectable()
 export class OffersListPresenter {
-  constructor(
-    @inject(OFFERS_TYPES.EvaluateOffersUseCase)
-    private readonly evaluateOffersUseCase: EvaluateOffersUseCase
+  public constructor(
+    @inject(OFFERS_TYPES.SelectOffersUseCase)
+    private readonly selectOffersUseCase: SelectOffersUseCase,
+    @inject(AUTH_TYPES.AuthService)
+    private readonly authService: AuthServicePort
   ) {}
 
   public async present(): Promise<OffersListViewModel> {
     try {
-      const offers = await this.evaluateOffersUseCase.execute();
+      const currentUser = this.authService.getCurrentUser();
+      if (!currentUser) {
+        return {
+          status: 'success',
+          offers: [],
+        };
+      }
+
+      const { offers } = await this.selectOffersUseCase.execute({
+        appId: currentUser.appId,
+        userId: currentUser.userId,
+      });
       return { status: 'success', offers };
     } catch (error) {
       return {

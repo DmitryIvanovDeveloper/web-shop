@@ -13,6 +13,7 @@ import type { HttpClient } from '../../../../application/ports/http-client.port'
 import type { Logger } from '../../../../application/ports/logger.port';
 import type { DatabaseClientPort } from '../../../../application/ports/database-client.port';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
+import { stringToDeterministicUuid } from '../../../../shared/utils/deterministic-uuid';
 
 @injectable()
 export class AuthRepository implements AuthRepositoryPort {
@@ -50,33 +51,16 @@ export class AuthRepository implements AuthRepositoryPort {
   }
 
   /**
-   * Генерирует детерминированный UUID v5 из строки
-   * Использует DNS namespace для консистентности
-   */
-  private _generateUuidFromString(str: string): string {
-    // Простая хеш-функция для генерации UUID из строки
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = ((hash << 5) - hash) + str.charCodeAt(i);
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    
-    // Форматируем как UUID v4
-    const hex = Math.abs(hash).toString(16).padStart(8, '0');
-    const uuid = `${hex.substring(0, 8)}-${hex.substring(0, 4)}-4${hex.substring(1, 4)}-${(parseInt(hex.substring(0, 1), 16) & 0x3 | 0x8).toString(16)}${hex.substring(1, 4)}-${str.split('').reduce((acc, char) => acc + char.charCodeAt(0).toString(16), '').substring(0, 12).padEnd(12, '0')}`;
-    
-    return uuid;
-  }
-
-  /**
    * Проверить существует ли пользователь в Supabase, если нет - создать
    * @param appId - ID приложения
    * @param userId - ID пользователя (строка, будет конвертирована в UUID)
    */
-  public async ensureUserExists(appId: string, userId: string): Promise<Result<AppUser, Error>> {
+  public async ensureUserExists(
+    appId: string,
+    userId: string
+  ): Promise<Result<{ user: AppUser; isNew: boolean }, Error>> {
     try {
-      // Генерируем UUID из строки userId
-      const userUuid = this._generateUuidFromString(userId);
+      const userUuid = stringToDeterministicUuid(userId);
       
       this._logger.info('[AuthRepository] Ensuring user exists in Supabase', { 
         appId, 
@@ -92,19 +76,39 @@ export class AuthRepository implements AuthRepositoryPort {
         .eq('user_id', userUuid)
         .single();
 
-      // 2. Если пользователь существует - возвращаем
+      // 2. Если пользователь существует - обновляем last_active_at и возвращаем
       if (existingUser && !selectError) {
-        this._logger.info('[AuthRepository] User found in Supabase', { 
+        // Store old last_active_at before updating (needed for calculating daysSinceLastActive)
+        const oldLastActiveAt = existingUser.last_active_at;
+        
+        // Update last_active_at to track user activity
+        await this._supabase
+          .from('users')
+          .update({ last_active_at: new Date().toISOString() })
+          .eq('app_id', appId)
+          .eq('user_id', userUuid);
+
+        this._logger.info('[AuthRepository] User found in Supabase, last_active_at updated', { 
           appId, 
           userId,
           userUuid,
-          dbId: existingUser.id 
+          dbId: existingUser.id,
+          oldLastActiveAt,
         });
         
+        // Convert oldLastActiveAt to ISO string if it exists
+        const lastActiveAt = oldLastActiveAt 
+          ? (oldLastActiveAt instanceof Date ? oldLastActiveAt.toISOString() : String(oldLastActiveAt))
+          : undefined;
+
         return Result.ok({
-          userId: userId, // Возвращаем оригинальный userId (строку)
-          appId: existingUser.app_id,
-          username: `User-${userId.substring(0, 8)}`
+          user: {
+            userId: userId, // Возвращаем оригинальный userId (строку)
+            appId: existingUser.app_id,
+            username: `User-${userId.substring(0, 8)}`
+          },
+          isNew: false,
+          lastActiveAt, // Return old last_active_at before update
         });
       }
 
@@ -119,18 +123,76 @@ export class AuthRepository implements AuthRepositoryPort {
         .from('users')
         .insert({
           app_id: appId,
-          user_id: userUuid // Используем UUID вместо строки
+          user_id: userUuid, // Используем UUID вместо строки
+          last_active_at: new Date().toISOString() // Set last_active_at for new users
         })
         .select()
         .single();
 
       if (insertError) {
+        // Handle race condition: if user was created by another request (409 conflict or duplicate key)
+        // Try to fetch the user that was just created
+        if (insertError.code === '23505' || insertError.code === 'PGRST116' || insertError.message?.includes('duplicate') || insertError.message?.includes('already exists')) {
+          this._logger.warn('[AuthRepository] User creation conflict (likely race condition), fetching existing user', { 
+            errorCode: insertError.code,
+            errorMessage: insertError.message,
+            appId,
+            userId,
+            userUuid,
+          });
+          
+          // Try to fetch the user that was just created
+          const { data: existingUser, error: fetchError } = await this._supabase
+            .from('users')
+            .select('*')
+            .eq('app_id', appId)
+            .eq('user_id', userUuid)
+            .single();
+          
+          if (existingUser && !fetchError) {
+            // Update last_active_at for user found after conflict
+            await this._supabase
+              .from('users')
+              .update({ last_active_at: new Date().toISOString() })
+              .eq('app_id', appId)
+              .eq('user_id', userUuid);
+
+            this._logger.info('[AuthRepository] User found after conflict, treating as existing user, last_active_at updated', { 
+              appId, 
+              userId,
+              userUuid,
+              dbId: existingUser.id 
+            });
+            
+            // Get old last_active_at before update
+            const oldLastActiveAt = existingUser.last_active_at;
+            const lastActiveAt = oldLastActiveAt 
+              ? (oldLastActiveAt instanceof Date ? oldLastActiveAt.toISOString() : String(oldLastActiveAt))
+              : undefined;
+
+            return Result.ok({
+              user: {
+                userId: userId,
+                appId: existingUser.app_id,
+                username: `User-${userId.substring(0, 8)}`
+              },
+              isNew: false, // User already exists, not new
+              lastActiveAt, // Return old last_active_at before update
+            });
+          }
+        }
+        
         this._logger.error('[AuthRepository] Failed to create user in Supabase', { 
           error: insertError,
+          errorCode: insertError.code,
+          errorMessage: insertError.message,
+          errorDetails: insertError.details,
+          errorHint: insertError.hint,
           appId,
-          userId 
+          userId,
+          userUuid,
         });
-        return Result.error(new Error(`Failed to create user: ${insertError.message}`));
+      return Result.error(new Error(`Failed to create user: ${insertError.message} (code: ${insertError.code})`));
       }
 
       this._logger.info('[AuthRepository] User created successfully in Supabase', { 
@@ -141,9 +203,13 @@ export class AuthRepository implements AuthRepositoryPort {
       });
 
       return Result.ok({
-        userId: userId, // Возвращаем оригинальный userId (строку), не UUID
-        appId: newUser.app_id,
-        username: `User-${userId.substring(0, 8)}`
+        user: {
+          userId: userId, // Возвращаем оригинальный userId (строку), не UUID
+          appId: newUser.app_id,
+          username: `User-${userId.substring(0, 8)}`
+        },
+        isNew: true,
+        lastActiveAt: undefined, // New users don't have old last_active_at
       });
 
     } catch (error) {

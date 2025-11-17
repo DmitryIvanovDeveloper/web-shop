@@ -4,6 +4,7 @@ import { RulesRepository } from '../repositories/rules.repository';
 import { OfferRepository } from '../repositories/offer.repository';
 import { PropertyReadersService } from '../services/property-readers.service';
 import { EvaluateOffersUseCase } from '../../application/use-cases/evaluate-offers.use-case';
+import { SelectOffersInteractor } from '../../application/use-cases/select-offers.use-case';
 import { OffersListPresenter } from '../../interface-adapters/presenters/offers-list.presenter';
 import { OffersUserAuthenticatedHandler } from '../../interface-adapters/handlers/user-authenticated.handler';
 import { OffersAppConfigLoadedHandler } from '../../interface-adapters/handlers/app-config-loaded.handler';
@@ -19,6 +20,7 @@ export function bindOffers(container: Container): void {
   
   // Use Cases
   container.bind(OFFERS_TYPES.EvaluateOffersUseCase).to(EvaluateOffersUseCase).inSingletonScope();
+  container.bind(OFFERS_TYPES.SelectOffersUseCase).to(SelectOffersInteractor).inSingletonScope();
   
   // Presenters
   container.bind(OFFERS_TYPES.OffersListPresenter).to(OffersListPresenter).inSingletonScope();

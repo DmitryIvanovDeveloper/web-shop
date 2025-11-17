@@ -1,5 +1,5 @@
-import type { RuleSet } from '../../domain/types';
+import type { OfferRuleTree } from '../../domain/types';
 
 export interface RulesRepositoryPort {
-  loadRules(): Promise<RuleSet>;
+  loadRules(appId?: string): Promise<OfferRuleTree>;
 }

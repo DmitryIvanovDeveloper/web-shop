@@ -15,7 +15,8 @@ export interface Condition {
 export interface Action {
   readonly actionType: 'showOffer';
   readonly params: {
-    readonly offerId: string;
+    readonly offerId: string | readonly string[];
+    readonly scenario?: string;
   };
 }
 
@@ -28,6 +29,23 @@ export interface Operation {
 }
 
 export interface RuleSet extends Operation {}
+
+export interface OfferRuleTreeScenario {
+  readonly slug: string;
+  readonly title: string;
+  readonly categoryCode: string;
+  readonly triggerCode: string;
+  readonly priority: number;
+  readonly offerIds: readonly string[];
+}
+
+export interface OfferRuleTree {
+  readonly appId: string;
+  readonly version: string;
+  readonly generatedAt: string;
+  readonly ruleSet: RuleSet;
+  readonly scenarios: readonly OfferRuleTreeScenario[];
+}
 
 export interface BuyButtonStyle {
   readonly backgroundColor?: string;
