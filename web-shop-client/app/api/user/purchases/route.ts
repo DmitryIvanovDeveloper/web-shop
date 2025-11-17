@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '../../_lib/supabase-server-client';
-import { stringToDeterministicUuid } from '../../../../src/shared/utils/deterministic-uuid';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -16,7 +15,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // If userId is provided, query purchases for that specific user
     if (rawUserId) {
-      const userId = stringToDeterministicUuid(rawUserId);
+      // Note: user_id in transaction_log is stored as string, not UUID
+      // SupabasePurchaseRepository uses userId directly as string, so we do the same here
+      const userId = rawUserId;
       
       const { data, error } = await supabase
         .from('transaction_log')
