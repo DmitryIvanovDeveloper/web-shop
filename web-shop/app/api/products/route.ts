@@ -44,7 +44,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Product title is required' }, { status: 400 });
     }
 
+    // Check if main_image is base64 and validate size
+    if (product.main_image && product.main_image.startsWith('data:')) {
+      const base64Length = product.main_image.length;
+      // Base64 increases size by ~33%, so 2MB file becomes ~2.67MB string
+      // PostgreSQL text field can handle up to ~1GB, but we'll limit to 10MB for safety
+      const maxBase64Length = 10 * 1024 * 1024; // 10MB
+      if (base64Length > maxBase64Length) {
+        return NextResponse.json(
+          { error: 'Image is too large. Maximum size is 2MB.' },
+          { status: 400 }
+        );
+      }
+    }
+
     const supabase = getSupabaseServerClient();
+
+    // Log main_image size for debugging
+    if (product.main_image) {
+      const imageSize = product.main_image.length;
+      console.log('[POST /api/products] main_image size:', imageSize, 'bytes');
+      if (product.main_image.startsWith('data:')) {
+        console.log('[POST /api/products] main_image is base64 data URL');
+      }
+    }
 
     const { data, error } = await supabase
       .from('products')
@@ -69,7 +92,10 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('[POST /api/products] Supabase error:', error);
-      return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Failed to create product', details: error.message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json(data, { status: 201 });
@@ -96,7 +122,30 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Product title is required' }, { status: 400 });
     }
 
+    // Check if main_image is base64 and validate size
+    if (product.main_image && product.main_image.startsWith('data:')) {
+      const base64Length = product.main_image.length;
+      // Base64 increases size by ~33%, so 2MB file becomes ~2.67MB string
+      // PostgreSQL text field can handle up to ~1GB, but we'll limit to 10MB for safety
+      const maxBase64Length = 10 * 1024 * 1024; // 10MB
+      if (base64Length > maxBase64Length) {
+        return NextResponse.json(
+          { error: 'Image is too large. Maximum size is 2MB.' },
+          { status: 400 }
+        );
+      }
+    }
+
     const supabase = getSupabaseServerClient();
+
+    // Log main_image size for debugging
+    if (product.main_image) {
+      const imageSize = product.main_image.length;
+      console.log('[PUT /api/products] main_image size:', imageSize, 'bytes');
+      if (product.main_image.startsWith('data:')) {
+        console.log('[PUT /api/products] main_image is base64 data URL');
+      }
+    }
 
     const { data, error } = await supabase
       .from('products')
@@ -120,7 +169,10 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('[PUT /api/products] Supabase error:', error);
-      return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Failed to update product', details: error.message },
+        { status: 500 }
+      );
     }
 
     if (!data) {

@@ -452,7 +452,6 @@ export function OfferCard({
         height: '100%',
         ...style
       }}
-      onClick={onClick}
     >
       {/* Top Label */}
       {topLabel && (

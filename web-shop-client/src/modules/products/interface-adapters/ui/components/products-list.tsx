@@ -23,6 +23,15 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
   // Get presenter from DI container
   const presenter = container.get<ProductsListPresenter>(PRODUCTS_TYPES.ProductsListPresenter);
 
+  // Get appId from URL query parameters
+  const getAppIdFromQuery = (): string | null => {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+    const searchParams = new URLSearchParams(window.location.search);
+    return searchParams.get('appId');
+  };
+
   useEffect(() => {
     // Subscribe to presenter updates
     presenter.setOnViewModelChanged(() => {
@@ -30,10 +39,12 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
       forceUpdate({});
     });
 
-    // Initial load
+    // Initial load with appId from URL
     const loadProducts = async () => {
       try {
-        await presenter.present();
+        const appId = getAppIdFromQuery();
+        console.log('[ProductsList] Loading products with appId from URL:', appId);
+        await presenter.present({ appId: appId || undefined });
       } catch (error) {
         console.error('[ProductsList] Failed to load products:', error);
       }
@@ -41,20 +52,33 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
 
     loadProducts();
     
+    // Listen for URL changes (e.g., appId parameter changes)
+    const handlePopState = () => {
+      const appId = getAppIdFromQuery();
+      console.log('[ProductsList] URL changed, reloading products with appId:', appId);
+      loadProducts();
+    };
+    
     // Слушать событие от ProductsUserAuthenticatedHandler
     // Handler уже вызвал presenter.present() с данными из события
     // Presenter обновит ViewModel и уведомит UI через callback
     const handleAuthReload = () => {
       console.log('[ProductsList] Auth changed, presenter will update');
+      const appId = getAppIdFromQuery();
+      presenter.present({ appId: appId || undefined }).catch((error) => {
+        console.error('[ProductsList] Failed to reload products after auth:', error);
+      });
     };
     
     if (typeof window !== 'undefined') {
       window.addEventListener('productsNeedReload', handleAuthReload);
+      window.addEventListener('popstate', handlePopState);
     }
     
     return () => {
       if (typeof window !== 'undefined') {
         window.removeEventListener('productsNeedReload', handleAuthReload);
+        window.removeEventListener('popstate', handlePopState);
       }
     };
   }, [presenter]);
