@@ -8,6 +8,7 @@ import { InvalidRuleError, EvaluationError } from '../../domain/errors/offers.er
 
 export interface EvaluateOffersInput {
   readonly appId?: string;
+  readonly userId?: string;
   readonly contextCache?: Map<string, ComparableValue>;
   readonly allowedScenarios?: readonly string[];
 }
@@ -112,7 +113,7 @@ export class EvaluateOffersUseCase {
       }
 
       const condition = buildCondition();
-      const conditionResult = await this.evaluateCondition(condition, cache);
+      const conditionResult = await this.evaluateCondition(condition, cache, input?.appId, input?.userId);
 
       console.log(`[EvaluateOffersUseCase] Scenario ${scenario.slug} (${scenario.triggerCode}):`, {
         conditionResult,
@@ -155,7 +156,7 @@ export class EvaluateOffersUseCase {
 
       // condition
       if (!operation.condition) return;
-      const result = await this.evaluateCondition(operation.condition, cache);
+      const result = await this.evaluateCondition(operation.condition, cache, input?.appId, input?.userId);
       if (result) {
         await evaluateOperation(operation.nextOperation);
       } else {
@@ -170,31 +171,65 @@ export class EvaluateOffersUseCase {
 
     console.log('[EvaluateOffersUseCase] Final offer IDs:', uniqueOfferIds);
 
-    // Fetch offer details from offer IDs
-    const offers: Offer[] = [];
-    for (const offerId of uniqueOfferIds) {
+    // Fetch offer details using batch endpoint (optimization: single request instead of multiple)
+    let offers: Offer[] = [];
+    if (uniqueOfferIds.length > 0) {
+      console.log('[EvaluateOffersUseCase] Loading offers via batch endpoint', {
+        offerIdsCount: uniqueOfferIds.length,
+        offerIds: uniqueOfferIds,
+      });
       try {
-        const offer = await this.offerRepository.getById(offerId);
-        // Only add offer if it has a title (to avoid showing empty cards)
-        if (offer && offer.title) {
-          offers.push(offer);
-        } else {
-          console.warn(`[EvaluateOffersUseCase] Offer ${offerId} loaded but has no title, skipping`);
-        }
+        const loadedOffers = await this.offerRepository.getByIds(uniqueOfferIds);
+        console.log('[EvaluateOffersUseCase] Batch load successful', {
+          loadedCount: loadedOffers.length,
+        });
+        // Filter out offers without title (to avoid showing empty cards)
+        offers = loadedOffers.filter((offer) => {
+          if (!offer || !offer.title) {
+            console.warn(`[EvaluateOffersUseCase] Offer ${offer?.id} loaded but has no title, skipping`);
+            return false;
+          }
+          return true;
+        });
+        console.log('[EvaluateOffersUseCase] Offers after filtering', {
+          filteredCount: offers.length,
+        });
       } catch (error) {
-        // Offer not found or failed to load - continue with other offers
-        console.warn(`[EvaluateOffersUseCase] Offer ${offerId} not found or failed to load`);
+        console.warn('[EvaluateOffersUseCase] Batch load failed, falling back to individual requests', {
+          error: error instanceof Error ? error.message : String(error),
+          offerIdsCount: uniqueOfferIds.length,
+        });
+        // Fallback to individual requests if batch fails
+        const offerPromises = uniqueOfferIds.map(async (offerId) => {
+          try {
+            const offer = await this.offerRepository.getById(offerId);
+            if (offer && offer.title) {
+              return offer;
+            }
+            return null;
+          } catch (err) {
+            console.warn(`[EvaluateOffersUseCase] Failed to load offer ${offerId}`, err);
+            return null;
+          }
+        });
+        const loadedOffers = await Promise.all(offerPromises);
+        offers = loadedOffers.filter((offer): offer is Offer => offer !== null);
+        console.log('[EvaluateOffersUseCase] Fallback load completed', {
+          loadedCount: offers.length,
+        });
       }
+    } else {
+      console.log('[EvaluateOffersUseCase] No offer IDs to load');
     }
 
     console.log('[EvaluateOffersUseCase] Final offers count:', offers.length);
     return offers;
   }
 
-  private async evaluateCondition(condition: Condition, cache: Map<string, ComparableValue>): Promise<boolean> {
+  private async evaluateCondition(condition: Condition, cache: Map<string, ComparableValue>, appId?: string, userId?: string): Promise<boolean> {
     if (condition.conditionType === 'and' || condition.conditionType === 'or') {
       if (!condition.conditions) return false;
-      const results = await Promise.all(condition.conditions.map(c => this.evaluateCondition(c as any, cache)));
+      const results = await Promise.all(condition.conditions.map(c => this.evaluateCondition(c as any, cache, appId, userId)));
       const result = condition.conditionType === 'and' ? results.every(Boolean) : results.some(Boolean);
       console.log(`[EvaluateOffersUseCase] ${condition.conditionType.toUpperCase()} condition:`, {
         conditions: condition.conditions.map((c: any) => ({
@@ -204,13 +239,18 @@ export class EvaluateOffersUseCase {
         })),
         results,
         finalResult: result,
+        details: condition.conditions.map((c: any, idx: number) => ({
+          index: idx,
+          condition: `${c.value1?.value} ${c.conditionType} ${c.value2?.value}`,
+          result: results[idx],
+        })),
       });
       return result;
     }
 
     if (!condition.value1 || !condition.value2) return false;
-    const left = await this.resolveValue(condition.value1, cache);
-    const right = await this.resolveValue(condition.value2, cache);
+    const left = await this.resolveValue(condition.value1, cache, appId, userId);
+    const right = await this.resolveValue(condition.value2, cache, appId, userId);
 
     let result: boolean;
     switch (condition.conditionType) {
@@ -232,16 +272,17 @@ export class EvaluateOffersUseCase {
       left: { type: condition.value1?.type, value: condition.value1?.value, resolved: left },
       right: { type: condition.value2?.type, value: condition.value2?.value, resolved: right },
       result,
+      comparison: `${left} ${condition.conditionType} ${right}`,
     });
 
     return result;
   }
 
-  private async resolveValue(descriptor: ValueDescriptor, cache: Map<string, ComparableValue>): Promise<ComparableValue> {
+  private async resolveValue(descriptor: ValueDescriptor, cache: Map<string, ComparableValue>, appId?: string, userId?: string): Promise<ComparableValue> {
     if (descriptor.type === 'value') return descriptor.value;
     const key = String(descriptor.value);
     if (cache.has(key)) return cache.get(key)!;
-    const value = await this.reader.read(key);
+    const value = await this.reader.read(key, appId, userId);
     cache.set(key, value);
     return value;
   }
