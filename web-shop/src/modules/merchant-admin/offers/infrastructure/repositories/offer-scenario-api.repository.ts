@@ -65,9 +65,9 @@ export class OfferScenarioApiRepository
         return Result.ok(scenarios);
       } catch (error) {
         if (error instanceof OfferScenarioConfigurationError) {
-          return Result.error(error);
+          return Result.error(error as Error);
         }
-        return Result.error(error as Error);
+        return Result.error(error instanceof Error ? error : new Error(String(error)));
       }
     } catch (error) {
       return Result.error(error as Error);
@@ -95,12 +95,14 @@ export class OfferScenarioApiRepository
         scenario: mapScenarioToDto(scenario),
       };
 
-      const response = await this.httpClient.put<any>(`${API_BASE}/scenarios`, payload);
+      const response = await this.httpClient.put<{ success: boolean }>(`${API_BASE}/scenarios`, payload);
 
       if (response.status !== 200) {
         return Result.error(new Error(`Failed to save scenario (status ${response.status})`));
       }
 
+      // API returns { success: true }, so we return the scenario we sent
+      // The scenario is already updated in memory, so this is correct
       return Result.ok(scenario);
     } catch (error) {
       return Result.error(error as Error);

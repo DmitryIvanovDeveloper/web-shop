@@ -35,6 +35,8 @@ export interface OfferScenarioListItemViewModel {
   readonly title: string;
   readonly description: string;
   readonly categoryTitle: string;
+  readonly categoryCode: string;
+  readonly triggerCode: string;
   readonly triggerLabel: string;
   readonly conditionDescription?: string;
   readonly priority: number;

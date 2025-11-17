@@ -210,6 +210,9 @@ export class OffersPresenter {
       return;
     }
 
+    // Find current scenario in memory to preserve any in-memory updates
+    const currentScenario = this.scenarios.find((s) => s.slug === slug);
+    
     const result = await this.updateScenarioConfigUseCase.execute({
       appId: this.appId,
       slug,
@@ -226,16 +229,25 @@ export class OffersPresenter {
     }
 
     const updatedScenario = result.data!.scenario;
+    
+    // Use the updated scenario from the use case, which already has the new configuration applied
+    // The use case applies the configuration via withConfiguration, so it should be up-to-date
     this.scenarios = this.scenarios.map((scenario) =>
       scenario.slug === updatedScenario.slug ? updatedScenario : scenario
     );
 
-    this.setViewModel({
-      ...this.viewModel,
-      categories: this.buildCategoryGroups(),
-      selectedScenario: this.toDetailViewModel(updatedScenario),
-      errorMessage: null,
-    });
+    // Only update viewModel if the selected scenario is the one we just updated
+    // This prevents flickering when updating a different scenario
+    const shouldUpdateViewModel = this.viewModel.selectedScenario?.slug === slug;
+    
+    if (shouldUpdateViewModel) {
+      this.setViewModel({
+        ...this.viewModel,
+        categories: this.buildCategoryGroups(),
+        selectedScenario: this.toDetailViewModel(updatedScenario),
+        errorMessage: null,
+      });
+    }
   }
 
   public async loadProducts(): Promise<Product[]> {
@@ -268,12 +280,23 @@ export class OffersPresenter {
     return products;
   }
 
-  public getAvailableConditions(): Array<{ triggerCode: string; label: string; description: string }> {
+  public getAvailableConditions(triggerCode?: string): Array<{ triggerCode: string; label: string; description: string }> {
+    // If triggerCode is provided, return only that condition
+    // Otherwise return all conditions (for backward compatibility)
+    if (triggerCode) {
+      const condition = {
+        triggerCode,
+        label: CONDITION_USER_LABELS[triggerCode] ?? triggerCode,
+        description: TRIGGER_CONDITION_DESCRIPTIONS[triggerCode] ?? '',
+      };
+      return [condition];
+    }
+
     // Return all trigger codes from catalog with user-friendly labels
-    return Object.keys(CONDITION_USER_LABELS).map((triggerCode) => ({
-      triggerCode,
-      label: CONDITION_USER_LABELS[triggerCode] ?? triggerCode,
-      description: TRIGGER_CONDITION_DESCRIPTIONS[triggerCode] ?? '',
+    return Object.keys(CONDITION_USER_LABELS).map((code) => ({
+      triggerCode: code,
+      label: CONDITION_USER_LABELS[code] ?? code,
+      description: TRIGGER_CONDITION_DESCRIPTIONS[code] ?? '',
     }));
   }
 
@@ -286,6 +309,16 @@ export class OffersPresenter {
     const scenario = this.scenarios.find((s) => s.slug === slug);
     if (!scenario) {
       this.logger.error('[OffersPresenter] Scenario not found', { slug });
+      return;
+    }
+
+    // Only allow updating condition that matches scenario's triggerCode
+    if (triggerCode !== scenario.trigger.code) {
+      this.logger.warn('[OffersPresenter] Cannot update condition that does not match scenario triggerCode', {
+        slug,
+        scenarioTriggerCode: scenario.trigger.code,
+        requestedTriggerCode: triggerCode,
+      });
       return;
     }
 
@@ -312,20 +345,25 @@ export class OffersPresenter {
     const currentConfig = scenario.configuration.toProps();
 
     // Update or create conditions array
-    let conditions = currentConfig.conditions ? [...currentConfig.conditions] : [];
+    // Filter out conditions that don't match scenario's triggerCode (cleanup old data)
+    let conditions = currentConfig.conditions
+      ? currentConfig.conditions.filter((c) => c.triggerCode === scenario.trigger.code)
+      : [];
     
     // Find existing condition or create new one
     const existingConditionIndex = conditions.findIndex((c) => c.triggerCode === triggerCode);
     
     if (existingConditionIndex >= 0) {
       // Update existing condition
+      // Allow empty arrays - user should be able to uncheck all products
       conditions[existingConditionIndex] = {
         triggerCode: triggerCode as any,
-        offerIds: productIds.length > 0 ? productIds : conditions[existingConditionIndex].offerIds,
-        items: items.length > 0 ? items : conditions[existingConditionIndex].items,
+        offerIds: productIds, // Always use the provided productIds, even if empty
+        items: items, // Always use the provided items, even if empty
       };
     } else {
-      // Add new condition
+      // Add new condition (should only happen if triggerCode matches scenario.trigger.code)
+      // Allow empty arrays - user should be able to create a condition with no products
       conditions.push({
         triggerCode: triggerCode as any,
         offerIds: productIds,
@@ -334,32 +372,54 @@ export class OffersPresenter {
     }
 
     // Update configuration with conditions array
+    // Ensure we always have either conditions or offerIds to pass validation
     const updatedConfiguration: OfferScenarioConfigurationProps = {
       ...currentConfig,
       conditions,
       // Keep backward compatibility: if no conditions, use single offerIds
-      offerIds: conditions.length === 0 && productIds.length > 0 ? productIds : currentConfig.offerIds,
+      // If both are empty, keep at least empty arrays to pass validation
+      offerIds: conditions.length === 0 && productIds.length > 0 
+        ? productIds 
+        : conditions.length > 0 
+        ? [] // If we have conditions, offerIds can be empty
+        : currentConfig.offerIds.length > 0 
+        ? currentConfig.offerIds 
+        : [], // Fallback to empty array
     };
 
     const interimScenarioResult = scenario.withConfiguration(updatedConfiguration);
     if (interimScenarioResult.isFailure()) {
+      const errorMessage = interimScenarioResult.error?.message ?? 'Unknown error';
       this.logger.error('[OffersPresenter] Interim scenario update failed', {
-        error: interimScenarioResult.error,
+        error: errorMessage,
+        errorType: interimScenarioResult.error?.constructor?.name,
         slug,
+        configuration: {
+          hasConditions: (updatedConfiguration.conditions?.length ?? 0) > 0,
+          conditionsCount: updatedConfiguration.conditions?.length ?? 0,
+          hasOfferIds: (updatedConfiguration.offerIds?.length ?? 0) > 0,
+          offerIdsCount: updatedConfiguration.offerIds?.length ?? 0,
+        },
       });
       return;
     }
 
     const interimScenario = interimScenarioResult.data!;
     this.scenarios = this.scenarios.map((s) => (s.slug === slug ? interimScenario : s));
-    this.setViewModel({
-      ...this.viewModel,
-      categories: this.buildCategoryGroups(),
-      selectedScenario: this.toDetailViewModel(interimScenario),
-      errorMessage: null,
-    });
-
-    // Save via existing method
+    
+    // Optimistic update: immediately update viewModel only if this is the selected scenario
+    // This ensures UI responds instantly to user interaction without causing flickering
+    if (this.viewModel.selectedScenario?.slug === slug) {
+      this.setViewModel({
+        ...this.viewModel,
+        categories: this.buildCategoryGroups(),
+        selectedScenario: this.toDetailViewModel(interimScenario),
+        errorMessage: null,
+      });
+    }
+    
+    // Save via API - this will update viewModel again with saved data
+    // But since we already updated optimistically for the selected scenario, the UI won't flicker
     await this.updateScenarioConfiguration(slug, updatedConfiguration);
   }
 
@@ -537,6 +597,8 @@ export class OffersPresenter {
       title: scenario.title,
       description: scenario.description,
       categoryTitle: scenario.category.title,
+      categoryCode: scenario.category.code,
+      triggerCode: scenario.trigger.code,
       triggerLabel: TRIGGER_LABELS[scenario.trigger.code] ?? scenario.trigger.code,
       conditionDescription: TRIGGER_CONDITION_DESCRIPTIONS[scenario.trigger.code],
       priority: scenario.priority,
@@ -586,15 +648,18 @@ export class OffersPresenter {
         })),
         metadata: configurationProps.metadata ?? {},
         conditions: configurationProps.conditions
-          ? configurationProps.conditions.map((condition) => ({
-              triggerCode: condition.triggerCode,
-              label: CONDITION_USER_LABELS[condition.triggerCode] ?? condition.triggerCode,
-              description: TRIGGER_CONDITION_DESCRIPTIONS[condition.triggerCode] ?? '',
-              offerIds: condition.offerIds,
-              productIds: (condition.items ?? [])
-                .filter((item) => item.type === 'product')
-                .map((item) => item.id),
-            }))
+          ? configurationProps.conditions
+              // Filter: only show conditions that match the scenario's triggerCode
+              .filter((condition) => condition.triggerCode === scenario.trigger.code)
+              .map((condition) => ({
+                triggerCode: condition.triggerCode,
+                label: CONDITION_USER_LABELS[condition.triggerCode] ?? condition.triggerCode,
+                description: TRIGGER_CONDITION_DESCRIPTIONS[condition.triggerCode] ?? '',
+                offerIds: condition.offerIds,
+                productIds: (condition.items ?? [])
+                  .filter((item) => item.type === 'product')
+                  .map((item) => item.id),
+              }))
           : undefined,
       },
     };
