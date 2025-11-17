@@ -37,6 +37,12 @@ export interface OfferRuleTreeScenario {
   readonly triggerCode: string;
   readonly priority: number;
   readonly offerIds: readonly string[];
+  readonly items?: readonly Array<{
+    readonly id: string;
+    readonly title: string;
+    readonly type: string;
+    readonly metadata?: Record<string, string | number | boolean>;
+  }>;
 }
 
 export interface OfferRuleTree {

@@ -62,6 +62,151 @@ const headerButtonStyle: React.CSSProperties = {
 // Removed toConfigurationProps - products are now saved automatically via checkboxes
 // in "Products by Condition" section through updateScenarioProducts
 
+interface ProductRowProps {
+  product: { id: string; title: string; current_price?: number | null; original_price?: number | null };
+  isChecked: boolean;
+  discount: string;
+  triggerCode: string | undefined;
+  selectedScenario: { slug: string } | null;
+  onCheckboxChange: (checked: boolean) => void;
+  onDiscountChange: (value: string) => void;
+}
+
+function ProductRow({ product, isChecked, discount, triggerCode, selectedScenario, onCheckboxChange, onDiscountChange }: ProductRowProps) {
+  const [localDiscount, setLocalDiscount] = useState(discount);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const isFocusedRef = React.useRef(false);
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Only sync when external discount changes AND input is not focused
+  useEffect(() => {
+    if (!isFocusedRef.current && discount !== localDiscount) {
+      setLocalDiscount(discount);
+    }
+  }, [discount, localDiscount]);
+
+  // Calculate discounted price in real-time
+  const calculateDiscountedPrice = (): { original: number | null; discounted: number | null } => {
+    const basePrice = product.current_price ?? product.original_price ?? null;
+    if (basePrice === null || basePrice === undefined) {
+      return { original: null, discounted: null };
+    }
+
+    const discountValue = localDiscount ? Number(localDiscount) : 0;
+    if (discountValue <= 0 || discountValue > 100) {
+      return { original: basePrice, discounted: basePrice };
+    }
+
+    const discountedPrice = basePrice * (1 - discountValue / 100);
+    return { original: basePrice, discounted: discountedPrice };
+  };
+
+  const { original, discounted } = calculateDiscountedPrice();
+
+  const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow empty string or valid number between 0 and 100
+    if (value === '' || (!isNaN(Number(value)) && Number(value) >= 0 && Number(value) <= 100)) {
+      setLocalDiscount(value);
+
+      // Clear previous timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      // Debounce: send update after user stops typing for 500ms
+      timeoutRef.current = setTimeout(() => {
+        onDiscountChange(value);
+      }, 500);
+    }
+  };
+
+  const handleFocus = () => {
+    isFocusedRef.current = true;
+  };
+
+  const handleBlur = () => {
+    isFocusedRef.current = false;
+    // Send immediately on blur
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    onDiscountChange(localDiscount);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        padding: '8px',
+        borderRadius: '8px',
+        background: isChecked ? 'rgba(255, 255, 255, 0.03)' : 'transparent',
+      }}
+    >
+      <input
+        type="checkbox"
+        checked={isChecked}
+        onChange={(e) => onCheckboxChange(e.target.checked)}
+        style={{ width: 16, height: 16, cursor: 'pointer' }}
+      />
+      <div style={{ flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <span style={{ color: '#E2E8F0' }}>{product.title}</span>
+        {original !== null && (
+          <span style={{ color: '#94A3B8', fontSize: '12px' }}>
+            {discounted !== null && localDiscount && Number(localDiscount) > 0 && discounted < original ? (
+              <>
+                <span style={{ opacity: 0.7 }}>
+                  ${original.toFixed(2)}
+                </span>
+                <span style={{ margin: '0 6px', color: '#64748B' }}>|</span>
+                <span style={{ color: '#60A5FA', fontWeight: 600 }}>
+                  ${discounted.toFixed(2)}
+                </span>
+              </>
+            ) : (
+              <>${original.toFixed(2)}</>
+            )}
+          </span>
+        )}
+      </div>
+      <input
+        ref={inputRef}
+        type="number"
+        min="0"
+        max="100"
+        step="1"
+        value={localDiscount}
+        onChange={handleDiscountChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        placeholder="Discount"
+        style={{
+          flex: '0 0 120px',
+          padding: '6px 10px',
+          borderRadius: '6px',
+          border: '1px solid rgba(148, 163, 184, 0.3)',
+          background: 'rgba(15, 23, 42, 0.9)',
+          color: '#E2E8F0',
+          fontSize: '14px',
+          cursor: 'text',
+        }}
+      />
+    </div>
+  );
+}
+
 export function OffersPage({ appId }: OffersPageProps): JSX.Element {
   const presenter = useMemo(
     () => appContainer.get<OffersPresenter>(OFFER_TYPES.OffersPresenter),
@@ -243,7 +388,7 @@ export function OffersPage({ appId }: OffersPageProps): JSX.Element {
                       <div style={{ color: '#94A3B8', fontSize: '14px' }}>Loading products...</div>
                     ) : (
                       <>
-                        {/* Products list - always shows products for the scenario's single condition */}
+                        {/* Products list with checkbox, name, and discount */}
                         <div
                           style={{
                             borderRadius: '12px',
@@ -257,32 +402,30 @@ export function OffersPage({ appId }: OffersPageProps): JSX.Element {
                             overflowY: 'auto',
                           }}
                         >
-                          {viewModel.products.map((product) => {
-                            // Get condition config for the scenario's triggerCode (always single condition)
+                          {(() => {
                             const triggerCode = viewModel.selectedScenario?.triggerCode;
                             const conditionConfig = viewModel.selectedScenario?.config.conditions?.find(
                               (c) => c.triggerCode === triggerCode
                             );
                             const selectedProductIds = new Set(conditionConfig?.productIds ?? []);
-                            const isChecked = selectedProductIds.has(product.id);
+                            const productDiscounts = conditionConfig?.productDiscounts ?? {};
 
-                            return (
-                              <label
-                                key={product.id}
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '10px',
-                                  cursor: 'pointer',
-                                }}
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={isChecked}
-                                  onChange={(event) => {
+                            return viewModel.products.map((product) => {
+                              const isChecked = selectedProductIds.has(product.id);
+                              const currentDiscount = productDiscounts[product.id] || '';
+
+                              return (
+                                <ProductRow
+                                  key={product.id}
+                                  product={product}
+                                  isChecked={isChecked}
+                                  discount={currentDiscount}
+                                  triggerCode={triggerCode}
+                                  selectedScenario={viewModel.selectedScenario}
+                                  onCheckboxChange={(checked) => {
                                     if (!viewModel.selectedScenario || !triggerCode) return;
                                     const updated = new Set(selectedProductIds);
-                                    if (event.target.checked) {
+                                    if (checked) {
                                       updated.add(product.id);
                                     } else {
                                       updated.delete(product.id);
@@ -297,33 +440,24 @@ export function OffersPage({ appId }: OffersPageProps): JSX.Element {
                                         // Presenter already logs failure via LoggerPort
                                       });
                                   }}
-                                  style={{ width: 16, height: 16 }}
+                                  onDiscountChange={(value) => {
+                                    if (!viewModel.selectedScenario || !triggerCode) return;
+                                    presenter
+                                      .updateProductDiscount(
+                                        viewModel.selectedScenario.slug,
+                                        triggerCode,
+                                        product.id,
+                                        value
+                                      )
+                                      .catch(() => {
+                                        // Presenter already logs failure via LoggerPort
+                                      });
+                                  }}
                                 />
-                                <span>{product.title}</span>
-                              </label>
-                            );
-                          })}
+                              );
+                            });
+                          })()}
                         </div>
-
-                        {/* Selected products summary */}
-                        {(() => {
-                          const triggerCode = viewModel.selectedScenario?.triggerCode;
-                          const conditionConfig = viewModel.selectedScenario?.config.conditions?.find(
-                            (c) => c.triggerCode === triggerCode
-                          );
-                          const selectedProducts = conditionConfig?.productIds ?? [];
-                          if (selectedProducts.length > 0) {
-                            const productTitles = viewModel.products
-                              .filter((p) => selectedProducts.includes(p.id))
-                              .map((p) => p.title);
-                            return (
-                              <div style={{ marginTop: '8px', fontSize: '12px', color: '#94A3B8' }}>
-                                Selected: {productTitles.join(', ')}
-                              </div>
-                            );
-                          }
-                          return null;
-                        })()}
                       </>
                     )}
                 </div>

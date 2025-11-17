@@ -99,6 +99,9 @@ export class EvaluateOffersUseCase {
       // Add other trigger conditions as needed
     };
 
+    // Track which scenarios passed their conditions (for discount application)
+    const matchedScenarios: typeof scenarios = [];
+
     // Evaluate each scenario
     for (const scenario of scenarios) {
       // Filter by allowedScenarios if provided
@@ -133,6 +136,8 @@ export class EvaluateOffersUseCase {
       if (conditionResult) {
         // Condition matched, add offer IDs
         offersIds.push(...scenario.offerIds);
+        // Track this scenario for discount application
+        matchedScenarios.push(scenario);
       }
     }
 
@@ -230,6 +235,82 @@ export class EvaluateOffersUseCase {
       }
     } else {
       console.log('[EvaluateOffersUseCase] No offer IDs to load');
+    }
+
+    // Apply discounts from scenario items metadata
+    // Only apply discounts from scenarios that passed their conditions
+    if (offers.length > 0 && matchedScenarios.length > 0) {
+      // Create a map of offerId -> discount from matched scenarios
+      const discountMap = new Map<string, number>();
+      
+      for (const scenario of matchedScenarios) {
+        if (scenario.items && scenario.items.length > 0) {
+          for (const item of scenario.items) {
+            if (item.metadata?.discount) {
+              const discountValue = item.metadata.discount;
+              // Parse discount: can be string "10" or number 10
+              let discountPercent: number;
+              if (typeof discountValue === 'string') {
+                const parsed = Number.parseFloat(discountValue.trim());
+                if (!Number.isNaN(parsed) && parsed >= 0 && parsed <= 100) {
+                  discountPercent = parsed;
+                } else {
+                  continue; // Skip invalid discount
+                }
+              } else if (typeof discountValue === 'number') {
+                if (discountValue >= 0 && discountValue <= 100) {
+                  discountPercent = discountValue;
+                } else {
+                  continue; // Skip invalid discount
+                }
+              } else {
+                continue; // Skip non-string/number discount
+              }
+              
+              // Store discount for this offer ID (use highest if multiple scenarios have discount)
+              const existingDiscount = discountMap.get(item.id);
+              if (!existingDiscount || discountPercent > existingDiscount) {
+                discountMap.set(item.id, discountPercent);
+              }
+            }
+          }
+        }
+      }
+      
+      // Apply discounts to offers - create new objects with updated prices
+      offers = offers.map((offer) => {
+        const discountPercent = discountMap.get(offer.id);
+        if (discountPercent !== undefined && discountPercent > 0) {
+          // Determine base price: prefer originalPrice, fallback to currentPrice
+          const basePriceStr = offer.originalPrice || offer.currentPrice;
+          if (basePriceStr) {
+            const basePrice = Number.parseFloat(basePriceStr);
+            if (!Number.isNaN(basePrice) && basePrice > 0) {
+              // Calculate discounted price
+              const discountedPrice = basePrice * (1 - discountPercent / 100);
+              
+              // Create new offer object with updated prices
+              const updatedOffer: Offer = {
+                ...offer,
+                // Keep originalPrice as base price if it exists, otherwise set it
+                originalPrice: offer.originalPrice || basePriceStr,
+                currentPrice: discountedPrice.toFixed(2),
+                // Set discount badge text
+                discount: `${Math.round(discountPercent)}%`,
+              };
+              
+              console.log(`[EvaluateOffersUseCase] Applied discount to offer ${offer.id}:`, {
+                originalPrice: updatedOffer.originalPrice,
+                discountedPrice: updatedOffer.currentPrice,
+                discountPercent,
+              });
+              
+              return updatedOffer;
+            }
+          }
+        }
+        return offer;
+      });
     }
 
     console.log('[EvaluateOffersUseCase] Final offers count:', offers.length);

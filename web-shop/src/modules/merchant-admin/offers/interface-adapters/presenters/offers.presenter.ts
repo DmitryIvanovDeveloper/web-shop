@@ -18,6 +18,7 @@ import type { OfferScenario } from '../../domain/entities/offer-scenario.entity'
 import type { OfferScenarioConfigurationProps } from '../../domain/entities/offer-scenario-configuration.entity';
 import type { OfferRuleTree } from '../../domain/types/offer-rule-tree.type';
 import type { Product } from '../../application/ports/product-query-service.port';
+import type { OfferItemProps } from '../../domain/value-objects/offer-item.value-object';
 
 interface LoadResult {
   readonly scenarios: readonly OfferScenario[];
@@ -325,24 +326,43 @@ export class OffersPresenter {
     // Get current products from viewModel
     const allProducts = this.viewModel.products;
 
-    // Convert productIds to OfferItem[]
+    // Get current configuration to preserve existing discounts
+    const currentConfig = scenario.configuration.toProps();
+    
+    // Build a map of existing discounts from current condition
+    const existingCondition = currentConfig.conditions?.find((c) => c.triggerCode === triggerCode);
+    const existingDiscounts: Record<string, string> = {};
+    if (existingCondition?.items) {
+      existingCondition.items
+        .filter((item) => item.type === 'product')
+        .forEach((item) => {
+          const discount = item.metadata?.discount;
+          if (discount && typeof discount === 'string') {
+            existingDiscounts[item.id] = discount;
+          }
+        });
+    }
+
+    // Convert productIds to OfferItem[], preserving existing discounts
     const items = productIds
       .map((productId) => {
         const product = allProducts.find((p) => p.id === productId);
         if (!product) {
           return null;
         }
+        const metadata: Record<string, string | number | boolean> = { appid: product.appid };
+        // Preserve existing discount if it exists
+        if (existingDiscounts[productId]) {
+          metadata.discount = existingDiscounts[productId];
+        }
         return {
           id: product.id,
           title: product.title,
           type: 'product' as const,
-          metadata: { appid: product.appid },
+          metadata,
         };
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
-
-    // Get current configuration
-    const currentConfig = scenario.configuration.toProps();
 
     // Update or create conditions array
     // Filter out conditions that don't match scenario's triggerCode (cleanup old data)
@@ -420,6 +440,136 @@ export class OffersPresenter {
     
     // Save via API - this will update viewModel again with saved data
     // But since we already updated optimistically for the selected scenario, the UI won't flicker
+    await this.updateScenarioConfiguration(slug, updatedConfiguration);
+  }
+
+  public async updateProductDiscount(slug: string, triggerCode: string, productId: string, discount: string): Promise<void> {
+    if (!this.appId) {
+      return;
+    }
+
+    // Load current scenario
+    const scenario = this.scenarios.find((s) => s.slug === slug);
+    if (!scenario) {
+      this.logger.error('[OffersPresenter] Scenario not found', { slug });
+      return;
+    }
+
+    // Only allow updating condition that matches scenario's triggerCode
+    if (triggerCode !== scenario.trigger.code) {
+      this.logger.warn('[OffersPresenter] Cannot update condition that does not match scenario triggerCode', {
+        slug,
+        scenarioTriggerCode: scenario.trigger.code,
+        requestedTriggerCode: triggerCode,
+      });
+      return;
+    }
+
+    // Get current configuration
+    const currentConfig = scenario.configuration.toProps();
+    
+    // Get current condition or create new one
+    let conditions = currentConfig.conditions
+      ? currentConfig.conditions.filter((c) => c.triggerCode === scenario.trigger.code)
+      : [];
+    
+    const existingConditionIndex = conditions.findIndex((c) => c.triggerCode === triggerCode);
+    const allProducts = this.viewModel.products;
+    const product = allProducts.find((p) => p.id === productId);
+    
+    if (!product) {
+      this.logger.error('[OffersPresenter] Product not found', { productId });
+      return;
+    }
+
+    let conditionItems: OfferItemProps[] = [];
+
+    if (existingConditionIndex >= 0) {
+      // Update existing condition - preserve all items and update discount for the specific product
+      const existingCondition = conditions[existingConditionIndex];
+      conditionItems = (existingCondition.items ?? []).map((item) => {
+        if (item.id === productId && item.type === 'product') {
+          // Update discount for this product
+          return {
+            id: item.id,
+            title: item.title,
+            type: item.type,
+            metadata: {
+              ...item.metadata,
+              discount: discount.trim(), // Store discount (can be empty string)
+            },
+          };
+        }
+        return {
+          id: item.id,
+          title: item.title,
+          type: item.type as 'product' | 'bundle' | 'currency' | 'cosmetic' | 'service',
+          metadata: item.metadata ?? {},
+        };
+      });
+
+      // If product is not in items yet, add it
+      if (!conditionItems.some((item) => item.id === productId)) {
+        conditionItems.push({
+          id: product.id,
+          title: product.title,
+          type: 'product',
+          metadata: {
+            appid: product.appid,
+            discount: discount.trim(),
+          },
+        });
+      }
+
+      conditions[existingConditionIndex] = {
+        triggerCode: triggerCode as any,
+        offerIds: existingCondition.offerIds,
+        items: conditionItems,
+      };
+    } else {
+      // Create new condition with this product and discount
+      conditionItems = [
+        {
+          id: product.id,
+          title: product.title,
+          type: 'product',
+          metadata: {
+            appid: product.appid,
+            discount: discount.trim(),
+          },
+        },
+      ];
+      conditions.push({
+        triggerCode: triggerCode as any,
+        offerIds: [productId],
+        items: conditionItems,
+      });
+    }
+
+    // Update configuration
+    const updatedConfiguration: OfferScenarioConfigurationProps = {
+      ...currentConfig,
+      conditions,
+      offerIds: conditions.length > 0 ? [] : currentConfig.offerIds,
+    };
+
+    const interimScenarioResult = scenario.withConfiguration(updatedConfiguration);
+    if (interimScenarioResult.isFailure()) {
+      const errorMessage = interimScenarioResult.error?.message ?? 'Unknown error';
+      this.logger.error('[OffersPresenter] Failed to update product discount', {
+        error: errorMessage,
+        slug,
+        productId,
+      });
+      return;
+    }
+
+    const interimScenario = interimScenarioResult.data!;
+    this.scenarios = this.scenarios.map((s) => (s.slug === slug ? interimScenario : s));
+    
+    // Don't do optimistic update for discount changes - let API response update the viewModel
+    // This prevents flickering in the discount input field
+    // Save via API - this will update viewModel with saved data
     await this.updateScenarioConfiguration(slug, updatedConfiguration);
   }
 
@@ -651,15 +801,27 @@ export class OffersPresenter {
           ? configurationProps.conditions
               // Filter: only show conditions that match the scenario's triggerCode
               .filter((condition) => condition.triggerCode === scenario.trigger.code)
-              .map((condition) => ({
-                triggerCode: condition.triggerCode,
-                label: CONDITION_USER_LABELS[condition.triggerCode] ?? condition.triggerCode,
-                description: TRIGGER_CONDITION_DESCRIPTIONS[condition.triggerCode] ?? '',
-                offerIds: condition.offerIds,
-                productIds: (condition.items ?? [])
-                  .filter((item) => item.type === 'product')
-                  .map((item) => item.id),
-              }))
+              .map((condition) => {
+                const productItems = (condition.items ?? []).filter((item) => item.type === 'product');
+                const productDiscounts: Record<string, string> = {};
+                
+                // Extract discounts from item metadata
+                productItems.forEach((item) => {
+                  const discount = item.metadata?.discount;
+                  if (discount && typeof discount === 'string') {
+                    productDiscounts[item.id] = discount;
+                  }
+                });
+
+                return {
+                  triggerCode: condition.triggerCode,
+                  label: CONDITION_USER_LABELS[condition.triggerCode] ?? condition.triggerCode,
+                  description: TRIGGER_CONDITION_DESCRIPTIONS[condition.triggerCode] ?? '',
+                  offerIds: condition.offerIds,
+                  productIds: productItems.map((item) => item.id),
+                  productDiscounts,
+                };
+              })
           : undefined,
       },
     };

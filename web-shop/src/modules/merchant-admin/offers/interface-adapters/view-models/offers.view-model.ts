@@ -4,6 +4,7 @@ export interface OfferConditionViewModel {
   readonly description: string; // Technical description for reference
   readonly offerIds: readonly string[];
   readonly productIds: readonly string[];
+  readonly productDiscounts: Record<string, string>; // Product ID -> discount string (e.g., "10%", "$5")
 }
 
 export interface OfferScenarioConfigViewModel {
