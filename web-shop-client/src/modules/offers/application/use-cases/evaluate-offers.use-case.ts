@@ -91,6 +91,11 @@ export class EvaluateOffersUseCase {
         value1: { type: 'property', value: 'user.purchases.length' },
         value2: { type: 'value', value: 1 },
       }),
+      high_spender: () => ({
+        conditionType: 'gte',
+        value1: { type: 'property', value: 'user.metrics.totalSpend' },
+        value2: { type: 'value', value: 2 }, // Temporarily changed from 100 to 2 (> 1 equivalent)
+      }),
       // Add other trigger conditions as needed
     };
 

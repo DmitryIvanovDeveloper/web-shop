@@ -4,6 +4,7 @@ import '../src/env';
 import '../src/infrastructure/bootstrap/container';
 import '../src/modules/merchant-admin/analytics/realtime-dashboard/infrastructure/bootstrap/realtime-dashboard.container';
 import '../src/modules/merchant-admin/offers/infrastructure/bootstrap/offers.container';
+import '../src/modules/merchant-admin/products/infrastructure/bootstrap/products.container';
 import "./globals.css";
 import "./output.css";
 import Sidebar from "@/shared/ui/Sidebar";
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     home: '/',
     'analytics-dashboard': '/dashboard',
     'merchant-admin-offers': '/merchant-admin/offers',
+    'merchant-admin-products': '/products',
   };
 
   const handleSelect = (key: string) => {

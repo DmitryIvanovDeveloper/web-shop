@@ -11,7 +11,8 @@ type SidebarProps = {
 const menuItems: Array<{ key: string; label: string; icon: string; href: string }> = [
   { key: "home", label: "Home", icon: "🏠", href: "/" },
   { key: "analytics-dashboard", label: "Analytics\nDashboard", icon: "📈", href: "/dashboard" },
-  { key: "merchant-admin-offers", label: "Offers", icon: "🎁", href: "/merchant-admin/offers" },
+  { key: "merchant-admin-offers", label: "Offers", icon: "🎁", href: "/merchant-admin/offers?appId=APP123" },
+  { key: "merchant-admin-products", label: "Products", icon: "📦", href: "/products?appId=APP123" },
   { key: "ui-builder", label: "Builder", icon: "🛠️", href: "/ui-builder?appId=APP123&pageSlug=store" },
 ];
 

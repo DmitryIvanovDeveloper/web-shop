@@ -14,6 +14,7 @@ import { MockRealtimeClient } from '../realtime/mock-realtime-client';
 import { SupabaseClient } from '../database/supabase-client';
 import { bindUIBuilder } from '@/modules/ui-builder/infrastructure/bootstrap/bind.ui-builder';
 import { bindMerchantAdminOffers } from '@/modules/merchant-admin/offers/infrastructure/bootstrap/offers.container';
+import { bindMerchantAdminProducts } from '@/modules/merchant-admin/products/infrastructure/bootstrap/products.container';
 
 // Create Inversify container
 const container = new Container();
@@ -36,5 +37,6 @@ container.bind<DatabaseClientPort>(TYPES.DatabaseClient).to(SupabaseClient).inSi
 // Register UI Builder module
 bindUIBuilder(container);
 bindMerchantAdminOffers(container);
+bindMerchantAdminProducts(container);
 
 export { container };
