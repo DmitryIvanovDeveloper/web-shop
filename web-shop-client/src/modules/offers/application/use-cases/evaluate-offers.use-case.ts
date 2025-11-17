@@ -86,6 +86,11 @@ export class EvaluateOffersUseCase {
         value1: { type: 'property', value: 'user.metrics.daysSinceLastActive' },
         value2: { type: 'value', value: 30 },
       }),
+      repeat_purchaser: () => ({
+        conditionType: 'gte',
+        value1: { type: 'property', value: 'user.purchases.length' },
+        value2: { type: 'value', value: 1 },
+      }),
       // Add other trigger conditions as needed
     };
 
