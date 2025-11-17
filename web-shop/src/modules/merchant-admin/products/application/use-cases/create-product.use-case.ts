@@ -13,8 +13,7 @@ export interface CreateProductInput {
   readonly discount?: string | null;
   readonly player_limit?: string | null;
   readonly expires_at?: string | null;
-  readonly original_price?: number | null;
-  readonly current_price?: number | null;
+  readonly price?: number | null;
   readonly rp_bonus?: number | null;
   readonly lp_bonus?: number | null;
 }
@@ -47,8 +46,7 @@ export class CreateProductUseCase {
       discount: input.discount ?? null,
       player_limit: input.player_limit ?? null,
       expires_at: input.expires_at ?? null,
-      original_price: input.original_price ?? null,
-      current_price: input.current_price ?? null,
+      price: input.price ?? null,
       rp_bonus: input.rp_bonus ?? null,
       lp_bonus: input.lp_bonus ?? null,
       created_at: new Date().toISOString(),

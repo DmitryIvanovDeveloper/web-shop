@@ -15,8 +15,7 @@ export interface UpdateProductInput {
   readonly discount?: string | null;
   readonly player_limit?: string | null;
   readonly expires_at?: string | null;
-  readonly original_price?: number | null;
-  readonly current_price?: number | null;
+  readonly price?: number | null;
   readonly rp_bonus?: number | null;
   readonly lp_bonus?: number | null;
 }
@@ -104,20 +103,12 @@ export class UpdateProductUseCase {
       updatedProduct = expiresResult.data!;
     }
 
-    if (input.original_price !== undefined) {
-      const priceResult = updatedProduct.withOriginalPrice(input.original_price);
+    if (input.price !== undefined) {
+      const priceResult = updatedProduct.withPrice(input.price);
       if (priceResult.isFailure()) {
         return Result.error(priceResult.error!);
       }
       updatedProduct = priceResult.data!;
-    }
-
-    if (input.current_price !== undefined) {
-      const currentPriceResult = updatedProduct.withCurrentPrice(input.current_price);
-      if (currentPriceResult.isFailure()) {
-        return Result.error(currentPriceResult.error!);
-      }
-      updatedProduct = currentPriceResult.data!;
     }
 
     if (input.rp_bonus !== undefined) {

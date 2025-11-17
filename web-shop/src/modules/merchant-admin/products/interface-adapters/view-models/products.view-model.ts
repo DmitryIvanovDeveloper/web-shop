@@ -10,8 +10,7 @@ export interface ProductListItemViewModel {
   readonly discount: string | null;
   readonly player_limit: string | null;
   readonly expires_at: string | null;
-  readonly original_price: number | null;
-  readonly current_price: number | null;
+  readonly price: number | null;
   readonly rp_bonus: number | null;
   readonly lp_bonus: number | null;
   readonly created_at: string | null;
@@ -28,8 +27,7 @@ export interface ProductFormViewModel {
   readonly discount: string | null;
   readonly player_limit: string | null;
   readonly expires_at: string | null;
-  readonly original_price: number | null;
-  readonly current_price: number | null;
+  readonly price: number | null;
   readonly rp_bonus: number | null;
   readonly lp_bonus: number | null;
 }
@@ -63,8 +61,7 @@ export const mapProductToListItem = (product: Product): ProductListItemViewModel
     discount: product.discount,
     player_limit: product.player_limit,
     expires_at: product.expires_at,
-    original_price: product.original_price,
-    current_price: product.current_price,
+    price: product.price,
     rp_bonus: product.rp_bonus,
     lp_bonus: product.lp_bonus,
     created_at: product.created_at,
@@ -86,8 +83,7 @@ export const mapProductToForm = (product: Product | null): ProductFormViewModel 
     discount: product.discount,
     player_limit: product.player_limit,
     expires_at: product.expires_at,
-    original_price: product.original_price,
-    current_price: product.current_price,
+    price: product.price,
     rp_bonus: product.rp_bonus,
     lp_bonus: product.lp_bonus,
   };

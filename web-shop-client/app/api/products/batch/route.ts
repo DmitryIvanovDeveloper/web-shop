@@ -63,8 +63,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         timer,
         title: product.title,
         rarity: product.rarity,
-        originalPrice: product.original_price ? String(product.original_price) : undefined,
-        currentPrice: product.current_price ? String(product.current_price) : undefined,
+        originalPrice: product.price ? String(product.price) : undefined,
+        currentPrice: product.price ? String(product.price) : undefined,
         rpBonus: product.rp_bonus,
         lpBonus: product.lp_bonus,
         buyButton: {

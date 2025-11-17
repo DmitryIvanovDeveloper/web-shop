@@ -16,8 +16,7 @@ export interface ProductProps {
   readonly discount?: string | null;
   readonly player_limit?: string | null;
   readonly expires_at?: string | null;
-  readonly original_price?: number | null;
-  readonly current_price?: number | null;
+  readonly price?: number | null;
   readonly rp_bonus?: number | null;
   readonly lp_bonus?: number | null;
   readonly created_at?: string | null;
@@ -35,8 +34,7 @@ export class Product {
     public readonly discount: string | null,
     public readonly player_limit: string | null,
     public readonly expires_at: string | null,
-    public readonly original_price: number | null,
-    public readonly current_price: number | null,
+    public readonly price: number | null,
     public readonly rp_bonus: number | null,
     public readonly lp_bonus: number | null,
     public readonly created_at: string | null,
@@ -53,16 +51,10 @@ export class Product {
       );
     }
 
-    // Validate prices are non-negative if provided
-    if (props.original_price !== null && props.original_price !== undefined && props.original_price < 0) {
+    // Validate price is non-negative if provided
+    if (props.price !== null && props.price !== undefined && props.price < 0) {
       return Result.error(
-        new ProductValidationError('Product original_price must be non-negative')
-      );
-    }
-
-    if (props.current_price !== null && props.current_price !== undefined && props.current_price < 0) {
-      return Result.error(
-        new ProductValidationError('Product current_price must be non-negative')
+        new ProductValidationError('Product price must be non-negative')
       );
     }
 
@@ -92,8 +84,7 @@ export class Product {
         props.discount ?? null,
         props.player_limit ?? null,
         props.expires_at ?? null,
-        props.original_price ?? null,
-        props.current_price ?? null,
+        props.price ?? null,
         props.rp_bonus ?? null,
         props.lp_bonus ?? null,
         props.created_at ?? null,
@@ -158,17 +149,10 @@ export class Product {
     });
   }
 
-  public withOriginalPrice(original_price: number | null): Result<Product, ProductValidationError> {
+  public withPrice(price: number | null): Result<Product, ProductValidationError> {
     return Product.create({
       ...this.toProps(),
-      original_price,
-    });
-  }
-
-  public withCurrentPrice(current_price: number | null): Result<Product, ProductValidationError> {
-    return Product.create({
-      ...this.toProps(),
-      current_price,
+      price,
     });
   }
 
@@ -197,8 +181,7 @@ export class Product {
       discount: this.discount,
       player_limit: this.player_limit,
       expires_at: this.expires_at,
-      original_price: this.original_price,
-      current_price: this.current_price,
+      price: this.price,
       rp_bonus: this.rp_bonus,
       lp_bonus: this.lp_bonus,
       created_at: this.created_at,

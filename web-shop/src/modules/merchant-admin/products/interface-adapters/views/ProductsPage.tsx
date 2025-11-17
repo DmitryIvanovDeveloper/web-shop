@@ -74,8 +74,7 @@ export function ProductsPage({ appId }: ProductsPageProps): JSX.Element {
     discount: null,
     player_limit: null,
     expires_at: null,
-    original_price: null,
-    current_price: null,
+    price: null,
     rp_bonus: null,
     lp_bonus: null,
   });
@@ -135,8 +134,7 @@ export function ProductsPage({ appId }: ProductsPageProps): JSX.Element {
       discount: null,
       player_limit: null,
       expires_at: null,
-      original_price: null,
-      current_price: null,
+      price: null,
       rp_bonus: null,
       lp_bonus: null,
     });
@@ -196,38 +194,33 @@ export function ProductsPage({ appId }: ProductsPageProps): JSX.Element {
             </div>
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: 500 }}>
-                {presenter.labels.originalPrice}
+                {presenter.labels.price}
               </label>
               <input
                 type="number"
                 step="0.01"
+                min="0"
                 style={inputStyle}
-                value={formData.original_price ?? ''}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    original_price: e.target.value ? parseFloat(e.target.value) : null,
-                  })
-                }
-                placeholder="Original price"
-              />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: 500 }}>
-                {presenter.labels.currentPrice}
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                style={inputStyle}
-                value={formData.current_price ?? ''}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    current_price: e.target.value ? parseFloat(e.target.value) : null,
-                  })
-                }
-                placeholder="Current price"
+                value={formData.price ?? ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '') {
+                    setFormData({
+                      ...formData,
+                      price: null,
+                    });
+                  } else {
+                    const numValue = parseFloat(value);
+                    // Prevent negative values - business rule: price >= 0
+                    if (!Number.isNaN(numValue) && numValue >= 0) {
+                      setFormData({
+                        ...formData,
+                        price: numValue,
+                      });
+                    }
+                  }
+                }}
+                placeholder="Price"
               />
             </div>
             <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
@@ -272,7 +265,7 @@ export function ProductsPage({ appId }: ProductsPageProps): JSX.Element {
                     {product.title}
                   </h3>
                   <p style={{ fontSize: '12px', color: '#94A3B8' }}>
-                    {product.current_price !== null ? `$${product.current_price}` : 'No price'}
+                    {product.price !== null ? `$${product.price}` : 'No price'}
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>

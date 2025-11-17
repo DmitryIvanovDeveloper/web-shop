@@ -66,8 +66,8 @@ export async function GET(
       timer,
       title: data.title,
       rarity: data.rarity,
-      originalPrice: data.original_price ? String(data.original_price) : undefined,
-      currentPrice: data.current_price ? String(data.current_price) : undefined,
+      originalPrice: data.price ? String(data.price) : undefined,
+      currentPrice: data.price ? String(data.price) : undefined,
       rpBonus: data.rp_bonus,
       lpBonus: data.lp_bonus,
       buyButton: {

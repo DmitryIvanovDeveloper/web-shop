@@ -63,7 +63,7 @@ const headerButtonStyle: React.CSSProperties = {
 // in "Products by Condition" section through updateScenarioProducts
 
 interface ProductRowProps {
-  product: { id: string; title: string; current_price?: number | null; original_price?: number | null };
+  product: { id: string; title: string; price?: number | null };
   isChecked: boolean;
   discount: string;
   triggerCode: string | undefined;
@@ -87,7 +87,7 @@ function ProductRow({ product, isChecked, discount, triggerCode, selectedScenari
 
   // Calculate discounted price in real-time
   const calculateDiscountedPrice = (): { original: number | null; discounted: number | null } => {
-    const basePrice = product.current_price ?? product.original_price ?? null;
+    const basePrice = product.price ?? null;
     if (basePrice === null || basePrice === undefined) {
       return { original: null, discounted: null };
     }

@@ -23,8 +23,7 @@ interface ProductDto {
   discount?: string | null;
   player_limit?: string | null;
   expires_at?: string | null;
-  original_price?: number | null;
-  current_price?: number | null;
+  price?: number | null;
   rp_bonus?: number | null;
   lp_bonus?: number | null;
   created_at?: string | null;
@@ -53,8 +52,7 @@ const mapDtoToProduct = (dto: ProductDto): Result<Product, Error> => {
     discount: dto.discount ?? null,
     player_limit: dto.player_limit ?? null,
     expires_at: dto.expires_at ?? null,
-    original_price: dto.original_price ?? null,
-    current_price: dto.current_price ?? null,
+    price: dto.price ?? null,
     rp_bonus: dto.rp_bonus ?? null,
     lp_bonus: dto.lp_bonus ?? null,
     created_at: dto.created_at ?? null,
@@ -73,8 +71,7 @@ const mapProductToDto = (product: Product): ProductDto => {
     discount: product.discount,
     player_limit: product.player_limit,
     expires_at: product.expires_at,
-    original_price: product.original_price,
-    current_price: product.current_price,
+    price: product.price,
     rp_bonus: product.rp_bonus,
     lp_bonus: product.lp_bonus,
     created_at: product.created_at,
