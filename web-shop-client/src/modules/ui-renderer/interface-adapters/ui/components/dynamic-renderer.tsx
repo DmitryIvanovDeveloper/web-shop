@@ -65,6 +65,18 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     style = restStyle;
   } 
 
+  // For Button with pageSlug, create navigate action if not already set
+  let buttonActions = node.actions;
+  if (node.type === 'Button' && node.props?.pageSlug && typeof node.props.pageSlug === 'string' && !node.actions?.onClick) {
+    buttonActions = {
+      ...node.actions,
+      onClick: {
+        type: 'navigate',
+        url: `/${node.props.pageSlug}`
+      }
+    };
+  }
+
   // Обработка onClick action с поддержкой preview mode
   const handleClick = (e?: React.MouseEvent) => {
     console.log('[DynamicRenderer] handleClick called', {
@@ -97,12 +109,16 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
 
     // Normal mode - handle action
     console.log('[DynamicRenderer] Normal mode - handling action');
-    if (node.actions?.onClick && actionContext) {
-      actionHandler.handleAction(node.actions.onClick, actionContext);
+    // Use buttonActions if it was set (for pageSlug navigation), otherwise use node.actions
+    const actionsToUse = buttonActions || node.actions;
+    if (actionsToUse?.onClick && actionContext) {
+      actionHandler.handleAction(actionsToUse.onClick, actionContext);
     }
   };
 
-  const clickHandler = (node.actions?.onClick && actionContext) || isPreviewMode() 
+  // Use buttonActions if it was set (for pageSlug navigation), otherwise use node.actions
+  const actionsToCheck = buttonActions || node.actions;
+  const clickHandler = (actionsToCheck?.onClick && actionContext) || isPreviewMode() 
     ? handleClick 
     : undefined;
 
@@ -198,11 +214,13 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
   // Специальная обработка для Button - text уже в node.props, но убеждаемся что он передаётся
   const buttonProps = node.type === 'Button'
     ? { text: node.props?.text || node.props?.children }
-        : {};
+    : {};
 
   // Типобезопасные props - TypeScript знает структуру
+  // Exclude pageSlug from props passed to DOM (it's only used for action creation)
+  const { pageSlug, ...propsWithoutPageSlug } = node.props || {};
   const componentProps = {
-    ...node.props,
+    ...propsWithoutPageSlug,
     ...popupProps,
     ...containerProps,
     ...inputTextProps,

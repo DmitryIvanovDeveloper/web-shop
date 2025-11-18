@@ -14,6 +14,8 @@ interface SidebarColorEditorProps {
   onFlexDirectionChange?: (elementId: string, flexDirection: string) => void;
   onIconChange?: (elementId: string, icon: string | null) => void;
   onBackgroundOpacityChange?: (elementId: string, opacity: string) => void;
+  onPageSlugChange?: (elementId: string, pageSlug: string | null) => void;
+  pages?: string[];
 }
 
 const readFileAsDataUrl = (file: File): Promise<string> => {
@@ -70,7 +72,7 @@ function ColorInput({ label, value, onChange }: ColorInputProps): JSX.Element {
   );
 }
 
-export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingChange, onBorderRadiusChange, onLabelChange, onTextAlignChange, onFlexDirectionChange, onIconChange, onBackgroundOpacityChange }: SidebarColorEditorProps): JSX.Element {
+export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingChange, onBorderRadiusChange, onLabelChange, onTextAlignChange, onFlexDirectionChange, onIconChange, onBackgroundOpacityChange, onPageSlugChange, pages = [] }: SidebarColorEditorProps): JSX.Element {
   const [isIconUploading, setIsIconUploading] = useState(false);
 
   if (!element) {
@@ -502,7 +504,7 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
         )}
 
         {/* Content editor for buttons */}
-        {isButton && (onLabelChange || onTextAlignChange) && (
+        {isButton && (onLabelChange || onTextAlignChange || onPageSlugChange) && (
           <div className="space-y-3">
             <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Content</h4>
             
@@ -537,6 +539,30 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
                   <option value="center">Center</option>
                   <option value="right">Right</option>
                 </select>
+              </div>
+            )}
+
+            {/* Navigate to Page */}
+            {onPageSlugChange && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                  Navigate to Page
+                </label>
+                <select
+                  value={(element as any).pageSlug || ''}
+                  onChange={(e) => onPageSlugChange(element.id, e.target.value || null)}
+                  className="w-48 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                >
+                  <option value="">No navigation</option>
+                  {pages.map((pageSlug) => (
+                    <option key={pageSlug} value={pageSlug}>
+                      {pageSlug}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-gray-500 mt-1">
+                  Select a page to navigate to when button is clicked. URL will be /{'{'}pageSlug{'}'}
+                </p>
               </div>
             )}
           </div>

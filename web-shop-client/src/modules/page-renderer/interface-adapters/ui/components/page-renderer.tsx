@@ -114,46 +114,9 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     };
   }, [previewMode, appId, pageSlug]);
 
-  if (vm.isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading page...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (vm.error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-red-600">{vm.error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (vm.sections.length === 0) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center text-gray-500">
-          <p>No content available</p>
-        </div>
-      </div>
-    );
-  }
-
-  const pageStyle: React.CSSProperties = {
-    padding: vm.pageStyles?.padding || undefined,
-    gap: vm.pageStyles?.gap || undefined,
-    display: vm.pageStyles?.gap ? 'flex' : undefined,
-    flexDirection: vm.pageStyles?.gap ? 'column' : undefined,
-  };
-
   // Find selected offer card for demo section
   // Use useMemo to ensure it updates when offerCards or selectedOfferCardId changes
+  // IMPORTANT: All Hooks must be called before any early returns
   const selectedOfferCard = React.useMemo(() => {
     if (!vm.selectedOfferCardId || vm.offerCards.length === 0) return null;
     const card = vm.offerCards.find(card => card.id === vm.selectedOfferCardId);
@@ -197,6 +160,45 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       });
     }
   }, [previewMode, selectedOfferCard, selectedOfferCard?.styles, selectedOfferCard?.id]);
+
+  // Early returns AFTER all Hooks
+  if (vm.isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading page...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (vm.error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-600">{vm.error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (vm.sections.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center text-gray-500">
+          <p>No content available</p>
+        </div>
+      </div>
+    );
+  }
+
+  const pageStyle: React.CSSProperties = {
+    padding: vm.pageStyles?.padding || undefined,
+    gap: vm.pageStyles?.gap || undefined,
+    display: vm.pageStyles?.gap ? 'flex' : undefined,
+    flexDirection: vm.pageStyles?.gap ? 'column' : undefined,
+  };
 
   return (
     <div className="page-renderer" style={pageStyle}>

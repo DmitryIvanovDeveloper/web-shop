@@ -21,6 +21,7 @@ export interface SelectedElement {
   icon?: string;
   area?: 'sidebar' | 'rightSidebar';
   backgroundOpacity?: string;
+  pageSlug?: string;
 }
 
 

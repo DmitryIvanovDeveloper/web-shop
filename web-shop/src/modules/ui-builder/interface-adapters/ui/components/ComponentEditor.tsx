@@ -7,6 +7,7 @@ interface ComponentEditorProps {
   component: ComponentNode;
   onUpdate: (props: Record<string, unknown>) => void;
   onRemove: () => void;
+  pages?: string[];
 }
 
 const readFileAsDataUrl = (file: File): Promise<string> => {
@@ -29,7 +30,7 @@ const readFileAsDataUrl = (file: File): Promise<string> => {
   });
 };
 
-export function ComponentEditor({ component, onUpdate, onRemove }: ComponentEditorProps): JSX.Element {
+export function ComponentEditor({ component, onUpdate, onRemove, pages = [] }: ComponentEditorProps): JSX.Element {
   const [isIconUploading, setIsIconUploading] = useState(false);
 
   const updateButtonIcon = (icon: string | null): void => {
@@ -156,6 +157,35 @@ export function ComponentEditor({ component, onUpdate, onRemove }: ComponentEdit
             </div>
             <div>
               <label className="text-xs font-medium text-gray-600 block mb-1.5">
+                Navigate to Page
+              </label>
+              <select
+                value={(component.props?.pageSlug as string) || ''}
+                onChange={(e) => {
+                  const currentProps = (component.props as Record<string, unknown>) || {};
+                  const nextProps = { ...currentProps };
+                  if (e.target.value) {
+                    nextProps.pageSlug = e.target.value;
+                  } else {
+                    delete nextProps.pageSlug;
+                  }
+                  onUpdate(nextProps);
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              >
+                <option value="">No navigation (use custom action)</option>
+                {pages.map((pageSlug) => (
+                  <option key={pageSlug} value={pageSlug}>
+                    {pageSlug}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[10px] text-gray-500 mt-1">
+                Select a page to navigate to when button is clicked. URL will be /{'{'}pageSlug{'}'}
+              </p>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 block mb-1.5">
                 Action (URL or function)
               </label>
               <input
@@ -165,6 +195,9 @@ export function ComponentEditor({ component, onUpdate, onRemove }: ComponentEdit
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
                 placeholder="/shop"
               />
+              <p className="text-[10px] text-gray-500 mt-1">
+                Custom action (used if no page is selected above)
+              </p>
             </div>
           </div>
         );

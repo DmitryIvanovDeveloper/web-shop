@@ -14,9 +14,10 @@ interface PageConstructorProps {
   presenter: PageConstructorPresenter;
   appId: string;
   pageSlug?: string;
+  pages?: string[];
 }
 
-export function PageConstructor({ presenter, appId, pageSlug = 'home' }: PageConstructorProps): JSX.Element {
+export function PageConstructor({ presenter, appId, pageSlug = 'home', pages = [] }: PageConstructorProps): JSX.Element {
   const [vm, setVm] = useState(presenter.getViewModel());
   const [isInitialized, setIsInitialized] = useState(false);
   const [previewMode, setPreviewMode] = useState<'structure' | 'live'>('structure');
@@ -475,6 +476,7 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home' }: PageCon
             onRemove={() => {
               presenter.removeComponent(vm.selectedSection!.id, vm.selectedComponent!.id);
             }}
+            pages={pages}
           />
         )}
       </aside>

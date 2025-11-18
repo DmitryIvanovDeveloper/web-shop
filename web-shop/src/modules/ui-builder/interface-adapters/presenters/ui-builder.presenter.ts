@@ -360,6 +360,7 @@ export class UIBuilderPresenter {
         icon: node?.props?.icon,
         area: layout,
         backgroundOpacity: node?.styles?.backgroundOpacity,
+        pageSlug: node?.props?.pageSlug,
       },
     };
     console.log('[UIBuilderPresenter] Updated viewModel.selectedElement:', this.vm.selectedElement);
@@ -474,6 +475,30 @@ export class UIBuilderPresenter {
       node.props.icon = icon;
     } else {
       delete node.props.icon;
+    }
+
+    this.selectElement(elementId);
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
+  }
+
+  public updateButtonPageSlug(elementId: string, pageSlug: string | null): void {
+    const node = this.findNode(elementId);
+    if (!node) {
+      this._logger.warn('[UIBuilderPresenter] updateButtonPageSlug: node not found', { elementId });
+      return;
+    }
+
+    if (!node.props) {
+      node.props = {};
+    }
+
+    if (pageSlug && pageSlug.trim() !== '') {
+      node.props.pageSlug = pageSlug;
+      this._logger.info('[UIBuilderPresenter] updateButtonPageSlug: set pageSlug', { elementId, pageSlug });
+    } else {
+      delete node.props.pageSlug;
+      this._logger.info('[UIBuilderPresenter] updateButtonPageSlug: removed pageSlug', { elementId });
     }
 
     this.selectElement(elementId);

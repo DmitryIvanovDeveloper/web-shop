@@ -96,8 +96,26 @@ export class UIRendererService implements UIRendererPort {
 			props: node.props
 		});
 
-		// Handle onClick action
-		const handleClick = this._createClickHandler(node, context);
+		// For Button with pageSlug, create navigate action if not already set
+		let buttonActions = node.actions;
+		if (node.type === 'Button' && node.props?.pageSlug && typeof node.props.pageSlug === 'string' && !node.actions?.onClick) {
+			buttonActions = {
+				...node.actions,
+				onClick: {
+					type: 'navigate',
+					url: `/${node.props.pageSlug}`
+				}
+			};
+			console.log('[UIRendererService] Created navigate action from pageSlug', {
+				nodeId: node.id,
+				pageSlug: node.props.pageSlug,
+				url: `/${node.props.pageSlug}`
+			});
+		}
+
+		// Handle onClick action (use buttonActions if it was set for pageSlug navigation)
+		const nodeWithActions = buttonActions ? { ...node, actions: buttonActions } : node;
+		const handleClick = this._createClickHandler(nodeWithActions, context);
 		
 		// Handle onChange action for inputs
 		const handleChange = this._createChangeHandler(node, context);
@@ -106,8 +124,10 @@ export class UIRendererService implements UIRendererPort {
 		const children = this._renderChildren(node, theme, context, depth);
 
 		// Build component props
+		// Exclude pageSlug from props passed to DOM (it's only used for action creation)
+		const { pageSlug, ...propsWithoutPageSlug } = node.props || {};
 		const componentProps: Record<string, unknown> = {
-			...node.props,
+			...propsWithoutPageSlug,
 			className,
 			style,
 			children,

@@ -661,6 +661,8 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 onFlexDirectionChange={(elementId, flexDirection) => presenter.updateContainerFlexDirection(elementId, flexDirection)}
                 onIconChange={(elementId, icon) => presenter.updateButtonIcon(elementId, icon)}
                 onBackgroundOpacityChange={(elementId, opacity) => presenter.updateContainerBackgroundOpacity(elementId, opacity)}
+                onPageSlugChange={(elementId, pageSlug) => presenter.updateButtonPageSlug(elementId, pageSlug)}
+                pages={viewModel.pages}
               />
             )}
 
@@ -687,6 +689,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 presenter={pageConstructorPresenter}
                 appId={appId}
                 pageSlug={selectedPageSlug}
+                pages={viewModel.pages}
               />
             )}
 
