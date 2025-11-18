@@ -3,10 +3,12 @@
 import '../../src/env'; // Load environment variables first
 import 'reflect-metadata';
 import { use } from 'react';
+import { useRouter } from 'next/navigation';
 import { container } from '../../src/infrastructure/bootstrap/container';
 import { PageRenderer } from '../../src/modules/page-renderer/interface-adapters/ui/components/page-renderer';
 import { APP_LAYOUT_TYPES } from '../../src/modules/app-layout/infrastructure/bootstrap/types';
 import { SidebarRendererPresenter } from '../../src/modules/app-layout/interface-adapters/presenters/sidebar-renderer.presenter';
+import type { ActionContext } from '../../src/shared/ui/action-context';
 
 interface DynamicPageProps {
   params: Promise<{ pageSlug: string }>;

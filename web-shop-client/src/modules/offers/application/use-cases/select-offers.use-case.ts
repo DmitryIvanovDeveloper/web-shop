@@ -95,3 +95,12 @@ export class SelectOffersInteractor implements SelectOffersUseCase {
 
 
 
+
+
+
+
+
+
+
+
+

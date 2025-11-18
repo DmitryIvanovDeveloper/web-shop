@@ -63,3 +63,4 @@ export class AuthenticationRequiredEvent implements IEvent {
     };
   }
 }
+

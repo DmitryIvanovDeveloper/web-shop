@@ -12,6 +12,8 @@ import { AuthenticationError } from '../../domain/errors/authentication.error';
 import { AuthViewModel } from '../view-models/auth.view-model';
 import { AuthUIViewModel } from '../view-models/auth-ui.view-model';
 import { ValidateAppLoginUseCase } from '../../application/use-cases/validate-app-login.use-case';
+import { RestoreSessionUseCase } from '../../application/use-cases/restore-session.use-case';
+import { SaveSessionUseCase } from '../../application/use-cases/save-session.use-case';
 import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
 import type { UIDescriptor } from '../../../../shared/ui/ui-descriptor';
 import type { AuthenticationModuleConfig, GlobalTheme, AuthLabels, AuthSettings, LoginButtonUIConfig } from '../../../../shared/config/app-config.types';
@@ -54,7 +56,11 @@ export class AuthPresenter {
 
 	constructor(
 		@inject(AUTH_TYPES.ValidateAppLoginUseCase)
-		private readonly _validateAppLoginUseCase: ValidateAppLoginUseCase
+		private readonly _validateAppLoginUseCase: ValidateAppLoginUseCase,
+		@inject(AUTH_TYPES.RestoreSessionUseCase)
+		private readonly _restoreSessionUseCase: RestoreSessionUseCase,
+		@inject(AUTH_TYPES.SaveSessionUseCase)
+		private readonly _saveSessionUseCase: SaveSessionUseCase
 	) { }
 	/**
 	 * Преобразование AppUser в ViewModel
@@ -194,8 +200,40 @@ export class AuthPresenter {
 				error: undefined
 			};
 		}
-
 		return this.presentIdle();
+	}
+
+	/**
+	 * Восстановление сессии из хранилища
+	 */
+	public async restoreSession(): Promise<AuthViewModel> {
+		console.log('[AuthPresenter] restoreSession called');
+		const result = await this._restoreSessionUseCase.execute();
+		
+		console.log('[AuthPresenter] restoreSession result', result);
+		if (result.isSuccess()) {
+			console.log('[AuthPresenter] restoreSession success, calling present with user:', result.data);
+			return this.present(result.data);
+		}
+		
+		// Если сессия не найдена - это нормально, пользователь не авторизован
+		console.log('[AuthPresenter] restoreSession failed, no session found');
+		return this.presentIdle();
+	}
+
+	/**
+	 * Сохранение сессии в хранилище
+	 */
+	public async saveSession(user: AppUser): Promise<void> {
+		console.log('[AuthPresenter] saveSession called', { userId: user.userId, appId: user.appId });
+		const result = await this._saveSessionUseCase.execute(user);
+		
+		if (result.isFailure()) {
+			console.error('[AuthPresenter] saveSession failed', { error: result.error });
+			// Не выбрасываем ошибку, так как это не критично для работы приложения
+		} else {
+			console.log('[AuthPresenter] saveSession success');
+		}
 	}
 
 	/**
@@ -208,6 +246,7 @@ export class AuthPresenter {
 		console.log('[AuthPresenter] initializeAuthentication result', result);
 		if (result.isSuccess()) {
 			console.log('[AuthPresenter] initializeAuthentication success, calling present with user:', result.data);
+			// Сессия уже сохранена в ValidateAppLoginUseCase через SaveSessionUseCase
 			return this.present(result.data);
 		}
 		

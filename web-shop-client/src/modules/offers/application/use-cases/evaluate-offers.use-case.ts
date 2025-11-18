@@ -3,7 +3,7 @@ import { OFFERS_TYPES } from '../../infrastructure/bootstrap/types';
 import type { RulesRepositoryPort } from '../ports/rules-repository.port';
 import type { OfferRepositoryPort } from '../ports/offer-repository.port';
 import type { ConditionReaderPort } from '../ports/condition-reader.port';
-import type { Operation, Condition, ValueDescriptor, ComparableValue, Offer } from '../../domain/types';
+import type { Operation, Condition, ValueDescriptor, ComparableValue, Offer, OfferRuleTreeScenario } from '../../domain/types';
 import { InvalidRuleError, EvaluationError } from '../../domain/errors/offers.error';
 
 export interface EvaluateOffersInput {
@@ -41,20 +41,14 @@ export class EvaluateOffersUseCase {
     const offersIds: string[] = [];
     const cache = input?.contextCache ?? new Map<string, ComparableValue>();
 
-    // Import OfferRuleTreeScenario type
-    type OfferRuleTreeScenario = {
-      readonly slug: string;
-      readonly triggerCode: string;
-      readonly offerIds: readonly string[];
-    };
-
-    // Evaluate all scenarios from the scenarios array
-    // This allows evaluating multiple conditions, not just the first one in ruleSet
-    const scenarios = ruleTree.scenarios ?? [];
+    // Sort scenarios by priority (highest first) before evaluation
+    // This ensures we evaluate the most important scenarios first and stop at the first match
+    const scenarios = (ruleTree.scenarios ?? []).slice().sort((a, b) => b.priority - a.priority);
     const allowedScenarios = input?.allowedScenarios;
 
-    console.log('[EvaluateOffersUseCase] Evaluating scenarios:', {
+    console.log('[EvaluateOffersUseCase] Evaluating scenarios (sorted by priority, highest first):', {
       totalScenarios: scenarios.length,
+      scenarioPriorities: scenarios.map(s => ({ slug: s.slug, priority: s.priority })),
       allowedScenarios,
       hasAllowedScenarios: !!allowedScenarios && allowedScenarios.length > 0,
     });
@@ -99,10 +93,10 @@ export class EvaluateOffersUseCase {
       // Add other trigger conditions as needed
     };
 
-    // Track which scenarios passed their conditions (for discount application)
-    const matchedScenarios: typeof scenarios = [];
+    // Track the first scenario that passed its condition (for discount application)
+    let matchedScenario: OfferRuleTreeScenario | null = null;
 
-    // Evaluate each scenario
+    // Evaluate scenarios in priority order, stop at first match
     for (const scenario of scenarios) {
       // Filter by allowedScenarios if provided
       if (allowedScenarios && allowedScenarios.length > 0) {
@@ -134,10 +128,33 @@ export class EvaluateOffersUseCase {
       });
 
       if (conditionResult) {
-        // Condition matched, add offer IDs
-        offersIds.push(...scenario.offerIds);
+        // Condition matched - this is the first (highest priority) scenario that passed
+        // Collect offer IDs from both offerIds and items (if items exist)
+        const scenarioOfferIds = new Set<string>();
+        
+        // Add offerIds from scenario.offerIds
+        if (scenario.offerIds && scenario.offerIds.length > 0) {
+          scenario.offerIds.forEach(id => scenarioOfferIds.add(id));
+        }
+        
+        // Add offer IDs from scenario.items (items.id is the offer/product ID)
+        if (scenario.items && scenario.items.length > 0) {
+          scenario.items.forEach(item => {
+            if (item.id) {
+              scenarioOfferIds.add(item.id);
+            }
+          });
+        }
+        
+        // Add unique offer IDs to the main array
+        offersIds.push(...Array.from(scenarioOfferIds));
+        
         // Track this scenario for discount application
-        matchedScenarios.push(scenario);
+        matchedScenario = scenario;
+        
+        // Stop evaluation after first match (exclusive selection)
+        console.log(`[EvaluateOffersUseCase] First matching scenario found: ${scenario.slug} (priority: ${scenario.priority}), stopping evaluation`);
+        break;
       }
     }
 
@@ -238,41 +255,36 @@ export class EvaluateOffersUseCase {
     }
 
     // Apply discounts from scenario items metadata
-    // Only apply discounts from scenarios that passed their conditions
-    if (offers.length > 0 && matchedScenarios.length > 0) {
-      // Create a map of offerId -> discount from matched scenarios
+    // Only apply discounts from the matched scenario
+    if (offers.length > 0 && matchedScenario) {
+      // Create a map of offerId -> discount from the matched scenario
       const discountMap = new Map<string, number>();
       
-      for (const scenario of matchedScenarios) {
-        if (scenario.items && scenario.items.length > 0) {
-          for (const item of scenario.items) {
-            if (item.metadata?.discount) {
-              const discountValue = item.metadata.discount;
-              // Parse discount: can be string "10" or number 10
-              let discountPercent: number;
-              if (typeof discountValue === 'string') {
-                const parsed = Number.parseFloat(discountValue.trim());
-                if (!Number.isNaN(parsed) && parsed >= 0 && parsed <= 100) {
-                  discountPercent = parsed;
-                } else {
-                  continue; // Skip invalid discount
-                }
-              } else if (typeof discountValue === 'number') {
-                if (discountValue >= 0 && discountValue <= 100) {
-                  discountPercent = discountValue;
-                } else {
-                  continue; // Skip invalid discount
-                }
+      if (matchedScenario.items && matchedScenario.items.length > 0) {
+        for (const item of matchedScenario.items) {
+          if (item.metadata?.discount) {
+            const discountValue = item.metadata.discount;
+            // Parse discount: can be string "10" or number 10
+            let discountPercent: number;
+            if (typeof discountValue === 'string') {
+              const parsed = Number.parseFloat(discountValue.trim());
+              if (!Number.isNaN(parsed) && parsed >= 0 && parsed <= 100) {
+                discountPercent = parsed;
               } else {
-                continue; // Skip non-string/number discount
+                continue; // Skip invalid discount
               }
-              
-              // Store discount for this offer ID (use highest if multiple scenarios have discount)
-              const existingDiscount = discountMap.get(item.id);
-              if (!existingDiscount || discountPercent > existingDiscount) {
-                discountMap.set(item.id, discountPercent);
+            } else if (typeof discountValue === 'number') {
+              if (discountValue >= 0 && discountValue <= 100) {
+                discountPercent = discountValue;
+              } else {
+                continue; // Skip invalid discount
               }
+            } else {
+              continue; // Skip non-string/number discount
             }
+            
+            // Store discount for this offer ID
+            discountMap.set(item.id, discountPercent);
           }
         }
       }

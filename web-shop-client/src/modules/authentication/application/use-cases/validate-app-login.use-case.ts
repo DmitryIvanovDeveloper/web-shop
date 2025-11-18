@@ -17,6 +17,7 @@ import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { IEventBus } from '../../../../infrastructure/events/event-bus.plugin';
 import type { Logger } from '../../../../application/ports/logger.port';
 import { UserAuthenticatedEvent } from '../../../../shared/events/auth-events';
+import { SaveSessionUseCase } from './save-session.use-case';
 
 // Импорт AUTH_TYPES из bootstrap
 import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
@@ -26,6 +27,8 @@ export class ValidateAppLoginUseCase {
   constructor(
     @inject(AUTH_TYPES.AuthRepository)
     private readonly _authRepository: AuthRepositoryPort,
+    @inject(AUTH_TYPES.SaveSessionUseCase)
+    private readonly _saveSessionUseCase: SaveSessionUseCase,
     @inject(ROOT_TYPES.EventBus)
     private readonly _eventBus: IEventBus,
     @inject(ROOT_TYPES.Logger)
@@ -75,9 +78,13 @@ export class ValidateAppLoginUseCase {
       if (result.isSuccess()) {
         const { user, isNew, lastActiveAt } = result.data;
         
-        // Сохранение в localStorage
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('user', JSON.stringify(user));
+        // Сохранение сессии в хранилище через Use Case
+        const saveResult = await this._saveSessionUseCase.execute(user);
+        if (saveResult.isFailure()) {
+          this._logger.warn('[ValidateAppLoginUseCase] Failed to save session, but continuing with authentication', {
+            error: saveResult.error
+          });
+          // Не прерываем процесс авторизации, если сохранение не удалось
         }
         
         // Публикация события для других модулей (межмодульное общение)

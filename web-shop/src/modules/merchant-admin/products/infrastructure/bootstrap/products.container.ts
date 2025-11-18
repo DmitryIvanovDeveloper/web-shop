@@ -1,12 +1,10 @@
 import { Container } from 'inversify';
 import { PRODUCT_TYPES } from './products.types';
 import { ProductApiRepository } from '../repositories/product-api.repository';
-import {
-  CreateProductUseCase,
-  UpdateProductUseCase,
-  DeleteProductUseCase,
-  LoadProductsUseCase,
-} from '../../application/use-cases';
+import { CreateProductUseCase } from '../../application/use-cases/create-product.use-case';
+import { UpdateProductUseCase } from '../../application/use-cases/update-product.use-case';
+import { DeleteProductUseCase } from '../../application/use-cases/delete-product.use-case';
+import { LoadProductsUseCase } from '../../application/use-cases/load-products.use-case';
 import { ProductsPresenter } from '../../interface-adapters/presenters/products.presenter';
 import type { ProductQueryServicePort } from '../../application/ports/product-query-service.port';
 import type { ProductCommandServicePort } from '../../application/ports/product-command-service.port';
@@ -45,4 +43,6 @@ export function bindMerchantAdminProducts(container: Container): void {
   container.bind(ProductsPresenter).toSelf().inSingletonScope();
   container.bind(PRODUCT_TYPES.ProductsPresenter).toService(ProductsPresenter);
 }
+
+
 

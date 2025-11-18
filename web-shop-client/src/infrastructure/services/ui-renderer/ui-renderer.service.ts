@@ -117,6 +117,9 @@ export class UIRendererService implements UIRendererPort {
 		const nodeWithActions = buttonActions ? { ...node, actions: buttonActions } : node;
 		const handleClick = this._createClickHandler(nodeWithActions, context);
 		
+		// Exclude pageSlug from props passed to DOM (it's only used for action creation)
+		const { pageSlug, ...propsWithoutPageSlug } = node.props || {};
+		
 		// Handle onChange action for inputs
 		const handleChange = this._createChangeHandler(node, context);
 
@@ -124,8 +127,6 @@ export class UIRendererService implements UIRendererPort {
 		const children = this._renderChildren(node, theme, context, depth);
 
 		// Build component props
-		// Exclude pageSlug from props passed to DOM (it's only used for action creation)
-		const { pageSlug, ...propsWithoutPageSlug } = node.props || {};
 		const componentProps: Record<string, unknown> = {
 			...propsWithoutPageSlug,
 			className,
@@ -210,7 +211,7 @@ export class UIRendererService implements UIRendererPort {
 		if (!node.children || node.children.length === 0) {
 			return undefined;
 		}
-
+		
 		return node.children
 			.map((child, index) => {
 				const element = this._renderNode(child, theme, context, depth + 1);

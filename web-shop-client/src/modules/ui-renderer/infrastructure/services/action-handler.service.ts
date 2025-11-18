@@ -9,7 +9,14 @@ export class ActionHandler {
     value?: any
   ): Promise<void> {
     if (action.type === 'navigate' && action.url) {
-      window.location.href = action.url;
+      // Handle navigation - prefer client-side navigation if available
+      if (context.navigate && typeof context.navigate === 'function') {
+        // Use client-side navigation via Next.js router
+        context.navigate(action.url);
+      } else if (typeof window !== 'undefined') {
+        // Fallback to full page reload
+        window.location.href = action.url;
+      }
       return;
     }
     

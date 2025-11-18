@@ -8,6 +8,7 @@ import { ProductsListViewModel } from '../../view-models/products-list.view-mode
 import { ProductsListPresenter } from '../../presenters/products-list.presenter';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { PRODUCTS_TYPES } from '../../../infrastructure/bootstrap/types';
+import type { AuthServicePort } from '../../../application/ports/auth-service.port';
 
 export interface ProductsListProps {
   readonly className?: string;
@@ -20,16 +21,31 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
   // State for tracking loading status of individual products
   const [loadingProducts, setLoadingProducts] = useState<Set<string>>(new Set());
 
-  // Get presenter from DI container
+  // Get presenter and auth service from DI container
   const presenter = container.get<ProductsListPresenter>(PRODUCTS_TYPES.ProductsListPresenter);
+  const authService = container.get<AuthServicePort>(PRODUCTS_TYPES.AuthService);
 
-  // Get appId from URL query parameters
-  const getAppIdFromQuery = (): string | null => {
-    if (typeof window === 'undefined') {
-      return null;
+  // Get appId with priority: session > query params
+  const getAppId = (): string | null => {
+    // 1. First try to get from authenticated user session
+    const currentUser = authService.getCurrentUser();
+    if (currentUser?.appId) {
+      console.log('[ProductsList] Using appId from user session:', currentUser.appId);
+      return currentUser.appId;
     }
-    const searchParams = new URLSearchParams(window.location.search);
-    return searchParams.get('appId');
+
+    // 2. Fallback to query parameters
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const appIdFromQuery = searchParams.get('appId');
+      if (appIdFromQuery) {
+        console.log('[ProductsList] Using appId from query params:', appIdFromQuery);
+        return appIdFromQuery;
+      }
+    }
+
+    console.log('[ProductsList] No appId found in session or query');
+    return null;
   };
 
   useEffect(() => {
@@ -39,12 +55,26 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
       forceUpdate({});
     });
 
-    // Initial load with appId from URL
+    // Initial load with appId from session or query
+    // Wait a bit for session restoration to complete
     const loadProducts = async () => {
       try {
-        const appId = getAppIdFromQuery();
-        console.log('[ProductsList] Loading products with appId from URL:', appId);
-        await presenter.present({ appId: appId || undefined });
+        // Small delay to allow session restoration to complete
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        const appId = getAppId();
+        if (!appId) {
+          console.log('[ProductsList] No appId available, skipping product load (will wait for authStateChanged event)');
+          // Don't load products if no appId (prevents showing all products)
+          // Products will be loaded when authStateChanged event fires after session restoration
+          return;
+        }
+        console.log('[ProductsList] Loading products with appId:', appId);
+        const currentUser = authService.getCurrentUser();
+        await presenter.present({ 
+          appId,
+          userId: currentUser?.userId || undefined
+        });
       } catch (error) {
         console.error('[ProductsList] Failed to load products:', error);
       }
@@ -54,7 +84,11 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
     
     // Listen for URL changes (e.g., appId parameter changes)
     const handlePopState = () => {
-      const appId = getAppIdFromQuery();
+      const appId = getAppId();
+      if (!appId) {
+        console.log('[ProductsList] URL changed but no appId, skipping reload');
+        return;
+      }
       console.log('[ProductsList] URL changed, reloading products with appId:', appId);
       loadProducts();
     };
@@ -63,25 +97,55 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
     // Handler уже вызвал presenter.present() с данными из события
     // Presenter обновит ViewModel и уведомит UI через callback
     const handleAuthReload = () => {
-      console.log('[ProductsList] Auth changed, presenter will update');
-      const appId = getAppIdFromQuery();
-      presenter.present({ appId: appId || undefined }).catch((error) => {
+      console.log('[ProductsList] Auth changed, reloading products');
+      const appId = getAppId();
+      if (!appId) {
+        console.log('[ProductsList] Auth changed but no appId, skipping reload');
+        return;
+      }
+      const currentUser = authService.getCurrentUser();
+      presenter.present({ 
+        appId,
+        userId: currentUser?.userId || undefined
+      }).catch((error) => {
         console.error('[ProductsList] Failed to reload products after auth:', error);
       });
+    };
+
+    // Listen for auth state changes (e.g., session restored from localStorage)
+    const handleAuthStateChanged = () => {
+      console.log('[ProductsList] Auth state changed (e.g., session restored), reloading products');
+      // Small delay to ensure AuthPresenter has updated its state
+      setTimeout(() => {
+        const appId = getAppId();
+        if (!appId) {
+          console.log('[ProductsList] Auth state changed but no appId, skipping reload');
+          return;
+        }
+        const currentUser = authService.getCurrentUser();
+        presenter.present({ 
+          appId,
+          userId: currentUser?.userId || undefined
+        }).catch((error) => {
+          console.error('[ProductsList] Failed to reload products after auth state change:', error);
+        });
+      }, 100);
     };
     
     if (typeof window !== 'undefined') {
       window.addEventListener('productsNeedReload', handleAuthReload);
       window.addEventListener('popstate', handlePopState);
+      window.addEventListener('authStateChanged', handleAuthStateChanged);
     }
     
     return () => {
       if (typeof window !== 'undefined') {
         window.removeEventListener('productsNeedReload', handleAuthReload);
         window.removeEventListener('popstate', handlePopState);
+        window.removeEventListener('authStateChanged', handleAuthStateChanged);
       }
     };
-  }, [presenter]);
+  }, [presenter, authService]);
 
   const viewModel = presenter.getViewModel();
 

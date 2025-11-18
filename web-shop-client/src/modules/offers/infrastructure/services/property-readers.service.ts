@@ -26,25 +26,14 @@ const DEFAULT_PROPERTY_VALUES: Record<string, ComparableValue> = {
 
 @injectable()
 export class PropertyReadersService implements ConditionReaderPort {
-  private readonly cache: Map<string, ComparableValue> = new Map();
-
   public constructor(@inject(TYPES.HttpClient) private readonly http: HttpClient) {}
 
   public async read(propertyPath: string, appId?: string, userId?: string): Promise<ComparableValue> {
-    // Create cache key that includes context for user-specific properties
-    const cacheKey = userId ? `${propertyPath}:${appId}:${userId}` : propertyPath;
-    
-    if (this.cache.has(cacheKey)) {
-      return this.cache.get(cacheKey)!;
-    }
-
     if (propertyPath === 'user.purchases.length') {
       // If appId is not provided, return default value (0) without making API call
       // This prevents 400 errors when appId is missing
       if (!appId) {
-        const defaultValue = 0;
-        this.cache.set(cacheKey, defaultValue);
-        return defaultValue;
+        return 0;
       }
 
       // Build query string with appId and userId if provided
@@ -56,12 +45,10 @@ export class PropertyReadersService implements ConditionReaderPort {
       const response = await this.http.get(url);
       const data = response.data;
       const length = Array.isArray(data) ? data.length : ((data as any)?.purchases?.length ?? 0);
-      this.cache.set(cacheKey, length);
       return length;
     }
 
     const fallback = DEFAULT_PROPERTY_VALUES[propertyPath] ?? null;
-    this.cache.set(cacheKey, fallback);
     return fallback;
   }
 }

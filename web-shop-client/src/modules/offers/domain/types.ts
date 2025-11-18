@@ -37,7 +37,7 @@ export interface OfferRuleTreeScenario {
   readonly triggerCode: string;
   readonly priority: number;
   readonly offerIds: readonly string[];
-  readonly items?: readonly Array<{
+  readonly items?: Array<{
     readonly id: string;
     readonly title: string;
     readonly type: string;
@@ -85,3 +85,4 @@ export interface Offer {
   readonly lpBonus?: number;
   readonly buyButton?: BuyButton;
 }
+

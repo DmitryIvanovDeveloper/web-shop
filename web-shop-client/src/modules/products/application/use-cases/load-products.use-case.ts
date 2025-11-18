@@ -29,14 +29,23 @@ export class LoadProductsUseCase {
       }
       
       // Фильтровать по appId
-      const filteredProducts = products.filter(product => 
-        product.appid === request.appId
-      );
+      const filteredProducts = products.filter(product => {
+        const matches = product.appid === request.appId;
+        if (!matches) {
+          console.log('[LoadProductsUseCase] Product filtered out:', {
+            productId: product.id.value,
+            title: product.title,
+            productAppId: product.appid,
+            requestedAppId: request.appId
+          });
+        }
+        return matches;
+      });
       
       console.log('[LoadProductsUseCase] Products loaded:', {
         total: products.length,
         filtered: filteredProducts.length,
-        appId: request.appId
+         filteredProductTitles: filteredProducts.map(p => p.title)
       });
       
       return filteredProducts;

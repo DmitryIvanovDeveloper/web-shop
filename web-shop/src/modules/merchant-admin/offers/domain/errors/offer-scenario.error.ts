@@ -6,11 +6,3 @@ export class OfferScenarioConfigurationError extends Error {
   }
 }
 
-export class OfferScenarioValidationError extends Error {
-  public constructor(message: string) {
-    super(message);
-    this.name = 'OfferScenarioValidationError';
-    Object.setPrototypeOf(this, OfferScenarioValidationError.prototype);
-  }
-}
-

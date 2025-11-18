@@ -7,6 +7,7 @@ export interface ActionContext {
 	// Standard handlers (handled by service)
 	readonly onPopupOpen?: (config: unknown) => void;
 	readonly onPopupClose?: () => void;
+	readonly navigate?: (url: string) => void;
 	
 	// Module-specific handlers (custom)
 	readonly [key: string]: ((value?: unknown) => void) | ((event?: unknown) => void) | unknown;

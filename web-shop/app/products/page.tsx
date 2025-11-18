@@ -17,3 +17,4 @@ export default async function ProductsPageRoute({ searchParams }: PageProps): Pr
   return <ProductsPage appId={appId} />;
 }
 
+

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { SectionRenderer } from './section-renderer';
 import { OfferCard } from '../../../../../shared/components/molecules/offer-card';
+import { ProductsList } from '../../../../products/interface-adapters/ui/components/products-list';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { PAGE_RENDERER_TYPES } from '../../../infrastructure/bootstrap/types';
 import { LoadPageConfigUseCase } from '../../../application/use-cases/load-page-config.use-case';
@@ -183,6 +184,34 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     );
   }
 
+  // For /store page, always render ProductsList
+  if (pageSlug === 'store') {
+    console.log('[PageRenderer] Rendering /store page with ProductsList');
+    const pageStyle: React.CSSProperties = {
+      padding: vm.pageStyles?.padding || undefined,
+      gap: vm.pageStyles?.gap || undefined,
+      display: vm.pageStyles?.gap ? 'flex' : undefined,
+      flexDirection: vm.pageStyles?.gap ? 'column' : undefined,
+    };
+
+    return (
+      <div className="page-renderer" style={pageStyle}>
+        {/* Render configured sections if available */}
+        {vm.sections.length > 0 && vm.sections.map(section => (
+          <SectionRenderer
+            key={section.id}
+            section={section}
+            theme={theme}
+          />
+        ))}
+        
+        {/* Always render ProductsList on /store page */}
+        <ProductsList />
+      </div>
+    );
+  }
+
+  // For other pages, show error if no configuration
   if (vm.sections.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">

@@ -6,6 +6,7 @@ import { SidebarRendererPresenter } from '../src/modules/app-layout/interface-ad
 import { SidebarRenderer } from '../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
 import type { ActionContext } from '../src/shared/ui/action-context';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { PAGE_RENDERER_TYPES } from '../src/modules/page-renderer/infrastructure/bootstrap/types';
 import { PageRendererPresenter } from '../src/modules/page-renderer/interface-adapters/presenters/page-renderer.presenter';
 import type { PageRendererViewModel } from '../src/modules/page-renderer/interface-adapters/view-models/page-renderer.view-model';
@@ -14,6 +15,7 @@ import { TYPES } from '../src/infrastructure/bootstrap/types';
 import { OfferCard } from '../src/shared/components/molecules/offer-card';
 
 export default function HomePage(): JSX.Element {
+  const router = useRouter();
   const sidebarPresenter = container.get<SidebarRendererPresenter>(
     APP_LAYOUT_TYPES.SidebarRendererPresenter
   );
@@ -32,6 +34,12 @@ export default function HomePage(): JSX.Element {
   const actionContext: ActionContext = {
     onPopupOpen: () => {},
     onPopupClose: () => {},
+    navigate: (url: string) => {
+      if (typeof url === 'string') {
+        console.log('[HomePage] Navigating to:', url);
+        router.push(url);
+      }
+    },
   };
 
   // Check previewMode from URL

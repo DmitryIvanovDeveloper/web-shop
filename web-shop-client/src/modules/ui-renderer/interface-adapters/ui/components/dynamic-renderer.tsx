@@ -242,4 +242,3 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     return <div className="error-fallback">Error rendering {node.type}</div>;
   }
 }
-
