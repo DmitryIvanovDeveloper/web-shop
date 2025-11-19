@@ -1,0 +1,215 @@
+'use client';
+
+import React, { useRef, useEffect } from 'react';
+
+export type DeviceType = 'iphone-15-pro' | 'iphone-14-pro' | 'iphone-se' | 'ipad';
+export type Orientation = 'portrait' | 'landscape';
+
+interface DeviceSpec {
+  width: number;
+  height: number;
+  notch: boolean;
+  frameWidth: number;
+  frameColor: string;
+  borderRadius: number;
+}
+
+const deviceSpecs: Record<DeviceType, DeviceSpec> = {
+  'iphone-15-pro': {
+    width: 393,
+    height: 852,
+    notch: true,
+    frameWidth: 8,
+    frameColor: '#1d1d1f',
+    borderRadius: 55,
+  },
+  'iphone-14-pro': {
+    width: 390,
+    height: 844,
+    notch: true,
+    frameWidth: 8,
+    frameColor: '#1d1d1f',
+    borderRadius: 55,
+  },
+  'iphone-se': {
+    width: 375,
+    height: 667,
+    notch: false,
+    frameWidth: 6,
+    frameColor: '#1d1d1f',
+    borderRadius: 40,
+  },
+  'ipad': {
+    width: 768,
+    height: 1024,
+    notch: false,
+    frameWidth: 12,
+    frameColor: '#1d1d1f',
+    borderRadius: 20,
+  },
+};
+
+interface PhoneMockupProps {
+  iframeSrc: string;
+  device: DeviceType;
+  orientation: Orientation;
+  onIframeRef?: (ref: HTMLIFrameElement | null) => void;
+}
+
+export function PhoneMockup({
+  iframeSrc,
+  device,
+  orientation,
+  onIframeRef,
+}: PhoneMockupProps): JSX.Element {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const spec = deviceSpecs[device];
+
+  useEffect(() => {
+    if (onIframeRef) {
+      onIframeRef(iframeRef.current);
+    }
+  }, [onIframeRef]);
+
+  // Calculate dimensions based on orientation
+  const isLandscape = orientation === 'landscape';
+  const screenWidth = isLandscape ? spec.height : spec.width;
+  const screenHeight = isLandscape ? spec.width : spec.height;
+  const frameWidth = spec.frameWidth;
+  const totalWidth = screenWidth + frameWidth * 2;
+  const totalHeight = screenHeight + frameWidth * 2;
+
+  // Calculate scale to fit viewport (only scale down, never up)
+  const maxViewportHeight = typeof window !== 'undefined' ? window.innerHeight - 250 : 800;
+  const maxViewportWidth = typeof window !== 'undefined' ? window.innerWidth - 100 : 1200;
+  const scaleX = maxViewportWidth / totalWidth;
+  const scaleY = maxViewportHeight / totalHeight;
+  const scale = Math.min(scaleX, scaleY, 1); // Don't scale up, only down
+
+  return (
+    <div
+      className="flex items-center justify-center w-full h-full"
+      style={{
+        minHeight: '600px',
+      }}
+    >
+      <div
+        className="relative transition-transform duration-300"
+        style={{
+          width: `${totalWidth}px`,
+          height: `${totalHeight}px`,
+          transform: `scale(${scale})`,
+          transformOrigin: 'center center',
+        }}
+      >
+        {/* Phone Frame */}
+        <div
+          className="relative"
+          style={{
+            width: `${totalWidth}px`,
+            height: `${totalHeight}px`,
+            background: `linear-gradient(135deg, ${spec.frameColor} 0%, #000000 100%)`,
+            borderRadius: `${spec.borderRadius}px`,
+            padding: `${frameWidth}px`,
+            boxShadow: `
+              0 20px 60px rgba(0, 0, 0, 0.4),
+              0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+              0 2px 10px rgba(0, 0, 0, 0.5)
+            `,
+            position: 'relative',
+            border: `1px solid rgba(255, 255, 255, 0.05)`,
+          }}
+        >
+          {/* Notch for iPhone models - Portrait */}
+          {spec.notch && !isLandscape && (
+            <div
+              className="absolute top-0 left-1/2 -translate-x-1/2 z-10"
+              style={{
+                width: '126px',
+                height: '30px',
+                background: `linear-gradient(135deg, ${spec.frameColor} 0%, #000000 100%)`,
+                borderRadius: '0 0 20px 20px',
+                marginTop: `${frameWidth}px`,
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+                border: `1px solid rgba(255, 255, 255, 0.05)`,
+                borderTop: 'none',
+              }}
+            />
+          )}
+
+          {/* Notch for iPhone models - Landscape (on the left side) */}
+          {spec.notch && isLandscape && (
+            <div
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10"
+              style={{
+                width: '30px',
+                height: '126px',
+                background: `linear-gradient(135deg, ${spec.frameColor} 0%, #000000 100%)`,
+                borderRadius: '0 20px 20px 0',
+                marginLeft: `${frameWidth}px`,
+                boxShadow: '2px 0 8px rgba(0, 0, 0, 0.3)',
+                border: `1px solid rgba(255, 255, 255, 0.05)`,
+                borderLeft: 'none',
+              }}
+            />
+          )}
+
+          {/* Screen Container */}
+          <div
+            className="relative overflow-hidden bg-black"
+            style={{
+              width: `${screenWidth}px`,
+              height: `${screenHeight}px`,
+              borderRadius: `${spec.borderRadius - frameWidth}px`,
+              boxShadow: 'inset 0 0 20px rgba(0, 0, 0, 0.5)',
+            }}
+          >
+            {/* Iframe */}
+            <iframe
+              ref={iframeRef}
+              src={iframeSrc}
+              className="border-0 w-full h-full"
+              style={{
+                width: `${screenWidth}px`,
+                height: `${screenHeight}px`,
+                border: 'none',
+                display: 'block',
+              }}
+              title="Live Preview"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+            />
+          </div>
+
+          {/* Home Indicator for iPhone - Portrait (bottom) */}
+          {spec.notch && !isLandscape && (
+            <div
+              className="absolute bottom-0 left-1/2 -translate-x-1/2 z-10"
+              style={{
+                width: '134px',
+                height: '5px',
+                backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                borderRadius: '3px',
+                marginBottom: `${frameWidth + 8}px`,
+              }}
+            />
+          )}
+
+          {/* Home Indicator for iPhone - Landscape (right side) */}
+          {spec.notch && isLandscape && (
+            <div
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10"
+              style={{
+                width: '5px',
+                height: '134px',
+                backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                borderRadius: '3px',
+                marginRight: `${frameWidth + 8}px`,
+              }}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+

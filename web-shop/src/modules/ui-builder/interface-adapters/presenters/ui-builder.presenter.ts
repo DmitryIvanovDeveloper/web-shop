@@ -709,19 +709,63 @@ export class UIBuilderPresenter {
   }
 
   public previewAuthPopup(visible: boolean): void {
-    // Preview via Supabase Realtime only
+    this.preview.showAuthPopup(visible);
   }
 
-  public updateLoginButton(input: { text?: string; styles?: Record<string, string> }): void {
-    const node = this.findNode('store-button');
-    if (!node) return;
-    if (input.text) node.props = { ...(node.props || {}), text: input.text };
-    if (input.styles) node.styles = { ...(node.styles || {}), ...input.styles };
+  public updateLoginButton(input: { text?: string; icon?: string; styles?: Record<string, string> }): void {
+    if (!this.vm.config) return;
+    
+    const config = this.vm.config as Record<string, any>;
+    if (!config.modules) config.modules = {};
+    if (!config.modules.authentication) config.modules.authentication = {};
+    if (!config.modules.authentication.loginButtonUI) {
+      config.modules.authentication.loginButtonUI = {
+        type: 'Button',
+        id: 'login-button',
+        props: {},
+        styles: {},
+        children: []
+      };
+    }
+    
+    const loginButtonUI = config.modules.authentication.loginButtonUI;
+    
+    if (input.text !== undefined) {
+      if (!loginButtonUI.props) loginButtonUI.props = {};
+      loginButtonUI.props.text = input.text;
+    }
+    
+    if (input.icon !== undefined) {
+      if (!loginButtonUI.props) loginButtonUI.props = {};
+      loginButtonUI.props.icon = input.icon;
+    }
+    
+    if (input.styles) {
+      loginButtonUI.styles = { ...(loginButtonUI.styles || {}), ...input.styles };
+    }
+    
     this.notify();
     this.sendConfigToIframe();
   }
 
   public updateAuthPopup(input: Record<string, unknown>): void {
+    if (!this.vm.config) return;
+    
+    const config = this.vm.config as Record<string, any>;
+    if (!config.modules) config.modules = {};
+    if (!config.modules.authentication) config.modules.authentication = {};
+    if (!config.modules.authentication.labels) config.modules.authentication.labels = {};
+    
+    const labels = config.modules.authentication.labels;
+    
+    if (input.userIdPlaceholder !== undefined) {
+      labels.userIdPlaceholder = input.userIdPlaceholder;
+    }
+    
+    if (input.enterUserId !== undefined) {
+      labels.enterUserId = input.enterUserId;
+    }
+    
     this.notify();
     this.sendConfigToIframe();
   }

@@ -11,6 +11,7 @@ import { PAGE_RENDERER_TYPES } from '../src/modules/page-renderer/infrastructure
 import { PageRendererPresenter } from '../src/modules/page-renderer/interface-adapters/presenters/page-renderer.presenter';
 import type { PageRendererViewModel } from '../src/modules/page-renderer/interface-adapters/view-models/page-renderer.view-model';
 import { LoadAppConfigFromMessageUseCase } from '../src/application/use-cases/load-app-config-from-message.use-case';
+import { LoadAppConfigUseCase } from '../src/application/use-cases/load-app-config.use-case';
 import { TYPES } from '../src/infrastructure/bootstrap/types';
 import { OfferCard } from '../src/shared/components/molecules/offer-card';
 
@@ -55,6 +56,33 @@ export default function HomePage(): JSX.Element {
       }
     }
   }, []);
+
+  // Load app config on mount if appId is available (for iframe Builder preview)
+  useEffect(() => {
+    const loadAppConfig = async () => {
+      try {
+        // Get appId from URL
+        const url = new URL(window.location.href);
+        const appId = url.searchParams.get('appId');
+        
+        // Check if we're in an iframe (likely Builder preview)
+        const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
+        
+        if (appId && (previewMode || isInIframe)) {
+          // Try to load config from Supabase if not loaded yet
+          const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
+          
+          // Load draft config for preview mode
+          await loadAppConfigUseCase.execute(true);
+          console.log('[HomePage] App config loaded from Supabase for preview mode', { appId, isInIframe });
+        }
+      } catch (error) {
+        console.warn('[HomePage] Failed to load app config on mount, will wait for CONFIG_UPDATE message', error);
+      }
+    };
+
+    loadAppConfig();
+  }, [previewMode]);
 
   // Subscribe to PageRendererPresenter for offer card updates (only in preview mode)
   useEffect(() => {
@@ -101,6 +129,28 @@ export default function HomePage(): JSX.Element {
           }
         } catch (error) {
           console.error('[HomePage] Failed to process app config update from message', error);
+        }
+      } else if (event.data?.type === 'SHOW_AUTH_POPUP') {
+        const visible = event.data.payload?.visible ?? false;
+        console.log('[HomePage] Received SHOW_AUTH_POPUP', { visible });
+        
+        if (visible) {
+          // Ensure config is loaded before showing popup
+          // If config is in the message, load it first
+          if (event.data.payload?.config) {
+            try {
+              await loadAppConfigFromMessageUseCase.execute(event.data.payload.config);
+              console.log('[HomePage] Config loaded before showing auth popup');
+            } catch (error) {
+              console.error('[HomePage] Failed to load config before showing popup', error);
+            }
+          }
+          
+          // Dispatch showAuthPopup event to trigger AuthModule popup
+          window.dispatchEvent(new CustomEvent('showAuthPopup'));
+        } else {
+          // Dispatch close event if needed (AuthModule should handle closing)
+          window.dispatchEvent(new CustomEvent('closeAuthPopup'));
         }
       }
     };

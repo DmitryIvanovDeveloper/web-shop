@@ -59,6 +59,16 @@ export class SupabaseConfigLoader {
 
     // The JSON stored in `config` must conform to AppConfig
     const config = row.config as AppConfig;
+    
+    // Log config structure for debugging
+    this._logger.info('[SupabaseConfigLoader] Config loaded from database', {
+      appId,
+      hasConfig: !!config,
+      configKeys: config ? Object.keys(config) : [],
+      hasModules: config && 'modules' in config ? !!config.modules : false,
+      modulesKeys: config && 'modules' in config && config.modules ? Object.keys(config.modules) : []
+    });
+    
     return config ?? null;
   }
 
@@ -86,6 +96,16 @@ export class SupabaseConfigLoader {
 
     // The JSON stored in `config` must conform to AppConfig
     const config = row.config as AppConfig;
+    
+    // Log config structure for debugging
+    this._logger.info('[SupabaseConfigLoader] Draft config loaded from database', {
+      appId,
+      hasConfig: !!config,
+      configKeys: config ? Object.keys(config) : [],
+      hasModules: config && 'modules' in config ? !!config.modules : false,
+      modulesKeys: config && 'modules' in config && config.modules ? Object.keys(config.modules) : []
+    });
+    
     return config ?? null;
   }
 }

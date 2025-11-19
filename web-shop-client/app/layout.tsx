@@ -522,10 +522,27 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                 <aside
                   data-element-id="left-sidebar"
                   className={isUIBuilderMode ? "block w-64 border-r border-gray-700 flex-shrink-0" : "hidden xl:block w-64 border-r border-gray-700 flex-shrink-0"}
-                  style={{
-                    borderLeft: '2px solid rgba(251, 191, 36, 0.3)',
-                    ...sidebarRootStyles
-                  }}
+                  style={(() => {
+                    // Don't mix shorthand (borderLeft) and non-shorthand (borderColor, borderWidth, borderStyle) properties
+                    const { borderLeft, borderColor, borderWidth, borderStyle, ...otherStyles } = sidebarRootStyles;
+                    const style: CSSProperties = { ...otherStyles };
+                    
+                    if (borderLeft) {
+                      // Use shorthand borderLeft from config - don't set individual border properties
+                      style.borderLeft = borderLeft as CSSProperties['borderLeft'];
+                    } else {
+                      // Use individual border properties if borderLeft is not set
+                      if (borderColor) style.borderColor = borderColor as CSSProperties['borderColor'];
+                      if (borderWidth) style.borderWidth = borderWidth as CSSProperties['borderWidth'];
+                      if (borderStyle) style.borderStyle = borderStyle as CSSProperties['borderStyle'];
+                      // Fallback: if no borderLeft and no individual properties, use default
+                      if (!borderColor && !borderWidth && !borderStyle) {
+                        style.borderLeft = '2px solid rgba(251, 191, 36, 0.3)';
+                      }
+                    }
+                    
+                    return style;
+                  })()}
                 >
                   <SidebarRenderer presenter={sidebarPresenter} actionContext={actionContext} />
                 </aside>
@@ -541,11 +558,30 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                 <aside
                   data-element-id="right-sidebar"
                   className={isUIBuilderMode ? "block w-64 border-l border-yellow-400/30 flex-shrink-0" : "hidden xl:block w-64 border-l border-yellow-400/30 flex-shrink-0"}
-                  style={{
-                    backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                    borderLeft: '0.5px solid rgba(156, 163, 175, 0.5)',
-                    ...rightSidebarRootStyles
-                  }}
+                  style={(() => {
+                    // Don't mix shorthand (borderLeft) and non-shorthand (borderColor, borderWidth, borderStyle) properties
+                    const { borderLeft, borderColor, borderWidth, borderStyle, ...otherStyles } = rightSidebarRootStyles;
+                    const style: CSSProperties = {
+                      backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                      ...otherStyles
+                    };
+                    
+                    if (borderLeft) {
+                      // Use shorthand borderLeft from config - don't set individual border properties
+                      style.borderLeft = borderLeft as CSSProperties['borderLeft'];
+                    } else {
+                      // Use individual border properties if borderLeft is not set
+                      if (borderColor) style.borderColor = borderColor as CSSProperties['borderColor'];
+                      if (borderWidth) style.borderWidth = borderWidth as CSSProperties['borderWidth'];
+                      if (borderStyle) style.borderStyle = borderStyle as CSSProperties['borderStyle'];
+                      // Fallback: if no borderLeft and no individual properties, use default
+                      if (!borderColor && !borderWidth && !borderStyle) {
+                        style.borderLeft = '0.5px solid rgba(156, 163, 175, 0.5)';
+                      }
+                    }
+                    
+                    return style;
+                  })()}
                 >
                   <div className="p-4">
                     <div className="mb-4">
@@ -630,8 +666,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                   const style: CSSProperties = {
                     zIndex: 9999,
                     width: '85%',
-                    backgroundColor: (backgroundColor as string | undefined) ?? '#1f2937',
-                    borderLeft: '0.5px solid rgba(156, 163, 175, 0.5)'
+                    backgroundColor: (backgroundColor as string | undefined) ?? '#1f2937'
                   };
 
                   if (backgroundImage) style.backgroundImage = backgroundImage as string;
@@ -640,12 +675,24 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                   if (backgroundRepeat) style.backgroundRepeat = backgroundRepeat as CSSProperties['backgroundRepeat'];
 
                   if (borderValue) style.border = borderValue as CSSProperties['border'];
-                  if (borderColor) style.borderColor = borderColor as CSSProperties['borderColor'];
-                  if (borderWidth) style.borderWidth = borderWidth as CSSProperties['borderWidth'];
-                  if (borderStyle) style.borderStyle = borderStyle as CSSProperties['borderStyle'];
-                  if (boxShadow) style.boxShadow = boxShadow as CSSProperties['boxShadow'];
 
-                  if (borderLeft) style.borderLeft = borderLeft as CSSProperties['borderLeft'];
+                  // Don't mix shorthand (borderLeft) and non-shorthand (borderColor, borderWidth, borderStyle) properties
+                  // Priority: if borderLeft exists, use it; otherwise use individual properties
+                  if (borderLeft) {
+                    // Use shorthand borderLeft - don't set individual border properties
+                    style.borderLeft = borderLeft as CSSProperties['borderLeft'];
+                  } else {
+                    // Use individual border properties if borderLeft is not set
+                    if (borderColor) style.borderColor = borderColor as CSSProperties['borderColor'];
+                    if (borderWidth) style.borderWidth = borderWidth as CSSProperties['borderWidth'];
+                    if (borderStyle) style.borderStyle = borderStyle as CSSProperties['borderStyle'];
+                    // Fallback: if no borderLeft and no individual properties, use default
+                    if (!borderColor && !borderWidth && !borderStyle) {
+                      style.borderLeft = '0.5px solid rgba(156, 163, 175, 0.5)';
+                    }
+                  }
+
+                  if (boxShadow) style.boxShadow = boxShadow as CSSProperties['boxShadow'];
                   if (backdropFilter) style.backdropFilter = backdropFilter as CSSProperties['backdropFilter'];
                   if (filter) style.filter = filter as CSSProperties['filter'];
 

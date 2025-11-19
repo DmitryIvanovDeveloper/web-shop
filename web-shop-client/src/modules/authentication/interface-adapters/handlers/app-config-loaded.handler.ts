@@ -35,12 +35,17 @@ export class AuthAppConfigLoadedHandler implements IAsyncEventHandler<AppConfigL
 
 	public async handleAsync(event: AppConfigLoadedEvent): Promise<void> {
 		this._logger.info('[AuthAppConfigLoadedHandler] Received app config', {
-			version: event.payload.config.version
+			version: event.payload.config.version,
+			hasModules: !!event.payload.config.modules,
+			modulesKeys: event.payload.config.modules ? Object.keys(event.payload.config.modules) : []
 		});
 
 		const authConfig = event.payload.config.modules?.authentication;
 		if (!authConfig) {
-			this._logger.warn('[AuthAppConfigLoadedHandler] No authentication config found in modules');
+			this._logger.warn('[AuthAppConfigLoadedHandler] No authentication config found in modules', {
+				configKeys: Object.keys(event.payload.config),
+				modules: event.payload.config.modules ? Object.keys(event.payload.config.modules) : 'modules is undefined'
+			});
 			return;
 		}
 

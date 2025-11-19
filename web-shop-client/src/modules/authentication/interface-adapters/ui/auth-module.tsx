@@ -80,9 +80,18 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 			setPopupState('idle');
 		};
 
+		const handleCloseAuthPopup = () => {
+			console.log('[AuthModule] closeAuthPopup event received');
+			setShowPopup(false);
+		};
+
 		if (typeof window !== 'undefined') {
 			window.addEventListener('showAuthPopup', handleShowAuthPopup);
-			return () => window.removeEventListener('showAuthPopup', handleShowAuthPopup);
+			window.addEventListener('closeAuthPopup', handleCloseAuthPopup);
+			return () => {
+				window.removeEventListener('showAuthPopup', handleShowAuthPopup);
+				window.removeEventListener('closeAuthPopup', handleCloseAuthPopup);
+			};
 		}
 	}, [renderPopupConfig]);
 
@@ -327,6 +336,24 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 	const renderAuthPopup = () => {
 		if (!showPopup || !renderPopupConfig) {
 			return null;
+		}
+
+		// Проверяем, что конфиг загружен перед рендерингом
+		if (!authPresenter.isConfigReady()) {
+			console.warn('[AuthModule] Config not ready, cannot render popup');
+			return (
+				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+					<div className="bg-gray-800 p-6 rounded-lg">
+						<p className="text-yellow-500">Loading authentication configuration...</p>
+						<button 
+							onClick={handlePopupClose}
+							className="mt-4 bg-gray-600 text-white px-4 py-2 rounded"
+						>
+							Close
+						</button>
+					</div>
+				</div>
+			);
 		}
 
 		try {

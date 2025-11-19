@@ -8,6 +8,9 @@ import { AuthEditor } from '../components/AuthEditor';
 import { PageConstructor } from '../components/PageConstructor';
 import { OfferCardsManager } from '../components/OfferCardsManager';
 import { OfferCardEditor } from '../components/OfferCardEditor';
+import { PhoneMockup, type DeviceType, type Orientation } from '../components/PhoneMockup';
+import { DeviceControls } from '../components/DeviceControls';
+import { FullscreenPreview } from '../components/FullscreenPreview';
 import type { SidebarElement } from '../../../domain/types/sidebar-element.types';
 import type { AppConfigStructure } from '../../../domain/entities/app-config.entity';
 import type { PageConstructorPresenter } from '../../presenters/page-constructor.presenter';
@@ -24,6 +27,9 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   const [viewModel, setViewModel] = useState(presenter.getViewModel());
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [viewportMode, setViewportMode] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
+  const [device, setDevice] = useState<DeviceType>('iphone-15-pro');
+  const [orientation, setOrientation] = useState<Orientation>('portrait');
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const clientUrl = env.NEXT_PUBLIC_CLIENT_URL;
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
@@ -86,16 +92,15 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     return `${clientUrl}/?appId=${appId}&previewMode=true&uibuilder=true`;
   }, [activeSection, appId, clientUrl, selectedPageSlug]);
 
-  // Callback ref to set iframe ref when iframe mounts
+  // Callback to set iframe ref when PhoneMockup mounts
   const handleIframeRef = useCallback((el: HTMLIFrameElement | null) => {
-    // TypeScript expects us to use the ref object directly
     if (el) {
       (iframeRef as React.MutableRefObject<HTMLIFrameElement | null>).current = el;
-    }
-    const previewComm = presenter.getPreviewCommunication();
-    if (previewComm && previewComm.setIframeRef && el) {
-      console.log('[UIBuilderPage] Calling setIframeRef with ref:', el);
-      previewComm.setIframeRef(el);
+      const previewComm = presenter.getPreviewCommunication();
+      if (previewComm && previewComm.setIframeRef) {
+        console.log('[UIBuilderPage] Calling setIframeRef with ref:', el);
+        previewComm.setIframeRef(el);
+      }
     }
   }, [presenter]);
 
@@ -120,24 +125,31 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     ensuredSectionsRef.current.clear();
   }, [viewModel.config]);
 
-  // Send viewport mode update to iframe when it changes
+  // Send viewport mode update to iframe when device or orientation changes
   useEffect(() => {
     if (!iframeRef.current?.contentWindow || !isClient) return;
     
+    // Map device to viewport mode for backward compatibility
+    const deviceToViewportMode = (deviceType: DeviceType): 'mobile' | 'tablet' | 'desktop' => {
+      if (deviceType === 'ipad') return 'tablet';
+      return 'mobile';
+    };
+
     const sendViewportModeUpdate = () => {
       try {
         const iframeWindow = iframeRef.current?.contentWindow;
         if (iframeWindow) {
           const clientUrl = env.NEXT_PUBLIC_CLIENT_URL;
           if (clientUrl && iframeWindow.postMessage) {
+            const mappedViewportMode = deviceToViewportMode(device);
             iframeWindow.postMessage(
               {
                 type: 'VIEWPORT_MODE_UPDATE',
-                payload: { viewportMode },
+                payload: { viewportMode: mappedViewportMode },
               },
               clientUrl
             );
-            console.log('[UIBuilderPage] Sent VIEWPORT_MODE_UPDATE:', viewportMode);
+            console.log('[UIBuilderPage] Sent VIEWPORT_MODE_UPDATE:', mappedViewportMode);
           }
         }
       } catch (error) {
@@ -145,14 +157,14 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       }
     };
 
-    // Send immediately when viewportMode changes
+    // Send immediately when device or orientation changes
     sendViewportModeUpdate();
 
     // Also send after a short delay to ensure iframe is ready
     const timeoutId = setTimeout(sendViewportModeUpdate, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [viewportMode, isClient]);
+  }, [device, orientation, isClient]);
 
   // Initialize and load full config from Supabase on mount
   useEffect(() => {
@@ -412,7 +424,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
   return (
     <div className="w-full h-screen flex bg-gray-100">
-      {/* Edit Elements Sidebar - список компонентов для редактирования */}
+      {/* Left Sidebar - список компонентов для редактирования */}
       <aside className="w-72 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
         <div className="p-3">
           <h2 className="text-sm font-bold text-gray-900 mb-3 pb-2 border-b border-gray-200">Components</h2>
@@ -563,7 +575,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         </div>
       </aside>
 
-      {/* Selected Editing Panels - правая панель */}
+      {/* Center - Editing Panels */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Compact Header */}
         <header className="bg-white border-b border-gray-200 px-4 py-3">
@@ -631,7 +643,11 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             )}
 
             {/* Offer Card Editor */}
-            {selectedOfferCardId && activeSection !== 'pageConstructor' && (() => {
+            {selectedOfferCardId && 
+             activeSection !== 'pageConstructor' && 
+             activeSection !== 'authButton' && 
+             activeSection !== 'authPopup' && 
+             activeSection !== 'background' && (() => {
               const selectedCard = offerCards.find(card => card.id === selectedOfferCardId) || pageConstructorPresenter.getSelectedOfferCard();
               if (!selectedCard) return null;
               
@@ -693,88 +709,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               />
             )}
 
-            {/* Live Preview Section */}
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-sm font-bold text-gray-900">Live Preview</h3>
-                <div className="flex gap-1.5 items-center">
-                  {/* Viewport Switcher */}
-                  <div className="flex gap-0.5 border border-gray-300 rounded p-0.5">
-                    <button
-                      onClick={() => setViewportMode('mobile')}
-                      className={`px-2 py-1 rounded text-xs transition-colors ${
-                        viewportMode === 'mobile'
-                          ? 'bg-blue-500 text-white'
-                          : 'text-gray-600 hover:bg-gray-100'
-                      }`}
-                      title="Mobile (375px)"
-                    >
-                      📱
-                    </button>
-                    <button
-                      onClick={() => setViewportMode('tablet')}
-                      className={`px-2 py-1 rounded text-xs transition-colors ${
-                        viewportMode === 'tablet'
-                          ? 'bg-blue-500 text-white'
-                          : 'text-gray-600 hover:bg-gray-100'
-                      }`}
-                      title="Tablet (1024px)"
-                    >
-                      📱
-                    </button>
-                    <button
-                      onClick={() => setViewportMode('desktop')}
-                      className={`px-2 py-1 rounded text-xs transition-colors ${
-                        viewportMode === 'desktop'
-                          ? 'bg-blue-500 text-white'
-                          : 'text-gray-600 hover:bg-gray-100'
-                      }`}
-                      title="Desktop (Full Width)"
-                    >
-                      🖥️
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => iframeRef.current?.contentWindow?.location.reload()}
-                    className="p-1.5 text-gray-600 hover:text-gray-900 text-sm"
-                    title="Refresh preview"
-                  >
-                    ↻
-                  </button>
-                  <button
-                    onClick={() => window.open(`${clientUrl}/?appId=${appId}&previewMode=false`, '_blank')}
-                    className="p-1.5 text-gray-600 hover:text-gray-900 text-sm"
-                    title="Open in new tab"
-                  >
-                    ↗
-                  </button>
-                </div>
-              </div>
-              <div className="relative flex justify-center">
-                {isClient && iframeSrc ? (
-                  <iframe
-                    ref={handleIframeRef}
-                    src={iframeSrc}
-                    className={`border border-gray-300 rounded transition-all duration-300 ${
-                      viewportMode === 'mobile' ? 'w-[375px]' : 
-                      viewportMode === 'tablet' ? 'w-[1024px]' : 
-                      'w-full'
-                    }`}
-                    style={{ height: 'calc(100vh - 200px)' }}
-                    title="Live Preview"
-                    sandbox="allow-scripts allow-same-origin"
-                  />
-                ) : (
-                  <div className="text-center p-8">
-                    <p className="text-sm text-gray-500 mb-2">Preview not available</p>
-                    <p className="text-xs text-gray-400">
-                      {!clientUrl ? 'NEXT_PUBLIC_CLIENT_URL is not configured' : 'Loading...'}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-
             {/* Validation Errors */}
             {viewModel.validationErrors.length > 0 && (
               <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
@@ -791,6 +725,52 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           </div>
         </div>
       </div>
+
+      {/* Right Sidebar - Live Preview */}
+      <aside className="w-[500px] bg-white border-l border-gray-200 flex flex-col flex-shrink-0 overflow-hidden">
+        <div className="border-b border-gray-200 px-4 py-3 flex justify-between items-center">
+          <h3 className="text-sm font-bold text-gray-900">Live Preview</h3>
+          {isClient && iframeSrc && (
+            <DeviceControls
+              device={device}
+              orientation={orientation}
+              onDeviceChange={setDevice}
+              onOrientationChange={setOrientation}
+              onFullscreen={() => setIsFullscreen(true)}
+              onRefresh={() => iframeRef.current?.contentWindow?.location.reload()}
+              onOpenInNewTab={() => window.open(`${clientUrl}/?appId=${appId}&previewMode=false`, '_blank')}
+            />
+          )}
+        </div>
+        <div className="flex-1 overflow-y-auto bg-gray-50 p-4 flex items-center justify-center">
+          {isClient && iframeSrc ? (
+            <PhoneMockup
+              iframeSrc={iframeSrc}
+              device={device}
+              orientation={orientation}
+              onIframeRef={handleIframeRef}
+            />
+          ) : (
+            <div className="text-center p-8">
+              <p className="text-sm text-gray-500 mb-2">Preview not available</p>
+              <p className="text-xs text-gray-400">
+                {!clientUrl ? 'NEXT_PUBLIC_CLIENT_URL is not configured' : 'Loading...'}
+              </p>
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* Fullscreen Preview Modal */}
+      {isFullscreen && isClient && iframeSrc && (
+        <FullscreenPreview
+          iframeSrc={iframeSrc}
+          device={device}
+          orientation={orientation}
+          onClose={() => setIsFullscreen(false)}
+          onIframeRef={handleIframeRef}
+        />
+      )}
     </div>
   );
 }

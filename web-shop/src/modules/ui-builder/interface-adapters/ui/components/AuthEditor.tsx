@@ -10,8 +10,8 @@ type Props = {
 };
 
 export function AuthEditor({ value, onUpdateButton, onUpdatePopup, tab }: Props): JSX.Element {
-  const auth = (value as any)?.authentication || {};
-  const labels = (value as any)?.labels || {};
+  const auth = (value as any)?.modules?.authentication || {};
+  const labels = auth?.labels || {};
 
   const buttonStyles = (auth.loginButtonUI?.styles || {}) as Record<string, string>;
   const buttonText = auth.loginButtonUI?.props?.text || "Login";

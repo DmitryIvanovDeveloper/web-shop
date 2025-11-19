@@ -129,25 +129,11 @@ export class EvaluateOffersUseCase {
 
       if (conditionResult) {
         // Condition matched - this is the first (highest priority) scenario that passed
-        // Collect offer IDs from both offerIds and items (if items exist)
-        const scenarioOfferIds = new Set<string>();
-        
-        // Add offerIds from scenario.offerIds
+        // Collect offer IDs from scenario.offerIds only
+        // Note: items is only used for discount metadata, not for offer IDs
         if (scenario.offerIds && scenario.offerIds.length > 0) {
-          scenario.offerIds.forEach(id => scenarioOfferIds.add(id));
+          offersIds.push(...scenario.offerIds);
         }
-        
-        // Add offer IDs from scenario.items (items.id is the offer/product ID)
-        if (scenario.items && scenario.items.length > 0) {
-          scenario.items.forEach(item => {
-            if (item.id) {
-              scenarioOfferIds.add(item.id);
-            }
-          });
-        }
-        
-        // Add unique offer IDs to the main array
-        offersIds.push(...Array.from(scenarioOfferIds));
         
         // Track this scenario for discount application
         matchedScenario = scenario;

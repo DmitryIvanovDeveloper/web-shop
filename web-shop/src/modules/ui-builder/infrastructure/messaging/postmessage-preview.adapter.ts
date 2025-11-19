@@ -99,4 +99,20 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
     console.log('[PostMessagePreviewAdapter] Sending config update');
     this._iframeEl.contentWindow.postMessage(message, this._targetOrigin);
   }
+
+  public showAuthPopup(visible: boolean): void {
+    const message = {
+      type: 'SHOW_AUTH_POPUP',
+      payload: { visible },
+    };
+
+    if (!this._iframeEl?.contentWindow || !this._isIframeReady) {
+      console.warn('[PostMessagePreviewAdapter] iframe not ready, queueing showAuthPopup message');
+      this._pendingMessages.push({ payload: message });
+      return;
+    }
+
+    console.log('[PostMessagePreviewAdapter] Sending showAuthPopup message', { visible });
+    this._iframeEl.contentWindow.postMessage(message, this._targetOrigin);
+  }
 }
