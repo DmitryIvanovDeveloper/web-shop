@@ -90,13 +90,17 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
       payload: { config },
     };
 
+    console.log('[PostMessagePreviewAdapter] Sending config update', {
+      hasElementSelectionMode: 'elementSelectionMode' in config,
+      elementSelectionMode: config.elementSelectionMode
+    });
+
     if (!this._iframeEl?.contentWindow || !this._isIframeReady) {
       console.warn('[PostMessagePreviewAdapter] iframe not ready, queueing config update');
       this._pendingMessages.push({ payload: message });
       return;
     }
 
-    console.log('[PostMessagePreviewAdapter] Sending config update');
     this._iframeEl.contentWindow.postMessage(message, this._targetOrigin);
   }
 
@@ -115,4 +119,5 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
     console.log('[PostMessagePreviewAdapter] Sending showAuthPopup message', { visible });
     this._iframeEl.contentWindow.postMessage(message, this._targetOrigin);
   }
+
 }

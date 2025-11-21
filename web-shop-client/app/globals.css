@@ -32,3 +32,152 @@ body {
     text-wrap: balance;
   }
 }
+
+/* Preview hover effect for element selection mode */
+.preview-hover {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+  cursor: pointer !important;
+  position: relative !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+}
+
+/* Disable interactive elements in element selection mode */
+/* Elements with data-element-id can still be selected (for hover/click selection), 
+   but their actual actions are disabled via JavaScript */
+body[data-selection-mode="true"] button[data-element-id],
+body[data-selection-mode="true"] input[data-element-id],
+body[data-selection-mode="true"] select[data-element-id],
+body[data-selection-mode="true"] textarea[data-element-id],
+body[data-selection-mode="true"] a[data-element-id] {
+  /* Visual indication that element is in selection mode */
+  opacity: 0.9 !important;
+  /* Actions are disabled via JavaScript, but pointer events are allowed for selection */
+}
+
+/* Elements without data-element-id are completely disabled */
+body[data-selection-mode="true"] button:not([data-element-id]),
+body[data-selection-mode="true"] input:not([data-element-id]),
+body[data-selection-mode="true"] select:not([data-element-id]),
+body[data-selection-mode="true"] textarea:not([data-element-id]),
+body[data-selection-mode="true"] a:not([data-element-id]) {
+  pointer-events: none !important;
+  opacity: 0.6 !important;
+  cursor: default !important;
+}
+
+/* Add outline on hover for elements in selection mode (CSS fallback) */
+/* Only highlight the element directly hovered, not parent containers */
+body[data-selection-mode="true"] [data-element-id]:hover {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+  cursor: pointer !important;
+  position: relative !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+  border: 2px solid #3b82f6 !important;
+}
+
+/* Prevent parent containers from being highlighted when child is hovered */
+/* When a child element is hovered, remove outline from parent */
+body[data-selection-mode="true"] [data-element-id]:hover [data-element-id] {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Only show outline on the directly hovered element, not on parents */
+body[data-selection-mode="true"] [data-element-id]:not(:hover) [data-element-id]:hover {
+  /* Child is hovered, parent should not be highlighted */
+}
+
+/* Special handling for containers - ensure outline is visible even with children */
+/* Use more specific selectors to override any conflicting styles */
+/* Only highlight if no child element is being hovered */
+body[data-selection-mode="true"] [data-element-id].preview-hover:not(:has([data-element-id]:hover)),
+body[data-selection-mode="true"] [data-element-id="sidebar-container"]:hover:not(:has([data-element-id]:hover)),
+body[data-selection-mode="true"] [data-element-id="sidebar-container"].preview-hover:not(:has([data-element-id]:hover)),
+body[data-selection-mode="true"] aside[data-element-id="sidebar-container"]:hover:not(:has([data-element-id]:hover)),
+body[data-selection-mode="true"] aside[data-element-id="sidebar-container"].preview-hover:not(:has([data-element-id]:hover)) {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+  cursor: pointer !important;
+  position: relative !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+  z-index: 1 !important;
+  /* Ensure outline is not clipped */
+  overflow: visible !important;
+  /* Also add border as fallback if outline doesn't work */
+  border: 2px solid #3b82f6 !important;
+}
+
+/* Force outline for containers - ensure it's always visible when in selection mode */
+body[data-selection-mode="true"] [data-element-id="sidebar-container"],
+body[data-selection-mode="true"] aside[data-element-id="sidebar-container"] {
+  /* Ensure outline is not clipped by overflow */
+  overflow: visible !important;
+  /* Make sure outline is visible */
+  outline-width: 0 !important; /* Reset to 0, will be set on hover */
+  border: none !important; /* Reset border, will be set on hover */
+}
+
+/* Force outline on hover for sidebar-container specifically */
+/* Only if no child element is being hovered */
+body[data-selection-mode="true"] [data-element-id="sidebar-container"]:hover:not(:has([data-element-id]:hover)),
+body[data-selection-mode="true"] aside[data-element-id="sidebar-container"]:hover:not(:has([data-element-id]:hover)) {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+  overflow: visible !important;
+  /* Add border as fallback */
+  border: 2px solid #3b82f6 !important;
+}
+
+/* Add pointer cursor for elements in selection mode when hovering */
+/* This will work when element selection mode is active and element has data-element-id */
+[data-element-id] {
+  transition: outline 0.1s ease, box-shadow 0.1s ease, cursor 0.1s ease;
+}
+
+.preview-hover::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+/* Add background overlay on hover for elements in selection mode (CSS fallback) */
+body[data-selection-mode="true"] [data-element-id]:hover::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+/* Add visible border outline for sidebar-container on hover using ::after */
+body[data-selection-mode="true"] [data-element-id="sidebar-container"]:hover::after,
+body[data-selection-mode="true"] aside[data-element-id="sidebar-container"]:hover::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border: 2px solid #3b82f6 !important;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 9999 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+}
+  

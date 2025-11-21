@@ -10,6 +10,8 @@ import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import type { PageConfig } from '../../domain/entities/page-config.entity';
 import type { PageSection, SectionLayout, ComponentNode } from '../../domain/entities/page-section.entity';
 import type { OfferCardTemplate, AppConfigStructure, AppConfig } from '../../domain/entities/app-config.entity';
+import { generateElementId } from '../../shared/utils/id-generator';
+import { migratePageConfigIds } from '../../shared/utils/config-migrator';
 
 interface PageConstructorViewModel {
   appId: string;
@@ -101,21 +103,88 @@ export class PageConstructorPresenter {
       }
 
       if (result.value) {
-        this.pageStyles = result.value.pageStyles || {};
+        // Migrate all IDs to UUID format
+        const migratedConfig = migratePageConfigIds(result.value);
+        
+        this.pageStyles = migratedConfig.pageStyles || {};
+        
+        // If page exists but has no sections, create default sections for home page
+        let finalConfig = migratedConfig;
+        const hasNoSections = !migratedConfig.sections || migratedConfig.sections.length === 0;
+        this._logger.info('[PageConstructorPresenter] Checking if default sections needed', {
+          pageSlug,
+          isHome: pageSlug === 'home',
+          hasNoSections,
+          sectionsCount: migratedConfig.sections?.length || 0,
+          sections: migratedConfig.sections
+        });
+        
+        if (pageSlug === 'home' && hasNoSections) {
+          this._logger.info('[PageConstructorPresenter] Page exists but has no sections, creating default sections for home');
+          const defaultSections = this.createDefaultSectionsForHome();
+          finalConfig = {
+            ...migratedConfig,
+            sections: defaultSections,
+          };
+          this._logger.info('[PageConstructorPresenter] Created default sections for existing home page', {
+            sectionsCount: defaultSections.length,
+            sectionIds: defaultSections.map(s => s.id)
+          });
+        }
+        
         this.vm = { 
           ...this.vm, 
-          sections: result.value.sections,
+          sections: finalConfig.sections,
           isLoading: false,
-          isDraft: result.value.isDraft
+          isDraft: finalConfig.isDraft
         };
+        
+        // Save migrated config back to Supabase if it was changed
+        if (JSON.stringify(result.value) !== JSON.stringify(finalConfig)) {
+          await this._saveDraftUseCase.execute(finalConfig);
+          this._logger.info('[PageConstructorPresenter] Updated page config saved to Supabase', {
+            hadSections: !!result.value.sections?.length,
+            hasSections: !!finalConfig.sections?.length,
+            sectionsCount: finalConfig.sections?.length || 0
+          });
+        }
+        
+        // Send migrated config to iframe
+        this.sendConfigToIframe();
       } else {
-        // No draft exists, start with empty page
+        // No draft exists, start with empty page or create default sections for home
         this.pageStyles = {};
-        this.vm = { 
-          ...this.vm, 
-          sections: [],
-          isLoading: false 
-        };
+        
+        // Create default sections for home page if it's empty
+        if (pageSlug === 'home') {
+          const defaultSections = this.createDefaultSectionsForHome();
+          this.vm = { 
+            ...this.vm, 
+            sections: defaultSections,
+            isLoading: false 
+          };
+          
+          // Save default sections to Supabase
+          const defaultPageConfig: PageConfig = {
+            id: generateElementId('page'),
+            appId,
+            pageSlug,
+            version: 1,
+            isDraft: true,
+            isActive: false,
+            sections: defaultSections,
+            pageStyles: {},
+          };
+          
+          await this._saveDraftUseCase.execute(defaultPageConfig);
+          this._logger.info('[PageConstructorPresenter] Created default sections for new home page');
+        } else {
+          this.vm = { 
+            ...this.vm, 
+            sections: [],
+            isLoading: false 
+          };
+        }
       }
 
       // Load offer cards from app config
@@ -146,7 +215,7 @@ export class PageConstructorPresenter {
     this._logger.info('[PageConstructorPresenter] Adding section', { type });
 
     const newSection: PageSection = {
-      id: `${type}-${Date.now()}`,
+      id: generateElementId(type),
       type,
       layout: {
         grid: '1-column',
@@ -255,7 +324,7 @@ export class PageConstructorPresenter {
     this._logger.info('[PageConstructorPresenter] Adding component', { sectionId, componentType });
 
     const newComponent: ComponentNode = {
-      id: `${componentType.toLowerCase()}-${Date.now()}`,
+      id: generateElementId(componentType.toLowerCase()),
       type: componentType,
       props: this.getDefaultProps(componentType),
       styles: {},
@@ -273,6 +342,7 @@ export class PageConstructorPresenter {
 
     this.notify();
     this.saveConfigDebounced();
+    this.sendConfigToIframe(); // Send config to iframe immediately so new component is rendered
   }
 
   public removeComponent(sectionId: string, componentId: string): void {
@@ -474,12 +544,8 @@ export class PageConstructorPresenter {
       return;
     }
 
-    // Ensure we have sections - don't send empty config
-    if (!this.vm.sections || this.vm.sections.length === 0) {
-      this._logger.warn('[PageConstructorPresenter] No sections to send to iframe, skipping update');
-      return;
-    }
-
+    // Always send config, even if empty, so iframe knows the page is loaded
+    // Empty sections array is valid and should be sent
     const pageConfig: PageConfig = {
       id: 'draft',
       appId: this.vm.appId,
@@ -491,17 +557,21 @@ export class PageConstructorPresenter {
       pageStyles: this.pageStyles ? { ...this.pageStyles } : undefined,
     };
 
+    this._logger.info('[PageConstructorPresenter] Sending page config to iframe', {
+      pageSlug: this.vm.pageSlug,
+      sectionsCount: pageConfig.sections.length,
+      sectionIds: pageConfig.sections.map(s => s.id),
+      pagePadding: pageConfig.pageStyles?.padding || 'not set',
+      pageGap: pageConfig.pageStyles?.gap || 'not set',
+    });
+
     try {
       iframe.contentWindow.postMessage(
         { type: 'PAGE_CONFIG_UPDATE', config: pageConfig },
         '*'
       );
 
-      this._logger.info('[PageConstructorPresenter] Sent config to iframe', {
-        sectionsCount: pageConfig.sections.length,
-        pagePadding: pageConfig.pageStyles?.padding || 'not set',
-        pageGap: pageConfig.pageStyles?.gap || 'not set',
-      });
+      this._logger.info('[PageConstructorPresenter] Sent config to iframe successfully');
     } catch (error) {
       this._logger.error('[PageConstructorPresenter] Failed to send config to iframe', error);
     }
@@ -860,7 +930,7 @@ export class PageConstructorPresenter {
 
   public async addOfferCard(name?: string): Promise<void> {
     const newCard: OfferCardTemplate = {
-      id: `offer-card-${Date.now()}`,
+      id: generateElementId('offer-card'),
       name: name || `Offer Card ${this.offerCards.length + 1}`,
       styles: this.getDefaultFigmaStyles(),
       media: {
@@ -983,6 +1053,33 @@ export class PageConstructorPresenter {
         await this.runOfferCardsSave();
       }
     }
+  }
+
+  /**
+   * Creates default sections for home page
+   * Returns an array with a default content section
+   */
+  private createDefaultSectionsForHome(): PageSection[] {
+    this._logger.info('[PageConstructorPresenter] Creating default sections for home page');
+    
+    const defaultSection: PageSection = {
+      id: generateElementId('content'),
+      type: 'content',
+      layout: {
+        grid: '1-column',
+        gap: '1rem',
+        align: 'start',
+      },
+      styles: {},
+      components: [],
+    };
+    
+    this._logger.info('[PageConstructorPresenter] Created default section', {
+      sectionId: defaultSection.id,
+      sectionType: defaultSection.type
+    });
+    
+    return [defaultSection];
   }
 
   private async saveOfferCards(): Promise<void> {

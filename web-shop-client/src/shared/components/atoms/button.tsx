@@ -7,7 +7,9 @@ export interface UniversalButtonProps {
   readonly icon?: string;
   readonly className?: string;
   readonly style?: CSSProperties;
-  readonly onClick?: () => void;
+  readonly onClick?: (e?: React.MouseEvent<HTMLButtonElement>) => void;
+  readonly onMouseEnter?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  readonly onMouseLeave?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   readonly children?: ReactNode;
   readonly fullWidth?: boolean;
   readonly isLoading?: boolean;
@@ -21,6 +23,8 @@ export function UniversalButton({
   className = '',
   style,
   onClick,
+  onMouseEnter,
+  onMouseLeave,
   children,
   fullWidth = false,
   isLoading = false,
@@ -36,8 +40,9 @@ export function UniversalButton({
   
   const justifyClass = getJustifyClass();
   
+  // Merge className properly - preserve preview-hover and other classes
   const buttonClasses = fullWidth 
-    ? `w-full flex items-center ${justifyClass} rounded-lg ${className}`
+    ? `w-full flex items-center ${justifyClass} rounded-lg ${className}`.trim()
     : className;
     
   // Удаляем justifyContent из inline styles, так как он уже применён через CSS класс
@@ -52,7 +57,7 @@ export function UniversalButton({
       }
     : style;
     
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     console.log('[UniversalButton] handleClick called', {
       text,
       isLoading,
@@ -67,7 +72,7 @@ export function UniversalButton({
     console.log('[UniversalButton] Button clicked:', text);
     console.log('[UniversalButton] onClick handler exists:', !!onClick);
     if (onClick) {
-      onClick();
+      onClick(e);
     } else {
       console.warn('[UniversalButton] No onClick handler provided');
     }
@@ -83,6 +88,8 @@ export function UniversalButton({
       className={buttonClasses} 
       style={buttonStyle} 
       onClick={handleClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       disabled={isLoading}
       {...restProps}
     >

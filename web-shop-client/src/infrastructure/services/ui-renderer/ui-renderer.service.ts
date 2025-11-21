@@ -8,7 +8,7 @@
 
 import { injectable, inject } from 'inversify';
 import { createElement, cloneElement } from 'react';
-import type { ComponentType } from 'react';
+import type { ComponentType, MouseEvent } from 'react';
 import type { UIRendererPort } from '../../../application/ports/ui-renderer.port';
 import type { UIDescriptor } from '../../../shared/ui/ui-descriptor';
 import type { ComponentNode } from '../../../shared/ui/component-node';
@@ -123,19 +123,31 @@ export class UIRendererService implements UIRendererPort {
 		// Handle onChange action for inputs
 		const handleChange = this._createChangeHandler(node, context);
 
+		// Add hover handlers for element selection mode (preview mode)
+		const hoverHandlers = this._createHoverHandlers(node);
+
+		// Add data-element-id for preview mode to enable selection and hover effects
+		const previewProps = this._isPreviewMode() && node.id ? { 'data-element-id': node.id } : {};
+
 		// Recursively render children
 		const children = this._renderChildren(node, theme, context, depth);
 
 		// Build component props
 		const componentProps: Record<string, unknown> = {
 			...propsWithoutPageSlug,
+			...previewProps,
 			className,
 			style,
 			children,
 			onClick: handleClick,
 			onChange: handleChange,
-			isLoading: context?.isLoading || false
+			...hoverHandlers
 		};
+
+		// Only add isLoading for Button components (not to DOM elements)
+		if (node.type === 'Button') {
+			componentProps.isLoading = context?.isLoading || false;
+		}
 
 		console.log('[UIRendererService] Component props for', node.type, {
 			...componentProps,
@@ -176,10 +188,201 @@ export class UIRendererService implements UIRendererPort {
 		}
 	}
 
+	private _isPreviewMode(): boolean {
+		if (typeof window === 'undefined') {
+			return false;
+		}
+		const params = new URLSearchParams(window.location.search);
+		return params.get('previewMode') === 'true';
+	}
+
+	private _isElementSelectionMode(): boolean {
+		if (typeof document !== 'undefined' && document.body) {
+			return document.body.getAttribute('data-selection-mode') === 'true';
+		}
+		if (typeof window !== 'undefined') {
+			return (window as any).__elementSelectionMode === true;
+		}
+		return false;
+	}
+
+	private _createHoverHandlers(node: ComponentNode): Record<string, unknown> {
+		// Check if in preview mode and element selection mode
+		if (typeof window === 'undefined') {
+			return {};
+		}
+
+		const isSelectionModeActive = this._isPreviewMode() && this._isElementSelectionMode() && node.id;
+
+		if (!isSelectionModeActive) {
+			return {};
+		}
+
+		// Create hover handlers using DOM manipulation (since we can't use React hooks in service)
+		const handleMouseEnter = (e: MouseEvent<HTMLElement>) => {
+			if (this._isPreviewMode() && this._isElementSelectionMode() && node.id) {
+				const target = e.currentTarget;
+				const eventTarget = e.target as HTMLElement;
+				
+				// Check if the cursor is actually over this element, not a child element with data-element-id
+				// If a child element with data-element-id is being hovered, don't highlight the parent
+				if (eventTarget !== target && eventTarget.closest(`[data-element-id="${node.id}"]`) !== target) {
+					// The cursor is over a child element, not this element
+					// Check if the child has its own data-element-id
+					const childWithId = eventTarget.closest('[data-element-id]') as HTMLElement;
+					if (childWithId && childWithId !== target && childWithId.hasAttribute('data-element-id')) {
+						// A child element with data-element-id is being hovered, don't highlight parent
+						return;
+					}
+				}
+				
+				if (!target.classList.contains('preview-hover')) {
+					target.classList.add('preview-hover');
+				}
+				// Ensure cursor is pointer and outline is visible (inline styles as fallback)
+				// Use setProperty with !important to override any conflicting styles
+				target.style.setProperty('cursor', 'pointer', 'important');
+				target.style.setProperty('outline', '2px solid #3b82f6', 'important');
+				target.style.setProperty('outline-offset', '2px', 'important');
+				target.style.setProperty('box-shadow', '0 0 0 2px rgba(59, 130, 246, 0.3)', 'important');
+				target.style.setProperty('position', 'relative', 'important');
+				target.style.setProperty('overflow', 'visible', 'important');
+				// Also add border as fallback
+				target.style.setProperty('border', '2px solid #3b82f6', 'important');
+				this._logger.info(`[UIRendererService] Applied outline styles to: ${node.id}`);
+				// Don't stop propagation - allow hover to work on other elements
+			}
+		};
+
+		const handleMouseLeave = (e: MouseEvent<HTMLElement>) => {
+			if (this._isPreviewMode() && this._isElementSelectionMode() && node.id) {
+				const target = e.currentTarget;
+				target.classList.remove('preview-hover');
+				// Reset inline styles (CSS will handle it via :hover)
+				target.style.removeProperty('cursor');
+				target.style.removeProperty('outline');
+				target.style.removeProperty('outline-offset');
+				target.style.removeProperty('box-shadow');
+				target.style.removeProperty('overflow');
+				target.style.removeProperty('border');
+				// Don't stop propagation - allow hover to work on other elements
+			}
+		};
+
+		return {
+			onMouseEnter: handleMouseEnter,
+			onMouseLeave: handleMouseLeave
+		};
+	}
+
 	private _createClickHandler(
 		node: ComponentNode,
 		context: ActionContext | undefined
-	): (() => void) | undefined {
+	): ((e?: React.MouseEvent<HTMLElement>) => void) | undefined {
+		// In element selection mode, send element selection message to parent window
+		const isPreviewMode = this._isPreviewMode();
+		const isElementSelectionMode = this._isElementSelectionMode();
+		const hasNodeId = !!node.id;
+		
+		this._logger.info(`[UIRendererService] _createClickHandler for node ${node.id}:`, {
+			isPreviewMode,
+			isElementSelectionMode,
+			hasNodeId,
+			nodeType: node.type
+		});
+		
+		if (isPreviewMode && isElementSelectionMode && hasNodeId) {
+			return (e?: React.MouseEvent<HTMLElement>) => {
+				this._logger.info(`[UIRendererService] Click handler called for node ${node.id}`, {
+					nodeId: node.id,
+					nodeType: node.type,
+					hasEvent: !!e,
+					target: e?.target,
+					currentTarget: e?.currentTarget
+				});
+				
+				// For containers, check if click was on the container itself or a child
+				// If click was on a child with its own data-element-id, don't handle it here
+				if (e && node.type === 'Container') {
+					const target = e.target as HTMLElement;
+					const currentTarget = e.currentTarget as HTMLElement;
+					
+					// Check if click was on a child element with its own data-element-id
+					if (target !== currentTarget) {
+						const childElementId = target.closest('[data-element-id]')?.getAttribute('data-element-id');
+						if (childElementId && childElementId !== node.id) {
+							this._logger.info(`[UIRendererService] Click was on child element ${childElementId}, not handling container ${node.id} click`);
+							return; // Let the child element handle the click
+						}
+					}
+				}
+				
+				// Prevent default behavior
+				if (e) {
+					e.preventDefault();
+					e.stopPropagation();
+				}
+				
+				// Remove outline from all elements when clicking
+				// Trigger mouseleave event on all elements to ensure hover handlers are called
+				if (typeof document !== 'undefined') {
+					const allElements = document.querySelectorAll('[data-element-id]');
+					this._logger.info(`[UIRendererService] Removing outline from ${allElements.length} elements after click`);
+					allElements.forEach((el) => {
+						const htmlEl = el as HTMLElement;
+						// Trigger mouseleave event to ensure hover handlers clean up
+						const mouseLeaveEvent = new MouseEvent('mouseleave', {
+							bubbles: true,
+							cancelable: true,
+							view: window
+						});
+						htmlEl.dispatchEvent(mouseLeaveEvent);
+						// Also manually remove styles as fallback
+						htmlEl.classList.remove('preview-hover');
+						htmlEl.style.removeProperty('cursor');
+						htmlEl.style.removeProperty('outline');
+						htmlEl.style.removeProperty('outline-offset');
+						htmlEl.style.removeProperty('box-shadow');
+						htmlEl.style.removeProperty('overflow');
+						htmlEl.style.removeProperty('border');
+					});
+					this._logger.info(`[UIRendererService] Outline removed from all elements`);
+				}
+				
+				this._logger.info(`[UIRendererService] Element clicked in selection mode: ${node.id}`);
+				
+				// Also check if element has data-element-id attribute that might differ from node.id
+				let elementIdToSend = node.id;
+				if (e?.currentTarget) {
+					const dataElementId = (e.currentTarget as HTMLElement).getAttribute('data-element-id');
+					if (dataElementId && dataElementId !== node.id) {
+						this._logger.info(`[UIRendererService] Element has different data-element-id:`, {
+							nodeId: node.id,
+							dataElementId,
+							using: dataElementId
+						});
+						elementIdToSend = dataElementId;
+					}
+				}
+				
+				if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+					const builderOrigin = process.env.NEXT_PUBLIC_BUILDER_URL || '*';
+					this._logger.info(`[UIRendererService] Sending ELEMENT_SELECTED to parent:`, {
+						elementId: elementIdToSend,
+						nodeId: node.id,
+						origin: builderOrigin
+					});
+					
+					window.parent.postMessage(
+						{ type: 'ELEMENT_SELECTED', elementId: elementIdToSend },
+						builderOrigin
+					);
+				} else {
+					this._logger.warn('[UIRendererService] No parent window or same window');
+				}
+			};
+		}
+
 		if (!node.actions?.onClick || !context) {
 			return undefined;
 		}
@@ -193,6 +396,11 @@ export class UIRendererService implements UIRendererPort {
 		node: ComponentNode,
 		context: ActionContext | undefined
 	): ((value: string | number) => void) | undefined {
+		// Disable change handlers in element selection mode
+		if (this._isPreviewMode() && this._isElementSelectionMode()) {
+			return undefined;
+		}
+
 		if (!node.actions?.onChange || !context) {
 			return undefined;
 		}

@@ -2,8 +2,6 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import type { PageConstructorPresenter } from '../../presenters/page-constructor.presenter';
-import { SectionPalette } from './SectionPalette';
-import { ComponentPalette } from './ComponentPalette';
 import { PageCanvas } from './PageCanvas';
 import { SectionEditor } from './SectionEditor';
 import { ComponentEditor } from './ComponentEditor';
@@ -93,20 +91,6 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home', pages = [
 
   return (
     <div className="flex h-full">
-      {/* Left Panel: Palettes */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col overflow-y-auto">
-        <SectionPalette onAddSection={(type) => presenter.addSection(type)} />
-        <ComponentPalette
-          selectedSectionId={vm.selectedSection?.id}
-          onAddComponent={(type) => {
-            if (vm.selectedSection) {
-              presenter.addComponent(vm.selectedSection.id, type);
-            }
-          }}
-        />
-        
-      </aside>
-
       {/* Center Panel: Canvas/Preview */}
       <main className="flex-1 bg-gray-50 overflow-hidden flex flex-col">
         {/* Header with Preview Mode Toggle and Action Buttons */}

@@ -11,6 +11,9 @@ import { OfferCardEditor } from '../components/OfferCardEditor';
 import { PhoneMockup, type DeviceType, type Orientation } from '../components/PhoneMockup';
 import { DeviceControls } from '../components/DeviceControls';
 import { FullscreenPreview } from '../components/FullscreenPreview';
+import { Tabs, type Tab } from '../components/Tabs';
+import { SlideOutSidebar } from '../components/SlideOutSidebar';
+import { SectionPalette } from '../components/SectionPalette';
 import type { SidebarElement } from '../../../domain/types/sidebar-element.types';
 import type { AppConfigStructure } from '../../../domain/entities/app-config.entity';
 import type { PageConstructorPresenter } from '../../presenters/page-constructor.presenter';
@@ -26,6 +29,7 @@ interface UIBuilderPageProps {
 export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Element {
   const [viewModel, setViewModel] = useState(presenter.getViewModel());
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const rightSidebarRef = useRef<HTMLElement>(null);
   const [viewportMode, setViewportMode] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
   const [device, setDevice] = useState<DeviceType>('iphone-15-pro');
   const [orientation, setOrientation] = useState<Orientation>('portrait');
@@ -33,8 +37,30 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   const clientUrl = env.NEXT_PUBLIC_CLIENT_URL;
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
-  const [activeSection, setActiveSection] = useState<'background' | 'sidebar' | 'rightSidebar' | 'authButton' | 'authPopup' | 'pageConstructor'>('sidebar');
+  const [activeSection, setActiveSection] = useState<'background' | 'sidebar' | 'rightSidebar' | 'authButton' | 'authPopup' | 'pageConstructor' | 'offerCards'>('sidebar');
+  const [activeTab, setActiveTab] = useState<string>('leftSidebar');
+  const [isSlideOutSidebarOpen, setIsSlideOutSidebarOpen] = useState(false);
+  const [isElementSelectionMode, setIsElementSelectionMode] = useState(
+    () => (typeof presenter.getElementSelectionMode === 'function' ? presenter.getElementSelectionMode() : false)
+  );
   const ensuredSectionsRef = useRef<Set<'sidebar' | 'rightSidebar'>>(new Set());
+
+  // Auto-switch tab based on activeSection
+  useEffect(() => {
+    if (activeSection === 'background') {
+      setActiveTab('theme');
+    } else if (activeSection === 'sidebar') {
+      setActiveTab('leftSidebar');
+    } else if (activeSection === 'rightSidebar') {
+      setActiveTab('rightSidebar');
+    } else if (activeSection === 'authButton' || activeSection === 'authPopup') {
+      setActiveTab('authentication');
+    } else if (activeSection === 'pageConstructor') {
+      setActiveTab('pages');
+    } else if (activeSection === 'offerCards') {
+      setActiveTab('offerCards');
+    }
+  }, [activeSection]);
   
   // Get pageSlug from URL or default to 'home'
   const getPageSlugFromUrl = (): string => {
@@ -111,6 +137,9 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         activeSection
       });
       setViewModel(vm);
+      if (typeof vm.elementSelectionMode === 'boolean') {
+        setIsElementSelectionMode(vm.elementSelectionMode);
+      }
     });
 
     return unsubscribe;
@@ -221,7 +250,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   };
 
   const handleSidebarElementSelect = (elementId: string | null, section: 'sidebar' | 'rightSidebar') => {
-    console.log('[UIBuilderPage] handleElementSelect called:', elementId);
+    console.log('[UIBuilderPage] handleElementSelect called:', { elementId, section, selectedOfferCardId, activeSection });
     const ensuredRootId = presenter.ensureSidebarLayout(section);
     let normalizedId = elementId || '';
 
@@ -237,14 +266,26 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     }
  
     if (normalizedId && selectedOfferCardId) {
+      console.log('[UIBuilderPage] Clearing selectedOfferCardId:', selectedOfferCardId);
       pageConstructorPresenter.selectOfferCard(null);
       setSelectedOfferCardId(null);
     }
- 
+
     if (activeSection !== section) {
+      console.log('[UIBuilderPage] Setting activeSection:', section);
       setActiveSection(section);
     }
- 
+
+    // Auto-switch to corresponding tab
+    if (section === 'sidebar') {
+      console.log('[UIBuilderPage] Setting activeTab to leftSidebar');
+      setActiveTab('leftSidebar');
+    } else if (section === 'rightSidebar') {
+      console.log('[UIBuilderPage] Setting activeTab to rightSidebar');
+      setActiveTab('rightSidebar');
+    }
+
+    console.log('[UIBuilderPage] Calling presenter.selectElement:', normalizedId);
     presenter.selectElement(normalizedId);
   };
 
@@ -317,9 +358,192 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   useEffect(() => {
     const previewComm = presenter.getPreviewCommunication();
     if (previewComm && previewComm.onElementSelected) {
-      previewComm.onElementSelected((elementId: string | null) => handleSidebarElementSelect(elementId, 'sidebar'));
+      previewComm.onElementSelected((elementId: string | null) => {
+        if (!elementId) {
+          // Clear selection
+          presenter.selectElement(null);
+          pageConstructorPresenter.selectSection(null);
+          pageConstructorPresenter.selectComponent(null, null);
+          return;
+        }
+
+        console.log('[UIBuilderPage] Element selected from iframe:', { elementId });
+        
+        // Find the area where the element is located (using UUID ID directly)
+        const area = presenter.findElementArea(elementId, pageConstructorPresenter);
+        console.log('[UIBuilderPage] Element area determined:', { elementId, area });
+        
+        // Debug: log page sections structure when area is null
+        if (!area && pageConstructorPresenter) {
+          const pageVm = pageConstructorPresenter.getViewModel();
+          console.log('[UIBuilderPage] Element not found, checking page sections:', {
+            elementId,
+            sectionsCount: pageVm?.sections?.length,
+            sections: pageVm?.sections?.map(s => ({
+              id: s.id,
+              type: s.type,
+              componentsCount: s.components?.length,
+              componentIds: s.components?.map(c => c.id)
+            }))
+          });
+          
+          // Also log sidebar structure for debugging
+          const config = viewModel.config as any;
+          const sidebarLayout = config?.modules?.uiRenderer?.sidebar?.layout;
+          if (sidebarLayout) {
+            const collectIds = (node: any, depth: number = 0): any[] => {
+              if (!node) return [];
+              const result: any[] = [{ id: node.id, type: node.type, text: node.props?.text, depth }];
+              if (Array.isArray(node.children)) {
+                node.children.forEach((child: any) => {
+                  result.push(...collectIds(child, depth + 1));
+                });
+              }
+              return result;
+            };
+            console.log('[UIBuilderPage] Sidebar layout structure:', {
+              layoutId: sidebarLayout.id,
+              children: collectIds(sidebarLayout)
+            });
+          }
+        }
+        
+        // Debug: log page sections structure
+        if (pageConstructorPresenter) {
+          const pageVm = pageConstructorPresenter.getViewModel();
+          console.log('[UIBuilderPage] Page sections structure:', {
+            sectionsCount: pageVm?.sections?.length,
+            sections: pageVm?.sections?.map(s => ({
+              id: s.id,
+              type: s.type,
+              hasLayout: !!s.layout,
+              layoutGrid: s.layout?.grid,
+              componentsCount: s.components?.length
+            }))
+          });
+        }
+
+        if (area === 'sidebar') {
+          // Clear offer card selection first to ensure editor switches
+          setSelectedOfferCardId((prev) => {
+            if (prev) {
+              pageConstructorPresenter.selectOfferCard(null);
+              return null;
+            }
+            return prev;
+          });
+          handleSidebarElementSelect(elementId, 'sidebar');
+        } else if (area === 'rightSidebar') {
+          // Clear offer card selection first to ensure editor switches
+          setSelectedOfferCardId((prev) => {
+            if (prev) {
+              pageConstructorPresenter.selectOfferCard(null);
+              return null;
+            }
+            return prev;
+          });
+          handleSidebarElementSelect(elementId, 'rightSidebar');
+        } else if (area === 'offerCard') {
+          // Extract offer card ID from elementId (e.g., "offer-card-123" or just use elementId)
+          const offerCardId = elementId.startsWith('offer-card-') ? elementId : elementId;
+          
+          // Switch to Offer Cards tab
+          setActiveTab('offerCards');
+          setActiveSection('offerCards');
+          
+          // Select the offer card
+          pageConstructorPresenter.selectOfferCard(offerCardId);
+          setSelectedOfferCardId(offerCardId);
+          
+          // Clear sidebar selection if any
+          presenter.selectElement(null);
+        } else if (area === 'authButton') {
+          // Switch to Authentication tab
+          setActiveTab('authentication');
+          setActiveSection('authButton');
+          
+          // Clear other selections
+          presenter.selectElement(null);
+          pageConstructorPresenter.selectSection(null);
+          pageConstructorPresenter.selectComponent(null, null);
+          if (selectedOfferCardId) {
+            pageConstructorPresenter.selectOfferCard(null);
+            setSelectedOfferCardId(null);
+          }
+        } else if (area === 'authPopup') {
+          // Switch to Authentication tab
+          setActiveTab('authentication');
+          setActiveSection('authPopup');
+          
+          // Clear other selections
+          presenter.selectElement(null);
+          pageConstructorPresenter.selectSection(null);
+          pageConstructorPresenter.selectComponent(null, null);
+          if (selectedOfferCardId) {
+            pageConstructorPresenter.selectOfferCard(null);
+            setSelectedOfferCardId(null);
+          }
+        } else if (area === 'page') {
+          // Find which section contains this element
+          const pageVm = pageConstructorPresenter.getViewModel();
+          let foundSectionId: string | null = null;
+          let foundComponentId: string | null = null;
+
+          console.log('[UIBuilderPage] Searching for element in page sections:', { elementId, sectionsCount: pageVm?.sections?.length });
+
+          if (pageVm?.sections) {
+            // First check if elementId matches a section ID
+            for (const section of pageVm.sections) {
+              if (section.id === elementId) {
+                foundSectionId = section.id;
+                foundComponentId = null; // Selecting the section itself
+                console.log('[UIBuilderPage] Found element as section:', { elementId, sectionId: section.id });
+                break;
+              }
+            }
+
+            // If not found as section, search in components
+            if (!foundSectionId) {
+              for (const section of pageVm.sections) {
+                // Search directly in section.components array
+                const foundComponent = section.components.find(comp => comp.id === elementId);
+                if (foundComponent) {
+                  foundSectionId = section.id;
+                  foundComponentId = foundComponent.id;
+                  console.log('[UIBuilderPage] Found element in section components:', { elementId, sectionId: section.id, componentId: foundComponent.id });
+                  break;
+                }
+              }
+            }
+          }
+
+          if (foundSectionId) {
+            console.log('[UIBuilderPage] Opening page editor:', { foundSectionId, foundComponentId });
+            // Switch to Pages tab
+            setActiveTab('pages');
+            setActiveSection('pageConstructor');
+            
+            // Clear other selections
+            presenter.selectElement(null);
+            pageConstructorPresenter.selectOfferCard(null);
+            setSelectedOfferCardId(null);
+            
+            // Select the section and component
+            pageConstructorPresenter.selectSection(foundSectionId);
+            if (foundComponentId && foundComponentId !== foundSectionId) {
+              pageConstructorPresenter.selectComponent(foundSectionId, foundComponentId);
+            } else {
+              pageConstructorPresenter.selectComponent(foundSectionId, null);
+            }
+          } else {
+            console.warn('[UIBuilderPage] Element found in page area but section not found:', elementId);
+          }
+        } else {
+          console.warn('[UIBuilderPage] Element not found in any area:', elementId);
+        }
+      });
     }
-  }, [presenter]);
+  }, [presenter, pageConstructorPresenter]);
 
   // Send initial theme and sidebar colors when preview signals ready or when config changes
   // Temporarily disabled postMessage - using only Supabase Realtime
@@ -422,35 +646,86 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     return 'Left Sidebar Editor';
   })();
 
-  return (
-    <div className="w-full h-screen flex bg-gray-100">
-      {/* Left Sidebar - список компонентов для редактирования */}
-      <aside className="w-72 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
-        <div className="p-3">
-          <h2 className="text-sm font-bold text-gray-900 mb-3 pb-2 border-b border-gray-200">Components</h2>
+  const tabs: Tab[] = [
+    { id: 'theme', label: 'Theme' },
+    { id: 'leftSidebar', label: 'Left Sidebar' },
+    { id: 'rightSidebar', label: 'Right Sidebar' },
+    { id: 'authentication', label: 'Authentication' },
+    { id: 'pages', label: 'Pages' },
+    { id: 'offerCards', label: 'Offer Cards' },
+  ];
 
-          <div className="mb-4">
-            <h3 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Theme</h3>
-            <div className="flex flex-col gap-1 pl-2">
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    
+    // Set activeSection based on tab
+    switch (tabId) {
+      case 'theme':
+        setActiveSection('background');
+        break;
+      case 'leftSidebar':
+        setActiveSection('sidebar');
+        // Select first element if available
+        const leftElements = extractSidebarElements('sidebar');
+        if (leftElements.length > 0 && leftElements[0]) {
+          handleSidebarElementSelect(leftElements[0].id, 'sidebar');
+        }
+        break;
+      case 'rightSidebar':
+        setActiveSection('rightSidebar');
+        // Select first element if available
+        const rightElements = extractSidebarElements('rightSidebar');
+        if (rightElements.length > 0 && rightElements[0]) {
+          handleSidebarElementSelect(rightElements[0].id, 'rightSidebar');
+        }
+        break;
+      case 'authentication':
+        setActiveSection('authButton');
+        break;
+      case 'pages':
+        setActiveSection('pageConstructor');
+        break;
+      case 'offerCards':
+        // Don't change activeSection for offer cards, just show the manager
+        break;
+      default:
+        break;
+    }
+  };
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'theme':
+        return (
+          <div className="p-3">
+            <div className="flex flex-col gap-1">
               <button
-                onClick={() => setActiveSection('background')}
-                className={`text-left px-2 py-1 rounded text-xs ${activeSection === 'background' ? 'bg-blue-500 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                onClick={() => {
+                  setActiveSection('background');
+                  setActiveTab('theme');
+                }}
+                className={`text-left px-2 py-1.5 rounded text-xs transition-colors ${
+                  activeSection === 'background' 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                }`}
               >
                 Application Background
               </button>
             </div>
           </div>
-          
-          {/* Left Sidebar Elements */}
-          <div className="mb-4">
-            <h3 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Left Sidebar</h3>                                                 
+        );
+
+      case 'leftSidebar':
+        return (
+          <div className="p-3">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] text-gray-500">Manage buttons</span>
               <button
                 onClick={() => {
                   presenter.addSidebarButton('New Button');
                 }}
-                className="px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600"                                                                  
+                className="px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600"
                 title="Add new button to Left Sidebar"
               >
                 + Add Button
@@ -459,31 +734,44 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             <ElementTreeSelector
               elements={extractSidebarElements('sidebar')}
               selectedId={viewModel.selectedElement?.area === 'sidebar' ? (viewModel.selectedElement?.id || null) : null}
-              onSelect={(elementId) => handleSidebarElementSelect(elementId, 'sidebar')}
+              onSelect={(elementId) => {
+                handleSidebarElementSelect(elementId, 'sidebar');
+                setActiveTab('leftSidebar');
+              }}
               onDelete={(elementId) => presenter.removeSidebarButton(elementId)}
             />
           </div>
+        );
 
-          {/* Right Sidebar Elements */}
-          <div className="mb-4">
-            <h3 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Right Sidebar</h3>
+      case 'rightSidebar':
+        return (
+          <div className="p-3">
             <ElementTreeSelector
               elements={extractSidebarElements('rightSidebar')}
               selectedId={viewModel.selectedElement?.area === 'rightSidebar' ? (viewModel.selectedElement?.id || null) : null}
-              onSelect={(elementId) => handleSidebarElementSelect(elementId, 'rightSidebar')}
+              onSelect={(elementId) => {
+                handleSidebarElementSelect(elementId, 'rightSidebar');
+                setActiveTab('rightSidebar');
+              }}
             />
           </div>
+        );
 
-          {/* Authentication section */}
-          <div className="mb-4">
-            <h3 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Authentication</h3>
-            <div className="flex flex-col gap-1 pl-2">
+      case 'authentication':
+        return (
+          <div className="p-3">
+            <div className="flex flex-col gap-1">
               <button
                 onClick={() => {
                   setActiveSection('authPopup');
                   presenter.previewAuthPopup(true);
+                  setActiveTab('authentication');
                 }}
-                className={`text-left px-2 py-1 rounded text-xs ${activeSection === 'authPopup' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
+                className={`text-left px-2 py-1.5 rounded text-xs transition-colors ${
+                  activeSection === 'authPopup' 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                }`}
               >
                 Popup
               </button>
@@ -491,17 +779,24 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 onClick={() => {
                   setActiveSection('authButton');
                   presenter.previewAuthPopup(false);
+                  setActiveTab('authentication');
                 }}
-                className={`text-left px-2 py-1 rounded text-xs ${activeSection === 'authButton' ? 'bg-blue-500 text-white' : 'bg-gray-100'}`}
+                className={`text-left px-2 py-1.5 rounded text-xs transition-colors ${
+                  activeSection === 'authButton' 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                }`}
               >
                 Button
               </button>
             </div>
           </div>
+        );
 
-          {/* Pages section */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
+      case 'pages':
+        return (
+          <div className="p-3">
+            <div className="flex items-center justify-between mb-3">
               <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Pages</h3>
               <button
                 onClick={async () => {
@@ -512,6 +807,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                   if (success) {
                     setActiveSection('pageConstructor');
                     setSelectedPageSlug(normalizedSlug);
+                    setActiveTab('pages');
                     const url = new URL(window.location.href);
                     url.searchParams.set('pageSlug', normalizedSlug);
                     window.history.replaceState({}, '', url.toString());
@@ -529,29 +825,37 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                   onClick={() => {
                     setActiveSection('pageConstructor');
                     setSelectedPageSlug(pageSlug);
+                    setActiveTab('pages');
                     const url = new URL(window.location.href);
                     url.searchParams.set('pageSlug', pageSlug);
                     window.history.replaceState({}, '', url.toString());
                   }}
-                  className={`w-full text-left px-2 py-1 rounded text-xs ${selectedPageSlug === pageSlug ? 'bg-blue-500 text-white' : 'hover:bg-gray-100 text-gray-700'}`}
+                  className={`w-full text-left px-2 py-1.5 rounded text-xs transition-colors ${
+                    selectedPageSlug === pageSlug 
+                      ? 'bg-blue-500 text-white' 
+                      : 'hover:bg-gray-100 text-gray-700'
+                  }`}
                 >
                   {pageSlug}
                 </button>
               ))}
             </div>
           </div>
-          
-          {/* Offer Cards Manager */}
-          <div className="mb-4">
+        );
+
+      case 'offerCards':
+        return (
+          <div className="p-3">
             <OfferCardsManager
               offerCards={offerCards}
               selectedCardId={selectedOfferCardId}
               onSelect={(cardId) => {
                 pageConstructorPresenter.selectOfferCard(cardId);
                 setSelectedOfferCardId(cardId);
+                setActiveTab('offerCards');
                 // Clear sidebar element selection when selecting offer card
                 if (viewModel.selectedElement) {
-                  handleSidebarElementSelect(null, 'sidebar'); // Assuming 'sidebar' is the default for now
+                  handleSidebarElementSelect(null, 'sidebar');
                 }
               }}
               onMigrate={async () => {
@@ -572,11 +876,142 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               }}
             />
           </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="w-full h-screen flex bg-gray-100">
+      {/* Slide Out Sidebar */}
+      <SlideOutSidebar
+        isOpen={isSlideOutSidebarOpen}
+        onClose={() => setIsSlideOutSidebarOpen(false)}
+        appId={appId}
+      />
+
+      {/* Main Menu Button */}
+      <button
+        onClick={() => setIsSlideOutSidebarOpen(true)}
+        className="fixed top-4 left-4 z-30 p-2 bg-white rounded-lg shadow-md hover:bg-gray-50 transition-colors"
+        title="Open menu"
+      >
+        <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      {/* Left Sidebar - список компонентов для редактирования */}
+      <aside className="w-72 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
+        <div className="p-3">
+          {/* Page Builder - Add Section (only when pageConstructor is active) */}
+          {activeSection === 'pageConstructor' && (() => {
+            const pageVm = pageConstructorPresenter.getViewModel();
+            const selectedSectionId = pageVm?.selectedSection?.id || null;
+            return (
+              <div className="mb-4 pb-4 border-b border-gray-200">
+                <SectionPalette 
+                  onAddSection={(type) => pageConstructorPresenter.addSection(type)}
+                  selectedSectionId={selectedSectionId}
+                  onAddComponent={(sectionId, componentType) => {
+                    pageConstructorPresenter.addComponent(sectionId, componentType);
+                  }}
+                />
+              </div>
+            );
+          })()}
+
+          {/* Left Sidebar Elements (only when not in pageConstructor) */}
+          {activeSection !== 'pageConstructor' && (
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] text-gray-500">Manage buttons</span>
+                <button
+                  onClick={() => {
+                    presenter.addSidebarButton('New Button');
+                  }}
+                  className="px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600"                                                                  
+                  title="Add new button to Left Sidebar"
+                >
+                  + Add Button
+                </button>
+              </div>
+              <ElementTreeSelector
+                elements={extractSidebarElements('sidebar')}
+                selectedId={viewModel.selectedElement?.area === 'sidebar' ? (viewModel.selectedElement?.id || null) : null}
+                onSelect={(elementId) => handleSidebarElementSelect(elementId, 'sidebar')}
+                onDelete={(elementId) => presenter.removeSidebarButton(elementId)}
+              />
+            </div>
+          )}
         </div>
       </aside>
 
-      {/* Center - Editing Panels */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Center - Live Preview */}
+      <div className="flex-1 flex flex-col overflow-hidden bg-white border-l border-r border-gray-200">
+        <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange}>
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="border-b border-gray-200 px-4 py-3 flex justify-between items-center bg-gray-50">
+              <h3 className="text-sm font-bold text-gray-900">Live Preview</h3>
+              <div className="flex items-center gap-2">
+                {/* Element Selection Mode Toggle */}
+                {isClient && iframeSrc && (
+                  <button
+                    onClick={() => {
+                      const newMode = !isElementSelectionMode;
+                      setIsElementSelectionMode(newMode);
+                      if (typeof presenter.setElementSelectionMode === 'function') {
+                        presenter.setElementSelectionMode(newMode);
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+                      isElementSelectionMode
+                        ? 'bg-blue-500 text-white hover:bg-blue-600'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                    title={isElementSelectionMode ? 'Exit element selection mode' : 'Enable element selection mode'}
+                  >
+                    {isElementSelectionMode ? '✓ Select Mode' : 'Select Element'}
+                  </button>
+                )}
+                {isClient && iframeSrc && (
+                  <DeviceControls
+                    device={device}
+                    orientation={orientation}
+                    onDeviceChange={setDevice}
+                    onOrientationChange={setOrientation}
+                    onFullscreen={() => setIsFullscreen(true)}
+                    onRefresh={() => iframeRef.current?.contentWindow?.location.reload()}
+                    onOpenInNewTab={() => window.open(`${clientUrl}/?appId=${appId}&previewMode=false`, '_blank')}
+                  />
+                )}
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto bg-gray-50 p-4 flex items-center justify-center">
+              {isClient && iframeSrc ? (
+                <PhoneMockup
+                  iframeSrc={iframeSrc}
+                  device={device}
+                  orientation={orientation}
+                  onIframeRef={handleIframeRef}
+                />
+              ) : (
+                <div className="text-center p-8">
+                  <p className="text-sm text-gray-500 mb-2">Preview not available</p>
+                  <p className="text-xs text-gray-400">
+                    {!clientUrl ? 'NEXT_PUBLIC_CLIENT_URL is not configured' : 'Loading...'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </Tabs>
+      </div>
+
+      {/* Right Sidebar - Editing Panels */}
+      <aside ref={rightSidebarRef} className="w-80 bg-white border-l border-gray-200 flex flex-col flex-shrink-0 overflow-hidden">
         {/* Compact Header */}
         <header className="bg-white border-b border-gray-200 px-4 py-3">
           <div className="flex justify-between items-center">
@@ -631,6 +1066,71 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           </div>
         </header>
 
+        {/* Page Selection Tabs */}
+        <div className="bg-white border-b border-gray-200 px-4 py-2">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (rightSidebarRef.current) {
+                  const contentArea = rightSidebarRef.current.querySelector('.flex-1.overflow-y-auto');
+                  if (contentArea) {
+                    contentArea.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }
+              }}
+              className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors flex-shrink-0"
+              title="Прокрутить вверх"
+            >
+              ⬆️ Наверх
+            </button>
+            <div className="flex-1 overflow-x-auto">
+              <div className="flex gap-1 min-w-max">
+                {viewModel.pages && viewModel.pages.length > 0 ? (
+                  viewModel.pages.map((pageSlug: string) => (
+                    <button
+                      key={pageSlug}
+                      onClick={async () => {
+                        setSelectedPageSlug(pageSlug);
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('pageSlug', pageSlug);
+                        window.history.pushState({}, '', url);
+                        // Switch to pageConstructor section to show the editor
+                        setActiveSection('pageConstructor');
+                        setActiveTab('pages');
+                        await pageConstructorPresenter.initialize(appId, pageSlug);
+                        setOfferCards(pageConstructorPresenter.getOfferCards());
+                        setSelectedOfferCardId(pageConstructorPresenter.getSelectedOfferCardId());
+                        // Force send CONFIG_UPDATE with elementSelectionMode to iframe
+                        // This ensures that element selection mode is properly set in iframe after page switch
+                        if (typeof presenter.forceSendConfigToIframe === 'function') {
+                          presenter.forceSendConfigToIframe();
+                        } else if (typeof presenter.setElementSelectionMode === 'function') {
+                          // Fallback: toggle and restore to force send
+                          const currentMode = isElementSelectionMode;
+                          presenter.setElementSelectionMode(!currentMode);
+                          presenter.setElementSelectionMode(currentMode);
+                        }
+                      }}
+                      className={`
+                        px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap
+                        ${selectedPageSlug === pageSlug
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }
+                      `}
+                      title={`Редактировать страницу: ${pageSlug}`}
+                    >
+                      {pageSlug}
+                    </button>
+                  ))
+                ) : (
+                  <span className="px-3 py-1.5 text-xs text-gray-500">Нет страниц</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
           <div className="space-y-4">
@@ -643,11 +1143,17 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             )}
 
             {/* Offer Card Editor */}
-            {selectedOfferCardId && 
-             activeSection !== 'pageConstructor' && 
-             activeSection !== 'authButton' && 
-             activeSection !== 'authPopup' && 
-             activeSection !== 'background' && (() => {
+            {(() => {
+              const shouldShowOfferCardEditor = selectedOfferCardId && 
+                activeTab === 'offerCards' && 
+                activeSection === 'offerCards';
+              if (shouldShowOfferCardEditor) {
+                console.log('[UIBuilderPage] Rendering OfferCardEditor', { selectedOfferCardId, activeTab, activeSection });
+              } else {
+                console.log('[UIBuilderPage] NOT rendering OfferCardEditor', { selectedOfferCardId, activeTab, activeSection });
+              }
+              return shouldShowOfferCardEditor;
+            })() && (() => {
               const selectedCard = offerCards.find(card => card.id === selectedOfferCardId) || pageConstructorPresenter.getSelectedOfferCard();
               if (!selectedCard) return null;
               
@@ -656,8 +1162,10 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                   <OfferCardEditor
                     card={selectedCard}
                     onUpdate={async (updatedCard) => {
-                      await pageConstructorPresenter.updateOfferCard(selectedOfferCardId, updatedCard);
-                      setOfferCards(pageConstructorPresenter.getOfferCards());
+                      if (selectedOfferCardId) {
+                        await pageConstructorPresenter.updateOfferCard(selectedOfferCardId, updatedCard);
+                        setOfferCards(pageConstructorPresenter.getOfferCards());
+                      }
                     }}
                   />
                 </div>
@@ -723,41 +1231,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               </div>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Right Sidebar - Live Preview */}
-      <aside className="w-[500px] bg-white border-l border-gray-200 flex flex-col flex-shrink-0 overflow-hidden">
-        <div className="border-b border-gray-200 px-4 py-3 flex justify-between items-center">
-          <h3 className="text-sm font-bold text-gray-900">Live Preview</h3>
-          {isClient && iframeSrc && (
-            <DeviceControls
-              device={device}
-              orientation={orientation}
-              onDeviceChange={setDevice}
-              onOrientationChange={setOrientation}
-              onFullscreen={() => setIsFullscreen(true)}
-              onRefresh={() => iframeRef.current?.contentWindow?.location.reload()}
-              onOpenInNewTab={() => window.open(`${clientUrl}/?appId=${appId}&previewMode=false`, '_blank')}
-            />
-          )}
-        </div>
-        <div className="flex-1 overflow-y-auto bg-gray-50 p-4 flex items-center justify-center">
-          {isClient && iframeSrc ? (
-            <PhoneMockup
-              iframeSrc={iframeSrc}
-              device={device}
-              orientation={orientation}
-              onIframeRef={handleIframeRef}
-            />
-          ) : (
-            <div className="text-center p-8">
-              <p className="text-sm text-gray-500 mb-2">Preview not available</p>
-              <p className="text-xs text-gray-400">
-                {!clientUrl ? 'NEXT_PUBLIC_CLIENT_URL is not configured' : 'Loading...'}
-              </p>
-            </div>
-          )}
         </div>
       </aside>
 

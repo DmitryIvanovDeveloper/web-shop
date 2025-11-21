@@ -5,7 +5,7 @@ import { APP_LAYOUT_TYPES } from '../src/modules/app-layout/infrastructure/boots
 import { SidebarRendererPresenter } from '../src/modules/app-layout/interface-adapters/presenters/sidebar-renderer.presenter';
 import { SidebarRenderer } from '../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
 import type { ActionContext } from '../src/shared/ui/action-context';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PAGE_RENDERER_TYPES } from '../src/modules/page-renderer/infrastructure/bootstrap/types';
 import { PageRendererPresenter } from '../src/modules/page-renderer/interface-adapters/presenters/page-renderer.presenter';
@@ -23,6 +23,26 @@ export default function HomePage(): JSX.Element {
 
   // Check if we're in preview mode
   const [previewMode, setPreviewMode] = useState(false);
+  const [elementSelectionMode, setElementSelectionMode] = useState(false);
+  const applyElementSelectionMode = useCallback((enabled: boolean) => {
+    setElementSelectionMode(enabled);
+
+    if (typeof window !== 'undefined') {
+      (window as any).__elementSelectionMode = enabled;
+    }
+
+    if (typeof document !== 'undefined') {
+      if (enabled) {
+        document.body.setAttribute('data-selection-mode', 'true');
+      } else {
+        document.body.removeAttribute('data-selection-mode');
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('elementSelectionModeChanged', { detail: { enabled } }));
+    }
+  }, []);
   const [offerCardVm, setOfferCardVm] = useState<PageRendererViewModel>({
     sections: [],
     isLoading: false,
@@ -113,8 +133,16 @@ export default function HomePage(): JSX.Element {
 
           // Load app-config (this will publish AppConfigLoadedEvent)
           if (event.data.payload?.config) {
-            await loadAppConfigFromMessageUseCase.execute(event.data.payload.config);
-      }
+            const configPayload = event.data.payload.config as Record<string, unknown>;
+            await loadAppConfigFromMessageUseCase.execute(configPayload);
+            const selectionModeValue =
+              typeof (configPayload as { elementSelectionMode?: unknown }).elementSelectionMode === 'boolean'
+                ? (configPayload as { elementSelectionMode?: boolean }).elementSelectionMode
+                : Boolean((configPayload as { elementSelectionMode?: unknown }).elementSelectionMode);
+            applyElementSelectionMode(selectionModeValue);
+          } else {
+            applyElementSelectionMode(false);
+          }
 
           // Set offer cards and selected offer card ID in presenter
           if (event.data.payload?.offerCards) {
@@ -161,7 +189,7 @@ export default function HomePage(): JSX.Element {
       unsubscribe();
       window.removeEventListener('message', handleMessage);
     };
-  }, [previewMode]);
+  }, [previewMode, applyElementSelectionMode]);
 
   // Find selected offer card for demo section
   const selectedOfferCard = offerCardVm.selectedOfferCardId && offerCardVm.offerCards.length > 0

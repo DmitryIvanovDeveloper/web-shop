@@ -10,6 +10,8 @@ import type { ListPagesUseCase } from '../../application/use-cases/list-pages.us
 import type { Logger } from '@/application/ports/logger.port';
 import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import type { SelectedElement } from '../../domain/types/sidebar-element.types';
+import { generateElementId } from '../../shared/utils/id-generator';
+import { migrateConfigIds } from '../../shared/utils/config-migrator';
 
 interface ViewModel {
   appId: string;
@@ -23,6 +25,7 @@ interface ViewModel {
   selectedElement: SelectedElement | null;
   pages: string[];
   isLoadingPages: boolean;
+  elementSelectionMode: boolean;
 }
 
 @injectable()
@@ -86,6 +89,7 @@ export class UIBuilderPresenter {
     selectedElement: null,
     pages: [],
     isLoadingPages: false,
+    elementSelectionMode: false,
   };
 
   constructor(
@@ -128,6 +132,21 @@ export class UIBuilderPresenter {
     return this.preview;
   }
 
+  public getElementSelectionMode(): boolean {
+    return this.vm.elementSelectionMode;
+  }
+
+  public setElementSelectionMode(enabled: boolean): void {
+    if (this.vm.elementSelectionMode === enabled) {
+      return;
+    }
+
+    this._logger.info('[UIBuilderPresenter] Element selection mode changed', { enabled });
+    this.vm = { ...this.vm, elementSelectionMode: enabled };
+    this.notify();
+    this.sendConfigToIframe();
+  }
+
   public async initialize(appId: string): Promise<void> {
     this._logger.info('[UIBuilderPresenter] Initializing with appId', { appId });
     this.vm = { ...this.vm, isLoading: true, appId };
@@ -138,7 +157,11 @@ export class UIBuilderPresenter {
       
       if (result.isSuccess && result.value) {
         this._logger.info('[UIBuilderPresenter] Config loaded successfully', { appId });
-        const appConfig = result.value as any;
+        let appConfig = result.value as any;
+        
+        // Migrate all IDs to UUID format
+        appConfig = migrateConfigIds(appConfig);
+        
         const version = appConfig.version;
         const versionValue = typeof version === 'object' && version !== null && 'value' in version 
           ? (version as { value: number }).value 
@@ -150,6 +173,10 @@ export class UIBuilderPresenter {
           isDraft: appConfig.isDraft ?? false, // Set isDraft from AppConfig
           version: versionValue
         };
+        
+        // Save migrated config back to Supabase
+        await this.saveConfigToSupabase();
+        
         this.sendConfigToIframe();
       } else {
         this._logger.warn('[UIBuilderPresenter] Failed to load config, using default', { appId, error: result.error });
@@ -175,13 +202,22 @@ export class UIBuilderPresenter {
       
       if (result.isSuccess && result.value) {
         this._logger.info('[UIBuilderPresenter] Active config loaded successfully', { appId });
+        let appConfig = result.value as any;
+        
+        // Migrate all IDs to UUID format
+        appConfig = migrateConfigIds(appConfig);
+        
         this.vm = { 
           ...this.vm, 
-          config: result.value as unknown as Record<string, unknown>, 
+          config: appConfig.config as unknown as Record<string, unknown>, 
           isLoading: false,
           isDraft: false,
           selectedElement: null 
         };
+        
+        // Save migrated config back to Supabase
+        await this.saveConfigToSupabase();
+        
         this.sendConfigToIframe();
       } else {
         this._logger.error('[UIBuilderPresenter] Failed to load active config', { appId, error: result.error });
@@ -219,13 +255,13 @@ export class UIBuilderPresenter {
               spacing: [4, 8, 12, 16, 24, 32, 48, 64]
             },
             layout: {
-              id: 'left-sidebar',
+              id: generateElementId('container'),
               type: 'Container',
               props: { text: 'Left Sidebar' },
               styles: { backgroundColor: '#f3f4f6', textColor: '#111827', borderColor: '#e5e7eb', backgroundOpacity: '1' },
               children: [
                 {
-                  id: 'store-button',
+                  id: generateElementId('button'),
                   type: 'Button',
                   props: { text: 'Store' },
                   styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af' },
@@ -240,7 +276,7 @@ export class UIBuilderPresenter {
               spacing: [4, 8, 12, 16, 24, 32, 48, 64]
             },
             layout: {
-              id: 'right-sidebar',
+              id: generateElementId('container'),
               type: 'Container',
               props: { text: 'Right Sidebar' },
               styles: { backgroundColor: '#f9fafb', textColor: '#111827', borderColor: '#d1d5db', backgroundOpacity: '1' },
@@ -333,7 +369,12 @@ export class UIBuilderPresenter {
 
     const located = this.locateElement(elementId);
     if (!located) {
-      this._logger.warn('[UIBuilderPresenter] selectElement: element not found', { elementId });
+      this._logger.warn('[UIBuilderPresenter] selectElement: element not found', { 
+        elementId,
+        configExists: !!this.vm.config,
+        sidebarLayout: !!(this.vm.config as any)?.modules?.uiRenderer?.sidebar?.layout,
+        rightSidebarLayout: !!(this.vm.config as any)?.modules?.uiRenderer?.rightSidebar?.layout
+      });
       this.selectedElementArea = null;
       this.vm = { ...this.vm, selectedElement: null };
       this.notify();
@@ -513,11 +554,9 @@ export class UIBuilderPresenter {
       layout.children = [];
     }
 
-    const existingIds = new Set<string>();
     let lastButton: any = null;
     
     const collect = (n: any) => {
-      if (n?.id) existingIds.add(n.id);
       if (n?.type === 'Button') {
         lastButton = n;
       }
@@ -525,12 +564,7 @@ export class UIBuilderPresenter {
     };
     collect(layout);
 
-    let index = 1;
-    let newId = `button-${index}`;
-    while (existingIds.has(newId)) {
-      index += 1;
-      newId = `button-${index}`;
-    }
+    const newId = generateElementId('button');
 
     // Copy styles from the last button or use defaults
     const defaultStyles = {
@@ -790,21 +824,34 @@ export class UIBuilderPresenter {
   private findNodeInLayout(layoutKey: 'sidebar' | 'rightSidebar', elementId: string): any | null {
     const layout = (this.vm.config as any)?.modules?.uiRenderer?.[layoutKey]?.layout;
     if (!layout) {
+      this._logger.warn(`[UIBuilderPresenter] findNodeInLayout: layout not found for ${layoutKey}`);
       return null;
     }
 
-    const dfs = (n: any): any | null => {
-      if (n.id === elementId) return n;
+    const dfs = (n: any, depth: number = 0): any | null => {
+      if (!n) return null;
+      if (n.id === elementId) {
+        this._logger.info(`[UIBuilderPresenter] findNodeInLayout: found element ${elementId} at depth ${depth}`);
+        return n;
+      }
       if (Array.isArray(n.children)) {
         for (const child of n.children) {
-          const found = dfs(child);
+          const found = dfs(child, depth + 1);
           if (found) return found;
         }
       }
       return null;
     };
 
-    return dfs(layout);
+    const result = dfs(layout);
+    if (!result) {
+      this._logger.warn(`[UIBuilderPresenter] findNodeInLayout: element ${elementId} not found in ${layoutKey}`, {
+        layoutId: layout.id,
+        hasChildren: Array.isArray(layout.children),
+        childrenCount: Array.isArray(layout.children) ? layout.children.length : 0
+      });
+    }
+    return result;
   }
 
   private locateElement(elementId: string): { node: any; layout: 'sidebar' | 'rightSidebar' } | null {
@@ -812,10 +859,127 @@ export class UIBuilderPresenter {
     const preferred = this.selectedElementArea ? [this.selectedElementArea] : layouts;
     const searchOrder = Array.from(new Set([...preferred, ...layouts]));
 
+    this._logger.info(`[UIBuilderPresenter] locateElement: searching for ${elementId}`, {
+      selectedElementArea: this.selectedElementArea,
+      searchOrder
+    });
+
     for (const layoutKey of searchOrder) {
       const node = this.findNodeInLayout(layoutKey, elementId);
       if (node) {
+        this._logger.info(`[UIBuilderPresenter] locateElement: found ${elementId} in ${layoutKey}`);
         return { node, layout: layoutKey };
+      }
+    }
+
+    this._logger.warn(`[UIBuilderPresenter] locateElement: element ${elementId} not found in any layout`);
+    return null;
+  }
+
+  /**
+   * Helper function to recursively search for a node by ID in a tree structure
+   */
+  private findNodeInTree(node: any, elementId: string): any | null {
+    if (!node) return null;
+    if (node.id === elementId) return node;
+    if (Array.isArray(node.children)) {
+      for (const child of node.children) {
+        const found = this.findNodeInTree(child, elementId);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Find the area (sidebar, rightSidebar, or page) where an element is located
+   * @param elementId - The ID of the element to find
+   * @param pageConstructorPresenter - Optional PageConstructorPresenter to search in page sections
+   * @returns The area where the element is located, or null if not found
+   */
+  public findElementArea(
+    elementId: string,
+    pageConstructorPresenter?: { getViewModel(): { sections: Array<{ id: string; layout?: any; components?: Array<{ id: string; children?: any[] }> }>; offerCards?: Array<{ id: string }> } }
+  ): 'sidebar' | 'rightSidebar' | 'page' | 'offerCard' | 'authButton' | 'authPopup' | null {
+    if (!elementId || !this.vm.config) {
+      return null;
+    }
+
+    const config = this.vm.config as any;
+
+    // 1. Check in sidebar
+    const sidebarLayout = config?.modules?.uiRenderer?.sidebar?.layout;
+    if (sidebarLayout) {
+      const found = this.findNodeInTree(sidebarLayout, elementId);
+      this._logger.info('[UIBuilderPresenter] Checking sidebar for element', {
+        elementId,
+        hasSidebarLayout: !!sidebarLayout,
+        found,
+        sidebarLayoutId: sidebarLayout.id
+      });
+      if (found) {
+        return 'sidebar';
+      }
+    }
+
+    // 2. Check in rightSidebar
+    const rightSidebarLayout = config?.modules?.uiRenderer?.rightSidebar?.layout;
+    if (rightSidebarLayout && this.findNodeInTree(rightSidebarLayout, elementId)) {
+      return 'rightSidebar';
+    }
+
+    // 3. Check in offer cards (if PageConstructorPresenter is provided)
+    if (pageConstructorPresenter) {
+      const pageVm = pageConstructorPresenter.getViewModel();
+      if (pageVm?.offerCards) {
+        for (const offerCard of pageVm.offerCards) {
+          // Check if elementId matches offer card ID (could be "offer-card-123" or just the ID)
+          if (offerCard.id === elementId || elementId === offerCard.id || elementId.startsWith('offer-card-')) {
+            return 'offerCard';
+          }
+        }
+      }
+      // Also check if elementId looks like an offer card ID even if not in the list
+      if (elementId.startsWith('offer-card-')) {
+        return 'offerCard';
+      }
+    }
+
+    // 4. Check for authentication elements
+    if (elementId === 'auth-button' || elementId === 'login-button' || elementId.includes('auth-button')) {
+      return 'authButton';
+    }
+    if (elementId === 'auth-popup' || elementId === 'login-popup' || elementId.includes('auth-popup')) {
+      return 'authPopup';
+    }
+
+    // 5. Check in page sections (if PageConstructorPresenter is provided)
+    if (pageConstructorPresenter) {
+      const pageVm = pageConstructorPresenter.getViewModel();
+      if (pageVm?.sections) {
+        for (const section of pageVm.sections) {
+          // Check if elementId matches the section ID
+          if (section.id === elementId) {
+            this._logger.info('[UIBuilderPresenter] Found element as page section', { elementId, sectionId: section.id });
+            return 'page';
+          }
+          
+          // Check in section components - components are stored directly in section.components array
+          if (section.components && Array.isArray(section.components)) {
+            for (const component of section.components) {
+              // Check if component.id matches elementId
+              if (component.id === elementId) {
+                this._logger.info('[UIBuilderPresenter] Found element as page component', { elementId, sectionId: section.id, componentId: component.id });
+                return 'page';
+              }
+              // Also check in component's children if it has any
+              if (this.findNodeInTree(component, elementId)) {
+                this._logger.info('[UIBuilderPresenter] Found element in component tree', { elementId, sectionId: section.id, componentId: component.id });
+                return 'page';
+              }
+            }
+          }
+        }
       }
     }
 
@@ -943,7 +1107,22 @@ export class UIBuilderPresenter {
       this._logger.warn('[UIBuilderPresenter] Cannot send config to iframe: config is null');
       return;
     }
-    this.preview.sendConfig(this.vm.config);
+    const configForPreview: Record<string, unknown> = {
+      ...this.vm.config,
+      elementSelectionMode: this.vm.elementSelectionMode,
+    };
+    this.preview.sendConfig(configForPreview);
+  }
+
+  /**
+   * Force send config to iframe (useful after page switch when iframe needs to be updated)
+   */
+  public forceSendConfigToIframe(): void {
+    this._logger.info('[UIBuilderPresenter] Force sending config to iframe', {
+      elementSelectionMode: this.vm.elementSelectionMode,
+      hasConfig: !!this.vm.config
+    });
+    this.sendConfigToIframe();
   }
 
   private async saveConfigToSupabase(): Promise<void> {

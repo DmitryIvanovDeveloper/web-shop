@@ -9,6 +9,10 @@ export interface UniversalContainerProps {
   readonly vertical?: boolean;
   readonly sidebar?: boolean;
   readonly gap?: string;
+  readonly onMouseEnter?: (e: React.MouseEvent<HTMLElement>) => void;
+  readonly onMouseLeave?: (e: React.MouseEvent<HTMLElement>) => void;
+  readonly onClick?: (e: React.MouseEvent<HTMLElement>) => void;
+  readonly [key: string]: unknown; // Allow data-* attributes and other props
 }
 
 export function UniversalContainer({
@@ -18,6 +22,10 @@ export function UniversalContainer({
   vertical = false,
   sidebar = false,
   gap,
+  onMouseEnter,
+  onMouseLeave,
+  onClick,
+  ...restProps
 }: UniversalContainerProps): JSX.Element {
   console.log('[UniversalContainer] Rendered with props:', { vertical, sidebar, gap, className });
   
@@ -47,7 +55,14 @@ export function UniversalContainer({
   console.log('[UniversalContainer] Final classes:', containerClasses, 'style:', containerStyle);
     
   return (
-    <aside className={containerClasses} style={containerStyle}>
+    <aside 
+      className={containerClasses} 
+      style={containerStyle}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onClick={onClick}
+      {...restProps}
+    >
       {children}
     </aside>
   );

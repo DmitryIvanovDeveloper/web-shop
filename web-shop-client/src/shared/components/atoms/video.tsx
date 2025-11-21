@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, HTMLAttributes } from 'react';
 
-export interface UniversalVideoProps {
+export interface UniversalVideoProps extends Omit<HTMLAttributes<HTMLDivElement>, 'style'> {
   readonly url?: string;
   readonly videoId?: string;
   readonly className?: string;
@@ -56,7 +56,8 @@ export function UniversalVideo({
   height = '315',
   autoplay = false,
   controls = true,
-  allowFullScreen = true
+  allowFullScreen = true,
+  ...rest
 }: UniversalVideoProps): JSX.Element | null {
   console.log('[UniversalVideo] Rendering with props', {
     url,
@@ -146,7 +147,7 @@ export function UniversalVideo({
   if (usePreview || iframeError) {
     return (
       <>
-        <div className={className} style={{ width, height, ...style, position: 'relative' }}>
+        <div className={className} style={{ width, height, ...style, position: 'relative' }} {...rest}>
           <div
             onClick={() => setShowModal(true)}
             style={{
@@ -282,7 +283,7 @@ export function UniversalVideo({
   }
 
   return (
-    <div className={className} style={{ width, height, ...style }}>
+    <div className={className} style={{ width, height, ...style }} {...rest}>
       <iframe
         src={embedUrl.toString()}
         width={typeof width === 'number' ? width : undefined}

@@ -5,7 +5,7 @@ import { container } from '../src/infrastructure/bootstrap/container';
 import "./output.css";
 import { AuthModule } from '../src/modules/authentication/interface-adapters/ui/auth-module';
 import { PersonalOffersWidget } from '../src/modules/personal-offers/interface-adapters/ui/components/personal-offers-widget';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { APP_LAYOUT_TYPES } from '../src/modules/app-layout/infrastructure/bootstrap/types';
@@ -149,6 +149,21 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
   
   // Viewport mode from UI Builder (mobile/tablet/desktop)
   const [viewportMode, setViewportMode] = useState<'mobile' | 'tablet' | 'desktop' | null>(null);
+
+  const applyElementSelectionMode = useCallback((enabled: boolean) => {
+    if (typeof window !== 'undefined') {
+      (window as any).__elementSelectionMode = enabled;
+      window.dispatchEvent(new CustomEvent('elementSelectionModeChanged', { detail: { enabled } }));
+    }
+
+    if (typeof document !== 'undefined') {
+      if (enabled) {
+        document.body.setAttribute('data-selection-mode', 'true');
+      } else {
+        document.body.removeAttribute('data-selection-mode');
+      }
+    }
+  }, []);
 
   // Initialize isUIBuilderMode on client side to avoid hydration mismatch
   useEffect(() => {
@@ -352,6 +367,11 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
           // This is needed for other modules that listen to AppConfigLoadedEvent
           const loadConfigFromMessageUseCase = container.get<LoadAppConfigFromMessageUseCase>(TYPES.LoadAppConfigFromMessage);
           await loadConfigFromMessageUseCase.execute(config);
+          const selectionModeValue =
+            typeof (config as { elementSelectionMode?: unknown }).elementSelectionMode === 'boolean'
+              ? (config as { elementSelectionMode?: boolean }).elementSelectionMode
+              : Boolean((config as { elementSelectionMode?: unknown }).elementSelectionMode);
+          applyElementSelectionMode(selectionModeValue);
           
           console.log('[RootLayout] Config processed from postMessage');
         } catch (error) {
@@ -375,7 +395,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     return () => {
       window.removeEventListener('message', handleConfigUpdate);
     };
-  }, []);
+  }, [applyElementSelectionMode]);
 
   const renderSidebarMenuIcon = (): ReactNode => {
     if (!sidebarMenuIcon) {

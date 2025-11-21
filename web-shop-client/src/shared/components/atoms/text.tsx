@@ -1,8 +1,8 @@
 'use client';
 
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, ReactNode, HTMLAttributes } from 'react';
 
-export interface UniversalTextProps {
+export interface UniversalTextProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'style'> {
   readonly text?: string;
   readonly children?: ReactNode;
   readonly className?: string;
@@ -13,8 +13,9 @@ export function UniversalText({
   text, 
   children, 
   className = '', 
-  style 
+  style,
+  ...rest
 }: UniversalTextProps): JSX.Element {
-  return <span className={className} style={style}>{text || children}</span>;
+  return <span className={className} style={style} {...rest}>{text || children}</span>;
 }
 

@@ -1,8 +1,8 @@
 'use client';
 
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ImgHTMLAttributes } from 'react';
 
-export interface UniversalImageProps {
+export interface UniversalImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'style'> {
   readonly src?: string;
   readonly alt?: string;
   readonly className?: string;
@@ -13,7 +13,8 @@ export function UniversalImage({
   src, 
   alt = '', 
   className = '', 
-  style 
+  style,
+  ...rest
 }: UniversalImageProps): JSX.Element | null {
   // Don't render img if src is empty, undefined, or null
   // Explicitly check for empty string to prevent React warning
@@ -21,6 +22,6 @@ export function UniversalImage({
     return null;
   }
   
-  return <img src={src} alt={alt} className={className} style={style} />;
+  return <img src={src} alt={alt} className={className} style={style} {...rest} />;
 }
 

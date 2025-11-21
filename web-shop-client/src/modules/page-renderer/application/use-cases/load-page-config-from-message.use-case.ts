@@ -32,15 +32,20 @@ export class LoadPageConfigFromMessageUseCase {
       appId,
       pageSlug,
       sectionsCount: pageConfig?.sections?.length || 0,
+      sections: pageConfig?.sections?.map(s => ({ id: s.id, type: s.type, componentsCount: s.components?.length || 0 })) || []
     });
 
     try {
       // Publish event for handler to consume -> presenter
-      await this._eventBus.publishAsync(
-        new PageConfigLoadedEvent(pageConfig, appId, pageSlug)
-      );
+      const event = new PageConfigLoadedEvent(pageConfig, appId, pageSlug);
+      this._logger.info('[LoadPageConfigFromMessageUseCase] Publishing PageConfigLoadedEvent', {
+        eventName: event.eventName,
+        sectionsCount: pageConfig?.sections?.length || 0
+      });
+      
+      await this._eventBus.publishAsync(event);
 
-      this._logger.info('[LoadPageConfigFromMessageUseCase] PageConfigLoadedEvent published');
+      this._logger.info('[LoadPageConfigFromMessageUseCase] PageConfigLoadedEvent published successfully');
     } catch (error) {
       this._logger.error('[LoadPageConfigFromMessageUseCase] Failed to process config from message', error);
       throw error;

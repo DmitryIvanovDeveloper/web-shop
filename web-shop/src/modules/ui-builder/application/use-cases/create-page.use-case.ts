@@ -5,6 +5,7 @@ import type { PageConfigStoragePort } from '../ports/page-config-storage.port';
 import { UI_BUILDER_TYPES } from '../../infrastructure/bootstrap/types';
 import type { Logger } from '@/application/ports/logger.port';
 import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
+import { generateElementId } from '../../shared/utils/id-generator';
 
 /**
  * Use case for creating a new page with a given pageSlug
@@ -33,7 +34,7 @@ export class CreatePageUseCase {
 
       // Create new page config with empty sections
       const newPageConfig: PageConfig = {
-        id: `page-${Date.now()}`,
+        id: generateElementId('page'),
         appId,
         pageSlug,
         version: 1,

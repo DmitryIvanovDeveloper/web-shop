@@ -36,6 +36,12 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
 
     // Подписываемся на изменения ViewModel
     const unsubscribe = presenter.subscribe((newVm) => {
+      console.log('[PageRenderer] ViewModel updated:', { 
+        sectionsCount: newVm.sections.length, 
+        isLoading: newVm.isLoading,
+        pageSlug,
+        sections: newVm.sections.map(s => ({ id: s.id, type: s.type, componentsCount: s.components?.length || 0 }))
+      });
       setVm(newVm);
     });
 
@@ -54,8 +60,20 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
 
   // Handle preview updates from UI Builder via postMessage
   useEffect(() => {
-    console.log('[PageRenderer] Setting up message handler', { previewMode, appId, pageSlug });
-    if (!previewMode) {
+    // Also check URL params for previewMode (in case prop is not passed correctly)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlPreviewMode = urlParams.get('previewMode') === 'true' || urlParams.get('uibuilder') === 'true';
+    const effectivePreviewMode = previewMode || urlPreviewMode;
+    
+    console.log('[PageRenderer] Setting up message handler', { 
+      previewMode, 
+      urlPreviewMode,
+      effectivePreviewMode,
+      appId, 
+      pageSlug,
+      search: window.location.search
+    });
+    if (!effectivePreviewMode) {
       console.log('[PageRenderer] Preview mode is false, skipping message handler setup');
       return;
     }
@@ -73,11 +91,18 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       console.log('[PageRenderer] Message received', { type: event.data?.type, origin: event.origin });
       if (event.data.type === 'PAGE_CONFIG_UPDATE') {
         try {
+          console.log('[PageRenderer] Processing PAGE_CONFIG_UPDATE', {
+            hasConfig: !!event.data.config,
+            sectionsCount: event.data.config?.sections?.length || 0,
+            appId,
+            pageSlug
+          });
           await loadFromMessageUseCase.execute(
             event.data.config,
             appId,
             pageSlug
           );
+          console.log('[PageRenderer] PAGE_CONFIG_UPDATE processed successfully');
         } catch (error) {
           console.error('[PageRenderer] Failed to process config update from message', error);
         }
@@ -94,6 +119,42 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
           // PageRendererAppConfigLoadedHandler will extract offerCards from config and update presenter
           if (event.data.payload?.config) {
             await loadAppConfigFromMessageUseCase.execute(event.data.payload.config);
+            
+            // Extract and apply elementSelectionMode from config
+            const configPayload = event.data.payload.config as Record<string, unknown>;
+            const selectionModeValue =
+              typeof (configPayload as { elementSelectionMode?: unknown }).elementSelectionMode === 'boolean'
+                ? (configPayload as { elementSelectionMode?: boolean }).elementSelectionMode
+                : Boolean((configPayload as { elementSelectionMode?: unknown }).elementSelectionMode);
+            
+            console.log('[PageRenderer] Setting elementSelectionMode from CONFIG_UPDATE', { 
+              elementSelectionMode: selectionModeValue,
+              configHasElementSelectionMode: 'elementSelectionMode' in configPayload
+            });
+            
+            // Set elementSelectionMode on document.body and window
+            if (typeof document !== 'undefined' && document.body) {
+              if (selectionModeValue) {
+                document.body.setAttribute('data-selection-mode', 'true');
+              } else {
+                document.body.removeAttribute('data-selection-mode');
+              }
+            }
+            
+            if (typeof window !== 'undefined') {
+              (window as any).__elementSelectionMode = selectionModeValue;
+              // Dispatch event for components to listen to
+              window.dispatchEvent(new CustomEvent('elementSelectionModeChanged', { detail: { enabled: selectionModeValue } }));
+            }
+          } else {
+            // If no config, disable selection mode
+            if (typeof document !== 'undefined' && document.body) {
+              document.body.removeAttribute('data-selection-mode');
+            }
+            if (typeof window !== 'undefined') {
+              (window as any).__elementSelectionMode = false;
+              window.dispatchEvent(new CustomEvent('elementSelectionModeChanged', { detail: { enabled: false } }));
+            }
           }
           
           // Set selected offer card ID in presenter (offerCards are updated via EventBus handler)
@@ -110,8 +171,10 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     };
 
     window.addEventListener('message', handleMessage);
+    console.log('[PageRenderer] Message listener added');
     return () => {
       window.removeEventListener('message', handleMessage);
+      console.log('[PageRenderer] Message listener removed');
     };
   }, [previewMode, appId, pageSlug]);
 
@@ -186,7 +249,11 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
 
   // For /store page, always render ProductsList
   if (pageSlug === 'store') {
-    console.log('[PageRenderer] Rendering /store page with ProductsList');
+    console.log('[PageRenderer] Rendering /store page with ProductsList', {
+      sectionsCount: vm.sections.length,
+      isLoading: vm.isLoading,
+      previewMode
+    });
     const pageStyle: React.CSSProperties = {
       padding: vm.pageStyles?.padding || undefined,
       gap: vm.pageStyles?.gap || undefined,
@@ -194,16 +261,24 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       flexDirection: vm.pageStyles?.gap ? 'column' : undefined,
     };
 
+    console.log('[PageRenderer] Rendering /store page sections:', { 
+      sectionsCount: vm.sections.length, 
+      sections: vm.sections.map(s => ({ id: s.id, type: s.type, componentsCount: s.components.length }))
+    });
+    
     return (
       <div className="page-renderer" style={pageStyle}>
         {/* Render configured sections if available */}
-        {vm.sections.length > 0 && vm.sections.map(section => (
-          <SectionRenderer
-            key={section.id}
-            section={section}
-            theme={theme}
-          />
-        ))}
+        {vm.sections.length > 0 && vm.sections.map(section => {
+          console.log('[PageRenderer] Rendering section:', section.id);
+          return (
+            <SectionRenderer
+              key={section.id}
+              section={section}
+              theme={theme}
+            />
+          );
+        })}
         
         {/* Always render ProductsList on /store page */}
         <ProductsList />
@@ -211,16 +286,9 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     );
   }
 
-  // For other pages, show error if no configuration
-  if (vm.sections.length === 0) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center text-gray-500">
-          <p>No content available</p>
-        </div>
-      </div>
-    );
-  }
+  // For other pages, render sections if available
+  // If no sections, still render empty container (for preview mode)
+  // This allows elements to be selected even if no sections exist
 
   const pageStyle: React.CSSProperties = {
     padding: vm.pageStyles?.padding || undefined,

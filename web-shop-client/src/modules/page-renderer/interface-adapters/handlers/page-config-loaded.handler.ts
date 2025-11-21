@@ -23,10 +23,15 @@ export class PageConfigLoadedHandler implements IAsyncEventHandler<PageConfigLoa
     this._logger.info('[PageConfigLoadedHandler] Received event', {
       appId: event.appId,
       pageSlug: event.pageSlug,
-      hasConfig: !!event.pageConfig
+      hasConfig: !!event.pageConfig,
+      sectionsCount: event.pageConfig?.sections?.length || 0
     });
     
     this._presenter.setPageConfig(event.pageConfig);
+    
+    this._logger.info('[PageConfigLoadedHandler] Page config set in presenter', {
+      sectionsCount: event.pageConfig?.sections?.length || 0
+    });
   }
 }
 
