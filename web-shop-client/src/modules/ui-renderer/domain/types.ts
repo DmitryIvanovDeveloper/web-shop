@@ -59,6 +59,9 @@ export interface StyleConfig {
   // Visual
   readonly borderRadius?: SpacingValue | string;
   readonly border?: string;
+  readonly borderColor?: ColorKey | string;
+  readonly borderWidth?: string | number;
+  readonly borderStyle?: 'solid' | 'dashed' | 'dotted' | 'double' | 'none';
   readonly boxShadow?: string;
   
   // Background

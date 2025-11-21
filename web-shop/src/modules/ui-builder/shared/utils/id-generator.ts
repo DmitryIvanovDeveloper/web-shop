@@ -24,4 +24,3 @@ export function generateElementId(type: string): string {
   const uuid = crypto.randomUUID();
   return `${type}-${uuid}`;
 }
-

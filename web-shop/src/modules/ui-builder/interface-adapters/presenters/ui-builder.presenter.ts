@@ -953,7 +953,13 @@ export class UIBuilderPresenter {
       return 'authPopup';
     }
 
-    // 5. Check in page sections (if PageConstructorPresenter is provided)
+    // 5. Check if elementId is a page container (page-{pageSlug})
+    if (elementId.startsWith('page-')) {
+      this._logger.info('[UIBuilderPresenter] Found element as page container', { elementId });
+      return 'page';
+    }
+
+    // 6. Check in page sections (if PageConstructorPresenter is provided)
     if (pageConstructorPresenter) {
       const pageVm = pageConstructorPresenter.getViewModel();
       if (pageVm?.sections) {

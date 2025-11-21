@@ -49,11 +49,33 @@ export class PageRendererPresenter {
   }
 
   setPageConfig(pageConfig: PageConfig | null): void {
+    // Log component styles for debugging
+    const allComponents = pageConfig?.sections?.flatMap(s => s.components) || [];
+    const textComponents = allComponents.filter(c => c.type === 'Text');
+    
+    // Log text components styles in detail
+    if (textComponents.length > 0) {
+      this._logger.info('[PageRendererPresenter] Text components styles received:', {
+        textComponentsCount: textComponents.length,
+        textComponents: textComponents.map(c => ({
+          id: c.id,
+          text: c.props?.text || '',
+          textColor: c.styles?.textColor,
+          fontSize: c.styles?.fontSize,
+          fontWeight: c.styles?.fontWeight,
+          textAlign: c.styles?.textAlign,
+          textDecoration: c.styles?.textDecoration,
+          allStyles: JSON.stringify(c.styles || {})
+        }))
+      });
+    }
+    
     this._logger.info('[PageRendererPresenter] Setting page config', {
       hasConfig: !!pageConfig,
       sectionsCount: pageConfig?.sections.length || 0,
       hasPageStyles: !!pageConfig?.pageStyles,
-      pagePadding: pageConfig?.pageStyles?.padding || 'not set'
+      pagePadding: pageConfig?.pageStyles?.padding || 'not set',
+      textComponentsCount: textComponents.length
     });
     
     this._vm = {

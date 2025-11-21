@@ -484,6 +484,27 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             setSelectedOfferCardId(null);
           }
         } else if (area === 'page') {
+          // Check if elementId is a page container (page-{pageSlug})
+          if (elementId.startsWith('page-')) {
+            const pageSlug = elementId.replace('page-', '');
+            console.log('[UIBuilderPage] Page container selected:', { elementId, pageSlug });
+            
+            // Switch to Pages tab and open page editor
+            setActiveTab('pages');
+            setActiveSection('pageConstructor');
+            
+            // Clear other selections
+            presenter.selectElement(null);
+            pageConstructorPresenter.selectOfferCard(null);
+            setSelectedOfferCardId(null);
+            
+            // Clear section/component selection to show page-level editor
+            pageConstructorPresenter.selectSection(null);
+            pageConstructorPresenter.selectComponent(null, null);
+            
+            return;
+          }
+          
           // Find which section contains this element
           const pageVm = pageConstructorPresenter.getViewModel();
           let foundSectionId: string | null = null;

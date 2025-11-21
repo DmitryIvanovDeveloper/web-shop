@@ -454,8 +454,8 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home', pages = [
         {!selectedOfferCardId && vm.selectedComponent && vm.selectedSection && (
           <ComponentEditor
             component={vm.selectedComponent}
-            onUpdate={(props) => 
-              presenter.updateComponent(vm.selectedSection!.id, vm.selectedComponent!.id, props)
+            onUpdate={(props, styles) => 
+              presenter.updateComponent(vm.selectedSection!.id, vm.selectedComponent!.id, props, styles)
             }
             onRemove={() => {
               presenter.removeComponent(vm.selectedSection!.id, vm.selectedComponent!.id);

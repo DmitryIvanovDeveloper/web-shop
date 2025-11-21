@@ -85,6 +85,20 @@ export class UIRendererService implements UIRendererPort {
 		// Build styles
 		const className = this._styleBuilder.buildClassName(node.styles || {}, theme);
 		const style = this._styleBuilder.buildInlineStyles(node.styles || {}, theme);
+		
+		// Debug logging for Text component styles
+		if (node.type === 'Text') {
+			this._logger.info('[UIRendererService] Text component styles:', {
+				nodeId: node.id,
+				textColor: node.styles?.textColor,
+				fontSize: node.styles?.fontSize,
+				fontWeight: node.styles?.fontWeight,
+				allStyles: JSON.stringify(node.styles || {}),
+				builtColor: style.color,
+				builtFontSize: style.fontSize,
+				builtFontWeight: style.fontWeight
+			});
+		}
 
 		console.log('[UIRendererService] Rendering node with styles', {
 			nodeType: node.type,

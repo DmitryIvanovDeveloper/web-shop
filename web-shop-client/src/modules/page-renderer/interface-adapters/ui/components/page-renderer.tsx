@@ -13,6 +13,23 @@ import { TYPES } from '../../../../../infrastructure/bootstrap/types';
 import { PageRendererPresenter } from '../../presenters/page-renderer.presenter';
 import type { PageRendererViewModel } from '../../view-models/page-renderer.view-model';
 
+// Check if in preview mode
+const isPreviewMode = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  const params = new URLSearchParams(window.location.search);
+  return params.get('previewMode') === 'true' || params.get('uibuilder') === 'true';
+};
+
+const readSelectionModeFlag = (): boolean => {
+  if (typeof document !== 'undefined' && document.body) {
+    return document.body.getAttribute('data-selection-mode') === 'true';
+  }
+  if (typeof window !== 'undefined') {
+    return (window as any).__elementSelectionMode === true;
+  }
+  return false;
+};
+
 interface PageRendererProps {
   appId: string;
   pageSlug?: string;
@@ -29,6 +46,49 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     selectedOfferCardId: null,
     offerCards: []
   });
+
+  // State for hover effect in element selection mode
+  const [isHovered, setIsHovered] = useState(false);
+  const [elementSelectionMode, setElementSelectionMode] = useState(false);
+
+  // Listen for element selection mode changes
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const handleModeChange = (event: CustomEvent) => {
+      const enabled = event.detail?.enabled ?? false;
+      console.log('[PageRenderer] Received elementSelectionModeChanged event:', enabled, { pageSlug });
+      setElementSelectionMode(enabled);
+    };
+
+    const initialMode = readSelectionModeFlag();
+    console.log('[PageRenderer] Initial elementSelectionMode:', initialMode, {
+      bodyAttribute: typeof document !== 'undefined' && document.body ? document.body.getAttribute('data-selection-mode') : null,
+      windowFlag: typeof window !== 'undefined' ? (window as any).__elementSelectionMode : false
+    });
+    setElementSelectionMode(initialMode);
+
+    // Also check periodically if mode changed (in case it was set before this component mounted)
+    const checkInterval = setInterval(() => {
+      const currentMode = readSelectionModeFlag();
+      setElementSelectionMode((prevMode) => {
+        if (currentMode !== prevMode) {
+          console.log('[PageRenderer] ElementSelectionMode changed via polling:', { from: prevMode, to: currentMode });
+          return currentMode;
+        }
+        return prevMode;
+      });
+    }, 500);
+
+    window.addEventListener('elementSelectionModeChanged', handleModeChange as EventListener);
+
+    return () => {
+      window.removeEventListener('elementSelectionModeChanged', handleModeChange as EventListener);
+      clearInterval(checkInterval);
+    };
+  }, [pageSlug]);
 
   useEffect(() => {
     const presenter = container.get<PageRendererPresenter>(PAGE_RENDERER_TYPES.PageRendererPresenter);
@@ -247,6 +307,140 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     );
   }
 
+  // Generate page element ID for selection
+  const pageElementId = `page-${pageSlug}`;
+
+  // Handle click for page element selection
+  const handlePageClick = (e: React.MouseEvent<HTMLElement>) => {
+    const previewModeValue = isPreviewMode();
+    const selectionMode = elementSelectionMode;
+    console.log('[PageRenderer] Page click handler check:', { previewMode: previewModeValue, selectionMode, pageSlug, pageElementId });
+    
+    if (previewModeValue && selectionMode && pageElementId) {
+      // Only handle click if the target is the page container itself, not a child element
+      const target = e.target as HTMLElement;
+      const currentTarget = e.currentTarget as HTMLElement;
+      
+      // If clicking on a child element with data-element-id, let it handle the click
+      if (target !== currentTarget && target.closest('[data-element-id]') !== currentTarget) {
+        return;
+      }
+      
+      e.preventDefault();
+      e.stopPropagation();
+      
+      console.log('[PageRenderer] Page clicked in selection mode:', pageElementId);
+      
+      if (window.parent && window.parent !== window) {
+        const builderOrigin = process.env.NEXT_PUBLIC_BUILDER_URL || '*';
+        console.log('[PageRenderer] Sending ELEMENT_SELECTED to parent:', {
+          elementId: pageElementId,
+          origin: builderOrigin
+        });
+        
+        window.parent.postMessage(
+          { type: 'ELEMENT_SELECTED', elementId: pageElementId },
+          builderOrigin
+        );
+      }
+    }
+  };
+
+  // Handle mouse enter for hover effect
+  const handlePageMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
+    const previewModeValue = isPreviewMode();
+    const selectionMode = elementSelectionMode;
+    
+    console.log('[PageRenderer] Mouse enter check:', { 
+      previewMode: previewModeValue, 
+      selectionMode, 
+      pageElementId,
+      elementSelectionMode,
+      hasWindowFlag: typeof window !== 'undefined' ? (window as any).__elementSelectionMode : false,
+      bodyAttribute: typeof document !== 'undefined' && document.body ? document.body.getAttribute('data-selection-mode') : null
+    });
+    
+    if (!previewModeValue || !selectionMode || !pageElementId) {
+      console.log('[PageRenderer] Mouse enter conditions not met:', {
+        previewMode: previewModeValue,
+        selectionMode,
+        hasPageElementId: !!pageElementId
+      });
+      return;
+    }
+    
+    const target = e.currentTarget as HTMLElement;
+    const eventTarget = e.target as HTMLElement;
+    
+    // For page container, be more lenient - only skip if we're directly over a child element with its own data-element-id
+    // This allows hover to work when cursor is over padding/margin areas or empty space
+    if (eventTarget !== target) {
+      const childWithId = eventTarget.closest('[data-element-id]') as HTMLElement;
+      // Only skip if we found a child element with data-element-id that is not the page container itself
+      if (childWithId && childWithId !== target && childWithId.hasAttribute('data-element-id')) {
+        const childId = childWithId.getAttribute('data-element-id');
+        if (childId && childId !== pageElementId) {
+          console.log('[PageRenderer] Skipping hover - child element has data-element-id:', childId);
+          return;
+        }
+      }
+    }
+    
+    console.log('[PageRenderer] Mouse enter on page - applying styles:', pageElementId);
+    setIsHovered(true);
+    
+    // Apply outline styles directly to DOM element for immediate feedback
+    if (!target.classList.contains('preview-hover')) {
+      target.classList.add('preview-hover');
+    }
+    target.style.setProperty('cursor', 'pointer', 'important');
+    target.style.setProperty('outline', '2px solid #3b82f6', 'important');
+    target.style.setProperty('outline-offset', '2px', 'important');
+    target.style.setProperty('box-shadow', '0 0 0 2px rgba(59, 130, 246, 0.3)', 'important');
+    target.style.setProperty('position', 'relative', 'important');
+    
+    // Ensure outline is not clipped - check current overflow first
+    const currentOverflow = window.getComputedStyle(target).overflow;
+    if (currentOverflow === 'hidden' || currentOverflow === 'auto' || currentOverflow === 'scroll') {
+      target.style.setProperty('overflow', 'visible', 'important');
+    }
+    
+    // Also add border as fallback
+    target.style.setProperty('border', '2px solid #3b82f6', 'important');
+    
+    console.log('[PageRenderer] Applied outline styles to page:', {
+      outline: target.style.outline,
+      outlineOffset: target.style.outlineOffset,
+      border: target.style.border,
+      cursor: target.style.cursor,
+      hasClass: target.classList.contains('preview-hover'),
+      computedOutline: window.getComputedStyle(target).outline,
+      computedCursor: window.getComputedStyle(target).cursor
+    });
+  };
+
+  // Handle mouse leave for hover effect
+  const handlePageMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
+    const previewModeValue = isPreviewMode();
+    const selectionMode = elementSelectionMode;
+    
+    if (previewModeValue && selectionMode && pageElementId) {
+      console.log('[PageRenderer] Mouse leave on page:', pageElementId);
+      setIsHovered(false);
+      
+      const target = e.currentTarget as HTMLElement;
+      target.classList.remove('preview-hover');
+      target.style.removeProperty('cursor');
+      target.style.removeProperty('outline');
+      target.style.removeProperty('outline-offset');
+      target.style.removeProperty('box-shadow');
+      target.style.removeProperty('border');
+      target.style.removeProperty('overflow');
+      
+      console.log('[PageRenderer] Removed outline styles from page:', pageElementId);
+    }
+  };
+
   // For /store page, always render ProductsList
   if (pageSlug === 'store') {
     console.log('[PageRenderer] Rendering /store page with ProductsList', {
@@ -267,7 +461,14 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     });
     
     return (
-      <div className="page-renderer" style={pageStyle}>
+      <div 
+        className="page-renderer min-h-screen" 
+        style={pageStyle}
+        data-element-id={pageElementId}
+        onClick={handlePageClick}
+        onMouseEnter={handlePageMouseEnter}
+        onMouseLeave={handlePageMouseLeave}
+      >
         {/* Render configured sections if available */}
         {vm.sections.length > 0 && vm.sections.map(section => {
           console.log('[PageRenderer] Rendering section:', section.id);
@@ -298,7 +499,14 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
   };
 
   return (
-    <div className="page-renderer" style={pageStyle}>
+    <div 
+      className="page-renderer min-h-screen" 
+      style={pageStyle}
+      data-element-id={pageElementId}
+      onClick={handlePageClick}
+      onMouseEnter={handlePageMouseEnter}
+      onMouseLeave={handlePageMouseLeave}
+    >
       {/* Demo section for selected offer card (only in preview mode) */}
       {previewMode && selectedOfferCard && (
         <div key="offer-card-demo-section" className="offer-card-demo-section" style={{ padding: '20px', marginBottom: '20px' }}>

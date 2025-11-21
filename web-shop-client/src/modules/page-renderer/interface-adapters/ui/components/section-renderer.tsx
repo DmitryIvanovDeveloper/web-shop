@@ -63,11 +63,20 @@ export function SectionRenderer({ section, theme }: SectionRendererProps): JSX.E
     };
   }, [section.id]);
 
+  // Default styles for empty sections to make them visible and selectable
+  const isEmpty = !section.components || section.components.length === 0;
+  const hasMinHeight = section.styles && 'minHeight' in section.styles;
+  const defaultStylesForEmpty: React.CSSProperties = isEmpty && !hasMinHeight ? {
+    minHeight: '150px',
+    border: '2px dashed #d1d5db', // Gray dashed border
+  } : {};
+
   const sectionStyle: React.CSSProperties = {
     display: 'grid',
     gridTemplateColumns: section.layout.customGrid || getGridTemplate(section.layout.grid),
     gap: section.layout.gap || '1rem',
     alignItems: section.layout.align || 'start',
+    ...defaultStylesForEmpty,
     ...(section.styles as React.CSSProperties),
   };
 
@@ -204,13 +213,29 @@ export function SectionRenderer({ section, theme }: SectionRendererProps): JSX.E
       onMouseLeave={handleMouseLeave}
     >
       {section.components.map(component => {
-        console.log(`[SectionRenderer] Rendering component`, {
-          sectionType: section.type,
-          componentId: component.id,
-          componentType: component.type,
-          componentProps: component.props,
-          componentStyles: component.styles
-        });
+        // Log Text component styles in detail
+        if (component.type === 'Text') {
+          console.log(`[SectionRenderer] Rendering Text component with styles:`, {
+            componentId: component.id,
+            text: component.props?.text || '',
+            textColor: component.styles?.textColor,
+            fontSize: component.styles?.fontSize,
+            fontWeight: component.styles?.fontWeight,
+            textAlign: component.styles?.textAlign,
+            textDecoration: component.styles?.textDecoration,
+            allStyles: JSON.stringify(component.styles || {}),
+            hasStyles: !!component.styles,
+            stylesKeys: component.styles ? Object.keys(component.styles) : []
+          });
+        } else {
+          console.log(`[SectionRenderer] Rendering component`, {
+            sectionType: section.type,
+            componentId: component.id,
+            componentType: component.type,
+            componentProps: component.props,
+            componentStyles: component.styles
+          });
+        }
         return (
           <DynamicRenderer
             key={component.id}

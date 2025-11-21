@@ -95,6 +95,23 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
   const className = styleBuilder.buildClassName(styles, theme);
   let style = styleBuilder.buildInlineStyles(styles, theme, node.type);
   
+  // Debug logging for Text component styles
+  if (node.type === 'Text') {
+    console.log('[DynamicRenderer] Text component styles:', {
+      nodeId: node.id,
+      nodeStyles: node.styles,
+      builtStyle: style,
+      textColor: node.styles?.textColor,
+      fontSize: node.styles?.fontSize,
+      fontWeight: node.styles?.fontWeight,
+      inlineColor: style.color,
+      inlineFontSize: style.fontSize,
+      inlineFontWeight: style.fontWeight,
+      allStyles: JSON.stringify(node.styles || {}),
+      allBuiltStyles: JSON.stringify(style)
+    });
+  }
+  
   // Add outline styles for hover in selection mode
   const isSelectionModeActive = isPreviewMode() && elementSelectionMode && node.id;
   if (isSelectionModeActive && isHovered) {
@@ -437,6 +454,20 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     onClick: handleClick,
     isLoading: actionContext?.isLoading || false,
   };
+
+  // Debug logging for Text component props
+  if (node.type === 'Text') {
+    console.log('[DynamicRenderer] Text component props being passed:', {
+      nodeId: node.id,
+      style: componentProps.style,
+      textColor: style?.color,
+      fontSize: style?.fontSize,
+      fontWeight: style?.fontWeight,
+      textAlign: style?.textAlign,
+      textDecoration: style?.textDecoration,
+      allProps: JSON.stringify(componentProps)
+    });
+  }
 
   try {
     return createElement(Component, componentProps);

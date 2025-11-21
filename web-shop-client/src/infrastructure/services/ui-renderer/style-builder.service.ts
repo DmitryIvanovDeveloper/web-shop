@@ -40,6 +40,8 @@ export class UIStyleBuilder {
 			backgroundOpacity: styles.backgroundOpacity,
 			color: styles.color,
 			textColor: styles.textColor,
+			fontSize: styles.fontSize,
+			fontWeight: styles.fontWeight,
 			borderColor: styles.borderColor,
 			borderRadius: styles.borderRadius,
 			borderWidth: styles.borderWidth,
@@ -121,15 +123,43 @@ export class UIStyleBuilder {
 			}
 		}
 		// Support both 'color' (direct CSS property) and 'textColor' (theme-based)
-		if (styles.color) {
+		// textColor has priority over color for Text components
+		if (styles.textColor) {
+			// Если это hex-код (начинается с #), используем напрямую
+			if (typeof styles.textColor === 'string' && styles.textColor.startsWith('#')) {
+				inlineStyles.color = styles.textColor;
+			} else {
+				// Иначе пытаемся разрешить через тему или используем как есть
+				inlineStyles.color = this._resolveColor(styles.textColor, theme);
+			}
+		} else if (styles.color) {
 			inlineStyles.color = this._resolveColor(styles.color as string, theme);
-		} else if (styles.textColor) {
-			inlineStyles.color = this._resolveColor(styles.textColor, theme);
 		}
 
 		// Typography
-		if (styles.fontSize) inlineStyles.fontSize = styles.fontSize;
-		if (styles.fontWeight) inlineStyles.fontWeight = styles.fontWeight;
+		if (styles.fontSize) {
+			const fontSizeMap: Record<string, string> = {
+				'xs': '12px',
+				'sm': '14px', 
+				'base': '16px',
+				'lg': '18px',
+				'xl': '20px',
+				'2xl': '24px',
+				'3xl': '30px',
+				'4xl': '36px'
+			};
+			inlineStyles.fontSize = fontSizeMap[styles.fontSize] || styles.fontSize;
+		}
+		if (styles.fontWeight) {
+			const fontWeightMap: Record<string, string> = {
+				'normal': '400',
+				'medium': '500',
+				'semibold': '600',
+				'bold': '700',
+				'extrabold': '800'
+			};
+			inlineStyles.fontWeight = fontWeightMap[styles.fontWeight] || styles.fontWeight;
+		}
 		if (styles.fontFamily) inlineStyles.fontFamily = styles.fontFamily;
 		if (styles.textAlign) inlineStyles.textAlign = styles.textAlign;
 		if (styles.textDecoration) inlineStyles.textDecoration = styles.textDecoration;
@@ -197,6 +227,8 @@ export class UIStyleBuilder {
 					? styles.backgroundOpacity
 					: undefined,
 			color: inlineStyles.color,
+			fontSize: inlineStyles.fontSize,
+			fontWeight: inlineStyles.fontWeight,
 			borderColor: inlineStyles.borderColor,
 			borderRadius: inlineStyles.borderRadius,
 			borderWidth: inlineStyles.borderWidth,

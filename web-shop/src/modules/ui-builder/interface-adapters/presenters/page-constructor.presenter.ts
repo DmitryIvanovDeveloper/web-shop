@@ -222,7 +222,10 @@ export class PageConstructorPresenter {
         gap: '1rem',
         align: 'start',
       },
-      styles: {},
+      styles: {
+        minHeight: '350px',
+        border: '2px dashed #d1d5db', // Gray dashed border
+      },
       components: [],
     };
 
@@ -316,6 +319,7 @@ export class PageConstructorPresenter {
 
     this.notify();
     this.saveConfigDebounced();
+    this.sendConfigToIframe();
   }
 
   // ============ Component Operations ============
@@ -327,7 +331,7 @@ export class PageConstructorPresenter {
       id: generateElementId(componentType.toLowerCase()),
       type: componentType,
       props: this.getDefaultProps(componentType),
-      styles: {},
+      styles: this.getDefaultStyles(componentType),
     };
 
     this.vm = {
@@ -388,8 +392,14 @@ export class PageConstructorPresenter {
     this.notify();
   }
 
-  public updateComponent(sectionId: string, componentId: string, props: Record<string, unknown>): void {
-    this._logger.info('[PageConstructorPresenter] Updating component', { sectionId, componentId });
+  public updateComponent(sectionId: string, componentId: string, props: Record<string, unknown>, styles?: Record<string, unknown>): void {
+    this._logger.info('[PageConstructorPresenter] Updating component', { 
+      sectionId, 
+      componentId, 
+      hasStyles: !!styles,
+      styles: styles,
+      props: props
+    });
 
     this.vm = {
       ...this.vm,
@@ -399,7 +409,13 @@ export class PageConstructorPresenter {
               ...section,
               components: section.components.map(comp =>
                 comp.id === componentId
-                  ? { ...comp, props: { ...comp.props, ...props } }
+                  ? { 
+                      ...comp, 
+                      props: { ...(comp.props || {}), ...props },
+                      styles: styles !== undefined 
+                        ? { ...(comp.styles || {}), ...styles } 
+                        : (comp.styles || {})
+                    }
                   : comp
               ),
             }
@@ -411,6 +427,30 @@ export class PageConstructorPresenter {
     if (this.vm.selectedComponent?.id === componentId) {
       const section = this.vm.sections.find(s => s.id === sectionId);
       this.vm.selectedComponent = section?.components.find(c => c.id === componentId) || null;
+    }
+
+    // Log the updated component to verify styles are saved
+    const updatedSection = this.vm.sections.find(s => s.id === sectionId);
+    const updatedComponent = updatedSection?.components.find(c => c.id === componentId);
+    
+    // Log styles in detail for Text components
+    if (updatedComponent?.type === 'Text') {
+      this._logger.info('[PageConstructorPresenter] Text component updated with styles:', {
+        componentId,
+        text: updatedComponent?.props?.text || '',
+        textColor: updatedComponent?.styles?.textColor,
+        fontSize: updatedComponent?.styles?.fontSize,
+        fontWeight: updatedComponent?.styles?.fontWeight,
+        textAlign: updatedComponent?.styles?.textAlign,
+        textDecoration: updatedComponent?.styles?.textDecoration,
+        allStyles: JSON.stringify(updatedComponent?.styles || {})
+      });
+    } else {
+      this._logger.info('[PageConstructorPresenter] Component updated', {
+        componentId,
+        componentStyles: updatedComponent?.styles,
+        componentProps: updatedComponent?.props
+      });
     }
 
     this.notify();
@@ -557,12 +597,34 @@ export class PageConstructorPresenter {
       pageStyles: this.pageStyles ? { ...this.pageStyles } : undefined,
     };
 
+    // Log component styles for debugging
+    const allComponents = pageConfig.sections.flatMap(s => s.components);
+    const textComponents = allComponents.filter(c => c.type === 'Text');
+    
+    // Log text components styles in detail
+    if (textComponents.length > 0) {
+      this._logger.info('[PageConstructorPresenter] Text components styles before sending:', {
+        textComponentsCount: textComponents.length,
+        textComponents: textComponents.map(c => ({
+          id: c.id,
+          text: c.props?.text || '',
+          textColor: c.styles?.textColor,
+          fontSize: c.styles?.fontSize,
+          fontWeight: c.styles?.fontWeight,
+          textAlign: c.styles?.textAlign,
+          textDecoration: c.styles?.textDecoration,
+          allStyles: JSON.stringify(c.styles || {})
+        }))
+      });
+    }
+    
     this._logger.info('[PageConstructorPresenter] Sending page config to iframe', {
       pageSlug: this.vm.pageSlug,
       sectionsCount: pageConfig.sections.length,
       sectionIds: pageConfig.sections.map(s => s.id),
       pagePadding: pageConfig.pageStyles?.padding || 'not set',
       pageGap: pageConfig.pageStyles?.gap || 'not set',
+      textComponentsCount: textComponents.length
     });
 
     try {
@@ -647,12 +709,24 @@ export class PageConstructorPresenter {
   private getDefaultProps(componentType: string): Record<string, unknown> {
     const defaults: Record<string, Record<string, unknown>> = {
       Text: { text: 'Enter text here...' },
-      Button: { text: 'Click me' },
+      Button: { text: 'Click' },
       Image: { src: '', alt: 'Image' },
       Video: { src: '' },
       ProductsList: {},
       OffersList: {},
       Container: {},
+    };
+
+    return defaults[componentType] || {};
+  }
+
+  private getDefaultStyles(componentType: string): Record<string, unknown> {
+    const defaults: Record<string, Record<string, unknown>> = {
+      Button: {
+        backgroundColor: '#ffc629',
+        textColor: '#ffffff',
+        borderColor: '#ffffff',
+      },
     };
 
     return defaults[componentType] || {};
@@ -1070,7 +1144,10 @@ export class PageConstructorPresenter {
         gap: '1rem',
         align: 'start',
       },
-      styles: {},
+      styles: {
+        minHeight: '350px',
+        border: '2px dashed #d1d5db', // Gray dashed border
+      },
       components: [],
     };
     

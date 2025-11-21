@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import type { SelectedElement } from '../../../domain/types/sidebar-element.types';
+import { ButtonEditor } from './ButtonEditor';
 
 interface SidebarColorEditorProps {
   element: SelectedElement | null;
@@ -38,39 +39,7 @@ const readFileAsDataUrl = (file: File): Promise<string> => {
   });
 };
 
-interface ColorInputProps {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}
-
-function ColorInput({ label, value, onChange }: ColorInputProps): JSX.Element {
-  const displayLabel = label.replace(/([A-Z])/g, ' $1').trim();
-  const capitalizedLabel = displayLabel.charAt(0).toUpperCase() + displayLabel.slice(1);
-
-  return (
-    <div className="space-y-1.5">
-      <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-        {capitalizedLabel}
-      </label>
-      <div className="flex items-center gap-2">
-        <input
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-9 h-9 rounded border border-gray-300 cursor-pointer flex-shrink-0"
-        />
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-28 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-          placeholder="#000000"
-        />
-      </div>
-    </div>
-  );
-}
+import { ColorInput } from './ColorInput';
 
 export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingChange, onBorderRadiusChange, onLabelChange, onTextAlignChange, onFlexDirectionChange, onIconChange, onBackgroundOpacityChange, onPageSlugChange, pages = [] }: SidebarColorEditorProps): JSX.Element {
   const [isIconUploading, setIsIconUploading] = useState(false);
@@ -318,21 +287,48 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
       </div>
 
       <div className="p-4 space-y-6">
-        {/* Colors Section */}
-        {Object.keys(element.colors ?? {}).length > 0 && (
-          <div className="space-y-3">
-            <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Colors</h4>
+        {/* Use ButtonEditor for buttons, otherwise show Colors section for other elements */}
+        {isButton ? (
+          <ButtonEditor
+            backgroundColor={element.colors?.backgroundColor || '#ffc629'}
+            textColor={element.colors?.textColor || '#ffffff'}
+            borderColor={element.colors?.borderColor || '#ffffff'}
+            onColorChange={(colorKey, newColor) => {
+              // ButtonEditor uses backgroundColor, but we need to save it as backgroundColor in styles
+              // (readColorsFromNode expects backgroundColor, not background)
+              handleColorChange(colorKey, newColor);
+            }}
+            label={element.label || ''}
+            onLabelChange={(value) => onLabelChange?.(element.id, value)}
+            icon={element.icon || null}
+            onIconChange={(value) => onIconChange?.(element.id, value)}
+            pageSlug={(element as any).pageSlug || null}
+            onPageSlugChange={(value) => onPageSlugChange?.(element.id, value)}
+            pages={pages}
+            borderRadius={element.borderRadius}
+            onBorderRadiusChange={(value) => onBorderRadiusChange?.(element.id, value)}
+            padding={element.padding}
+            onPaddingChange={(value) => onPaddingChange?.(element.id, value)}
+            textAlign={element.textAlign}
+            onTextAlignChange={(value) => onTextAlignChange?.(element.id, value)}
+          />
+        ) : (
+          /* Colors Section for non-button elements */
+          Object.keys(element.colors ?? {}).length > 0 && (
             <div className="space-y-3">
-              {Object.entries(element.colors ?? {}).map(([key, value]) => (
-                <ColorInput
-                  key={key}
-                  label={key}
-                  value={value}
-                  onChange={(newColor) => handleColorChange(key, newColor)}
-                />
-              ))}
+              <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Colors</h4>
+              <div className="space-y-3">
+                {Object.entries(element.colors ?? {}).map(([key, value]) => (
+                  <ColorInput
+                    key={key}
+                    label={key}
+                    value={value}
+                    onChange={(newColor) => handleColorChange(key, newColor)}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          )
         )}
 
         {/* Layout editor for containers */}
@@ -441,134 +437,8 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
           </div>
         )}
 
-        {/* BorderRadius editor for buttons */}
-        {isButton && onBorderRadiusChange && (
-          <div className="space-y-3">
-            <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Border</h4>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                Border Radius
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={borderRadiusValue}
-                  onChange={(e) => handleBorderRadiusValueChange(e.target.value)}
-                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                  placeholder="0.5"
-                />
-                <select
-                  value={borderRadiusUnit}
-                  onChange={(e) => handleBorderRadiusUnitChange(e.target.value)}
-                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
-                >
-                  <option value="rem">rem</option>
-                  <option value="px">px</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Spacing editor for buttons */}
-        {isButton && onPaddingChange && (
-          <div className="space-y-3">
-            <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Spacing</h4>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                Padding
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={paddingValue}
-                  onChange={(e) => handlePaddingValueChange(e.target.value)}
-                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                  placeholder="1"
-                />
-                <select
-                  value={paddingUnit}
-                  onChange={(e) => handlePaddingUnitChange(e.target.value)}
-                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
-                >
-                  <option value="rem">rem</option>
-                  <option value="px">px</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Content editor for buttons */}
-        {isButton && (onLabelChange || onTextAlignChange || onPageSlugChange) && (
-          <div className="space-y-3">
-            <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Content</h4>
-            
-            {/* Label */}
-            {onLabelChange && (
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                  Button Text
-                </label>
-                <input
-                  type="text"
-                  value={element.label || ''}
-                  onChange={(e) => onLabelChange(element.id, e.target.value)}
-                  className="w-48 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                  placeholder="Enter button text"
-                />
-              </div>
-            )}
-
-            {/* Text Align */}
-            {onTextAlignChange && (
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                  Text Alignment
-                </label>
-                <select
-                  value={element.textAlign || 'center'}
-                  onChange={(e) => onTextAlignChange(element.id, e.target.value)}
-                  className="w-32 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
-                >
-                  <option value="left">Left</option>
-                  <option value="center">Center</option>
-                  <option value="right">Right</option>
-                </select>
-              </div>
-            )}
-
-            {/* Navigate to Page */}
-            {onPageSlugChange && (
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                  Navigate to Page
-                </label>
-                <select
-                  value={(element as any).pageSlug || ''}
-                  onChange={(e) => onPageSlugChange(element.id, e.target.value || null)}
-                  className="w-48 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
-                >
-                  <option value="">No navigation</option>
-                  {pages.map((pageSlug) => (
-                    <option key={pageSlug} value={pageSlug}>
-                      {pageSlug}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-[10px] text-gray-500 mt-1">
-                  Select a page to navigate to when button is clicked. URL will be /{'{'}pageSlug{'}'}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {renderIconEditor()}
+        {/* Icon editor for non-button elements (buttons use ButtonEditor) */}
+        {!isButton && renderIconEditor()}
       </div>
     </div>
   );

@@ -30,6 +30,18 @@ export class StyleBuilder {
 
   public buildInlineStyles(styles: Readonly<StyleConfig>, theme?: ThemeConfig, componentType?: string): CSSProperties {
     const inlineStyles: CSSProperties = {};
+    
+    // Debug logging for textColor, fontSize, fontWeight
+    if (componentType === 'Text') {
+      console.log('[StyleBuilder] Building inline styles for Text component', {
+        textColor: styles.textColor,
+        fontSize: styles.fontSize,
+        fontWeight: styles.fontWeight,
+        hasTheme: !!theme,
+        themeColors: theme?.colors ? Object.keys(theme.colors) : [],
+        allStyles: JSON.stringify(styles)
+      });
+    }
 
     if (styles.backgroundColor) {
       // Если это hex-код (начинается с #), используем напрямую
@@ -53,7 +65,13 @@ export class StyleBuilder {
         const color = (theme.colors as any)[styles.textColor];
         if (color) {
           inlineStyles.color = color;
+        } else {
+          // Если не найден в теме, используем значение как есть (может быть CSS color name или другой формат)
+          inlineStyles.color = styles.textColor as string;
         }
+      } else {
+        // Если нет темы, используем значение как есть
+        inlineStyles.color = styles.textColor as string;
       }
     }
 
@@ -164,6 +182,11 @@ export class StyleBuilder {
       }
     }
 
+    // Обрабатываем textDecoration как inline стиль
+    if (styles.textDecoration !== undefined) {
+      inlineStyles.textDecoration = styles.textDecoration;
+    }
+
     // Обрабатываем justifyContent как inline стиль
     if (styles.justifyContent !== undefined) {
       inlineStyles.justifyContent = styles.justifyContent;
@@ -174,8 +197,37 @@ export class StyleBuilder {
       inlineStyles.flex = styles.flex;
     }
 
+    // Обрабатываем borderColor как inline стиль
+    // borderColor должен обрабатываться до border, чтобы можно было установить border с правильным цветом
+    let borderColorValue: string | undefined;
+    if (styles.borderColor !== undefined) {
+      // Если это hex-код (начинается с #), используем напрямую
+      if (typeof styles.borderColor === 'string' && styles.borderColor.startsWith('#')) {
+        borderColorValue = styles.borderColor;
+        inlineStyles.borderColor = borderColorValue;
+      } else if (theme?.colors) {
+        // Иначе ищем в теме
+        const color = (theme.colors as any)[styles.borderColor];
+        if (color) {
+          borderColorValue = color;
+          inlineStyles.borderColor = borderColorValue;
+        }
+      } else {
+        // Если не hex и нет темы, используем как есть
+        borderColorValue = styles.borderColor as string;
+        inlineStyles.borderColor = borderColorValue;
+      }
+    }
+
+    // Обрабатываем border
     if (styles.border !== undefined) {
       inlineStyles.border = styles.border;
+    } else if (borderColorValue && !inlineStyles.border) {
+      // Если border не установлен, но есть borderColor, устанавливаем border по умолчанию
+      // Это необходимо, чтобы borderColor работал (CSS требует border для применения borderColor)
+      const borderWidth = styles.borderWidth || '1px';
+      const borderStyle = styles.borderStyle || 'solid';
+      inlineStyles.border = `${borderWidth} ${borderStyle} ${borderColorValue}`;
     }
 
     // Обрабатываем position как inline стиль

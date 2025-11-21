@@ -412,7 +412,7 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
             </p>
           </div>
 
-          {/* File Upload */}
+          {/* File Upload and Clear */}
           <div className="flex items-center gap-2">
             <label className="flex-1 cursor-pointer">
               <input
@@ -426,6 +426,23 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
                 {uploading ? '📤 Converting...' : '📤 Upload Image (Base64)'}
               </div>
             </label>
+            {(section.styles?.backgroundImage as string) && (
+              <button
+                type="button"
+                onClick={() => {
+                  const newStyles = { ...section.styles };
+                  delete newStyles.backgroundImage;
+                  delete newStyles.backgroundSize;
+                  delete newStyles.backgroundPosition;
+                  delete newStyles.backgroundRepeat;
+                  onUpdateStyles(newStyles);
+                }}
+                className="px-3 py-2 border border-red-300 rounded-lg hover:bg-red-50 text-sm text-red-600 font-medium transition-colors"
+                title="Remove background image"
+              >
+                ✕ Clear
+              </button>
+            )}
           </div>
         </div>
 
