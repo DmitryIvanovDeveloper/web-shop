@@ -5,6 +5,7 @@ import type { SavePageDraftUseCase } from '../../application/use-cases/save-page
 import type { PublishPageUseCase } from '../../application/use-cases/publish-page.use-case';
 import type { LoadDraftConfigUseCase } from '../../application/use-cases/load-draft-config.use-case';
 import type { UpdateOfferCardsUseCase } from '../../application/use-cases/update-offer-cards.use-case';
+import type { PageConfigStoragePort } from '../../application/ports/page-config-storage.port';
 import type { Logger } from '@/application/ports/logger.port';
 import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import type { PageConfig } from '../../domain/entities/page-config.entity';
@@ -36,7 +37,7 @@ export class PageConstructorPresenter {
   private saveOfferCardsPromise: Promise<void> | null = null;
   
   // Store pageStyles separately (not in ViewModel)
-  private pageStyles: { padding?: string; gap?: string } = {};
+  private pageStyles: { padding?: string; gap?: string; backgroundColor?: string; backgroundOpacity?: number } = {};
   
   // Store offerCards separately (not in ViewModel)
   private offerCards: OfferCardTemplate[] = [];
@@ -66,6 +67,8 @@ export class PageConstructorPresenter {
     private readonly _loadDraftConfigUseCase: LoadDraftConfigUseCase,
     @inject(UI_BUILDER_TYPES.UpdateOfferCardsUseCase)
     private readonly _updateOfferCardsUseCase: UpdateOfferCardsUseCase,
+    @inject(UI_BUILDER_TYPES.PageConfigStorage)
+    private readonly _pageConfigStorage: PageConfigStoragePort,
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: Logger
   ) {}
@@ -189,6 +192,9 @@ export class PageConstructorPresenter {
 
       // Load offer cards from app config
       await this.loadOfferCards();
+      
+      // Clear offer card selection when initializing page (to prevent showing offer-card in iframe)
+      this.selectedOfferCardId = null;
 
       this.notify();
       this.sendConfigToIframe();
@@ -527,8 +533,35 @@ export class PageConstructorPresenter {
         return false;
       }
 
-      this.vm = { ...this.vm, isSaving: false, isDraft: false };
-      this.notify();
+      // After successful publish, reload the active version and send it to iframe
+      this._logger.info('[PageConstructorPresenter] Reloading active page config after publish');
+      const activeResult = await this._pageConfigStorage.loadActive(this.vm.appId, this.vm.pageSlug);
+      
+      if (activeResult.isSuccess && activeResult.value) {
+        const activeConfig = activeResult.value;
+        this._logger.info('[PageConstructorPresenter] Active config loaded after publish', {
+          sectionsCount: activeConfig.sections.length,
+          version: activeConfig.version
+        });
+        
+        // Update ViewModel with active config
+        this.vm = {
+          ...this.vm,
+          sections: activeConfig.sections,
+          isSaving: false,
+          isDraft: false,
+        };
+        this.pageStyles = activeConfig.pageStyles || {};
+        this.notify();
+        
+        // Send active config to iframe
+        this.sendActiveConfigToIframe(activeConfig);
+      } else {
+        // If active config not found, just update status
+        this.vm = { ...this.vm, isSaving: false, isDraft: false };
+        this.notify();
+      }
+      
       this._logger.info('[PageConstructorPresenter] Page published successfully');
       return true;
     } catch (error) {
@@ -571,8 +604,62 @@ export class PageConstructorPresenter {
     this.sendConfigToIframe();
   }
 
-  public getPageStyles(): { padding?: string; gap?: string } {
+  public updatePageBackgroundColor(backgroundColor: string): void {
+    this._logger.info('[PageConstructorPresenter] Updating page background color', { backgroundColor });
+
+    this.pageStyles = {
+      ...this.pageStyles,
+      backgroundColor: backgroundColor || undefined,
+    };
+
+    this.notify();
+    this.saveConfigDebounced();
+    this.sendConfigToIframe();
+  }
+
+  public updatePageBackgroundOpacity(opacity: number): void {
+    this._logger.info('[PageConstructorPresenter] Updating page background opacity', { opacity });
+
+    this.pageStyles = {
+      ...this.pageStyles,
+      backgroundOpacity: opacity !== undefined && opacity !== null ? opacity : undefined,
+    };
+
+    this.notify();
+    this.saveConfigDebounced();
+    this.sendConfigToIframe();
+  }
+
+  public getPageStyles(): { padding?: string; gap?: string; backgroundColor?: string; backgroundOpacity?: number } {
     return { ...this.pageStyles };
+  }
+
+  private sendActiveConfigToIframe(config: PageConfig): void {
+    if (typeof window === 'undefined') return;
+
+    const iframe = document.querySelector('iframe');
+    if (!iframe?.contentWindow) {
+      this._logger.warn('[PageConstructorPresenter] Iframe not found for sending active config');
+      return;
+    }
+
+    this._logger.info('[PageConstructorPresenter] Sending active page config to iframe after publish', {
+      pageSlug: config.pageSlug,
+      sectionsCount: config.sections.length,
+      version: config.version,
+      isActive: config.isActive
+    });
+
+    try {
+      iframe.contentWindow.postMessage(
+        { type: 'PAGE_CONFIG_UPDATE', config: config },
+        '*'
+      );
+
+      this._logger.info('[PageConstructorPresenter] Sent active config to iframe successfully');
+    } catch (error) {
+      this._logger.error('[PageConstructorPresenter] Failed to send active config to iframe', error);
+    }
   }
 
   private sendConfigToIframe(): void {
@@ -683,13 +770,15 @@ export class PageConstructorPresenter {
       this.lastAppConfig = updatedAppConfig;
 
       // Send CONFIG_UPDATE message with app-config, offerCards, and selectedOfferCardId
+      // Only send selectedOfferCardId if it's actually selected (not null)
+      // This prevents showing offer-card in iframe when editing pages
       iframe.contentWindow.postMessage(
         {
           type: 'CONFIG_UPDATE',
           payload: {
             config: updatedAppConfig,
             offerCards: [...this.offerCards],
-            selectedOfferCardId: this.selectedOfferCardId,
+            selectedOfferCardId: this.selectedOfferCardId || null,
           },
         },
         '*'
@@ -721,6 +810,12 @@ export class PageConstructorPresenter {
   }
 
   private getDefaultStyles(componentType: string): Record<string, unknown> {
+    // Default styles for Video component
+    if (componentType === 'Video') {
+      return {
+        minHeight: '315px', // Standard YouTube embed height
+      };
+    }
     const defaults: Record<string, Record<string, unknown>> = {
       Button: {
         backgroundColor: '#ffc629',
@@ -789,12 +884,13 @@ export class PageConstructorPresenter {
         };
       });
 
+      // Don't auto-select offer card - it should only be selected when explicitly editing offer cards
+      // This prevents showing offer-card in iframe when editing pages
       if (!this.selectedOfferCardId || !this.offerCards.some(card => card.id === this.selectedOfferCardId)) {
-        this.selectedOfferCardId = this.offerCards.length > 0 ? this.offerCards[0].id : null;
-        if (this.selectedOfferCardId) {
-          this._logger.info('[PageConstructorPresenter] Auto-selected offer card after load', {
-            selectedCardId: this.selectedOfferCardId,
-          });
+        // Only clear invalid selection, don't auto-select
+        if (!this.offerCards.some(card => card.id === this.selectedOfferCardId)) {
+          this.selectedOfferCardId = null;
+          this._logger.info('[PageConstructorPresenter] Cleared invalid offer card selection');
         }
       }
 

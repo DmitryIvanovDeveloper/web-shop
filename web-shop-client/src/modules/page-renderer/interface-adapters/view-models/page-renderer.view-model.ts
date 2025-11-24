@@ -7,6 +7,8 @@ export interface PageRendererViewModel {
   pageStyles?: {
     padding?: string;
     gap?: string;
+    backgroundColor?: string;
+    backgroundOpacity?: number;
   };
   isLoading: boolean;
   error: string | null;

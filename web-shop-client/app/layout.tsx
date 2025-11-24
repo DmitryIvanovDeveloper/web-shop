@@ -210,6 +210,59 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     };
   }, [sidebarPresenter]);
 
+  // Apply theme background to body when app_config is loaded
+  useEffect(() => {
+    const applyThemeBackground = (): void => {
+      try {
+        const sidebar = sidebarPresenter.getSidebar();
+        if (!sidebar) return;
+
+        const palette = (sidebar.theme?.colors ?? {}) as unknown as Record<string, string>;
+        const layoutStyles = (sidebar.layout?.styles ?? {}) as Partial<StyleConfig>;
+        
+        const backgroundColor = resolveColorToken(layoutStyles.backgroundColor, palette);
+        const backgroundOpacity = parseOpacityValue(layoutStyles.backgroundOpacity);
+        
+        if (backgroundColor && typeof document !== 'undefined' && document.body) {
+          const finalColor = backgroundOpacity !== undefined
+            ? applyOpacityToColor(backgroundColor, backgroundOpacity)
+            : backgroundColor;
+          
+          // Use setProperty with !important to override CSS styles from globals.css
+          document.body.style.setProperty('background-color', finalColor, 'important');
+          console.log('[RootLayout] Applied theme background to body', { backgroundColor: finalColor });
+        }
+      } catch (error) {
+        console.error('[RootLayout] Failed to apply theme background to body:', error);
+      }
+    };
+
+    // Apply immediately if config is already loaded, with a small delay to ensure CSS is loaded
+    setTimeout(() => {
+      applyThemeBackground();
+    }, 0);
+
+    // Also listen for appConfigLoaded event to re-apply when config updates
+    const handleAppConfigLoaded = (): void => {
+      // Use setTimeout to ensure this runs after any CSS updates
+      setTimeout(() => {
+        applyThemeBackground();
+      }, 0);
+    };
+
+    window.addEventListener('appConfigLoaded', handleAppConfigLoaded);
+    
+    // Subscribe to sidebar updates to re-apply theme background
+    const unsubscribe = sidebarPresenter.subscribe(() => {
+      applyThemeBackground();
+    });
+
+    return () => {
+      window.removeEventListener('appConfigLoaded', handleAppConfigLoaded);
+      unsubscribe();
+    };
+  }, [sidebarPresenter]);
+
   const actionContext: ActionContext = {
     onPopupOpen: () => {},
     onPopupClose: () => {},

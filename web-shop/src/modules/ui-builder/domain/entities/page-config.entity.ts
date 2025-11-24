@@ -31,6 +31,8 @@ export interface PageConfig {
   pageStyles?: {
     padding?: string;
     gap?: string;
+    backgroundColor?: string;
+    backgroundOpacity?: number; // 0-1
   };
   
   /** Optional metadata about the page */

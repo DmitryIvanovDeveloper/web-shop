@@ -130,11 +130,17 @@ export function UniversalVideo({
     return () => clearTimeout(timer);
   }, [iframeLoaded, usePreview, iframeError]);
 
+  // Extract minHeight from style if present, apply to container
+  const containerStyle: CSSProperties = {
+    width: typeof width === 'number' ? `${width}px` : width,
+    minHeight: style?.minHeight || '315px', // Default minHeight for Video component
+    ...style
+  };
+
   const iframeStyle: CSSProperties = {
     width: typeof width === 'number' ? `${width}px` : width,
     height: typeof height === 'number' ? `${height}px` : height,
     border: 'none',
-    ...style
   };
 
   console.log('[UniversalVideo] Rendering iframe with style:', iframeStyle, 'container style:', { width, height, ...style }, 'iframeError:', iframeError);
@@ -147,7 +153,7 @@ export function UniversalVideo({
   if (usePreview || iframeError) {
     return (
       <>
-        <div className={className} style={{ width, height, ...style, position: 'relative' }} {...rest}>
+        <div className={className} style={{ width, height, minHeight: style?.minHeight || '315px', ...style, position: 'relative' }} {...rest}>
           <div
             onClick={() => setShowModal(true)}
             style={{
@@ -283,7 +289,7 @@ export function UniversalVideo({
   }
 
   return (
-    <div className={className} style={{ width, height, ...style }} {...rest}>
+    <div className={className} style={containerStyle} {...rest}>
       <iframe
         src={embedUrl.toString()}
         width={typeof width === 'number' ? width : undefined}

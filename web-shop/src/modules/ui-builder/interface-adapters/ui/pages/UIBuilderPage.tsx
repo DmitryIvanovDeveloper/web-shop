@@ -88,6 +88,15 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   // Offer Cards state
   const [offerCards, setOfferCards] = useState(pageConstructorPresenter.getOfferCards());
   const [selectedOfferCardId, setSelectedOfferCardId] = useState<string | null>(pageConstructorPresenter.getSelectedOfferCardId());
+  
+  // PageConstructor ViewModel state
+  const [pageConstructorVm, setPageConstructorVm] = useState(pageConstructorPresenter.getViewModel());
+
+  // Subscribe to PageConstructor presenter changes
+  useEffect(() => {
+    const unsubscribe = pageConstructorPresenter.subscribe(setPageConstructorVm);
+    return unsubscribe;
+  }, [pageConstructorPresenter]);
 
   // Initialize pageConstructorPresenter and load offer cards
   useEffect(() => {
@@ -95,6 +104,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       await pageConstructorPresenter.initialize(appId, selectedPageSlug);
       setOfferCards(pageConstructorPresenter.getOfferCards());
       setSelectedOfferCardId(pageConstructorPresenter.getSelectedOfferCardId());
+      setPageConstructorVm(pageConstructorPresenter.getViewModel());
     };
     initializeOfferCards();
   }, [appId, selectedPageSlug, pageConstructorPresenter]);
@@ -110,13 +120,16 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   }, [pageConstructorPresenter]);
 
   // Calculate iframe src based on active section
+  // For pageConstructor, use a stable base URL to avoid iframe reloads when switching pages
+  // The page content will be updated via postMessage instead
   const iframeSrc = React.useMemo(() => {
     if (!clientUrl) return null;
     if (activeSection === 'pageConstructor') {
-      return `${clientUrl}/${selectedPageSlug}?appId=${appId}&previewMode=true&uibuilder=true`;
+      // Use 'home' as base URL to avoid reloads - page content will be updated via postMessage
+      return `${clientUrl}/home?appId=${appId}&previewMode=true&uibuilder=true`;
     }
     return `${clientUrl}/?appId=${appId}&previewMode=true&uibuilder=true`;
-  }, [activeSection, appId, clientUrl, selectedPageSlug]);
+  }, [activeSection, appId, clientUrl]);
 
   // Callback to set iframe ref when PhoneMockup mounts
   const handleIframeRef = useCallback((el: HTMLIFrameElement | null) => {
@@ -352,6 +365,63 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     if (s.textColor) colors.textColor = s.textColor;
     if (s.borderColor) colors.borderColor = s.borderColor;
     return colors;
+  };
+
+  // Helper: find sidebar button by pageSlug
+  const findSidebarButtonByPageSlug = (pageSlug: string): string | null => {
+    if (!viewModel.config) {
+      console.log('[UIBuilderPage] findSidebarButtonByPageSlug: no config');
+      return null;
+    }
+    const config = viewModel.config as any;
+    const sidebarConfig = config?.modules?.uiRenderer?.sidebar;
+    if (!sidebarConfig?.layout) {
+      console.log('[UIBuilderPage] findSidebarButtonByPageSlug: no sidebar layout');
+      return null;
+    }
+
+    const findButton = (node: any): any | null => {
+      // Check if this is a Button node with matching pageSlug
+      if (node.type === 'Button' && node.props?.pageSlug === pageSlug) {
+        return node;
+      }
+      // Recursively search children
+      if (Array.isArray(node.children)) {
+        for (const c of node.children) {
+          const found = findButton(c);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const buttonNode = findButton(sidebarConfig.layout);
+    if (buttonNode && buttonNode.id) {
+      console.log('[UIBuilderPage] findSidebarButtonByPageSlug: found button', { pageSlug, buttonId: buttonNode.id });
+      return buttonNode.id;
+    }
+    console.log('[UIBuilderPage] findSidebarButtonByPageSlug: button not found', { pageSlug });
+    return null;
+  };
+
+  // Helper: simulate click on sidebar button in iframe using postMessage
+  const simulateSidebarButtonClick = (buttonId: string): void => {
+    const iframe = iframeRef.current;
+    if (!iframe || !iframe.contentWindow) {
+      console.warn('[UIBuilderPage] simulateSidebarButtonClick: iframe ref not available');
+      return;
+    }
+
+    // Use postMessage to communicate with iframe (avoids CORS issues)
+    console.log('[UIBuilderPage] simulateSidebarButtonClick: sending CLICK_BUTTON message to iframe', { buttonId });
+    iframe.contentWindow.postMessage(
+      {
+        type: 'CLICK_BUTTON',
+        buttonId: buttonId,
+        temporarilyDisableSelectionMode: isElementSelectionMode
+      },
+      clientUrl || '*'
+    );
   };
 
   // Setup element selection listener from preview
@@ -705,6 +775,11 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         break;
       case 'pages':
         setActiveSection('pageConstructor');
+        // Clear offer card selection when switching to Pages tab
+        if (selectedOfferCardId) {
+          pageConstructorPresenter.selectOfferCard(null);
+          setSelectedOfferCardId(null);
+        }
         break;
       case 'offerCards':
         // Don't change activeSection for offer cards, just show the manager
@@ -843,13 +918,29 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               {viewModel.pages.map((pageSlug: string) => (
                 <button
                   key={pageSlug}
-                  onClick={() => {
+                  onClick={async () => {
                     setActiveSection('pageConstructor');
                     setSelectedPageSlug(pageSlug);
                     setActiveTab('pages');
                     const url = new URL(window.location.href);
                     url.searchParams.set('pageSlug', pageSlug);
                     window.history.replaceState({}, '', url.toString());
+                    
+                    // Find and simulate click on corresponding sidebar button
+                    const buttonId = findSidebarButtonByPageSlug(pageSlug);
+                    if (buttonId) {
+                      // Wait a bit for iframe to be ready, then simulate click
+                      setTimeout(() => {
+                        simulateSidebarButtonClick(buttonId);
+                      }, 100);
+                    } else {
+                      console.log('[UIBuilderPage] No sidebar button found for pageSlug:', pageSlug);
+                    }
+                    
+                    // Initialize page constructor for the new page (this will send config to iframe)
+                    await pageConstructorPresenter.initialize(appId, pageSlug);
+                    setOfferCards(pageConstructorPresenter.getOfferCards());
+                    setSelectedOfferCardId(pageConstructorPresenter.getSelectedOfferCardId());
                   }}
                   className={`w-full text-left px-2 py-1.5 rounded text-xs transition-colors ${
                     selectedPageSlug === pageSlug 
@@ -1084,6 +1175,44 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 </button>
               </div>
             )}
+            {activeSection === 'pageConstructor' && (
+              <div className="flex gap-2 items-center">
+                <button
+                  onClick={() => pageConstructorPresenter.saveDraft()}
+                  disabled={pageConstructorVm.isSaving}
+                  className="px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  title="Save page as draft"
+                >
+                  {pageConstructorVm.isSaving ? 'Saving...' : '💾 Save Draft'}
+                </button>
+                <button
+                  onClick={async () => {
+                    const success = await pageConstructorPresenter.publish();
+                    if (success) {
+                      // Show success message and suggest reloading the page
+                      const shouldReload = window.confirm(
+                        'Page published successfully! Do you want to reload the published page to see the changes?'
+                      );
+                      if (shouldReload) {
+                        // Open the published page in a new tab
+                        const pageUrl = `/home`;
+                        window.open(pageUrl, '_blank');
+                      }
+                    } else {
+                      alert(`Failed to publish: ${pageConstructorVm.error || 'Unknown error'}`);
+                    }
+                  }}
+                  disabled={pageConstructorVm.isSaving || !pageConstructorVm.isDraft}
+                  className="px-3 py-1.5 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  title={!pageConstructorVm.isDraft ? 'Already published' : 'Publish this page'}
+                >
+                  🚀 Publish Page
+                </button>
+                {!pageConstructorVm.isDraft && (
+                  <span className="text-xs text-gray-500">(Published)</span>
+                )}
+              </div>
+            )}
           </div>
         </header>
 
@@ -1118,9 +1247,23 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                         // Switch to pageConstructor section to show the editor
                         setActiveSection('pageConstructor');
                         setActiveTab('pages');
+                        
+                        // Find and simulate click on corresponding sidebar button
+                        const buttonId = findSidebarButtonByPageSlug(pageSlug);
+                        if (buttonId) {
+                          // Wait a bit for iframe to be ready, then simulate click
+                          setTimeout(() => {
+                            simulateSidebarButtonClick(buttonId);
+                          }, 100);
+                        } else {
+                          console.log('[UIBuilderPage] No sidebar button found for pageSlug:', pageSlug);
+                        }
+                        
                         await pageConstructorPresenter.initialize(appId, pageSlug);
                         setOfferCards(pageConstructorPresenter.getOfferCards());
                         setSelectedOfferCardId(pageConstructorPresenter.getSelectedOfferCardId());
+                        // sendConfigToIframe is called automatically in initialize, but we ensure it's sent
+                        // The iframe src stays the same (home), so no reload happens
                         // Force send CONFIG_UPDATE with elementSelectionMode to iframe
                         // This ensures that element selection mode is properly set in iframe after page switch
                         if (typeof presenter.forceSendConfigToIframe === 'function') {

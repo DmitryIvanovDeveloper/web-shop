@@ -37,24 +37,19 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
         .eq('page_slug', pageSlug)
         .eq('is_draft', true)
         .order('version', { ascending: false })
-        .limit(1)
-        .single();
+        .limit(1);
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          // No rows found
-          this._logger.info('[SupabasePageConfigStorage] No draft found', { appId, pageSlug });
-          return Result.ok<PageConfig | null, Error>(null);
-        }
         this._logger.error('[SupabasePageConfigStorage] Error loading draft', error);
         return Result.fail(new Error(`Failed to load draft: ${error.message}`));
       }
 
-      if (!data) {
+      if (!data || data.length === 0) {
+        this._logger.info('[SupabasePageConfigStorage] No draft found', { appId, pageSlug });
         return Result.ok<PageConfig | null, Error>(null);
       }
 
-      const row = data as PageConfigRow;
+      const row = data[0] as PageConfigRow;
       const pageConfig: PageConfig = {
         id: row.id,
         appId: row.app_id,
@@ -63,7 +58,7 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
         isDraft: row.is_draft,
         isActive: row.is_active,
         sections: row.sections as any[] || [],
-          pageStyles: (row.page_styles as { padding?: string; gap?: string }) || {},
+        pageStyles: (row.page_styles as { padding?: string; gap?: string; backgroundColor?: string; backgroundOpacity?: number }) || {},
       };
 
       this._logger.info('[SupabasePageConfigStorage] Draft loaded successfully', { appId, pageSlug, version: pageConfig.version });
@@ -84,6 +79,7 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
         .eq('app_id', appId)
         .eq('page_slug', pageSlug)
         .eq('is_active', true)
+        .order('version', { ascending: false })
         .limit(1)
         .single();
 
@@ -109,7 +105,7 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
         isDraft: row.is_draft,
         isActive: row.is_active,
         sections: row.sections as any[] || [],
-        pageStyles: (row.page_styles as { padding?: string; gap?: string }) || {},
+        pageStyles: (row.page_styles as { padding?: string; gap?: string; backgroundColor?: string; backgroundOpacity?: number }) || {},
       };
 
       this._logger.info('[SupabasePageConfigStorage] Active config loaded successfully', { appId, pageSlug, version: pageConfig.version });
@@ -210,29 +206,31 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
       const draft = draftResult.value;
 
       // Deactivate current active version if exists
-      await this._db
+      const { error: deactivateError } = await this._db
         .from('page_configs')
         .update({ is_active: false })
         .eq('app_id', appId)
         .eq('page_slug', pageSlug)
         .eq('is_active', true);
 
-      // Create new active version from draft
-      const { error: insertError } = await this._db
-        .from('page_configs')
-        .insert({
-          app_id: appId,
-          page_slug: pageSlug,
-          version: draft.version,
-          is_active: true,
-          is_draft: false,
-          sections: draft.sections,
-          page_styles: draft.pageStyles || {},
-        });
+      if (deactivateError) {
+        this._logger.error('[SupabasePageConfigStorage] Failed to deactivate active configs', deactivateError);
+        return Result.fail(new Error(`Failed to deactivate active configs: ${deactivateError.message}`));
+      }
 
-      if (insertError) {
-        this._logger.error('[SupabasePageConfigStorage] Failed to publish', insertError);
-        return Result.fail(new Error(`Failed to publish: ${insertError.message}`));
+      // Activate the draft config (mark as both active and not draft) - same approach as app_config
+      const { error: activateError } = await this._db
+        .from('page_configs')
+        .update({ 
+          is_active: true, 
+          is_draft: false,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', draft.id);
+
+      if (activateError) {
+        this._logger.error('[SupabasePageConfigStorage] Failed to activate draft', activateError);
+        return Result.fail(new Error(`Failed to activate draft: ${activateError.message}`));
       }
 
       this._logger.info('[SupabasePageConfigStorage] Page config published successfully', { 

@@ -9,6 +9,25 @@ export class ActionHandler {
     value?: any
   ): Promise<void> {
     if (action.type === 'navigate' && action.url) {
+      // Check if we're in UI Builder preview mode
+      const isUIBuilderMode = typeof window !== 'undefined' && (
+        new URLSearchParams(window.location.search).get('uibuilder') === 'true' ||
+        new URLSearchParams(window.location.search).get('previewMode') === 'true'
+      );
+      
+      // If in UI Builder mode, prevent navigation to avoid iframe reload
+      // The parent window (UI Builder) will handle page switching via postMessage
+      if (isUIBuilderMode) {
+        console.log('[ActionHandler] In UI Builder mode, preventing navigation to avoid iframe reload', { url: action.url });
+        // Extract pageSlug and notify parent if needed
+        const pageSlug = action.url.startsWith('/') ? action.url.slice(1).split('?')[0].split('#')[0] : action.url.split('?')[0].split('#')[0];
+        if (pageSlug && window.parent && window.parent !== window) {
+          console.log('[ActionHandler] Notifying parent about page navigation request', { pageSlug });
+          // Parent already knows about page switch, so we just prevent navigation
+        }
+        return; // Prevent navigation in UI Builder mode
+      }
+      
       // Handle navigation - prefer client-side navigation if available
       if (context.navigate && typeof context.navigate === 'function') {
         // Use client-side navigation via Next.js router

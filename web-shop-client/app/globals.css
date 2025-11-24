@@ -24,7 +24,8 @@ body {
   height: 100%;
   /* Принудительно черный текст */
   color: rgb(0, 0, 0) !important;
-  background: rgb(var(--background-end-rgb));
+  /* Background will be set by theme from app_config via JavaScript */
+  /* background: rgb(var(--background-end-rgb)); */
 }
 
 @layer utilities {

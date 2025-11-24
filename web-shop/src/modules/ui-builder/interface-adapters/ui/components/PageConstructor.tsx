@@ -321,7 +321,7 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home', pages = [
           </div>
 
           {/* Gap */}
-          <div>
+          <div className="mb-4">
             <label className="text-xs font-medium text-gray-600 block mb-1.5">
               Gap (Spacing)
             </label>
@@ -391,6 +391,61 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home', pages = [
                   </>
                 );
               })()}
+            </div>
+          </div>
+
+          {/* Background Color */}
+          <div className="mb-4">
+            <label className="text-xs font-medium text-gray-600 block mb-1.5">
+              Background Color
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={presenter.getPageStyles().backgroundColor || '#ffffff'}
+                onChange={(e) => presenter.updatePageBackgroundColor(e.target.value)}
+                className="h-10 w-20 border border-gray-300 rounded-lg cursor-pointer"
+                title="Background color"
+              />
+              <input
+                type="text"
+                value={presenter.getPageStyles().backgroundColor || ''}
+                onChange={(e) => presenter.updatePageBackgroundColor(e.target.value)}
+                placeholder="#ffffff"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+              />
+            </div>
+          </div>
+
+          {/* Background Opacity */}
+          <div>
+            <label className="text-xs font-medium text-gray-600 block mb-1.5">
+              Background Opacity
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={presenter.getPageStyles().backgroundOpacity !== undefined ? presenter.getPageStyles().backgroundOpacity : 1}
+                onChange={(e) => presenter.updatePageBackgroundOpacity(parseFloat(e.target.value))}
+                className="flex-1"
+              />
+              <input
+                type="number"
+                min="0"
+                max="1"
+                step="0.01"
+                value={presenter.getPageStyles().backgroundOpacity !== undefined ? presenter.getPageStyles().backgroundOpacity : 1}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value) && value >= 0 && value <= 1) {
+                    presenter.updatePageBackgroundOpacity(value);
+                  }
+                }}
+                className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+              />
             </div>
           </div>
         </div>

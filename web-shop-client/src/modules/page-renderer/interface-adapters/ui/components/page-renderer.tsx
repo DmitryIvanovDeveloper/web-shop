@@ -149,6 +149,63 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
 
     const handleMessage = async (event: MessageEvent) => {
       console.log('[PageRenderer] Message received', { type: event.data?.type, origin: event.origin });
+      
+      // Handle CLICK_BUTTON message from parent (UI Builder)
+      if (event.data.type === 'CLICK_BUTTON') {
+        try {
+          const { buttonId, temporarilyDisableSelectionMode } = event.data;
+          console.log('[PageRenderer] Received CLICK_BUTTON message', { buttonId, temporarilyDisableSelectionMode });
+          
+          // Find button element by data-element-id
+          const buttonElement = document.querySelector(`[data-element-id="${buttonId}"]`) as HTMLElement;
+          if (!buttonElement) {
+            console.warn('[PageRenderer] CLICK_BUTTON: button element not found', { buttonId });
+            return;
+          }
+
+          // Temporarily disable element selection mode if needed
+          let wasSelectionModeActive = false;
+          if (temporarilyDisableSelectionMode) {
+            wasSelectionModeActive = document.body.getAttribute('data-selection-mode') === 'true';
+            if (wasSelectionModeActive) {
+              document.body.removeAttribute('data-selection-mode');
+              (window as any).__elementSelectionMode = false;
+              window.dispatchEvent(new CustomEvent('elementSelectionModeChanged', { detail: { enabled: false } }));
+              console.log('[PageRenderer] CLICK_BUTTON: temporarily disabled element selection mode');
+            }
+          }
+
+          try {
+            // Simulate click
+            console.log('[PageRenderer] CLICK_BUTTON: simulating click on button', { buttonId });
+            buttonElement.click();
+            
+            // Also dispatch MouseEvent for better compatibility
+            const clickEvent = new MouseEvent('click', {
+              bubbles: true,
+              cancelable: true,
+              view: window,
+            });
+            buttonElement.dispatchEvent(clickEvent);
+          } catch (error) {
+            console.error('[PageRenderer] CLICK_BUTTON: error simulating click', error);
+          } finally {
+            // Restore element selection mode if it was active
+            if (wasSelectionModeActive) {
+              setTimeout(() => {
+                document.body.setAttribute('data-selection-mode', 'true');
+                (window as any).__elementSelectionMode = true;
+                window.dispatchEvent(new CustomEvent('elementSelectionModeChanged', { detail: { enabled: true } }));
+                console.log('[PageRenderer] CLICK_BUTTON: restored element selection mode');
+              }, 100);
+            }
+          }
+        } catch (error) {
+          console.error('[PageRenderer] Failed to handle CLICK_BUTTON message', error);
+        }
+        return;
+      }
+      
       if (event.data.type === 'PAGE_CONFIG_UPDATE') {
         try {
           console.log('[PageRenderer] Processing PAGE_CONFIG_UPDATE', {
@@ -163,6 +220,10 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
             pageSlug
           );
           console.log('[PageRenderer] PAGE_CONFIG_UPDATE processed successfully');
+          
+          // Re-apply theme background after page config is loaded
+          // This ensures theme background is visible even after page config loads
+          window.dispatchEvent(new Event('appConfigLoaded'));
         } catch (error) {
           console.error('[PageRenderer] Failed to process config update from message', error);
         }
@@ -218,10 +279,12 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
           }
           
           // Set selected offer card ID in presenter (offerCards are updated via EventBus handler)
-          if (event.data.payload?.selectedOfferCardId !== undefined) {
+          // Only set if it's explicitly provided and not null (to avoid showing offer-card when editing pages)
+          if (event.data.payload?.selectedOfferCardId !== undefined && event.data.payload?.selectedOfferCardId !== null) {
             console.log('[PageRenderer] Setting selected offer card ID', { cardId: event.data.payload.selectedOfferCardId });
             presenter.setSelectedOfferCardId(event.data.payload.selectedOfferCardId);
           } else {
+            // Always clear when null or undefined to prevent showing offer-card when editing pages
             presenter.setSelectedOfferCardId(null);
           }
         } catch (error) {
@@ -284,6 +347,32 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       });
     }
   }, [previewMode, selectedOfferCard, selectedOfferCard?.styles, selectedOfferCard?.id]);
+
+  // Helper function to convert hex color to rgba with opacity
+  const getBackgroundColorWithOpacity = (color: string | undefined, opacity: number | undefined): string | undefined => {
+    if (!color) return undefined;
+    if (opacity === undefined || opacity === 1) return color;
+    
+    // If color is already rgba/rgb, extract values
+    if (color.startsWith('rgba') || color.startsWith('rgb')) {
+      const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
+      if (match) {
+        return `rgba(${match[1]}, ${match[2]}, ${match[3]}, ${opacity})`;
+      }
+    }
+    
+    // Convert hex to rgba
+    if (color.startsWith('#')) {
+      const hex = color.replace('#', '');
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    }
+    
+    // If color is a named color or other format, use opacity on the element
+    return color;
+  };
 
   // Early returns AFTER all Hooks
   if (vm.isLoading) {
@@ -448,11 +537,16 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       isLoading: vm.isLoading,
       previewMode
     });
+
     const pageStyle: React.CSSProperties = {
       padding: vm.pageStyles?.padding || undefined,
       gap: vm.pageStyles?.gap || undefined,
       display: vm.pageStyles?.gap ? 'flex' : undefined,
       flexDirection: vm.pageStyles?.gap ? 'column' : undefined,
+      backgroundColor: getBackgroundColorWithOpacity(
+        vm.pageStyles?.backgroundColor,
+        vm.pageStyles?.backgroundOpacity
+      ) || undefined,
     };
 
     console.log('[PageRenderer] Rendering /store page sections:', { 
@@ -496,6 +590,10 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     gap: vm.pageStyles?.gap || undefined,
     display: vm.pageStyles?.gap ? 'flex' : undefined,
     flexDirection: vm.pageStyles?.gap ? 'column' : undefined,
+    backgroundColor: getBackgroundColorWithOpacity(
+      vm.pageStyles?.backgroundColor,
+      vm.pageStyles?.backgroundOpacity
+    ) || undefined,
   };
 
   return (
@@ -507,8 +605,13 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       onMouseEnter={handlePageMouseEnter}
       onMouseLeave={handlePageMouseLeave}
     >
-      {/* Demo section for selected offer card (only in preview mode) */}
-      {previewMode && selectedOfferCard && (
+      {/* Demo section for selected offer card (only when explicitly requested via URL param) */}
+      {(() => {
+        if (typeof window === 'undefined') return false;
+        const params = new URLSearchParams(window.location.search);
+        const showOfferCard = params.get('showOfferCard') === 'true';
+        return previewMode && showOfferCard && selectedOfferCard;
+      })() && selectedOfferCard && (
         <div key="offer-card-demo-section" className="offer-card-demo-section" style={{ padding: '20px', marginBottom: '20px' }}>
           <h2 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: 'bold' }}>
             Offer Card Preview: {selectedOfferCard.name}
