@@ -73,9 +73,9 @@ export function SectionRenderer({ section, theme }: SectionRendererProps): JSX.E
 
   const sectionStyle: React.CSSProperties = {
     display: 'grid',
-    gridTemplateColumns: section.layout.customGrid || getGridTemplate(section.layout.grid),
-    gap: section.layout.gap || '1rem',
-    alignItems: section.layout.align || 'start',
+    gridTemplateColumns: section.layout?.customGrid || getGridTemplate(section.layout?.grid || '1-column'),
+    gap: section.layout?.gap || '1rem',
+    alignItems: section.layout?.align || 'start',
     ...defaultStylesForEmpty,
     ...(section.styles as React.CSSProperties),
   };

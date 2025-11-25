@@ -735,7 +735,7 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
       {/* Component Count */}
       <div className="pt-4 border-t border-gray-200">
         <div className="text-xs text-gray-500">
-          <span className="font-medium">{section.components.length}</span> component(s) in this section
+          <span className="font-medium">{section.components?.length || 0}</span> component(s) in this section
         </div>
       </div>
     </div>

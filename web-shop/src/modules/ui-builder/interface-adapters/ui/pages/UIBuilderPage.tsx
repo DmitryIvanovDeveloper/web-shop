@@ -597,7 +597,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             if (!foundSectionId) {
               for (const section of pageVm.sections) {
                 // Search directly in section.components array
-                const foundComponent = section.components.find(comp => comp.id === elementId);
+                const foundComponent = section.components?.find(comp => comp.id === elementId);
                 if (foundComponent) {
                   foundSectionId = section.id;
                   foundComponentId = foundComponent.id;

@@ -50,6 +50,16 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
       }
 
       const row = data[0] as PageConfigRow;
+      const sections = (row.sections as any[] || []).map((section: any) => ({
+        ...section,
+        components: section.components || [],
+        layout: section.layout || {
+          grid: '1-column',
+          gap: '1rem',
+          align: 'start'
+        }
+      }));
+      
       const pageConfig: PageConfig = {
         id: row.id,
         appId: row.app_id,
@@ -57,7 +67,7 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
         version: row.version,
         isDraft: row.is_draft,
         isActive: row.is_active,
-        sections: row.sections as any[] || [],
+        sections,
         pageStyles: (row.page_styles as { padding?: string; gap?: string; backgroundColor?: string; backgroundOpacity?: number }) || {},
       };
 
@@ -97,6 +107,16 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
       }
 
       const row = data as PageConfigRow;
+      const sections = (row.sections as any[] || []).map((section: any) => ({
+        ...section,
+        components: section.components || [],
+        layout: section.layout || {
+          grid: '1-column',
+          gap: '1rem',
+          align: 'start'
+        }
+      }));
+      
       const pageConfig: PageConfig = {
         id: row.id,
         appId: row.app_id,
@@ -104,7 +124,7 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
         version: row.version,
         isDraft: row.is_draft,
         isActive: row.is_active,
-        sections: row.sections as any[] || [],
+        sections,
         pageStyles: (row.page_styles as { padding?: string; gap?: string; backgroundColor?: string; backgroundOpacity?: number }) || {},
       };
 

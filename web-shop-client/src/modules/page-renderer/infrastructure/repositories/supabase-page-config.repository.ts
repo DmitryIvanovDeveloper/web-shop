@@ -75,7 +75,11 @@ export class SupabasePageConfigRepository implements PageConfigRepositoryPort {
       const sections: PageSection[] = (data.sections || []).map((sectionJson: any) => ({
         id: sectionJson.id,
         type: sectionJson.type,
-        layout: sectionJson.layout,
+        layout: sectionJson.layout || {
+          grid: '1-column',
+          gap: '1rem',
+          align: 'start'
+        },
         styles: sectionJson.styles,
         components: (sectionJson.components || [])
           .map((node: any) => convertToComponentNode(node))

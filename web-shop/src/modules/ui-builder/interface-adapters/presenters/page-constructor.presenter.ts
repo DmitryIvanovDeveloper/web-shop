@@ -344,7 +344,7 @@ export class PageConstructorPresenter {
       ...this.vm,
       sections: this.vm.sections.map(section =>
         section.id === sectionId
-          ? { ...section, components: [...section.components, newComponent] }
+          ? { ...section, components: [...(section.components || []), newComponent] }
           : section
       ),
       selectedComponent: newComponent,
@@ -362,7 +362,7 @@ export class PageConstructorPresenter {
       ...this.vm,
       sections: this.vm.sections.map(section =>
         section.id === sectionId
-          ? { ...section, components: section.components.filter(c => c.id !== componentId) }
+          ? { ...section, components: (section.components || []).filter(c => c.id !== componentId) }
           : section
       ),
       selectedComponent: this.vm.selectedComponent?.id === componentId ? null : this.vm.selectedComponent,
@@ -386,7 +386,7 @@ export class PageConstructorPresenter {
     const section = this.vm.sections.find(s => s.id === sectionId);
     if (!section) return;
 
-    const component = section.components.find(c => c.id === componentId);
+    const component = section.components?.find(c => c.id === componentId);
     if (!component) return;
 
     this.vm = {
@@ -413,7 +413,7 @@ export class PageConstructorPresenter {
         section.id === sectionId
           ? {
               ...section,
-              components: section.components.map(comp =>
+              components: (section.components || []).map(comp =>
                 comp.id === componentId
                   ? { 
                       ...comp, 
@@ -685,8 +685,8 @@ export class PageConstructorPresenter {
     };
 
     // Log component styles for debugging
-    const allComponents = pageConfig.sections.flatMap(s => s.components);
-    const textComponents = allComponents.filter(c => c.type === 'Text');
+    const allComponents = pageConfig.sections.flatMap(section => section.components ?? []);
+    const textComponents = allComponents.filter(component => component?.type === 'Text');
     
     // Log text components styles in detail
     if (textComponents.length > 0) {

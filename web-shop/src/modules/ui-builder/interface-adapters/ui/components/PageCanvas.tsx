@@ -80,19 +80,19 @@ export function PageCanvas({
                   )}
                 </div>
                 <div className="text-xs text-gray-400">
-                  {section.components.length} component(s)
+                  {section.components?.length || 0} component(s)
                 </div>
               </div>
 
               {/* Components Grid */}
-              {section.components.length > 0 ? (
+              {section.components && section.components.length > 0 ? (
                 <div
                   className="gap-4"
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: getGridTemplate(section.layout.grid),
-                    gap: section.layout.gap || '1rem',
-                    alignItems: section.layout.align || 'start',
+                    gridTemplateColumns: getGridTemplate(section.layout?.grid || '1-column'),
+                    gap: section.layout?.gap || '1rem',
+                    alignItems: section.layout?.align || 'start',
                   }}
                 >
                   {section.components.map(component => {
