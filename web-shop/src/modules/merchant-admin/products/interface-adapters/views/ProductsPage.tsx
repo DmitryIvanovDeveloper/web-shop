@@ -97,56 +97,51 @@ export function ProductsPage({ appId }: ProductsPageProps): JSX.Element {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {viewModel.products.map((product) => (
-                  <div
-                    key={product.id}
-                    style={{
-                      padding: '16px',
-                      backgroundColor: 'rgba(30, 41, 59, 0.5)',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontWeight: 600, marginBottom: '4px' }}>{product.title}</div>
-                      <div style={{ fontSize: '14px', color: '#94A3B8' }}>
-                        {product.price !== null ? `$${product.price.toFixed(2)}` : 'No price'}
+                {viewModel.products.map((product) => {
+                  const isSelected = viewModel.selectedProduct?.id === product.id;
+                  return (
+                    <div
+                      key={product.id}
+                      onClick={() => handleEdit(product.id)}
+                      className={`product-card${isSelected ? ' product-card--selected' : ''}`}
+                      style={{
+                        padding: '16px',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 600, marginBottom: '4px' }}>{product.title}</div>
+                        <div style={{ fontSize: '14px', color: '#94A3B8' }}>
+                          {product.price !== null ? `$${product.price.toFixed(2)}` : 'No price'}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void handleDelete(product.id);
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            backgroundColor: '#DC2626',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                          }}
+                        >
+                          {presenter.labels.deleteProduct}
+                        </button>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        onClick={() => handleEdit(product.id)}
-                        style={{
-                          padding: '6px 12px',
-                          backgroundColor: '#3B82F6',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontSize: '14px',
-                        }}
-                      >
-                        {presenter.labels.editProduct}
-                      </button>
-                      <button
-                        onClick={() => handleDelete(product.id)}
-                        style={{
-                          padding: '6px 12px',
-                          backgroundColor: '#DC2626',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontSize: '14px',
-                        }}
-                      >
-                        {presenter.labels.deleteProduct}
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -172,8 +167,16 @@ export function ProductsPage({ appId }: ProductsPageProps): JSX.Element {
               <ProductForm
                 product={viewModel.selectedProduct}
                 labels={presenter.labels}
+                isSaving={viewModel.isSaving}
                 onSave={handleSave}
                 onCancel={handleCancel}
+                onUploadImage={async (file) => {
+                  const result = await presenter.uploadProductImage(file);
+                  if (result.isFailure()) {
+                    throw result.error!;
+                  }
+                  return result.data!;
+                }}
               />
             </div>
           )}
@@ -186,11 +189,13 @@ export function ProductsPage({ appId }: ProductsPageProps): JSX.Element {
 interface ProductFormProps {
   product: ProductFormViewModel;
   labels: ProductsPresenter['labels'];
+  isSaving: boolean;
   onSave: (productData: Omit<ProductFormViewModel, 'id'>) => Promise<void>;
   onCancel: () => void;
+  onUploadImage: (file: File) => Promise<string>;
 }
 
-function ProductForm({ product, labels, onSave, onCancel }: ProductFormProps): JSX.Element {
+function ProductForm({ product, labels, isSaving, onSave, onCancel, onUploadImage }: ProductFormProps): JSX.Element {
   const [formData, setFormData] = useState<Omit<ProductFormViewModel, 'id'>>({
     title: product.title,
     appid: product.appid,
@@ -204,6 +209,50 @@ function ProductForm({ product, labels, onSave, onCancel }: ProductFormProps): J
     rp_bonus: product.rp_bonus,
     lp_bonus: product.lp_bonus,
   });
+
+  const [isMainImageUploading, setIsMainImageUploading] = useState(false);
+
+  // Sync form state when user selects another product while editor is open
+  React.useEffect(() => {
+    setFormData({
+      title: product.title,
+      appid: product.appid,
+      main_image: product.main_image,
+      background_image: product.background_image,
+      rarity: product.rarity,
+      discount: product.discount,
+      player_limit: product.player_limit,
+      expires_at: product.expires_at,
+      price: product.price,
+      rp_bonus: product.rp_bonus,
+      lp_bonus: product.lp_bonus,
+    });
+  }, [product]);
+
+  const handleMainImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    setIsMainImageUploading(true);
+    
+    try {
+      // Use Presenter (follows Clean Architecture: View → Presenter → Use Case → Infrastructure)
+      const url = await onUploadImage(file);
+      
+      // Set the public URL from Supabase Storage
+      setFormData((prev) => ({
+        ...prev,
+        main_image: url,
+      }));
+    } catch (error) {
+      console.error('[ProductForm] Failed to upload image:', error);
+      alert(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsMainImageUploading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -259,37 +308,120 @@ function ProductForm({ product, labels, onSave, onCancel }: ProductFormProps): J
         <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: 500 }}>
           {labels.mainImage}
         </label>
-        <input
-          type="text"
-          value={formData.main_image ?? ''}
-          onChange={(e) => setFormData({ ...formData, main_image: e.target.value || null })}
-          style={{
-            width: '100%',
-            padding: '8px 12px',
-            backgroundColor: 'rgba(30, 41, 59, 0.5)',
-            border: '1px solid rgba(148, 163, 184, 0.2)',
-            borderRadius: '6px',
-            color: '#F8FAFC',
-            fontSize: '14px',
-          }}
-        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <label style={{ display: 'inline-block', cursor: isSaving ? 'default' : 'pointer' }}>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleMainImageFileChange}
+              disabled={isSaving || isMainImageUploading}
+              style={{ display: 'none' }}
+            />
+            <div
+              style={{
+                padding: '8px 12px',
+                borderRadius: '6px',
+                border: '1px solid rgba(148, 163, 184, 0.4)',
+                backgroundColor: isSaving || isMainImageUploading ? 'rgba(30, 41, 59, 0.5)' : 'rgba(30, 41, 59, 0.9)',
+                color: '#E5E7EB',
+                fontSize: '14px',
+                textAlign: 'center',
+                cursor: isSaving || isMainImageUploading ? 'default' : 'pointer',
+              }}
+            >
+              {isMainImageUploading ? 'Uploading image…' : 'Upload main image'}
+            </div>
+          </label>
+
+          {formData.main_image && (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+              }}
+            >
+              <div
+                style={{
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  border: '1px solid rgba(148, 163, 184, 0.4)',
+                }}
+              >
+                <img
+                  src={formData.main_image}
+                  alt="Product main image"
+                  style={{ width: '100%', height: '160px', objectFit: 'cover', display: 'block' }}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, main_image: null }))}
+                disabled={isSaving || isMainImageUploading}
+                style={{
+                  alignSelf: 'flex-start',
+                  padding: '6px 10px',
+                  borderRadius: '999px',
+                  border: '1px solid rgba(239, 68, 68, 0.6)',
+                  backgroundColor: 'rgba(127, 29, 29, 0.3)',
+                  color: '#FCA5A5',
+                  fontSize: '12px',
+                  cursor: isSaving || isMainImageUploading ? 'default' : 'pointer',
+                }}
+              >
+                Remove image
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
         <button
           type="submit"
+          disabled={isSaving}
           style={{
             flex: 1,
             padding: '10px 16px',
-            backgroundColor: '#3B82F6',
-            color: 'white',
+            backgroundColor: isSaving ? 'rgba(59, 130, 246, 0.6)' : '#3B82F6',
+            color: isSaving ? 'rgba(248, 250, 252, 0.8)' : 'white',
             border: 'none',
             borderRadius: '6px',
-            cursor: 'pointer',
+            cursor: isSaving ? 'default' : 'pointer',
             fontWeight: 500,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
           }}
         >
-          {labels.save}
+          {isSaving && (
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              style={{
+                animation: 'spin 1s linear infinite',
+              }}
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+                fill="none"
+                strokeOpacity="0.25"
+              />
+              <path
+                d="M22 12a10 10 0 0 1-10 10"
+                stroke="currentColor"
+                strokeWidth="4"
+                fill="none"
+              />
+            </svg>
+          )}
+          <span>{isSaving ? 'Saving…' : labels.save}</span>
         </button>
         <button
           type="button"

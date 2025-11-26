@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '../../_lib/supabase-server-client';
+import { transformSupabaseImageUrl } from '../../../../src/shared/utils/image-url-transformer';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -53,10 +54,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       return {
         id: product.id,
-        mainImage: product.main_image,
+        mainImage: transformSupabaseImageUrl(product.main_image),
         mainImageAlt: product.main_image_alt,
-        sideImage: product.side_image,
-        backgroundImage: product.background_image,
+        sideImage: transformSupabaseImageUrl(product.side_image),
+        backgroundImage: transformSupabaseImageUrl(product.background_image),
         includedItems,
         discount: product.discount,
         playerLimit: product.player_limit,

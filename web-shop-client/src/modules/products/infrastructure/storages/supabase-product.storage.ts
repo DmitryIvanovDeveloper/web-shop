@@ -6,6 +6,7 @@ import { Price } from '../../domain/value-objects/price.value-object';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
 import type { DatabaseClientPort } from '../../../../application/ports/database-client.port';
+import { transformSupabaseImageUrl } from '../../../../shared/utils/image-url-transformer';
 
 /**
  * Supabase Product Storage Implementation
@@ -134,8 +135,8 @@ export class SupabaseProductStorage implements ProductStoragePort {
     
     return {
       id: ProductId.fromString(dbProduct.id),
-      mainImage: dbProduct.main_image,
-      backgroundImage: dbProduct.background_image,
+      mainImage: transformSupabaseImageUrl(dbProduct.main_image),
+      backgroundImage: transformSupabaseImageUrl(dbProduct.background_image),
       title: dbProduct.title,
       titleStyle: dbProduct.title_style || this._config?.titleStyle || { fontSize: '18px' },
       rarity: dbProduct.rarity,

@@ -5,9 +5,12 @@ import { CreateProductUseCase } from '../../application/use-cases/create-product
 import { UpdateProductUseCase } from '../../application/use-cases/update-product.use-case';
 import { DeleteProductUseCase } from '../../application/use-cases/delete-product.use-case';
 import { LoadProductsUseCase } from '../../application/use-cases/load-products.use-case';
+import { UploadProductImageUseCase } from '../../application/use-cases/upload-product-image.use-case';
 import { ProductsPresenter } from '../../interface-adapters/presenters/products.presenter';
+import { ProductImageApiStorage } from '../storage/product-image-api.storage';
 import type { ProductQueryServicePort } from '../../application/ports/product-query-service.port';
 import type { ProductCommandServicePort } from '../../application/ports/product-command-service.port';
+import type { ProductImageStoragePort } from '../../application/ports/product-image-storage.port';
 
 export function bindMerchantAdminProducts(container: Container): void {
   container.bind(ProductApiRepository).toSelf().inSingletonScope();
@@ -38,6 +41,16 @@ export function bindMerchantAdminProducts(container: Container): void {
   container
     .bind<LoadProductsUseCase>(PRODUCT_TYPES.LoadProductsUseCase)
     .to(LoadProductsUseCase)
+    .inSingletonScope();
+
+  container
+    .bind<ProductImageStoragePort>(PRODUCT_TYPES.ProductImageStorage)
+    .to(ProductImageApiStorage)
+    .inSingletonScope();
+
+  container
+    .bind<UploadProductImageUseCase>(PRODUCT_TYPES.UploadProductImageUseCase)
+    .to(UploadProductImageUseCase)
     .inSingletonScope();
 
   container.bind(ProductsPresenter).toSelf().inSingletonScope();

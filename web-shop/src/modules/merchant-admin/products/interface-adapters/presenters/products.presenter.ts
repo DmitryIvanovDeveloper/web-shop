@@ -17,6 +17,7 @@ import type { CreateProductUseCase } from '../../application/use-cases/create-pr
 import type { UpdateProductUseCase } from '../../application/use-cases/update-product.use-case';
 import type { DeleteProductUseCase } from '../../application/use-cases/delete-product.use-case';
 import type { LoadProductsUseCase } from '../../application/use-cases/load-products.use-case';
+import type { UploadProductImageUseCase } from '../../application/use-cases/upload-product-image.use-case';
 import type { Product } from '../../domain/entities/product.entity';
 
 type ViewModelUpdateCallback = () => void;
@@ -60,6 +61,8 @@ export class ProductsPresenter {
     private readonly deleteProductUseCase: DeleteProductUseCase,
     @inject(PRODUCT_TYPES.LoadProductsUseCase)
     private readonly loadProductsUseCase: LoadProductsUseCase,
+    @inject(PRODUCT_TYPES.UploadProductImageUseCase)
+    private readonly uploadProductImageUseCase: UploadProductImageUseCase,
     @inject(ROOT_TYPES.Logger)
     private readonly logger: Logger
   ) {}
@@ -127,7 +130,7 @@ export class ProductsPresenter {
 
     this.viewModel = {
       ...this.viewModel,
-      isLoading: true,
+      isSaving: true,
       errorMessage: null,
     };
     this.notifySubscribers();
@@ -150,7 +153,7 @@ export class ProductsPresenter {
       this.logger.error('[ProductsPresenter] Failed to create product', { error: result.error });
       this.viewModel = {
         ...this.viewModel,
-        isLoading: false,
+        isSaving: false,
         errorMessage: result.error?.message ?? 'Failed to create product',
       };
       this.notifySubscribers();
@@ -163,6 +166,7 @@ export class ProductsPresenter {
     // Close form
     this.viewModel = {
       ...this.viewModel,
+      isSaving: false,
       selectedProduct: null,
       isCreating: false,
     };
@@ -177,10 +181,15 @@ export class ProductsPresenter {
 
     this.viewModel = {
       ...this.viewModel,
-      isLoading: true,
+      isSaving: true,
       errorMessage: null,
     };
     this.notifySubscribers();
+
+    this.logger.info('[ProductsPresenter] Updating product', {
+      id,
+      main_image: productData.main_image ? (productData.main_image.startsWith('http') ? 'URL' : 'base64/data') : 'null',
+    });
 
     const result = await this.updateProductUseCase.execute({
       id,
@@ -201,19 +210,35 @@ export class ProductsPresenter {
       this.logger.error('[ProductsPresenter] Failed to update product', { error: result.error });
       this.viewModel = {
         ...this.viewModel,
-        isLoading: false,
+        isSaving: false,
         errorMessage: result.error?.message ?? 'Failed to update product',
       };
       this.notifySubscribers();
       return;
     }
 
-    // Reload products to get updated list
-    await this.loadProducts();
+    // Update product in local view model without reloading the whole list
+    if (!result.data) {
+      this.logger.error('[ProductsPresenter] Update succeeded but no data returned');
+      this.viewModel = {
+        ...this.viewModel,
+        isSaving: false,
+        errorMessage: 'Update succeeded but no data returned',
+      };
+      this.notifySubscribers();
+      return;
+    }
 
-    // Close form
+    const updatedProduct = result.data.product;
+    const updatedListItem = mapProductToListItem(updatedProduct);
+
     this.viewModel = {
       ...this.viewModel,
+      isSaving: false,
+      products: this.viewModel.products.map((p) =>
+        p.id === updatedListItem.id ? updatedListItem : p
+      ),
+      errorMessage: null,
       selectedProduct: null,
       isEditing: false,
     };
@@ -256,6 +281,7 @@ export class ProductsPresenter {
   public startCreating(): void {
     this.viewModel = {
       ...this.viewModel,
+      isSaving: false,
       selectedProduct: {
         title: '',
         appid: this.appId,
@@ -278,6 +304,7 @@ export class ProductsPresenter {
   public startEditing(product: ProductListItemViewModel): void {
     this.viewModel = {
       ...this.viewModel,
+      isSaving: false,
       selectedProduct: {
         id: product.id,
         title: product.title,
@@ -301,11 +328,35 @@ export class ProductsPresenter {
   public cancelForm(): void {
     this.viewModel = {
       ...this.viewModel,
+      isSaving: false,
       selectedProduct: null,
       isCreating: false,
       isEditing: false,
     };
     this.notifySubscribers();
+  }
+
+  public async uploadProductImage(file: File): Promise<Result<string, Error>> {
+    this.logger.info('[ProductsPresenter] Starting image upload', {
+      fileName: file.name,
+      fileSize: file.size,
+    });
+
+    const result = await this.uploadProductImageUseCase.execute({ file });
+
+    if (result.isFailure()) {
+      this.logger.error('[ProductsPresenter] Failed to upload image', {
+        error: result.error,
+        fileName: file.name,
+      });
+      return Result.error(result.error!);
+    }
+
+    this.logger.info('[ProductsPresenter] Image uploaded successfully', {
+      url: result.data!.url,
+    });
+
+    return Result.ok(result.data!.url);
   }
 }
 

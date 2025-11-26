@@ -138,12 +138,15 @@ export async function PUT(request: NextRequest) {
 
     const supabase = getSupabaseServerClient();
 
-    // Log main_image size for debugging
+    // Log main_image for debugging
     if (product.main_image) {
-      const imageSize = product.main_image.length;
-      console.log('[PUT /api/products] main_image size:', imageSize, 'bytes');
       if (product.main_image.startsWith('data:')) {
-        console.log('[PUT /api/products] main_image is base64 data URL');
+        const imageSize = product.main_image.length;
+        console.log('[PUT /api/products] main_image is base64 data URL, size:', imageSize, 'bytes');
+      } else if (product.main_image.startsWith('http')) {
+        console.log('[PUT /api/products] main_image is URL:', product.main_image);
+      } else {
+        console.log('[PUT /api/products] main_image value:', product.main_image.substring(0, 100));
       }
     }
 
