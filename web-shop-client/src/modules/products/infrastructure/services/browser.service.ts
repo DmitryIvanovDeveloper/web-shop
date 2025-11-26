@@ -43,17 +43,6 @@ export class BrowserService implements BrowserPort {
   }
 
   /**
-   * Get temporary user ID from localStorage
-   */
-  getTempUserId(): string | null {
-    if (!this.isBrowser()) {
-      return null;
-    }
-
-    return localStorage.getItem('temp_user_id');
-  }
-
-  /**
    * Get application configuration from environment
    */
   getAppConfig(): AppConfig {

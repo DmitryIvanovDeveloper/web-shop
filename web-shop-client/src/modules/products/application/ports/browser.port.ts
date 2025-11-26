@@ -16,11 +16,6 @@ export interface BrowserPort {
   getCurrentUser(): Promise<CurrentUser | null>;
 
   /**
-   * Get temporary user ID
-   */
-  getTempUserId(): string | null;
-
-  /**
    * Get application configuration
    */
   getAppConfig(): AppConfig;

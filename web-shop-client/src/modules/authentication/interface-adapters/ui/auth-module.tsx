@@ -324,7 +324,7 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
                       App ID: {currentUser.appId}
                     </p>
                     <p className="text-xs text-green-400 font-medium">
-                      ✓ Авторизован
+                      ✓ Authorized
                     </p>
                   </div>
                 </div>

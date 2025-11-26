@@ -32,13 +32,16 @@ export class GetPurchasedProductsUseCase {
     this._logger.info('[GetPurchasedProductsUseCase] Getting purchased products', { userId, appId });
 
     try {
+      const start = typeof performance !== 'undefined' ? performance.now() : Date.now();
       const purchasedProductIds = await this._purchaseRepository.getPurchasedProductIds(userId, appId);
+      const end = typeof performance !== 'undefined' ? performance.now() : Date.now();
       
       this._logger.info('[GetPurchasedProductsUseCase] Purchased products retrieved', { 
         userId,
         appId,
         count: purchasedProductIds.length,
-        productIds: purchasedProductIds 
+        productIds: purchasedProductIds,
+        durationMs: Math.round(end - start)
       });
 
       return purchasedProductIds;

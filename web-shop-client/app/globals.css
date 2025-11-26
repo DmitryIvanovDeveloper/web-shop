@@ -10,7 +10,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Принудительно оставляем черный текст даже в dark mode */
+/* Force black text even in dark mode */
     --foreground-rgb: 0, 0, 0;
     --background-start-rgb: 214, 219, 220;
     --background-end-rgb: 255, 255, 255;
@@ -22,7 +22,7 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
-  /* Принудительно черный текст */
+  /* Force black text */
   color: rgb(0, 0, 0) !important;
   /* Background will be set by theme from app_config via JavaScript */
   /* background: rgb(var(--background-end-rgb)); */
@@ -36,11 +36,9 @@ body {
 
 /* Preview hover effect for element selection mode */
 .preview-hover {
-  outline: 2px solid #3b82f6 !important;
-  outline-offset: 2px !important;
   cursor: pointer !important;
   position: relative !important;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+  box-shadow: 0 0 0 2px #3b82f6 !important;
 }
 
 /* Disable interactive elements in element selection mode */
@@ -67,22 +65,17 @@ body[data-selection-mode="true"] a:not([data-element-id]) {
   cursor: default !important;
 }
 
-/* Add outline on hover for elements in selection mode (CSS fallback) */
+/* Add box-shadow on hover for elements in selection mode (CSS fallback) */
 /* Only highlight the element directly hovered, not parent containers */
 body[data-selection-mode="true"] [data-element-id]:hover {
-  outline: 2px solid #3b82f6 !important;
-  outline-offset: 2px !important;
   cursor: pointer !important;
   position: relative !important;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
-  border: 2px solid #3b82f6 !important;
+  box-shadow: 0 0 0 2px #3b82f6 !important;
 }
 
 /* Prevent parent containers from being highlighted when child is hovered */
-/* When a child element is hovered, remove outline from parent */
+/* When a child element is hovered, remove box-shadow from parent */
 body[data-selection-mode="true"] [data-element-id]:hover [data-element-id] {
-  outline: none !important;
-  border: none !important;
   box-shadow: none !important;
 }
 
@@ -99,44 +92,30 @@ body[data-selection-mode="true"] [data-element-id="sidebar-container"]:hover:not
 body[data-selection-mode="true"] [data-element-id="sidebar-container"].preview-hover:not(:has([data-element-id]:hover)),
 body[data-selection-mode="true"] aside[data-element-id="sidebar-container"]:hover:not(:has([data-element-id]:hover)),
 body[data-selection-mode="true"] aside[data-element-id="sidebar-container"].preview-hover:not(:has([data-element-id]:hover)) {
-  outline: 2px solid #3b82f6 !important;
-  outline-offset: 2px !important;
   cursor: pointer !important;
   position: relative !important;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+  box-shadow: 0 0 0 2px #3b82f6 !important;
   z-index: 1 !important;
-  /* Ensure outline is not clipped */
-  overflow: visible !important;
-  /* Also add border as fallback if outline doesn't work */
-  border: 2px solid #3b82f6 !important;
 }
 
-/* Force outline for containers - ensure it's always visible when in selection mode */
+/* Force box-shadow for containers - ensure it's always visible when in selection mode */
 body[data-selection-mode="true"] [data-element-id="sidebar-container"],
 body[data-selection-mode="true"] aside[data-element-id="sidebar-container"] {
-  /* Ensure outline is not clipped by overflow */
-  overflow: visible !important;
-  /* Make sure outline is visible */
-  outline-width: 0 !important; /* Reset to 0, will be set on hover */
-  border: none !important; /* Reset border, will be set on hover */
+  /* Reset box-shadow, will be set on hover */
+  box-shadow: none !important;
 }
 
-/* Force outline on hover for sidebar-container specifically */
+/* Force box-shadow on hover for sidebar-container specifically */
 /* Only if no child element is being hovered */
 body[data-selection-mode="true"] [data-element-id="sidebar-container"]:hover:not(:has([data-element-id]:hover)),
 body[data-selection-mode="true"] aside[data-element-id="sidebar-container"]:hover:not(:has([data-element-id]:hover)) {
-  outline: 2px solid #3b82f6 !important;
-  outline-offset: 2px !important;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
-  overflow: visible !important;
-  /* Add border as fallback */
-  border: 2px solid #3b82f6 !important;
+  box-shadow: 0 0 0 2px #3b82f6 !important;
 }
 
 /* Add pointer cursor for elements in selection mode when hovering */
 /* This will work when element selection mode is active and element has data-element-id */
 [data-element-id] {
-  transition: outline 0.1s ease, box-shadow 0.1s ease, cursor 0.1s ease;
+  transition: box-shadow 0.1s ease, cursor 0.1s ease;
 }
 
 .preview-hover::before {
@@ -168,7 +147,9 @@ body[data-selection-mode="true"] [data-element-id]:hover::before {
 
 /* Add visible border outline for sidebar-container on hover using ::after */
 body[data-selection-mode="true"] [data-element-id="sidebar-container"]:hover::after,
-body[data-selection-mode="true"] aside[data-element-id="sidebar-container"]:hover::after {
+body[data-selection-mode="true"] aside[data-element-id="sidebar-container"]:hover::after,
+/* Also apply a strong outline for any sidebar root container in preview (detected via data-sidebar="true") */
+body[data-selection-mode="true"] aside[data-sidebar="true"][data-element-id].preview-hover::after {
   content: '';
   position: absolute;
   top: -4px;
@@ -179,6 +160,6 @@ body[data-selection-mode="true"] aside[data-element-id="sidebar-container"]:hove
   border-radius: 4px;
   pointer-events: none;
   z-index: 9999 !important;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+  box-shadow: 0 0 0 10px rgba(59, 130, 246, 0.3) !important;
 }
   

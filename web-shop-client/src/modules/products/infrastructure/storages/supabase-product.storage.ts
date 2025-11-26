@@ -50,12 +50,12 @@ export class SupabaseProductStorage implements ProductStoragePort {
 
   public async getAll(): Promise<Product[]> {
     try {
+      const start = typeof performance !== 'undefined' ? performance.now() : Date.now();
       this._logger.info('[SupabaseProductStorage] Loading all products from Supabase');
 
       const { data, error } = await this._databaseClient
         .from('products')
-        .select('*')
-        .order('created_at', { ascending: true });
+        .select('id, main_image, background_image, title, background_image, rarity, discount, player_limit, expires_at, original_price, current_price, rp_bonus, lp_bonus, appid');
 
       if (error) {
         this._logger.error('[SupabaseProductStorage] Failed to load products', { error });
@@ -64,8 +64,11 @@ export class SupabaseProductStorage implements ProductStoragePort {
 
       const products = data?.map((item: any) => this._mapDatabaseToDomain(item)) || [];
       
+      const end = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      const durationMs = end - start;
       this._logger.info('[SupabaseProductStorage] Products loaded successfully', { 
-        count: products.length 
+        count: products.length,
+        durationMs: Math.round(durationMs)
       });
 
       return products;

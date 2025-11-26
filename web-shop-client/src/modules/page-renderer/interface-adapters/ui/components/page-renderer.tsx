@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { SectionRenderer } from './section-renderer';
 import { OfferCard } from '../../../../../shared/components/molecules/offer-card';
 import { ProductsList } from '../../../../products/interface-adapters/ui/components/products-list';
@@ -39,6 +40,7 @@ interface PageRendererProps {
 
 export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = false }: PageRendererProps): JSX.Element {
   console.log('[PageRenderer] Component rendered', { appId, pageSlug, previewMode });
+  const router = useRouter();
   const [vm, setVm] = useState<PageRendererViewModel>({
     sections: [],
     isLoading: true,
@@ -46,10 +48,20 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     selectedOfferCardId: null,
     offerCards: []
   });
+  
+  // Create actionContext with navigate function for button navigation
+  const actionContext = {
+    navigate: (url: string) => {
+      console.log('[PageRenderer] Navigating to:', url);
+      router.push(url);
+    }
+  };
 
   // State for hover effect in element selection mode
   const [isHovered, setIsHovered] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
+  // State for selected element from UI Builder
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
 
   // Listen for element selection mode changes
   useEffect(() => {
@@ -118,6 +130,42 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     };
   }, [appId, pageSlug, previewMode]);
 
+  // Apply selection to element when selectedElementId changes
+  useEffect(() => {
+    // Remove selection from all elements
+    document.querySelectorAll('[data-element-id]').forEach((el) => {
+      const htmlEl = el as HTMLElement;
+      htmlEl.classList.remove('preview-selected');
+      htmlEl.style.removeProperty('box-shadow');
+    });
+    
+    // Apply selection to target element
+    if (selectedElementId) {
+      // Use setTimeout to ensure DOM is ready after page switch
+      const timeoutId = setTimeout(() => {
+        const targetElement = document.querySelector(`[data-element-id="${selectedElementId}"]`) as HTMLElement;
+        if (targetElement) {
+          targetElement.classList.add('preview-selected');
+          targetElement.style.setProperty('box-shadow', '0 0 0 2px #3b82f6', 'important');
+          console.log('[PageRenderer] Applied selection to element:', selectedElementId);
+        } else {
+          console.warn('[PageRenderer] SELECT_ELEMENT: element not found, will retry', { selectedElementId });
+          // Retry after a short delay in case element hasn't rendered yet
+          setTimeout(() => {
+            const retryElement = document.querySelector(`[data-element-id="${selectedElementId}"]`) as HTMLElement;
+            if (retryElement) {
+              retryElement.classList.add('preview-selected');
+              retryElement.style.setProperty('box-shadow', '0 0 0 2px #3b82f6', 'important');
+              console.log('[PageRenderer] Applied selection to element on retry:', selectedElementId);
+            }
+          }, 200);
+        }
+      }, 50);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [selectedElementId, pageSlug]); // Re-apply when pageSlug changes too
+
   // Handle preview updates from UI Builder via postMessage
   useEffect(() => {
     // Also check URL params for previewMode (in case prop is not passed correctly)
@@ -149,6 +197,14 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
 
     const handleMessage = async (event: MessageEvent) => {
       console.log('[PageRenderer] Message received', { type: event.data?.type, origin: event.origin });
+      
+      // Handle SELECT_ELEMENT message from parent (UI Builder)
+      if (event.data.type === 'SELECT_ELEMENT') {
+        const elementId = event.data.payload?.elementId || null;
+        console.log('[PageRenderer] Received SELECT_ELEMENT message', { elementId });
+        setSelectedElementId(elementId);
+        return;
+      }
       
       // Handle CLICK_BUTTON message from parent (UI Builder)
       if (event.data.type === 'CLICK_BUTTON') {
@@ -233,27 +289,45 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
             hasConfig: !!event.data.payload?.config,
             hasOfferCards: !!event.data.payload?.offerCards,
             offerCardsCount: event.data.payload?.offerCards?.length || 0,
-            selectedOfferCardId: event.data.payload?.selectedOfferCardId
+            selectedOfferCardId: event.data.payload?.selectedOfferCardId,
+            topLevelHasSelectionMode: typeof event.data.elementSelectionMode === 'boolean',
+            topLevelSelectionMode: event.data.elementSelectionMode
           });
-          
-          // Load app-config (this will publish AppConfigLoadedEvent)
+
+          // 1. Load app-config (this will publish AppConfigLoadedEvent)
           // PageRendererAppConfigLoadedHandler will extract offerCards from config and update presenter
           if (event.data.payload?.config) {
             await loadAppConfigFromMessageUseCase.execute(event.data.payload.config);
-            
-            // Extract and apply elementSelectionMode from config
+          }
+
+          // 2. Determine elementSelectionMode from either:
+          //    a) config.elementSelectionMode (preferred)
+          //    b) top-level event.data.elementSelectionMode (used by PageConstructorPresenter)
+          //    If neither is provided, KEEP current mode (do not force-disable).
+          let selectionModeValue: boolean | null = null;
+
+          if (event.data.payload?.config) {
             const configPayload = event.data.payload.config as Record<string, unknown>;
-            const selectionModeValue =
-              typeof (configPayload as { elementSelectionMode?: unknown }).elementSelectionMode === 'boolean'
-                ? (configPayload as { elementSelectionMode?: boolean }).elementSelectionMode
-                : Boolean((configPayload as { elementSelectionMode?: unknown }).elementSelectionMode);
-            
-            console.log('[PageRenderer] Setting elementSelectionMode from CONFIG_UPDATE', { 
+            const rawSelectionMode = (configPayload as { elementSelectionMode?: unknown }).elementSelectionMode;
+            if (typeof rawSelectionMode === 'boolean') {
+              selectionModeValue = rawSelectionMode;
+            } else if (rawSelectionMode !== undefined) {
+              selectionModeValue = Boolean(rawSelectionMode);
+            }
+
+            console.log('[PageRenderer] Setting elementSelectionMode from CONFIG_UPDATE', {
               elementSelectionMode: selectionModeValue,
               configHasElementSelectionMode: 'elementSelectionMode' in configPayload
             });
-            
-            // Set elementSelectionMode on document.body and window
+          } else if (typeof event.data.elementSelectionMode === 'boolean') {
+            selectionModeValue = event.data.elementSelectionMode;
+            console.log('[PageRenderer] Setting elementSelectionMode from top-level CONFIG_UPDATE field', {
+              elementSelectionMode: selectionModeValue
+            });
+          }
+
+          if (selectionModeValue !== null) {
+            // Apply elementSelectionMode to document.body and window flags
             if (typeof document !== 'undefined' && document.body) {
               if (selectionModeValue) {
                 document.body.setAttribute('data-selection-mode', 'true');
@@ -261,25 +335,19 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
                 document.body.removeAttribute('data-selection-mode');
               }
             }
-            
+
             if (typeof window !== 'undefined') {
               (window as any).__elementSelectionMode = selectionModeValue;
-              // Dispatch event for components to listen to
-              window.dispatchEvent(new CustomEvent('elementSelectionModeChanged', { detail: { enabled: selectionModeValue } }));
+              window.dispatchEvent(
+                new CustomEvent('elementSelectionModeChanged', { detail: { enabled: selectionModeValue } })
+              );
             }
           } else {
-            // If no config, disable selection mode
-            if (typeof document !== 'undefined' && document.body) {
-              document.body.removeAttribute('data-selection-mode');
-            }
-            if (typeof window !== 'undefined') {
-              (window as any).__elementSelectionMode = false;
-              window.dispatchEvent(new CustomEvent('elementSelectionModeChanged', { detail: { enabled: false } }));
-            }
+            console.log('[PageRenderer] CONFIG_UPDATE without elementSelectionMode - keeping current mode');
           }
-          
-          // Set selected offer card ID in presenter (offerCards are updated via EventBus handler)
-          // Only set if it's explicitly provided and not null (to avoid showing offer-card when editing pages)
+
+          // 3. Set selected offer card ID in presenter (offerCards are updated via EventBus handler)
+          //    Only set if it's explicitly provided and not null (to avoid showing offer-card when editing pages)
           if (event.data.payload?.selectedOfferCardId !== undefined && event.data.payload?.selectedOfferCardId !== null) {
             console.log('[PageRenderer] Setting selected offer card ID', { cardId: event.data.payload.selectedOfferCardId });
             presenter.setSelectedOfferCardId(event.data.payload.selectedOfferCardId);
@@ -478,32 +546,20 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     console.log('[PageRenderer] Mouse enter on page - applying styles:', pageElementId);
     setIsHovered(true);
     
-    // Apply outline styles directly to DOM element for immediate feedback
+    // Apply box-shadow directly to DOM element for immediate feedback (doesn't affect layout)
     if (!target.classList.contains('preview-hover')) {
       target.classList.add('preview-hover');
     }
     target.style.setProperty('cursor', 'pointer', 'important');
-    target.style.setProperty('outline', '2px solid #3b82f6', 'important');
-    target.style.setProperty('outline-offset', '2px', 'important');
-    target.style.setProperty('box-shadow', '0 0 0 2px rgba(59, 130, 246, 0.3)', 'important');
+    // Use box-shadow instead of outline to avoid layout shifts
+    target.style.setProperty('box-shadow', '0 0 0 2px #3b82f6', 'important');
     target.style.setProperty('position', 'relative', 'important');
     
-    // Ensure outline is not clipped - check current overflow first
-    const currentOverflow = window.getComputedStyle(target).overflow;
-    if (currentOverflow === 'hidden' || currentOverflow === 'auto' || currentOverflow === 'scroll') {
-      target.style.setProperty('overflow', 'visible', 'important');
-    }
-    
-    // Also add border as fallback
-    target.style.setProperty('border', '2px solid #3b82f6', 'important');
-    
-    console.log('[PageRenderer] Applied outline styles to page:', {
-      outline: target.style.outline,
-      outlineOffset: target.style.outlineOffset,
-      border: target.style.border,
+    console.log('[PageRenderer] Applied box-shadow styles to page:', {
+      boxShadow: target.style.boxShadow,
       cursor: target.style.cursor,
       hasClass: target.classList.contains('preview-hover'),
-      computedOutline: window.getComputedStyle(target).outline,
+      computedBoxShadow: window.getComputedStyle(target).boxShadow,
       computedCursor: window.getComputedStyle(target).cursor
     });
   };
@@ -520,13 +576,9 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       const target = e.currentTarget as HTMLElement;
       target.classList.remove('preview-hover');
       target.style.removeProperty('cursor');
-      target.style.removeProperty('outline');
-      target.style.removeProperty('outline-offset');
       target.style.removeProperty('box-shadow');
-      target.style.removeProperty('border');
-      target.style.removeProperty('overflow');
       
-      console.log('[PageRenderer] Removed outline styles from page:', pageElementId);
+      console.log('[PageRenderer] Removed box-shadow styles from page:', pageElementId);
     }
   };
 
@@ -547,6 +599,11 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
         vm.pageStyles?.backgroundColor,
         vm.pageStyles?.backgroundOpacity
       ) || undefined,
+      // Add box-shadow for hover in selection mode (doesn't affect layout)
+      ...(isPreviewMode() && elementSelectionMode && isHovered ? {
+        boxShadow: '0 0 0 2px #3b82f6',
+        position: 'relative' as const,
+      } : {}),
     };
 
     console.log('[PageRenderer] Rendering /store page sections:', { 
@@ -571,6 +628,7 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
               key={section.id}
               section={section}
               theme={theme}
+              actionContext={actionContext}
             />
           );
         })}
@@ -594,6 +652,11 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       vm.pageStyles?.backgroundColor,
       vm.pageStyles?.backgroundOpacity
     ) || undefined,
+    // Add box-shadow for hover in selection mode (doesn't affect layout)
+    ...(isPreviewMode() && elementSelectionMode && isHovered ? {
+      boxShadow: '0 0 0 2px #3b82f6',
+      position: 'relative' as const,
+    } : {}),
   };
 
   return (
@@ -637,6 +700,7 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
           key={section.id}
           section={section}
           theme={theme}
+          actionContext={actionContext}
         />
       ))}
     </div>

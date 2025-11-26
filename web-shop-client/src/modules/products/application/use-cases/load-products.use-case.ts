@@ -9,6 +9,8 @@ export interface LoadProductsRequest {
 
 @injectable()
 export class LoadProductsUseCase {
+  private _cachedAllProducts: Product[] | null = null;
+
   constructor(
     @inject(PRODUCTS_TYPES.ProductRepository)
     private readonly productRepository: ProductRepositoryPort
@@ -18,7 +20,18 @@ export class LoadProductsUseCase {
     console.log('[LoadProductsUseCase] Loading products for appId:', request.appId || 'all');
     
     try {
-      const products = await this.productRepository.getAll();
+      let products: Product[];
+
+      if (!this._cachedAllProducts) {
+        console.log('[LoadProductsUseCase] No cache found, loading all products from repository');
+        this._cachedAllProducts = await this.productRepository.getAll();
+      } else {
+        console.log('[LoadProductsUseCase] Using cached products from previous load', {
+          total: this._cachedAllProducts.length
+        });
+      }
+
+      products = this._cachedAllProducts;
       
       // Если appId пустой - вернуть все продукты (пользователь не авторизован)
       if (!request.appId) {

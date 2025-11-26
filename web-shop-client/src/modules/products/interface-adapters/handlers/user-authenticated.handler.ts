@@ -32,19 +32,14 @@ export class ProductsUserAuthenticatedHandler implements IAsyncEventHandler<User
     });
 
     try {
-      // Reload products with user context from event
+      // Reload products with user context from event.
+      // ProductsListPresenter will use cached products and only refresh purchased state.
       await this.productsListPresenter.present({
         userId: event.userId,
         appId: event.appId
       });
       
-      this.logger.info('[ProductsHandler] Products reloaded successfully after auth');
-
-      // Trigger UI reload via browser event
-      // This will cause ProductsList component to re-fetch and re-render
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('productsNeedReload'));
-      }
+      this.logger.info('[ProductsHandler] Products reloaded successfully after auth (using cached products)');
     } catch (error) {
       this.logger.error('[ProductsHandler] Failed to reload products after auth', error);
     }

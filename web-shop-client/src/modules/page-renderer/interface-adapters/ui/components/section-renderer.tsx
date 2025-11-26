@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import type { PageSection } from '../../../domain/entities/page-section';
+import type { ActionContext } from '../../../../../shared/ui/action-context';
 import { DynamicRenderer } from '../../../../app-layout/interface-adapters/ui/components/dynamic-renderer';
 
 interface SectionRendererProps {
   section: PageSection;
   theme: any;
+  actionContext?: ActionContext;
 }
 
 function getGridTemplate(grid: string): string {
@@ -36,7 +38,7 @@ const readSelectionModeFlag = (): boolean => {
   return false;
 };
 
-export function SectionRenderer({ section, theme }: SectionRendererProps): JSX.Element {
+export function SectionRenderer({ section, theme, actionContext }: SectionRendererProps): JSX.Element {
   // State for hover effect in element selection mode
   const [isHovered, setIsHovered] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
@@ -80,12 +82,10 @@ export function SectionRenderer({ section, theme }: SectionRendererProps): JSX.E
     ...(section.styles as React.CSSProperties),
   };
 
-  // Add outline styles for hover in selection mode
+  // Add box-shadow for hover in selection mode (doesn't affect layout)
   const isSelectionModeActive = isPreviewMode() && elementSelectionMode && section.id;
   if (isSelectionModeActive && isHovered) {
-    sectionStyle.outline = '2px solid #3b82f6';
-    sectionStyle.outlineOffset = '2px';
-    sectionStyle.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.3)';
+    sectionStyle.boxShadow = '0 0 0 2px #3b82f6';
     sectionStyle.position = sectionStyle.position || 'relative';
   }
 
@@ -155,21 +155,14 @@ export function SectionRenderer({ section, theme }: SectionRendererProps): JSX.E
       console.log('[SectionRenderer] Mouse enter on section:', section.id, { elementSelectionMode: selectionMode, previewMode, sectionType: section.type });
       setIsHovered(true);
       
-      // Apply outline styles directly to DOM element for immediate feedback
+      // Apply box-shadow directly to DOM element for immediate feedback (doesn't affect layout)
       if (!target.classList.contains('preview-hover')) {
         target.classList.add('preview-hover');
       }
       target.style.setProperty('cursor', 'pointer', 'important');
-      target.style.setProperty('outline', '2px solid #3b82f6', 'important');
-      target.style.setProperty('outline-offset', '2px', 'important');
-      target.style.setProperty('box-shadow', '0 0 0 2px rgba(59, 130, 246, 0.3)', 'important');
+      // Use box-shadow instead of outline to avoid layout shifts
+      target.style.setProperty('box-shadow', '0 0 0 2px #3b82f6', 'important');
       target.style.setProperty('position', 'relative', 'important');
-      
-      // Ensure outline is not clipped
-      target.style.setProperty('overflow', 'visible', 'important');
-      
-      // Also add border as fallback
-      target.style.setProperty('border', '2px solid #3b82f6', 'important');
       
       console.log('[SectionRenderer] Applied outline styles to section:', section.id, {
         outline: target.style.outline,
@@ -189,15 +182,11 @@ export function SectionRenderer({ section, theme }: SectionRendererProps): JSX.E
       console.log('[SectionRenderer] Mouse leave on section:', section.id);
       setIsHovered(false);
       
-      // Remove outline styles from DOM element
+      // Remove box-shadow from DOM element
       const target = e.currentTarget as HTMLElement;
       target.classList.remove('preview-hover');
       target.style.removeProperty('cursor');
-      target.style.removeProperty('outline');
-      target.style.removeProperty('outline-offset');
       target.style.removeProperty('box-shadow');
-      target.style.removeProperty('border');
-      target.style.removeProperty('overflow');
       
       console.log('[SectionRenderer] Removed outline styles from section:', section.id);
     }
@@ -241,6 +230,7 @@ export function SectionRenderer({ section, theme }: SectionRendererProps): JSX.E
             key={component.id}
             node={component}
             theme={theme}
+            actionContext={actionContext}
           />
         );
       })}

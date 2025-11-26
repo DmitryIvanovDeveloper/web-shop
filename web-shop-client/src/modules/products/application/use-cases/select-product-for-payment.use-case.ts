@@ -95,15 +95,13 @@ export class SelectProductForPaymentUseCase {
    * Handle payment in browser environment
    */
   private async _handleBrowserPayment(productSnapshot: any): Promise<void> {
-    // Get user context through Browser Port
-    const currentUser = await this._browser.getCurrentUser();
-    const tempUserId = this._browser.getTempUserId();
+    // Get user context from AuthService and app configuration
+    const currentUser = this._authService.getCurrentUser();
     const appConfig = this._browser.getAppConfig();
 
     // Create user context using Domain Service
     const userContext = ProductPaymentService.createUserContext(
       currentUser,
-      tempUserId,
       appConfig
     );
 

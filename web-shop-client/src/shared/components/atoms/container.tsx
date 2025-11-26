@@ -58,6 +58,7 @@ export function UniversalContainer({
     <aside 
       className={containerClasses} 
       style={containerStyle}
+      data-sidebar={sidebar ? 'true' : undefined}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onClick={onClick}

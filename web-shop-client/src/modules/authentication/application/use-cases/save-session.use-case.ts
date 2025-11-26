@@ -22,19 +22,11 @@ export class SaveSessionUseCase {
   ) {}
 
   public async execute(user: AppUser): Promise<Result<void, AuthenticationError>> {
-    this._logger.info('[SaveSessionUseCase] Attempting to save session', { userId: user.userId });
-
-    try {
-      await this._sessionStorage.saveUser(user);
-      this._logger.info('[SaveSessionUseCase] Session saved successfully', { userId: user.userId });
-      return Result.ok(undefined);
-    } catch (error) {
-      this._logger.error('[SaveSessionUseCase] Failed to save session', { error });
-      return Result.error(
-        new AuthenticationError(
-          error instanceof Error ? error.message : 'Failed to save session'
-        )
-      );
-    }
+    // Session persistence to localStorage is disabled by design for now.
+    // We keep this use case to satisfy dependencies but skip actual storage operations.
+    this._logger.info('[SaveSessionUseCase] Skipping session save (localStorage disabled)', {
+      userId: user.userId
+    });
+    return Result.ok(undefined);
   }
 }

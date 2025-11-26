@@ -7,6 +7,7 @@ import { PRODUCTS_TYPES } from '../../infrastructure/bootstrap/types';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
 import { ProductStyleService } from '../../infrastructure/services/product-style.service';
+import type { Product } from '../../domain/types';
 
 @injectable()
 export class ProductsListPresenter {
@@ -17,6 +18,7 @@ export class ProductsListPresenter {
   };
   
   private _onViewModelChanged?: () => void;
+  private _cachedProducts: Product[] | null = null;
 
   constructor(
     @inject(PRODUCTS_TYPES.LoadProductsUseCase)
@@ -83,18 +85,11 @@ export class ProductsListPresenter {
   }
 
   async present(options?: { userId?: string; appId?: string }): Promise<ProductsListViewModel> {
+    const totalStart = typeof performance !== 'undefined' ? performance.now() : Date.now();
     this._logger.info('[ProductsListPresenter] Presenting products list...', { options });
     
     try {
-      // 1. Reset products list (show loading state)
-      this._logger.info('[ProductsListPresenter] Resetting products list');
-      this.updateViewModel({
-        status: 'loading',
-        products: [],
-        message: 'Loading products...'
-      });
-      
-      // 2. Get current user context from options (passed from event)
+      // 1. Get current user context from options (passed from event)
       const userId = options?.userId || '';
       const appId = options?.appId || '';
       
@@ -103,24 +98,53 @@ export class ProductsListPresenter {
         appId: appId || 'all-products'
       });
       
-      // 3. Load products from Supabase filtered by appId
-      const products = await this.loadProductsUseCase.execute({ appId });
-      this._logger.info('[ProductsListPresenter] Products loaded from Supabase', { count: products.length, appId });
+      // 2. Load products once and cache them (all products without limit)
+      let products: Product[];
+      if (!this._cachedProducts) {
+        const productsStart = typeof performance !== 'undefined' ? performance.now() : Date.now();
+        this._logger.info('[ProductsListPresenter] No cached products, loading from use case...');
+        // Reset products list (show loading state only on first load)
+        this.updateViewModel({
+          status: 'loading',
+          products: [],
+          message: 'Loading products...'
+        });
+        products = await this.loadProductsUseCase.execute({ appId });
+        const productsEnd = typeof performance !== 'undefined' ? performance.now() : Date.now();
+        this._cachedProducts = products;
+        this._logger.info('[ProductsListPresenter] Products loaded from Supabase and cached', { 
+          count: products.length, 
+          appId,
+          durationMs: Math.round(productsEnd - productsStart)
+        });
+      } else {
+        this._logger.info('[ProductsListPresenter] Using cached products, skipping Supabase load', {
+          count: this._cachedProducts.length
+        });
+        products = this._cachedProducts;
+      }
       
-      // 4. Load purchased product IDs (returns empty array if no userId)
+      // 3. Load purchased product IDs (returns empty array if no userId)
+      const purchasedStart = typeof performance !== 'undefined' ? performance.now() : Date.now();
       const purchasedIds = await this.getPurchasedProductsUseCase.execute(userId, appId);
+      const purchasedEnd = typeof performance !== 'undefined' ? performance.now() : Date.now();
       this._logger.info('[ProductsListPresenter] Purchase check completed', { 
         userId: userId || 'not-authorized', 
         appId,
         count: purchasedIds.length,
-        purchasedIds 
+        purchasedIds,
+        durationMs: Math.round(purchasedEnd - purchasedStart)
       });
       
-      // 5. Load button style (app-config overrides JSON)
+      // 4. Load button style (app-config overrides JSON)
+      const styleStart = typeof performance !== 'undefined' ? performance.now() : Date.now();
       const buttonStyle = await this.productStyleService.getButtonStyle();
-      this._logger.info('[ProductsListPresenter] Button style loaded');
+      const styleEnd = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      this._logger.info('[ProductsListPresenter] Button style loaded', {
+        durationMs: Math.round(styleEnd - styleStart)
+      });
       
-      // 6. Enrich products with isPurchased and buyButton
+      // 5. Enrich products with isPurchased and buyButton
       const enrichedProducts = products.map(product => {
         const isPurchased = purchasedIds.includes(product.id.value);
         this._logger.info('[ProductsListPresenter] Product purchase check', {
@@ -155,6 +179,10 @@ export class ProductsListPresenter {
       };
       
       this.updateViewModel(successViewModel);
+      const totalEnd = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      this._logger.info('[ProductsListPresenter] Present pipeline completed', {
+        totalDurationMs: Math.round(totalEnd - totalStart)
+      });
       return successViewModel;
     } catch (error) {
       this._logger.error('[ProductsListPresenter] Failed to present products list', { 

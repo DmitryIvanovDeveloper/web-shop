@@ -112,14 +112,12 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     });
   }
   
-  // Add outline styles for hover in selection mode
+  // Add box-shadow for hover in selection mode (doesn't affect layout)
   const isSelectionModeActive = isPreviewMode() && elementSelectionMode && node.id;
   if (isSelectionModeActive && isHovered) {
     style = {
       ...style,
-      outline: '2px solid #3b82f6',
-      outlineOffset: '2px',
-      boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.3)',
+      boxShadow: '0 0 0 2px #3b82f6',
       position: style.position || 'relative',
     };
   }
@@ -250,20 +248,15 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
       
       console.log('[DynamicRenderer] Mouse enter on element:', node.id, { elementSelectionMode, previewMode: isPreviewMode(), nodeType: node.type });
       setIsHovered(true);
-      // Apply outline styles directly to DOM element for immediate feedback
+      // Apply box-shadow directly to DOM element for immediate feedback (doesn't affect layout)
       if (!target.classList.contains('preview-hover')) {
         target.classList.add('preview-hover');
       }
       // Use setProperty with important flag to ensure styles are applied
       target.style.setProperty('cursor', 'pointer', 'important');
-      target.style.setProperty('outline', '2px solid #3b82f6', 'important');
-      target.style.setProperty('outline-offset', '2px', 'important');
-      target.style.setProperty('box-shadow', '0 0 0 2px rgba(59, 130, 246, 0.3)', 'important');
+      // Use box-shadow instead of outline to avoid layout shifts
+      target.style.setProperty('box-shadow', '0 0 0 2px #3b82f6', 'important');
       target.style.setProperty('position', 'relative', 'important');
-      // Ensure outline is not clipped
-      target.style.setProperty('overflow', 'visible', 'important');
-      // Also add border as fallback
-      target.style.setProperty('border', '2px solid #3b82f6', 'important');
       console.log('[DynamicRenderer] Applied outline styles to:', node.id, {
         outline: target.style.outline,
         outlineOffset: target.style.outlineOffset,
@@ -278,15 +271,11 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     if (isPreviewMode() && elementSelectionMode && node.id) {
       console.log('[DynamicRenderer] Mouse leave on element:', node.id);
       setIsHovered(false);
-      // Remove outline styles from DOM element
+      // Remove box-shadow from DOM element
       const target = e.currentTarget as HTMLElement;
       target.classList.remove('preview-hover');
       target.style.removeProperty('cursor');
-      target.style.removeProperty('outline');
-      target.style.removeProperty('outline-offset');
       target.style.removeProperty('box-shadow');
-      target.style.removeProperty('overflow');
-      target.style.removeProperty('border');
       // Don't stop propagation - allow hover to work on other elements
     }
   };

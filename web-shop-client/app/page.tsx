@@ -14,6 +14,7 @@ import { LoadAppConfigFromMessageUseCase } from '../src/application/use-cases/lo
 import { LoadAppConfigUseCase } from '../src/application/use-cases/load-app-config.use-case';
 import { TYPES } from '../src/infrastructure/bootstrap/types';
 import { OfferCard } from '../src/shared/components/molecules/offer-card';
+import type { AppConfig } from '../src/shared/config/app-config.types';
 
 export default function HomePage(): JSX.Element {
   const router = useRouter();
@@ -133,13 +134,13 @@ export default function HomePage(): JSX.Element {
 
           // Load app-config (this will publish AppConfigLoadedEvent)
           if (event.data.payload?.config) {
-            const configPayload = event.data.payload.config as Record<string, unknown>;
+            const configPayload = event.data.payload.config as AppConfig;
             await loadAppConfigFromMessageUseCase.execute(configPayload);
             const selectionModeValue =
-              typeof (configPayload as { elementSelectionMode?: unknown }).elementSelectionMode === 'boolean'
-                ? (configPayload as { elementSelectionMode?: boolean }).elementSelectionMode
-                : Boolean((configPayload as { elementSelectionMode?: unknown }).elementSelectionMode);
-            applyElementSelectionMode(selectionModeValue);
+              typeof (configPayload as any).elementSelectionMode === 'boolean'
+                ? (configPayload as any).elementSelectionMode
+                : Boolean((configPayload as any).elementSelectionMode);
+            applyElementSelectionMode(Boolean(selectionModeValue));
           } else {
             applyElementSelectionMode(false);
           }

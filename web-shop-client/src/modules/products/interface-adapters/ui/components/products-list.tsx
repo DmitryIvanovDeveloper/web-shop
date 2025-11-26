@@ -82,36 +82,6 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
 
     loadProducts();
     
-    // Listen for URL changes (e.g., appId parameter changes)
-    const handlePopState = () => {
-      const appId = getAppId();
-      if (!appId) {
-        console.log('[ProductsList] URL changed but no appId, skipping reload');
-        return;
-      }
-      console.log('[ProductsList] URL changed, reloading products with appId:', appId);
-      loadProducts();
-    };
-    
-    // Слушать событие от ProductsUserAuthenticatedHandler
-    // Handler уже вызвал presenter.present() с данными из события
-    // Presenter обновит ViewModel и уведомит UI через callback
-    const handleAuthReload = () => {
-      console.log('[ProductsList] Auth changed, reloading products');
-      const appId = getAppId();
-      if (!appId) {
-        console.log('[ProductsList] Auth changed but no appId, skipping reload');
-        return;
-      }
-      const currentUser = authService.getCurrentUser();
-      presenter.present({ 
-        appId,
-        userId: currentUser?.userId || undefined
-      }).catch((error) => {
-        console.error('[ProductsList] Failed to reload products after auth:', error);
-      });
-    };
-
     // Listen for auth state changes (e.g., session restored from localStorage)
     const handleAuthStateChanged = () => {
       console.log('[ProductsList] Auth state changed (e.g., session restored), reloading products');
@@ -133,15 +103,12 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
     };
     
     if (typeof window !== 'undefined') {
-      window.addEventListener('productsNeedReload', handleAuthReload);
-      window.addEventListener('popstate', handlePopState);
+      // We rely on presenter caching products; authStateChanged will refresh only purchased state.
       window.addEventListener('authStateChanged', handleAuthStateChanged);
     }
     
     return () => {
       if (typeof window !== 'undefined') {
-        window.removeEventListener('productsNeedReload', handleAuthReload);
-        window.removeEventListener('popstate', handlePopState);
         window.removeEventListener('authStateChanged', handleAuthStateChanged);
       }
     };

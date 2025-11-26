@@ -62,7 +62,6 @@ export class ProductPaymentService {
    */
   static createUserContext(
     currentUser: CurrentUser | null,
-    tempUserId: string | null,
     appConfig: AppConfig
   ): UserPaymentContext {
     if (currentUser) {
@@ -72,17 +71,12 @@ export class ProductPaymentService {
         isAuthenticated: true
       };
     }
-
-    if (tempUserId) {
-      return {
-        userId: tempUserId,
-        appId: appConfig.appId,
-        isAuthenticated: false
-      };
-    }
-
+    
+    // In the current business rules we do not support anonymous purchases.
+    // If this method is called without an authenticated user, we still
+    // return a context, but upstream use cases must block the flow earlier.
     return {
-      userId: 'anonymous',
+      userId: '',
       appId: appConfig.appId,
       isAuthenticated: false
     };

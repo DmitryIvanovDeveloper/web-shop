@@ -253,16 +253,12 @@ export class UIRendererService implements UIRendererPort {
 				if (!target.classList.contains('preview-hover')) {
 					target.classList.add('preview-hover');
 				}
-				// Ensure cursor is pointer and outline is visible (inline styles as fallback)
+				// Ensure cursor is pointer and box-shadow is visible (doesn't affect layout)
 				// Use setProperty with !important to override any conflicting styles
 				target.style.setProperty('cursor', 'pointer', 'important');
-				target.style.setProperty('outline', '2px solid #3b82f6', 'important');
-				target.style.setProperty('outline-offset', '2px', 'important');
-				target.style.setProperty('box-shadow', '0 0 0 2px rgba(59, 130, 246, 0.3)', 'important');
+				// Use box-shadow instead of outline to avoid layout shifts
+				target.style.setProperty('box-shadow', '0 0 0 2px #3b82f6', 'important');
 				target.style.setProperty('position', 'relative', 'important');
-				target.style.setProperty('overflow', 'visible', 'important');
-				// Also add border as fallback
-				target.style.setProperty('border', '2px solid #3b82f6', 'important');
 				this._logger.info(`[UIRendererService] Applied outline styles to: ${node.id}`);
 				// Don't stop propagation - allow hover to work on other elements
 			}
@@ -272,10 +268,8 @@ export class UIRendererService implements UIRendererPort {
 			if (this._isPreviewMode() && this._isElementSelectionMode() && node.id) {
 				const target = e.currentTarget;
 				target.classList.remove('preview-hover');
-				// Reset inline styles (CSS will handle it via :hover)
+				// Reset inline styles
 				target.style.removeProperty('cursor');
-				target.style.removeProperty('outline');
-				target.style.removeProperty('outline-offset');
 				target.style.removeProperty('box-shadow');
 				target.style.removeProperty('overflow');
 				target.style.removeProperty('border');
