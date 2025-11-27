@@ -12,6 +12,12 @@ export class ConsoleLogger implements Logger {
   }
 
   error(message: string, error?: Error | any): void {
+    // In browser, use console.warn to avoid Next.js DevOverlay "Console Error" popups on expected failures
+    if (typeof window !== 'undefined') {
+      console.warn(`[ERROR] ${message}`, error || '');
+      return;
+    }
+
     console.error(`[ERROR] ${message}`, error || '');
   }
 

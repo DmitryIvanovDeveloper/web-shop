@@ -8,8 +8,7 @@ export interface ProductApiDto {
   discount?: string | null;
   playerLimit?: string | null;
   timer?: string;
-  originalPrice?: number;
-  currentPrice?: number;
+  price?: number;
   rpBonus?: number;
   lpBonus?: number;
   appid: string;

@@ -443,6 +443,22 @@ export function OfferCard({
   
   const originalPriceParsed = parsePrice(originalPrice);
   const currentPriceParsed = parsePrice(currentPrice);
+
+  const resolveBuyButtonLabel = (): string => {
+    if (buyButton?.text && buyButton.text.trim().length > 0) {
+      return buyButton.text;
+    }
+
+    if (currentPriceParsed.value) {
+      return `${currentPriceParsed.value} ${currentPriceParsed.symbol || '$'}`.trim();
+    }
+
+    if (originalPriceParsed.value) {
+      return `${originalPriceParsed.value} ${originalPriceParsed.symbol || '$'}`.trim();
+    }
+
+    return 'BUY NOW';
+  };
   
   return (
     <div

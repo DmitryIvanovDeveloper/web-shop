@@ -6,18 +6,31 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const searchParams = request.nextUrl.searchParams;
     const appId = searchParams.get('appId');
+    const id = searchParams.get('id');
 
     const supabase = getSupabaseServerClient();
 
-    const query = supabase.from('products').select('*');
+    let query = supabase.from('products').select('*');
 
-    const { data, error } = appId ? await query.eq('appid', appId) : await query;
+    if (appId) {
+      query = query.eq('appid', appId);
+    }
+
+    if (id) {
+      query = query.eq('id', id);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       // Server-side log only
       // eslint-disable-next-line no-console
       console.error('[GET /api/products] Supabase error', error);
       return NextResponse.json({ error: 'Failed to load products' }, { status: 500 });
+    }
+
+    if (id && (!data || data.length === 0)) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
     const products =
@@ -30,6 +43,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         } else if (typeof expiresAt === 'string') {
           timer = expiresAt;
         }
+
+        const priceRaw = item.price as number | null | undefined;
+        const price = priceRaw ?? undefined;
 
         return {
           id: String(item.id ?? ''),
@@ -49,8 +65,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
               ? String(item.player_limit)
               : undefined,
           timer,
-          originalPrice: (item.original_price as number | null) ?? undefined,
-          currentPrice: (item.current_price as number | null) ?? undefined,
+          price,
           rpBonus: (item.rp_bonus as number | null) ?? undefined,
           lpBonus: (item.lp_bonus as number | null) ?? undefined,
           appid: (item.appid as string) ?? '',

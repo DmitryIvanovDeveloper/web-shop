@@ -32,9 +32,20 @@ export class LoadProductsUseCase {
         this._logger.info('[LoadProductsUseCase] No cache found, loading all products from repository');
         this._cachedAllProducts = await this._productRepository.getAll();
       } else {
-        this._logger.info('[LoadProductsUseCase] Using cached products from previous load', {
-          total: this._cachedAllProducts.length,
-        });
+        const hasProductsWithoutPrice = this._cachedAllProducts.some(
+          (product) => !product.currentPrice && !product.originalPrice
+        );
+
+        if (hasProductsWithoutPrice) {
+          this._logger.warn(
+            '[LoadProductsUseCase] Cached products missing price information, reloading from repository'
+          );
+          this._cachedAllProducts = await this._productRepository.getAll();
+        } else {
+          this._logger.info('[LoadProductsUseCase] Using cached products from previous load', {
+            total: this._cachedAllProducts.length,
+          });
+        }
       }
 
       products = this._cachedAllProducts;

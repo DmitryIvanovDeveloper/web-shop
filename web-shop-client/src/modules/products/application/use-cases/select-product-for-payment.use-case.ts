@@ -86,9 +86,18 @@ export class SelectProductForPaymentUseCase {
         await this._handleServerPayment(request.productId, productSnapshot);
       }
     } catch (error) {
+      if (error instanceof UnauthenticatedUserError) {
+        // Authentication is handled via AuthenticationRequiredEvent; do not break UI flow.
+        this._logger.warn('[SelectProductForPaymentUseCase] Payment blocked for unauthenticated user', {
+          productId: request.productId,
+          error: error.message,
+        });
+        return;
+      }
+
       this._logger.error('[SelectProductForPaymentUseCase] Failed to process payment', {
         error: error instanceof Error ? error.message : 'Unknown error',
-        productId: request.productId
+        productId: request.productId,
       });
       throw error;
     }

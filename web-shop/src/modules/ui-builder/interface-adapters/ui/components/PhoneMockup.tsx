@@ -49,6 +49,49 @@ const deviceSpecs: Record<DeviceType, DeviceSpec> = {
   },
 };
 
+interface StatusBarProps {
+  readonly device: DeviceType;
+  readonly orientation: Orientation;
+  readonly screenWidth: number;
+  readonly screenHeight: number;
+}
+
+const StatusBar: React.FC<StatusBarProps> = ({
+  device,
+  orientation,
+  screenWidth,
+  screenHeight,
+}: StatusBarProps) => {
+  const isLandscape = orientation === 'landscape';
+
+  // Simple height model: iPad ниже, iPhone выше, в landscape почти нет высоты
+  const baseHeight = device === 'ipad' ? 24 : 44;
+  const height = isLandscape ? 0 : baseHeight;
+
+  if (height <= 0) {
+    return null;
+  }
+
+  return (
+    <div
+      className="absolute top-0 left-0 z-10 flex items-center justify-between px-4 text-[10px] text-white"
+      style={{
+        width: `${screenWidth}px`,
+        height: `${height}px`,
+        background:
+          'linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.3) 100%)',
+      }}
+    >
+      <span>9:41</span>
+      <span className="flex gap-1 items-center">
+        <span>📶</span>
+        <span>Wi-Fi</span>
+        <span>🔋</span>
+      </span>
+    </div>
+  );
+};
+
 interface PhoneMockupProps {
   iframeSrc: string;
   device: DeviceType;
@@ -169,7 +212,7 @@ export function PhoneMockup({
               <StatusBar device={device} orientation={orientation} screenWidth={screenWidth} screenHeight={screenHeight} />
             )}
 
-            {/* Iframe positioned below status bar */}
+            {/* Iframe positioned below status bar area */}
             {(() => {
               const hasStatusBar = device === 'iphone-15-pro' || device === 'iphone-14-pro' || device === 'iphone-se' || device === 'ipad';
               const statusBarHeight = hasStatusBar 

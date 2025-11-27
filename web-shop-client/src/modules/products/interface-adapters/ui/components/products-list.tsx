@@ -178,8 +178,6 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
             title={product.title}
             titleStyle={product.titleStyle}
             rarity={product.rarity}
-            originalPrice={product.originalPrice?.format()}
-            currentPrice={product.currentPrice?.format()}
             rpBonus={product.rpBonus}
             lpBonus={product.lpBonus}
             isPurchased={product.isPurchased}

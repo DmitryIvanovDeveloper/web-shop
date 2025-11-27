@@ -76,15 +76,8 @@ export class ProductRepository implements ProductRepositoryPort {
   }
 
   private _mapToDomain(dto: ProductApiDto): Product {
-    const originalPrice =
-      dto.originalPrice !== undefined && dto.originalPrice !== null
-        ? new Price(dto.originalPrice)
-        : undefined;
-
-    const currentPrice =
-      dto.currentPrice !== undefined && dto.currentPrice !== null
-        ? new Price(dto.currentPrice)
-        : undefined;
+    const priceValue = dto.price !== undefined && dto.price !== null ? dto.price : undefined;
+    const price = priceValue !== undefined ? new Price(priceValue) : undefined;
 
     return {
       id: ProductId.fromString(dto.id),
@@ -96,8 +89,9 @@ export class ProductRepository implements ProductRepositoryPort {
       discount: dto.discount ?? undefined,
       playerLimit: dto.playerLimit ?? undefined,
       timer: dto.timer ? new Date(dto.timer) : undefined,
-      originalPrice,
-      currentPrice,
+      // For backward compatibility in domain/UI, use the same price for both fields.
+      originalPrice: price,
+      currentPrice: price,
       rpBonus: dto.rpBonus ?? undefined,
       lpBonus: dto.lpBonus ?? undefined,
       appid: dto.appid,

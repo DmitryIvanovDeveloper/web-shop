@@ -52,6 +52,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         }
       }
 
+      const price = typeof product.price === 'number' ? product.price : null;
+
       return {
         id: product.id,
         mainImage: transformSupabaseImageUrl(product.main_image),
@@ -64,12 +66,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         timer,
         title: product.title,
         rarity: product.rarity,
-        originalPrice: product.price ? String(product.price) : undefined,
-        currentPrice: product.price ? String(product.price) : undefined,
+        originalPrice: price !== null ? String(price) : undefined,
+        currentPrice: price !== null ? String(price) : undefined,
         rpBonus: product.rp_bonus,
         lpBonus: product.lp_bonus,
         buyButton: {
-          text: 'Buy',
+          text: price !== null ? `${price.toFixed(2)} $` : 'BUY NOW',
           enabled: true,
           style: {
             backgroundColor: 'rgb(255, 215, 0)',
