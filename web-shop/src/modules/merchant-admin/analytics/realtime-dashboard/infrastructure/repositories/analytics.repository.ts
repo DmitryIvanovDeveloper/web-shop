@@ -214,4 +214,3 @@ export class AnalyticsRepository implements AnalyticsRepositoryPort {
     return TransactionsSummary.fromApiResponse(data);
   }
 }
-

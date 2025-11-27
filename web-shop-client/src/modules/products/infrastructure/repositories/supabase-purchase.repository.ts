@@ -40,7 +40,11 @@ export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
         throw new Error(`Failed to load purchased products: ${error.message}`);
       }
 
-      const productIds = data?.map((item: any) => item.product_id).filter(Boolean) || [];
+      const productIds =
+        data
+          ?.map((item: { product_id: string | null }) => item.product_id)
+          .filter((productId: string | null): productId is string => typeof productId === 'string' && productId.length > 0) ||
+        [];
       
       this._logger.info('[SupabasePurchaseRepository] Purchased products loaded', { 
         userId,

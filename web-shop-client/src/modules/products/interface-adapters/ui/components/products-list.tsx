@@ -30,7 +30,6 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
     // 1. First try to get from authenticated user session
     const currentUser = authService.getCurrentUser();
     if (currentUser?.appId) {
-      console.log('[ProductsList] Using appId from user session:', currentUser.appId);
       return currentUser.appId;
     }
 
@@ -39,7 +38,6 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
       const searchParams = new URLSearchParams(window.location.search);
       const appIdFromQuery = searchParams.get('appId');
       if (appIdFromQuery) {
-        console.log('[ProductsList] Using appId from query params:', appIdFromQuery);
         return appIdFromQuery;
       }
     }
@@ -47,18 +45,14 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
     // 3. Fallback to environment default (for direct /store access without query)
     const envAppId = process.env.NEXT_PUBLIC_APP_ID || null;
     if (envAppId) {
-      console.log('[ProductsList] Using appId from environment:', envAppId);
       return envAppId;
     }
-
-    console.log('[ProductsList] No appId found in session, query, or environment');
     return null;
   };
 
   useEffect(() => {
     // Subscribe to presenter updates
     presenter.setOnViewModelChanged(() => {
-      console.log('[ProductsList] ViewModel changed, updating UI');
       forceUpdate({});
     });
 
@@ -71,12 +65,8 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
         
         const appId = getAppId();
         if (!appId) {
-          console.log('[ProductsList] No appId available, skipping product load (will wait for authStateChanged event)');
-          // Don't load products if no appId (prevents showing all products)
-          // Products will be loaded when authStateChanged event fires after session restoration
           return;
         }
-        console.log('[ProductsList] Loading products with appId:', appId);
         const currentUser = authService.getCurrentUser();
         await presenter.present({ 
           appId,
@@ -90,22 +80,21 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
     loadProducts();
     
     // Listen for auth state changes (e.g., session restored from localStorage)
-    const handleAuthStateChanged = () => {
-      console.log('[ProductsList] Auth state changed (e.g., session restored), reloading products');
-      // Small delay to ensure AuthPresenter has updated its state
+    const handleAuthStateChanged = (): void => {
       setTimeout(() => {
         const appId = getAppId();
         if (!appId) {
-          console.log('[ProductsList] Auth state changed but no appId, skipping reload');
           return;
         }
         const currentUser = authService.getCurrentUser();
-        presenter.present({ 
-          appId,
-          userId: currentUser?.userId || undefined
-        }).catch((error) => {
-          console.error('[ProductsList] Failed to reload products after auth state change:', error);
-        });
+        presenter
+          .present({
+            appId,
+            userId: currentUser?.userId || undefined,
+          })
+          .catch(() => {
+            // Presenter already logs failures
+          });
       }, 100);
     };
     
@@ -123,23 +112,16 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
 
   const viewModel = presenter.getViewModel();
 
-  const handleBuyProduct = async (product: Product) => {
+  const handleBuyProduct = async (product: Product): Promise<void> => {
     const productId = product.id.value;
     
     try {
-      console.log('[ProductsList] Buy product clicked:', productId);
-      
       // Set loading state for this product
       setLoadingProducts(prev => new Set(prev).add(productId));
       
       // Pass only product ID to presenter (convert ProductId to string)
       await presenter.onBuyProduct(productId);
-      
-      console.log('[ProductsList] Product buy handled successfully:', productId);
-      // Loading state will be cleared after redirect (component unmounts)
-    } catch (error) {
-      console.error('[ProductsList] Failed to handle buy product:', error);
-      
+    } catch {
       // Clear loading state on error
       setLoadingProducts(prev => {
         const next = new Set(prev);
@@ -150,7 +132,6 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
   };
 
   if (viewModel.status === 'loading') {
-    console.log('[ProductsList] Rendering loading state with skeletons');
     return (
       <div className={className} style={style}>
         <h2 className="text-white text-xl font-bold mb-4">Products</h2>
@@ -167,7 +148,6 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
   }
 
   if (viewModel.status === 'error') {
-    console.log('[ProductsList] Rendering error state:', viewModel.message);
     return (
       <div className={className} style={style}>
         <h2 className="text-white text-xl font-bold mb-4">Products</h2>
@@ -177,15 +157,10 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
   }
 
   if (viewModel.products.length === 0) {
-    console.log('[ProductsList] No products to render, returning null');
     return null;
   }
 
-  console.log('[ProductsList] Products data:', viewModel.products);
-  console.log('[ProductsList] First product:', viewModel.products[0]);
-
-      console.log('[ProductsList] Rendering products:', viewModel.products);
-      return (
+  return (
         <div className={`${className || ''} mt-8`} style={style}>
           <h2 className="text-white text-xl font-bold mb-4">Products</h2>
           <Grid>

@@ -706,4 +706,3 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     </div>
   );
 }
-

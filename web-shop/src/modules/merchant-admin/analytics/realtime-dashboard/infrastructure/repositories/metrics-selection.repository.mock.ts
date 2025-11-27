@@ -63,4 +63,3 @@ export class MetricsSelectionRepositoryMock {
 
 // Singleton instance
 export const metricsSelectionRepository = new MetricsSelectionRepositoryMock();
-

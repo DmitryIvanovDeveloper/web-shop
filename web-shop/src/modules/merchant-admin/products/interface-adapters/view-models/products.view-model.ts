@@ -90,4 +90,3 @@ export const mapProductToForm = (product: Product | null): ProductFormViewModel 
     lp_bonus: product.lp_bonus,
   };
 };
-

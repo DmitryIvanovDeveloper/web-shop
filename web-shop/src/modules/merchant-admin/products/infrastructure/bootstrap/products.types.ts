@@ -9,4 +9,3 @@ export const PRODUCT_TYPES = {
   UploadProductImageUseCase: Symbol.for('Products.UploadProductImageUseCase'),
   ProductsPresenter: Symbol.for('Products.ProductsPresenter'),
 } as const;
-

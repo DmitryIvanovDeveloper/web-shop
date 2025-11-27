@@ -109,4 +109,3 @@ export class SupabasePageConfigRepository implements PageConfigRepositoryPort {
     }
   }
 }
-

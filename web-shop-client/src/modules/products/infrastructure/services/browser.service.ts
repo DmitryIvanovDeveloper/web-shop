@@ -36,8 +36,7 @@ export class BrowserService implements BrowserPort {
         username: user.username,
         appId: user.appId
       };
-    } catch (error) {
-      console.warn('[BrowserService] Failed to parse stored user:', error);
+    } catch {
       return null;
     }
   }

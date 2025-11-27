@@ -9,7 +9,10 @@ import type { PaymentRedirectPort } from '../ports/payment-redirect.port';
 import type { AuthServicePort } from '../ports/auth-service.port';
 import { ProductSelectedForPaymentEvent } from '../../../../shared/events/product-events';
 import { AuthenticationRequiredEvent } from '../../../../shared/events/auth-events';
-import { ProductPaymentService } from '../../domain/services/product-payment.service';
+import {
+  ProductPaymentService,
+  type ProductPaymentSnapshot,
+} from '../../domain/services/product-payment.service';
 import { UnauthenticatedUserError } from '../../domain/errors/products.error';
 
 export interface SelectProductForPaymentRequest {
@@ -18,7 +21,7 @@ export interface SelectProductForPaymentRequest {
 
 @injectable()
 export class SelectProductForPaymentUseCase {
-  constructor(
+  public constructor(
     @inject(ROOT_TYPES.EventBus)
     private readonly _eventBus: EventBus,
     @inject(ROOT_TYPES.Logger)
@@ -94,7 +97,7 @@ export class SelectProductForPaymentUseCase {
   /**
    * Handle payment in browser environment
    */
-  private async _handleBrowserPayment(productSnapshot: any): Promise<void> {
+  private async _handleBrowserPayment(productSnapshot: ProductPaymentSnapshot): Promise<void> {
     // Get user context from AuthService and app configuration
     const currentUser = this._authService.getCurrentUser();
     const appConfig = this._browser.getAppConfig();
@@ -122,7 +125,10 @@ export class SelectProductForPaymentUseCase {
   /**
    * Handle payment in server environment
    */
-  private async _handleServerPayment(productId: string, productSnapshot: any): Promise<void> {
+  private async _handleServerPayment(
+    productId: string,
+    productSnapshot: ProductPaymentSnapshot
+  ): Promise<void> {
     // Publish domain event for server-side processing
     await this._eventBus.publishAsync(
       new ProductSelectedForPaymentEvent(productId, productSnapshot)

@@ -2,6 +2,8 @@ import { inject, injectable } from 'inversify';
 import type { Product } from '../../domain/types';
 import type { ProductRepositoryPort } from '../ports/product-repository.port';
 import { PRODUCTS_TYPES } from '../../infrastructure/bootstrap/types';
+import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
+import type { Logger } from '../../../../application/ports/logger.port';
 
 export interface LoadProductsRequest {
   appId?: string;
@@ -11,59 +13,57 @@ export interface LoadProductsRequest {
 export class LoadProductsUseCase {
   private _cachedAllProducts: Product[] | null = null;
 
-  constructor(
+  public constructor(
     @inject(PRODUCTS_TYPES.ProductRepository)
-    private readonly productRepository: ProductRepositoryPort
+    private readonly _productRepository: ProductRepositoryPort,
+    @inject(ROOT_TYPES.Logger)
+    private readonly _logger: Logger
   ) {}
 
-  async execute(request: LoadProductsRequest): Promise<Product[]> {
-    console.log('[LoadProductsUseCase] Loading products for appId:', request.appId || 'all');
-    
+  public async execute(request: LoadProductsRequest): Promise<Product[]> {
+    this._logger.info('[LoadProductsUseCase] Loading products', {
+      appId: request.appId ?? 'all',
+    });
+
     try {
       let products: Product[];
 
       if (!this._cachedAllProducts) {
-        console.log('[LoadProductsUseCase] No cache found, loading all products from repository');
-        this._cachedAllProducts = await this.productRepository.getAll();
+        this._logger.info('[LoadProductsUseCase] No cache found, loading all products from repository');
+        this._cachedAllProducts = await this._productRepository.getAll();
       } else {
-        console.log('[LoadProductsUseCase] Using cached products from previous load', {
-          total: this._cachedAllProducts.length
+        this._logger.info('[LoadProductsUseCase] Using cached products from previous load', {
+          total: this._cachedAllProducts.length,
         });
       }
 
       products = this._cachedAllProducts;
-      
-      // Если appId пустой - вернуть все продукты (пользователь не авторизован)
+
+      // If appId is empty - return all products (user is not authorized)
       if (!request.appId) {
-        console.log('[LoadProductsUseCase] No appId provided, returning all products:', {
-          total: products.length
+        this._logger.info('[LoadProductsUseCase] No appId provided, returning all products', {
+          total: products.length,
         });
         return products;
       }
-      
-      // Фильтровать по appId
+
+      // Filter by appId
       const filteredProducts = products.filter(product => {
         const matches = product.appid === request.appId;
-        if (!matches) {
-          console.log('[LoadProductsUseCase] Product filtered out:', {
-            productId: product.id.value,
-            title: product.title,
-            productAppId: product.appid,
-            requestedAppId: request.appId
-          });
-        }
         return matches;
       });
-      
-      console.log('[LoadProductsUseCase] Products loaded:', {
+
+      this._logger.info('[LoadProductsUseCase] Products loaded', {
         total: products.length,
         filtered: filteredProducts.length,
-         filteredProductTitles: filteredProducts.map(p => p.title)
+        filteredProductTitles: filteredProducts.map(p => p.title),
       });
-      
+
       return filteredProducts;
     } catch (error) {
-      console.error('[LoadProductsUseCase] Failed to load products:', error);
+      this._logger.error('[LoadProductsUseCase] Failed to load products', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
       throw error;
     }
   }

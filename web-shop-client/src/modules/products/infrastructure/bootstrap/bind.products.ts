@@ -2,8 +2,7 @@ import { Container } from 'inversify';
 import { PRODUCTS_TYPES } from './types';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import { ProductRepository } from '../repositories/product.repository';
-import { SupabaseProductStorage } from '../storages/supabase-product.storage';
-import { SupabasePurchaseRepository } from '../repositories/supabase-purchase.repository';
+import { PurchasesHttpRepository } from '../repositories/purchases-http.repository';
 import { ProductStyleService } from '../services/product-style.service';
 import { BrowserService } from '../services/browser.service';
 import { PaymentRedirectService } from '../services/payment-redirect.service';
@@ -23,16 +22,12 @@ import type { BrowserPort } from '../../application/ports/browser.port';
 import type { PaymentRedirectPort } from '../../application/ports/payment-redirect.port';
 
 export function bindProducts(container: Container): void {
-  // Storage Layer
-  container.bind<ProductStoragePort>(PRODUCTS_TYPES.ProductStorage)
-    .to(SupabaseProductStorage).inSingletonScope();
-
   // Repository Layer
   container.bind<ProductRepositoryPort>(PRODUCTS_TYPES.ProductRepository)
     .to(ProductRepository).inSingletonScope();
 
   container.bind<PurchaseRepositoryPort>(PRODUCTS_TYPES.PurchaseRepository)
-    .to(SupabasePurchaseRepository).inSingletonScope();
+    .to(PurchasesHttpRepository).inSingletonScope();
 
   // Services
   container.bind(PRODUCTS_TYPES.ProductStyleService)

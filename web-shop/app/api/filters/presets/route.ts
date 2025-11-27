@@ -1,29 +1,39 @@
 import { NextResponse } from 'next/server';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+
+type Preset = {
+  id: string;
+  name: string;
+  filterSet: {
+    dateRange: {
+      preset: string;
+      granularity: string;
+      from?: string;
+      to?: string;
+    };
+    geo: {
+      countries: string[];
+    };
+    payment: {
+      methods: string[];
+    };
+    source: {
+      sources: string[];
+    };
+    currency: {
+      currency: string;
+    };
+  };
+  createdAt: string;
+  updatedAt: string;
+};
 
 export async function GET(): Promise<NextResponse> {
-  try {
-    const filePath = join(
-      process.cwd(),
-      'public',
-      'mocks',
-      'api',
-      'filters',
-      'presets.json'
-    );
+  // For now we return an empty presets list to unblock dashboard.
+  const response: { presets: Preset[] } = {
+    presets: [],
+  };
 
-    const fileContent = readFileSync(filePath, 'utf-8');
-    const data = JSON.parse(fileContent);
-
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('[API] Failed to load filter presets mock data', error);
-    return NextResponse.json(
-      { error: 'Failed to load filter presets data' },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json(response);
 }
 
-
+  

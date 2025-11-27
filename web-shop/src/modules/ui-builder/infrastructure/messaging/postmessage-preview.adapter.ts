@@ -1,3 +1,4 @@
+
 import { injectable } from 'inversify';
 import type { PreviewCommunicationPort } from '../../application/ports/preview-communication.port';
 import { env } from '../../../../env';
@@ -135,5 +136,4 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
     console.log('[PostMessagePreviewAdapter] Sending selectElement message', { elementId });
     this._iframeEl.contentWindow.postMessage(message, this._targetOrigin);
   }
-
 }
