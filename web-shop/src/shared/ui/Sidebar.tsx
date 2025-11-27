@@ -1,5 +1,8 @@
-import React, { useState } from "react";
+ 'use client';
+
+import React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 type SidebarProps = {
   children?: React.ReactNode;
@@ -10,14 +13,14 @@ type SidebarProps = {
 
 const menuItems: Array<{ key: string; label: string; icon: string; href: string }> = [
   { key: "home", label: "Home", icon: "🏠", href: "/" },
-  { key: "analytics-dashboard", label: "Analytics\nDashboard", icon: "📈", href: "/merchant-admin/analytics/dashboard" },
+  { key: "analytics-dashboard", label: "Analytics\nDashboard", icon: "📈", href: "/dashboard" },
   { key: "merchant-admin-offers", label: "Offers", icon: "🎁", href: "/merchant-admin/offers?appId=APP123" },
   { key: "merchant-admin-products", label: "Products", icon: "📦", href: "/products?appId=APP123" },
   { key: "ui-builder", label: "Builder", icon: "🛠️", href: "/ui-builder?appId=APP123&pageSlug=store" },
 ];
 
 export function Sidebar({ children, widthClassName = "w-64", title = "Navigation", onSelect }: SidebarProps): JSX.Element {
-  const [activeKey, setActiveKey] = useState<string>("home");
+  const pathname = usePathname();
   const containerStyle: React.CSSProperties = {
     position: "fixed",
     top: 0,
@@ -63,9 +66,14 @@ export function Sidebar({ children, widthClassName = "w-64", title = "Navigation
     fontSize: 14,
   });
 
-  const handleSelect = (key: string) => {
-    setActiveKey(key);
-    onSelect?.(key);
+  const isActive = (itemHref: string): boolean => {
+    const basePath = itemHref.split("?")[0];
+
+    if (basePath === "/") {
+      return pathname === "/";
+    }
+
+    return pathname?.startsWith(basePath) ?? false;
   };
 
   return (
@@ -81,14 +89,18 @@ export function Sidebar({ children, widthClassName = "w-64", title = "Navigation
               <Link
                 key={item.key}
                 href={item.href}
-                style={{ ...itemStyle(item.key === activeKey), transition: "background-color .15s ease" }}
+                style={{ ...itemStyle(isActive(item.href)), transition: "background-color .15s ease" }}
                 onClick={() => {
-                  handleSelect(item.key);
+                  onSelect?.(item.key);
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = item.key === activeKey ? "#3B3F4A" : "#1B1E26")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = item.key === activeKey ? "#3B3F4A" : "transparent")}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = isActive(item.href) ? "#3B3F4A" : "#1B1E26";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = isActive(item.href) ? "#3B3F4A" : "transparent";
+                }}
               >
-                <span style={iconStyle(item.key === activeKey)} aria-hidden>
+                <span style={iconStyle(isActive(item.href))} aria-hidden>
                   {item.icon}
                 </span>
                 <span style={{ whiteSpace: "pre-line" }}>{item.label}</span>

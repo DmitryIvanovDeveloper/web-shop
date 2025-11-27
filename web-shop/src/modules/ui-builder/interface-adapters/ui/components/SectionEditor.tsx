@@ -61,7 +61,6 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
 
       onUpdateStyles(newStyles);
     } catch (error) {
-      console.error('Error converting file to base64:', error);
       alert(`Failed to process image: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setUploading(false);

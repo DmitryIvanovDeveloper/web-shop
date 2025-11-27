@@ -132,42 +132,40 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   }, [activeSection, appId, clientUrl]);
 
   // Callback to set iframe ref when PhoneMockup mounts
-  const handleIframeRef = useCallback((el: HTMLIFrameElement | null) => {
-    if (el) {
+  const handleIframeRef = useCallback(
+    (el: HTMLIFrameElement | null) => {
+      if (!el) {
+        return;
+      }
+
       (iframeRef as React.MutableRefObject<HTMLIFrameElement | null>).current = el;
       const previewComm = presenter.getPreviewCommunication();
-      if (previewComm && previewComm.setIframeRef) {
-        console.log('[UIBuilderPage] Calling setIframeRef with ref:', el);
+
+      if (previewComm && typeof previewComm.setIframeRef === 'function') {
         previewComm.setIframeRef(el);
       }
-    }
-  }, [presenter]);
+    },
+    [presenter]
+  );
 
   useEffect(() => {
     const unsubscribe = presenter.subscribe((vm: any) => {
-      console.log('[UIBuilderPage] ViewModel updated:', {
-        selectedElement: vm.selectedElement,
-        activeSection
-      });
       setViewModel(vm);
+
       if (typeof vm.elementSelectionMode === 'boolean') {
         setIsElementSelectionMode(vm.elementSelectionMode);
-        // Sync elementSelectionMode with page-constructor.presenter
+
         if (typeof pageConstructorPresenter.setElementSelectionMode === 'function') {
           pageConstructorPresenter.setElementSelectionMode(vm.elementSelectionMode);
         }
       }
-      
-      // Handle Page element selection - open Editor
+
       if (vm.selectedElement?.id && vm.selectedElement.id.startsWith('page-')) {
         const pageSlug = vm.selectedElement.id.replace('page-', '');
-        console.log('[UIBuilderPage] Page element selected, opening Editor:', { elementId: vm.selectedElement.id, pageSlug });
-        
-        // Switch to Pages tab and open page editor
+
         setActiveTab('pages');
         setActiveSection('pageConstructor');
-        
-        // Clear section/component selection to show page-level editor
+
         pageConstructorPresenter.selectSection(null);
         pageConstructorPresenter.selectComponent(null, null);
         pageConstructorPresenter.selectOfferCard(null);
@@ -176,7 +174,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     });
 
     return unsubscribe;
-  }, [presenter, activeSection, pageConstructorPresenter]);
+  }, [presenter, pageConstructorPresenter]);
 
   useEffect(() => {
     const config = viewModel.config as AppConfigStructure | null;
@@ -198,25 +196,27 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     };
 
     const sendViewportModeUpdate = () => {
-      try {
-        const iframeWindow = iframeRef.current?.contentWindow;
-        if (iframeWindow) {
-          const clientUrl = env.NEXT_PUBLIC_CLIENT_URL;
-          if (clientUrl && iframeWindow.postMessage) {
-            const mappedViewportMode = deviceToViewportMode(device);
-            iframeWindow.postMessage(
-              {
-                type: 'VIEWPORT_MODE_UPDATE',
-                payload: { viewportMode: mappedViewportMode },
-              },
-              clientUrl
-            );
-            console.log('[UIBuilderPage] Sent VIEWPORT_MODE_UPDATE:', mappedViewportMode);
-          }
-        }
-      } catch (error) {
-        console.error('[UIBuilderPage] Failed to send VIEWPORT_MODE_UPDATE:', error);
+      const iframeWindow = iframeRef.current?.contentWindow;
+
+      if (!iframeWindow) {
+        return;
       }
+
+      const clientUrl = env.NEXT_PUBLIC_CLIENT_URL;
+
+      if (!clientUrl || !iframeWindow.postMessage) {
+        return;
+      }
+
+      const mappedViewportMode = deviceToViewportMode(device);
+
+      iframeWindow.postMessage(
+        {
+          type: 'VIEWPORT_MODE_UPDATE',
+          payload: { viewportMode: mappedViewportMode },
+        },
+        clientUrl
+      );
     };
 
     // Send immediately when device or orientation changes
@@ -282,8 +282,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     }
   };
 
-  const handleSidebarElementSelect = (elementId: string | null, section: 'sidebar' | 'rightSidebar') => {
-    console.log('[UIBuilderPage] handleElementSelect called:', { elementId, section, selectedOfferCardId, activeSection });
+  const handleSidebarElementSelect = (elementId: string | null, section: 'sidebar' | 'rightSidebar'): void => {
     const ensuredRootId = presenter.ensureSidebarLayout(section);
     let normalizedId = elementId || '';
 
@@ -299,26 +298,20 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     }
  
     if (normalizedId && selectedOfferCardId) {
-      console.log('[UIBuilderPage] Clearing selectedOfferCardId:', selectedOfferCardId);
       pageConstructorPresenter.selectOfferCard(null);
       setSelectedOfferCardId(null);
     }
 
     if (activeSection !== section) {
-      console.log('[UIBuilderPage] Setting activeSection:', section);
       setActiveSection(section);
     }
 
     // Auto-switch to corresponding tab
     if (section === 'sidebar') {
-      console.log('[UIBuilderPage] Setting activeTab to leftSidebar');
       setActiveTab('leftSidebar');
     } else if (section === 'rightSidebar') {
-      console.log('[UIBuilderPage] Setting activeTab to rightSidebar');
       setActiveTab('rightSidebar');
     }
-
-    console.log('[UIBuilderPage] Calling presenter.selectElement:', normalizedId);
     presenter.selectElement(normalizedId);
   };
 
@@ -340,11 +333,9 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       if (pageVm.selectedComponent && pageVm.selectedSection) {
         // Component is selected - send component ID
         previewComm.selectElement(pageVm.selectedComponent.id);
-        console.log('[UIBuilderPage] Sending selected component to iframe:', pageVm.selectedComponent.id);
       } else if (pageVm.selectedSection) {
         // Section is selected - send section ID
         previewComm.selectElement(pageVm.selectedSection.id);
-        console.log('[UIBuilderPage] Sending selected section to iframe:', pageVm.selectedSection.id);
       } else {
         // Nothing selected - clear selection
         previewComm.selectElement(null);
@@ -416,13 +407,11 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   // Helper: find sidebar button by pageSlug
   const findSidebarButtonByPageSlug = (pageSlug: string): string | null => {
     if (!viewModel.config) {
-      console.log('[UIBuilderPage] findSidebarButtonByPageSlug: no config');
       return null;
     }
     const config = viewModel.config as any;
     const sidebarConfig = config?.modules?.uiRenderer?.sidebar;
     if (!sidebarConfig?.layout) {
-      console.log('[UIBuilderPage] findSidebarButtonByPageSlug: no sidebar layout');
       return null;
     }
 
@@ -443,23 +432,20 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
     const buttonNode = findButton(sidebarConfig.layout);
     if (buttonNode && buttonNode.id) {
-      console.log('[UIBuilderPage] findSidebarButtonByPageSlug: found button', { pageSlug, buttonId: buttonNode.id });
       return buttonNode.id;
     }
-    console.log('[UIBuilderPage] findSidebarButtonByPageSlug: button not found', { pageSlug });
+
     return null;
   };
 
   // Helper: simulate click on sidebar button in iframe using postMessage
   const simulateSidebarButtonClick = (buttonId: string): void => {
     const iframe = iframeRef.current;
+
     if (!iframe || !iframe.contentWindow) {
-      console.warn('[UIBuilderPage] simulateSidebarButtonClick: iframe ref not available');
       return;
     }
 
-    // Use postMessage to communicate with iframe (avoids CORS issues)
-    console.log('[UIBuilderPage] simulateSidebarButtonClick: sending CLICK_BUTTON message to iframe', { buttonId });
     iframe.contentWindow.postMessage(
       {
         type: 'CLICK_BUTTON',
@@ -476,68 +462,13 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     if (previewComm && previewComm.onElementSelected) {
       previewComm.onElementSelected((elementId: string | null) => {
         if (!elementId) {
-          // Clear selection
           presenter.selectElement(null);
           pageConstructorPresenter.selectSection(null);
           pageConstructorPresenter.selectComponent(null, null);
           return;
         }
 
-        console.log('[UIBuilderPage] Element selected from iframe:', { elementId });
-        
-        // Find the area where the element is located (using UUID ID directly)
         const area = presenter.findElementArea(elementId, pageConstructorPresenter);
-        console.log('[UIBuilderPage] Element area determined:', { elementId, area });
-        
-        // Debug: log page sections structure when area is null
-        if (!area && pageConstructorPresenter) {
-          const pageVm = pageConstructorPresenter.getViewModel();
-          console.log('[UIBuilderPage] Element not found, checking page sections:', {
-            elementId,
-            sectionsCount: pageVm?.sections?.length,
-            sections: pageVm?.sections?.map(s => ({
-              id: s.id,
-              type: s.type,
-              componentsCount: s.components?.length,
-              componentIds: s.components?.map(c => c.id)
-            }))
-          });
-          
-          // Also log sidebar structure for debugging
-          const config = viewModel.config as any;
-          const sidebarLayout = config?.modules?.uiRenderer?.sidebar?.layout;
-          if (sidebarLayout) {
-            const collectIds = (node: any, depth: number = 0): any[] => {
-              if (!node) return [];
-              const result: any[] = [{ id: node.id, type: node.type, text: node.props?.text, depth }];
-              if (Array.isArray(node.children)) {
-                node.children.forEach((child: any) => {
-                  result.push(...collectIds(child, depth + 1));
-                });
-              }
-              return result;
-            };
-            console.log('[UIBuilderPage] Sidebar layout structure:', {
-              layoutId: sidebarLayout.id,
-              children: collectIds(sidebarLayout)
-            });
-          }
-        }
-        
-        // Debug: log page sections structure
-        if (pageConstructorPresenter) {
-          const pageVm = pageConstructorPresenter.getViewModel();
-          console.log('[UIBuilderPage] Page sections structure:', {
-            sectionsCount: pageVm?.sections?.length,
-            sections: pageVm?.sections?.map(s => ({
-              id: s.id,
-              type: s.type,
-              hasLayout: !!s.layout,
-              layoutGrid: s.layout?.grid,
-              componentsCount: s.components?.length
-            }))
-          });
-        }
 
         if (area === 'sidebar') {
           // Clear offer card selection first to ensure editor switches
@@ -603,8 +534,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           // Check if elementId is a page container (page-{pageSlug})
           if (elementId.startsWith('page-')) {
             const pageSlug = elementId.replace('page-', '');
-            console.log('[UIBuilderPage] Page container selected from iframe:', { elementId, pageSlug });
-            
             // Switch to Pages tab and open page editor
             setActiveTab('pages');
             setActiveSection('pageConstructor');
@@ -628,15 +557,12 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           let foundSectionId: string | null = null;
           let foundComponentId: string | null = null;
 
-          console.log('[UIBuilderPage] Searching for element in page sections:', { elementId, sectionsCount: pageVm?.sections?.length });
-
           if (pageVm?.sections) {
             // First check if elementId matches a section ID
             for (const section of pageVm.sections) {
-              if (section.id === elementId) {
-                foundSectionId = section.id;
-                foundComponentId = null; // Selecting the section itself
-                console.log('[UIBuilderPage] Found element as section:', { elementId, sectionId: section.id });
+                if (section.id === elementId) {
+                  foundSectionId = section.id;
+                  foundComponentId = null;
                 break;
               }
             }
@@ -646,10 +572,9 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               for (const section of pageVm.sections) {
                 // Search directly in section.components array
                 const foundComponent = section.components?.find(comp => comp.id === elementId);
-                if (foundComponent) {
-                  foundSectionId = section.id;
-                  foundComponentId = foundComponent.id;
-                  console.log('[UIBuilderPage] Found element in section components:', { elementId, sectionId: section.id, componentId: foundComponent.id });
+                  if (foundComponent) {
+                    foundSectionId = section.id;
+                    foundComponentId = foundComponent.id;
                   break;
                 }
               }
@@ -657,7 +582,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           }
 
           if (foundSectionId) {
-            console.log('[UIBuilderPage] Opening page editor:', { foundSectionId, foundComponentId });
             // Switch to Pages tab
             setActiveTab('pages');
             setActiveSection('pageConstructor');
@@ -674,11 +598,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             } else {
               pageConstructorPresenter.selectComponent(foundSectionId, null);
             }
-          } else {
-            console.warn('[UIBuilderPage] Element found in page area but section not found:', elementId);
           }
-        } else {
-          console.warn('[UIBuilderPage] Element not found in any area:', elementId);
         }
       });
     }
@@ -977,12 +897,9 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                     // Find and simulate click on corresponding sidebar button
                     const buttonId = findSidebarButtonByPageSlug(pageSlug);
                     if (buttonId) {
-                      // Wait a bit for iframe to be ready, then simulate click
                       setTimeout(() => {
                         simulateSidebarButtonClick(buttonId);
                       }, 100);
-                    } else {
-                      console.log('[UIBuilderPage] No sidebar button found for pageSlug:', pageSlug);
                     }
                     
                     // Initialize page constructor for the new page (this will send config to iframe)
@@ -1304,12 +1221,9 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                         // Find and simulate click on corresponding sidebar button
                         const buttonId = findSidebarButtonByPageSlug(pageSlug);
                         if (buttonId) {
-                          // Wait a bit for iframe to be ready, then simulate click
                           setTimeout(() => {
                             simulateSidebarButtonClick(buttonId);
                           }, 100);
-                        } else {
-                          console.log('[UIBuilderPage] No sidebar button found for pageSlug:', pageSlug);
                         }
                         
                         await pageConstructorPresenter.initialize(appId, pageSlug);
@@ -1358,16 +1272,11 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
             {/* Offer Card Editor */}
             {(() => {
-              const shouldShowOfferCardEditor = selectedOfferCardId && 
-                activeTab === 'offerCards' && 
-                activeSection === 'offerCards';
-              if (shouldShowOfferCardEditor) {
-                console.log('[UIBuilderPage] Rendering OfferCardEditor', { selectedOfferCardId, activeTab, activeSection });
-              } else {
-                console.log('[UIBuilderPage] NOT rendering OfferCardEditor', { selectedOfferCardId, activeTab, activeSection });
-              }
+              const shouldShowOfferCardEditor =
+                selectedOfferCardId && activeTab === 'offerCards' && activeSection === 'offerCards';
               return shouldShowOfferCardEditor;
-            })() && (() => {
+            })() &&
+              (() => {
               const selectedCard = offerCards.find(card => card.id === selectedOfferCardId) || pageConstructorPresenter.getSelectedOfferCard();
               if (!selectedCard) return null;
               

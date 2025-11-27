@@ -215,7 +215,6 @@ export function ComponentEditor({ component, onUpdate, onRemove, pages = [] }: C
             // Update component props with base64 image
             onUpdate({ ...component.props, src: base64String });
           } catch (error) {
-            console.error('Error converting file to base64:', error);
             alert(`Failed to process image: ${error instanceof Error ? error.message : 'Unknown error'}`);
           } finally {
             setIsImageUploading(false);

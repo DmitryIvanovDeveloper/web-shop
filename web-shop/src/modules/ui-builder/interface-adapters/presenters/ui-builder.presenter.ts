@@ -359,7 +359,6 @@ export class UIBuilderPresenter {
   }
 
   public selectElement(elementId: string): void {
-    console.log('[UIBuilderPresenter] selectElement called:', elementId);
     if (!elementId) {
       this.selectedElementArea = null;
       this.vm = { ...this.vm, selectedElement: null };
@@ -385,7 +384,6 @@ export class UIBuilderPresenter {
 
     const { node, layout } = located;
     const colors = this.readColorsFromNode(node);
-    console.log('[UIBuilderPresenter] Found colors:', colors);
     this.selectedElementArea = layout;
 
     this.vm = {
@@ -406,8 +404,7 @@ export class UIBuilderPresenter {
         pageSlug: node?.props?.pageSlug,
       },
     };
-    console.log('[UIBuilderPresenter] Updated viewModel.selectedElement:', this.vm.selectedElement);
-    
+
     // Send element selection to iframe for visual highlighting
     this.preview.selectElement(elementId);
     
