@@ -8,8 +8,6 @@ import { TYPES } from '../../infrastructure/bootstrap/realtime-dashboard.types';
 @injectable()
 export class LoadDashboardUseCase {
   constructor(
-    @inject(TYPES.DashboardRepository)
-    private readonly dashboardRepository: DashboardRepositoryPort,
     @inject(TYPES.AnalyticsRepository)
     private readonly analyticsRepository: AnalyticsRepositoryPort,
     @inject(TYPES.PurchaseRepository)
