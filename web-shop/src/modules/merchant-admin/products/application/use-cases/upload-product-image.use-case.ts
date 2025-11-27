@@ -57,11 +57,8 @@ export class UploadProductImageUseCase {
       // Convert File to ArrayBuffer
       const buffer = await input.file.arrayBuffer();
 
-      // Generate filename with timestamp and random string
-      const extension = input.file.name.split('.').pop() || 'jpg';
-      const timestamp = Date.now();
-      const random = Math.random().toString(36).substring(2, 9);
-      const filename = `products/${timestamp}-${random}.${extension}`;
+      // Use original filename (only extension is important, storage service will build deterministic key)
+      const filename = input.file.name || 'image.jpg';
 
       this.logger.info('[UploadProductImageUseCase] Uploading image', {
         filename,

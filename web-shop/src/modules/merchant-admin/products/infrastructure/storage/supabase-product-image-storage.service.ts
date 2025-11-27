@@ -1,22 +1,30 @@
 import { inject, injectable } from 'inversify';
 import { Result } from '../../../../../shared/domain/result/result';
 import type { ProductImageStoragePort } from '../../application/ports/product-image-storage.port';
-import { PRODUCT_TYPES } from '../../infrastructure/bootstrap/products.types';
 import type { Logger } from '../../../../../application/ports/logger.port';
 import { ROOT_TYPES } from '../../../../../infrastructure/bootstrap/types';
 import { createClient } from '@supabase/supabase-js';
 
 /**
  * Supabase Product Image Storage Service
- * 
- * Infrastructure implementation of ProductImageStoragePort using Supabase Storage
- * Uploads images to the "Images" bucket and returns public URLs
+ *
+ * Infrastructure implementation of ProductImageStoragePort using Supabase Storage.
+ * - Stores images in the "Images" bucket.
+ * - Uses content-hash-based keys to deduplicate identical files.
+ * - Returns proxy URLs pointing to the image proxy API to avoid CORS/ORB issues.
  */
 @injectable()
 export class SupabaseProductImageStorageService implements ProductImageStoragePort {
   private readonly BUCKET_NAME = 'Images';
   private readonly SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
   private readonly SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  /**
+   * In-memory cache: content hash -> proxy URL
+   * Works for the lifetime of the Node.js process and reduces Supabase calls
+   * when the same file is uploaded multiple times.
+   */
+  private readonly urlCache = new Map<string, string>();
 
   constructor(
     @inject(ROOT_TYPES.Logger)
@@ -35,154 +43,130 @@ export class SupabaseProductImageStorageService implements ProductImageStoragePo
     filename: string
   ): Promise<Result<{ url: string }, Error>> {
     try {
-      this.logger.info('[SupabaseProductImageStorageService] Starting image upload', {
-        filename,
+      // Lazy-import crypto to avoid top-level Node-specific imports in shared bundles
+      const { createHash } = await import('crypto');
+      const nodeBuffer = Buffer.from(buffer);
+
+      // 1) Compute content hash and deterministic object path
+      const hash = createHash('sha256').update(nodeBuffer).digest('hex');
+      const extension = filename.split('.').pop() || 'jpg';
+      const objectPath = `products/${hash}.${extension.toLowerCase()}`;
+
+      this.logger.info('[SupabaseProductImageStorageService] Starting image upload (with deduplication)', {
+        originalFilename: filename,
         bucket: this.BUCKET_NAME,
         size: buffer.byteLength,
+        hash,
+        objectPath,
       });
 
-      // Create Supabase client with service role key for server-side operations
+      // 2) Check in-memory cache first
+      const cachedUrl = this.urlCache.get(hash);
+      if (cachedUrl) {
+        this.logger.info('[SupabaseProductImageStorageService] Cache hit for image hash', {
+          hash,
+          objectPath,
+          cachedUrl,
+        });
+        return Result.ok({ url: cachedUrl });
+      }
+
+      // 3) Create Supabase client
       const supabase = createClient(this.SUPABASE_URL!, this.SUPABASE_SERVICE_ROLE_KEY!);
 
-      // Upload file to Supabase Storage
+      // 4) Check if object already exists in bucket via createSignedUrl
+      this.logger.info('[SupabaseProductImageStorageService] Checking if image already exists in bucket', {
+        objectPath,
+      });
+
+      const { error: existsError } = await supabase.storage
+        .from(this.BUCKET_NAME)
+        .createSignedUrl(objectPath, 60);
+
+      if (!existsError) {
+        this.logger.info('[SupabaseProductImageStorageService] Image already exists in bucket, reusing URL', {
+          hash,
+          objectPath,
+        });
+
+        const reuseUrlResult = this.buildPublicUrl(supabase, objectPath);
+        if (reuseUrlResult.isFailure()) {
+          return reuseUrlResult;
+        }
+
+        const reusedUrl = reuseUrlResult.data!.url;
+        this.urlCache.set(hash, reusedUrl);
+
+        return Result.ok({ url: reusedUrl });
+      }
+
+      this.logger.info('[SupabaseProductImageStorageService] Image not found in bucket, uploading new object', {
+        hash,
+        objectPath,
+        existsError: existsError?.message,
+      });
+
+      // 5) Upload new object
       const { data, error } = await supabase.storage
         .from(this.BUCKET_NAME)
-        .upload(filename, buffer, {
+        .upload(objectPath, nodeBuffer, {
           contentType: this.getContentType(filename),
-          upsert: false, // Don't overwrite existing files
+          upsert: false, // do not overwrite existing files
         });
 
       if (error) {
+        // If another process uploaded the same object first – reuse it
+        if (error.message && error.message.toLowerCase().includes('already exists')) {
+          this.logger.warn('[SupabaseProductImageStorageService] Upload reported \"already exists\", reusing existing object', {
+            hash,
+            objectPath,
+            error: error.message,
+          });
+
+          const reuseUrlResult = this.buildPublicUrl(supabase, objectPath);
+          if (reuseUrlResult.isFailure()) {
+            return reuseUrlResult;
+          }
+
+          const reusedUrl = reuseUrlResult.data!.url;
+          this.urlCache.set(hash, reusedUrl);
+
+          return Result.ok({ url: reusedUrl });
+        }
+
         this.logger.error('[SupabaseProductImageStorageService] Upload failed', {
           error: error.message,
-          filename,
+          originalFilename: filename,
+          objectPath,
         });
         return Result.error(new Error(`Failed to upload image: ${error.message}`));
       }
 
       if (!data) {
         this.logger.error('[SupabaseProductImageStorageService] Upload returned no data', {
-          filename,
+          originalFilename: filename,
+          objectPath,
         });
         return Result.error(new Error('Upload completed but no data returned'));
       }
 
-      // Get public URL
-      // According to Supabase docs, getPublicUrl returns { data: { publicUrl: string } }
-      // The path should be relative to the bucket root (e.g., "products/filename.png")
-      const urlResponse = supabase.storage
-        .from(this.BUCKET_NAME)
-        .getPublicUrl(data.path);
-
-      // Log full response structure for debugging
-      this.logger.info('[SupabaseProductImageStorageService] getPublicUrl response', {
-        path: data.path,
-        urlResponseType: typeof urlResponse,
-        urlResponseStringified: JSON.stringify(urlResponse, null, 2),
-        urlResponseKeys: urlResponse ? Object.keys(urlResponse) : [],
-        hasData: !!(urlResponse as any)?.data,
-        dataType: typeof (urlResponse as any)?.data,
-        dataKeys: (urlResponse as any)?.data ? Object.keys((urlResponse as any).data) : [],
-        dataStringified: (urlResponse as any)?.data ? JSON.stringify((urlResponse as any).data, null, 2) : 'no data',
-      });
-
-      // Extract publicUrl from response
-      // According to Supabase v2 docs: getPublicUrl returns { data: { publicUrl: string } }
-      let publicUrl: string | undefined;
-      
-      // Check for standard format: { data: { publicUrl: string } }
-      if (urlResponse && typeof urlResponse === 'object') {
-        if ((urlResponse as any).data && typeof (urlResponse as any).data === 'object') {
-          // Standard format: { data: { publicUrl: string } }
-          publicUrl = (urlResponse as any).data.publicUrl;
-        } else if ((urlResponse as any).publicUrl) {
-          // Alternative format: { publicUrl: string }
-          publicUrl = (urlResponse as any).publicUrl;
-        }
-      } else if (typeof urlResponse === 'string') {
-        // Direct string response (unlikely but possible)
-        publicUrl = urlResponse;
+      // 6) Build final proxy URL and cache it
+      const urlResult = this.buildPublicUrl(supabase, data.path);
+      if (urlResult.isFailure()) {
+        return urlResult;
       }
 
-      this.logger.info('[SupabaseProductImageStorageService] Extracted URL', {
-        urlResponseType: typeof urlResponse,
-        urlResponseKeys: urlResponse ? Object.keys(urlResponse) : [],
-        urlData: (urlResponse as any)?.data,
-        publicUrl,
-        publicUrlType: typeof publicUrl,
-        publicUrlLength: publicUrl ? publicUrl.length : 0,
-        publicUrlPreview: publicUrl ? publicUrl.substring(0, 150) : 'null',
-        supabaseUrl: this.SUPABASE_URL,
-        path: data.path,
-      });
-
-      if (!publicUrl || typeof publicUrl !== 'string') {
-        this.logger.error('[SupabaseProductImageStorageService] Failed to get public URL', {
-          path: data.path,
-          urlResponse: JSON.stringify(urlResponse, null, 2),
-          publicUrl,
-          publicUrlType: typeof publicUrl,
-        });
-        return Result.error(new Error(`Failed to get public URL from Supabase. Response: ${JSON.stringify(urlResponse)}`));
-      }
-
-      // Validate that publicUrl is actually a Supabase Storage URL
-      // It should start with the Supabase URL or be a full URL
-      if (!publicUrl.startsWith('http://') && !publicUrl.startsWith('https://')) {
-        // It's a relative path, construct full URL
-        const baseUrl = this.SUPABASE_URL!.replace(/\/$/, ''); // Remove trailing slash
-        // Supabase Storage public URL format: {baseUrl}/storage/v1/object/public/{bucket}/{path}
-        publicUrl = `${baseUrl}/storage/v1/object/public/${this.BUCKET_NAME}/${data.path}`;
-        this.logger.info('[SupabaseProductImageStorageService] Constructed full URL from relative path', {
-          originalPath: data.path,
-          constructedUrl: publicUrl,
-        });
-      }
-
-      // Use Next.js API route as proxy to avoid CORS/ORB issues
-      // Convert Supabase Storage URL to proxy URL
-      // Example: https://xxx.supabase.co/storage/v1/object/public/Images/products/file.png
-      // To: /api/products/image/Images/products/file.png
-      const originalPublicUrl = publicUrl;
-      if (publicUrl.includes('/storage/v1/object/public/')) {
-        const proxyPath = publicUrl.split('/storage/v1/object/public/')[1];
-        // Use relative URL for same-origin requests (avoids CORS/ORB)
-        publicUrl = `/api/products/image/${proxyPath}`;
-        this.logger.info('[SupabaseProductImageStorageService] Using proxy URL to avoid CORS/ORB', {
-          originalUrl: originalPublicUrl,
-          proxyUrl: publicUrl,
-          path: data.path,
-        });
-      }
-
-      // Validate that the URL is actually a valid URL
-      // For relative paths (proxy URLs), skip validation
-      if (publicUrl.startsWith('http://') || publicUrl.startsWith('https://')) {
-        try {
-          new URL(publicUrl);
-        } catch (urlError) {
-          this.logger.error('[SupabaseProductImageStorageService] Invalid URL format', {
-            publicUrl,
-            urlError: urlError instanceof Error ? urlError.message : String(urlError),
-            urlErrorStack: urlError instanceof Error ? urlError.stack : undefined,
-          });
-          return Result.error(new Error(`Failed to parse URL from ${publicUrl}. Error: ${urlError instanceof Error ? urlError.message : String(urlError)}`));
-        }
-      } else if (!publicUrl.startsWith('/')) {
-        // Relative path should start with /
-        this.logger.error('[SupabaseProductImageStorageService] Invalid relative path format', {
-          publicUrl,
-        });
-        return Result.error(new Error(`Invalid relative path format: ${publicUrl}`));
-      }
+      const finalUrl = urlResult.data!.url;
+      this.urlCache.set(hash, finalUrl);
 
       this.logger.info('[SupabaseProductImageStorageService] Image uploaded successfully', {
-        filename,
+        originalFilename: filename,
         path: data.path,
-        publicUrl,
+        publicUrl: finalUrl,
+        hash,
       });
 
-      return Result.ok({ url: publicUrl });
+      return Result.ok({ url: finalUrl });
     } catch (error) {
       this.logger.error('[SupabaseProductImageStorageService] Unexpected error', {
         error,
@@ -241,5 +225,95 @@ export class SupabaseProductImageStorageService implements ProductImageStoragePo
     };
     return contentTypes[extension || ''] || 'image/jpeg';
   }
+
+  /**
+   * Build and validate public URL, then convert it to a proxy URL.
+   */
+  private buildPublicUrl(
+    supabase: ReturnType<typeof createClient>,
+    path: string
+  ): Result<{ url: string }, Error> {
+    const urlResponse = supabase.storage.from(this.BUCKET_NAME).getPublicUrl(path);
+
+    this.logger.info('[SupabaseProductImageStorageService] getPublicUrl response', {
+      path,
+      urlResponseType: typeof urlResponse,
+      urlResponseStringified: JSON.stringify(urlResponse, null, 2),
+      urlResponseKeys: urlResponse ? Object.keys(urlResponse) : [],
+      hasData: !!(urlResponse as any)?.data,
+      dataType: typeof (urlResponse as any)?.data,
+      dataKeys: (urlResponse as any)?.data ? Object.keys((urlResponse as any).data) : [],
+      dataStringified: (urlResponse as any)?.data ? JSON.stringify((urlResponse as any).data, null, 2) : 'no data',
+    });
+
+    let publicUrl: string | undefined;
+
+    if (urlResponse && typeof urlResponse === 'object') {
+      if ((urlResponse as any).data && typeof (urlResponse as any).data === 'object') {
+        publicUrl = (urlResponse as any).data.publicUrl;
+      } else if ((urlResponse as any).publicUrl) {
+        publicUrl = (urlResponse as any).publicUrl;
+      }
+    } else if (typeof urlResponse === 'string') {
+      publicUrl = urlResponse;
+    }
+
+    this.logger.info('[SupabaseProductImageStorageService] Extracted URL', {
+      urlResponseType: typeof urlResponse,
+      urlResponseKeys: urlResponse ? Object.keys(urlResponse) : [],
+      urlData: (urlResponse as any)?.data,
+      publicUrl,
+      publicUrlType: typeof publicUrl,
+      publicUrlLength: publicUrl ? publicUrl.length : 0,
+      publicUrlPreview: publicUrl ? publicUrl.substring(0, 150) : 'null',
+      supabaseUrl: this.SUPABASE_URL,
+      path,
+    });
+
+    if (!publicUrl || typeof publicUrl !== 'string') {
+      this.logger.error('[SupabaseProductImageStorageService] Failed to get public URL', {
+        path,
+        urlResponse: JSON.stringify(urlResponse, null, 2),
+        publicUrl,
+        publicUrlType: typeof publicUrl,
+      });
+      return Result.error(
+        new Error(`Failed to get public URL from Supabase. Response: ${JSON.stringify(urlResponse)}`)
+      );
+    }
+
+    // Ensure full Supabase Storage URL
+    if (!publicUrl.startsWith('http://') && !publicUrl.startsWith('https://')) {
+      const baseUrl = this.SUPABASE_URL!.replace(/\/$/, '');
+      publicUrl = `${baseUrl}/storage/v1/object/public/${this.BUCKET_NAME}/${path}`;
+      this.logger.info('[SupabaseProductImageStorageService] Constructed full URL from relative path', {
+        originalPath: path,
+        constructedUrl: publicUrl,
+      });
+    }
+
+    // Convert Supabase Storage URL to proxy URL
+    const originalPublicUrl = publicUrl;
+    if (publicUrl.includes('/storage/v1/object/public/')) {
+      const proxyPath = publicUrl.split('/storage/v1/object/public/')[1];
+      publicUrl = `/api/products/image/${proxyPath}`;
+      this.logger.info('[SupabaseProductImageStorageService] Using proxy URL to avoid CORS/ORB', {
+        originalUrl: originalPublicUrl,
+        proxyUrl: publicUrl,
+        path,
+      });
+    }
+
+    // Proxy URL must be a relative path starting with '/'
+    if (!publicUrl.startsWith('/')) {
+      this.logger.error('[SupabaseProductImageStorageService] Invalid relative path format', {
+        publicUrl,
+      });
+      return Result.error(new Error(`Invalid relative path format: ${publicUrl}`));
+    }
+
+    return Result.ok({ url: publicUrl });
+  }
 }
+
 
