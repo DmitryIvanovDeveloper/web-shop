@@ -271,7 +271,7 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
             )}
           </div>
           <p className="text-[10px] text-gray-500">
-            Можно использовать emoji, текстовые символы или загрузить PNG/SVG — изображение сохраняется как base64 в конфиге.
+            You can use emoji, text symbols, or upload a PNG/SVG — the image will be saved as base64 in the config.
           </p>
         </div>
       </div>
@@ -361,7 +361,7 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
                   />
                 </div>
                 <p className="text-[10px] text-gray-500">
-                  Значение от 0 до 1. Применяется только к фону контейнера, не затрагивает вложенные элементы.
+                  Value from 0 to 1. Applies only to the container background and does not affect nested elements.
                 </p>
               </div>
             )}

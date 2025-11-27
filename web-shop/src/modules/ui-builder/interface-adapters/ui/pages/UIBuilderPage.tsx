@@ -152,11 +152,31 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       setViewModel(vm);
       if (typeof vm.elementSelectionMode === 'boolean') {
         setIsElementSelectionMode(vm.elementSelectionMode);
+        // Sync elementSelectionMode with page-constructor.presenter
+        if (typeof pageConstructorPresenter.setElementSelectionMode === 'function') {
+          pageConstructorPresenter.setElementSelectionMode(vm.elementSelectionMode);
+        }
+      }
+      
+      // Handle Page element selection - open Editor
+      if (vm.selectedElement?.id && vm.selectedElement.id.startsWith('page-')) {
+        const pageSlug = vm.selectedElement.id.replace('page-', '');
+        console.log('[UIBuilderPage] Page element selected, opening Editor:', { elementId: vm.selectedElement.id, pageSlug });
+        
+        // Switch to Pages tab and open page editor
+        setActiveTab('pages');
+        setActiveSection('pageConstructor');
+        
+        // Clear section/component selection to show page-level editor
+        pageConstructorPresenter.selectSection(null);
+        pageConstructorPresenter.selectComponent(null, null);
+        pageConstructorPresenter.selectOfferCard(null);
+        setSelectedOfferCardId(null);
       }
     });
 
     return unsubscribe;
-  }, [presenter, activeSection]);
+  }, [presenter, activeSection, pageConstructorPresenter]);
 
   useEffect(() => {
     const config = viewModel.config as AppConfigStructure | null;
@@ -307,6 +327,32 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     // This effect ensures UI updates when selectedElement changes
     // even if activeSection doesn't change
   }, [viewModel.selectedElement?.id]);
+
+  // Subscribe to pageConstructorPresenter changes and send selected element to iframe
+  useEffect(() => {
+    const unsubscribe = pageConstructorPresenter.subscribe((pageVm) => {
+      const previewComm = presenter.getPreviewCommunication();
+      if (!previewComm || !previewComm.selectElement) {
+        return;
+      }
+
+      // Send selected section or component to iframe
+      if (pageVm.selectedComponent && pageVm.selectedSection) {
+        // Component is selected - send component ID
+        previewComm.selectElement(pageVm.selectedComponent.id);
+        console.log('[UIBuilderPage] Sending selected component to iframe:', pageVm.selectedComponent.id);
+      } else if (pageVm.selectedSection) {
+        // Section is selected - send section ID
+        previewComm.selectElement(pageVm.selectedSection.id);
+        console.log('[UIBuilderPage] Sending selected section to iframe:', pageVm.selectedSection.id);
+      } else {
+        // Nothing selected - clear selection
+        previewComm.selectElement(null);
+      }
+    });
+
+    return unsubscribe;
+  }, [pageConstructorPresenter, presenter]);
 
   const handleElementColorChange = (elementId: string, colors: Record<string, string>) => {
     presenter.updateElementColors(elementId, colors);
@@ -557,20 +603,22 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           // Check if elementId is a page container (page-{pageSlug})
           if (elementId.startsWith('page-')) {
             const pageSlug = elementId.replace('page-', '');
-            console.log('[UIBuilderPage] Page container selected:', { elementId, pageSlug });
+            console.log('[UIBuilderPage] Page container selected from iframe:', { elementId, pageSlug });
             
             // Switch to Pages tab and open page editor
             setActiveTab('pages');
             setActiveSection('pageConstructor');
             
             // Clear other selections
-            presenter.selectElement(null);
             pageConstructorPresenter.selectOfferCard(null);
             setSelectedOfferCardId(null);
             
             // Clear section/component selection to show page-level editor
             pageConstructorPresenter.selectSection(null);
             pageConstructorPresenter.selectComponent(null, null);
+            
+            // Note: Don't call presenter.selectElement(null) here because we want to keep the selection
+            // The useEffect will handle opening the editor based on selectedElement
             
             return;
           }
@@ -1077,6 +1125,10 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                       if (typeof presenter.setElementSelectionMode === 'function') {
                         presenter.setElementSelectionMode(newMode);
                       }
+                      // Also sync with page-constructor.presenter
+                      if (typeof pageConstructorPresenter.setElementSelectionMode === 'function') {
+                        pageConstructorPresenter.setElementSelectionMode(newMode);
+                      }
                     }}
                     className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
                       isElementSelectionMode
@@ -1126,7 +1178,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       <aside ref={rightSidebarRef} className="w-80 bg-white border-l border-gray-200 flex flex-col flex-shrink-0 overflow-hidden">
         {/* Compact Header */}
         <header className="bg-white border-b border-gray-200 px-4 py-3">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col gap-2">
             <div>
               <h1 className="text-base font-bold text-gray-900">
                 {headerTitle}
@@ -1147,8 +1199,9 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 </p>
               )}
             </div>
+
             {activeSection !== 'pageConstructor' && (
-              <div className="flex gap-2 items-center">
+              <div className="flex flex-wrap gap-2 items-center">
                 <button
                   onClick={() => presenter.resetToActive(appId)}
                   disabled={viewModel.isSaving || !viewModel.isDraft}
@@ -1176,7 +1229,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               </div>
             )}
             {activeSection === 'pageConstructor' && (
-              <div className="flex gap-2 items-center">
+              <div className="flex flex-wrap gap-2 items-center">
                 <button
                   onClick={() => pageConstructorPresenter.saveDraft()}
                   disabled={pageConstructorVm.isSaving}
@@ -1229,9 +1282,9 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 }
               }}
               className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded hover:bg-gray-200 transition-colors flex-shrink-0"
-              title="Прокрутить вверх"
+              title="Scroll to top"
             >
-              ⬆️ Наверх
+              ⬆️ Up
             </button>
             <div className="flex-1 overflow-x-auto">
               <div className="flex gap-1 min-w-max">
@@ -1262,17 +1315,14 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                         await pageConstructorPresenter.initialize(appId, pageSlug);
                         setOfferCards(pageConstructorPresenter.getOfferCards());
                         setSelectedOfferCardId(pageConstructorPresenter.getSelectedOfferCardId());
-                        // sendConfigToIframe is called automatically in initialize, but we ensure it's sent
-                        // The iframe src stays the same (home), so no reload happens
-                        // Force send CONFIG_UPDATE with elementSelectionMode to iframe
+                        // Sync elementSelectionMode with page-constructor.presenter after page switch
                         // This ensures that element selection mode is properly set in iframe after page switch
+                        if (typeof pageConstructorPresenter.setElementSelectionMode === 'function') {
+                          pageConstructorPresenter.setElementSelectionMode(isElementSelectionMode);
+                        }
+                        // Also send via ui-builder presenter as fallback
                         if (typeof presenter.forceSendConfigToIframe === 'function') {
                           presenter.forceSendConfigToIframe();
-                        } else if (typeof presenter.setElementSelectionMode === 'function') {
-                          // Fallback: toggle and restore to force send
-                          const currentMode = isElementSelectionMode;
-                          presenter.setElementSelectionMode(!currentMode);
-                          presenter.setElementSelectionMode(currentMode);
                         }
                       }}
                       className={`
@@ -1282,13 +1332,13 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }
                       `}
-                      title={`Редактировать страницу: ${pageSlug}`}
+                      title={`Edit page: ${pageSlug}`}
                     >
                       {pageSlug}
                     </button>
                   ))
                 ) : (
-                  <span className="px-3 py-1.5 text-xs text-gray-500">Нет страниц</span>
+                  <span className="px-3 py-1.5 text-xs text-gray-500">No pages</span>
                 )}
               </div>
             </div>

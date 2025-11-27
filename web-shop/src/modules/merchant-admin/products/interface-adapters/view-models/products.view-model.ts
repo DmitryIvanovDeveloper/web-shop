@@ -34,6 +34,7 @@ export interface ProductFormViewModel {
 
 export interface ProductsPageViewModel {
   readonly isLoading: boolean;
+  readonly isSaving: boolean;
   readonly errorMessage: string | null;
   readonly products: readonly ProductListItemViewModel[];
   readonly selectedProduct: ProductFormViewModel | null;
@@ -43,6 +44,7 @@ export interface ProductsPageViewModel {
 
 export const initialProductsPageViewModel: ProductsPageViewModel = {
   isLoading: false,
+  isSaving: false,
   errorMessage: null,
   products: [],
   selectedProduct: null,

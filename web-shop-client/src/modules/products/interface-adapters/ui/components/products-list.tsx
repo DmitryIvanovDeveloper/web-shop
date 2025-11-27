@@ -44,7 +44,14 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
       }
     }
 
-    console.log('[ProductsList] No appId found in session or query');
+    // 3. Fallback to environment default (for direct /store access without query)
+    const envAppId = process.env.NEXT_PUBLIC_APP_ID || null;
+    if (envAppId) {
+      console.log('[ProductsList] Using appId from environment:', envAppId);
+      return envAppId;
+    }
+
+    console.log('[ProductsList] No appId found in session, query, or environment');
     return null;
   };
 

@@ -44,6 +44,9 @@ export class PageConstructorPresenter {
   private selectedOfferCardId: string | null = null;
   private lastAppConfig: AppConfig | null = null;
   
+  // Store elementSelectionMode to send with config updates
+  private elementSelectionMode: boolean = false;
+  
   private vm: PageConstructorViewModel = {
     appId: '',
     pageSlug: 'home',
@@ -721,9 +724,66 @@ export class PageConstructorPresenter {
       );
 
       this._logger.info('[PageConstructorPresenter] Sent config to iframe successfully');
+      
+      // Also send CONFIG_UPDATE with elementSelectionMode to ensure selection mode works after page switch
+      // This is important when switching pages via sidebar in iframe
+      setTimeout(() => {
+        try {
+          iframe.contentWindow?.postMessage(
+            {
+              type: 'CONFIG_UPDATE',
+              elementSelectionMode: this.elementSelectionMode,
+            },
+            '*'
+          );
+          this._logger.info('[PageConstructorPresenter] Sent CONFIG_UPDATE with elementSelectionMode', {
+            elementSelectionMode: this.elementSelectionMode
+          });
+        } catch (error) {
+          this._logger.error('[PageConstructorPresenter] Failed to send CONFIG_UPDATE', error);
+        }
+      }, 100); // Small delay to ensure PAGE_CONFIG_UPDATE is processed first
     } catch (error) {
       this._logger.error('[PageConstructorPresenter] Failed to send config to iframe', error);
     }
+  }
+  
+  /**
+   * Set element selection mode and send update to iframe
+   */
+  public setElementSelectionMode(enabled: boolean): void {
+    if (this.elementSelectionMode === enabled) {
+      return; // No change needed
+    }
+    
+    this.elementSelectionMode = enabled;
+    this._logger.info('[PageConstructorPresenter] Element selection mode changed', { enabled });
+    
+    // Send update to iframe immediately
+    if (typeof window !== 'undefined') {
+      const iframe = document.querySelector('iframe');
+      if (iframe?.contentWindow) {
+        try {
+          iframe.contentWindow.postMessage(
+            {
+              type: 'CONFIG_UPDATE',
+              elementSelectionMode: enabled,
+            },
+            '*'
+          );
+          this._logger.info('[PageConstructorPresenter] Sent elementSelectionMode update to iframe', { enabled });
+        } catch (error) {
+          this._logger.error('[PageConstructorPresenter] Failed to send elementSelectionMode update', error);
+        }
+      }
+    }
+  }
+  
+  /**
+   * Get current element selection mode
+   */
+  public getElementSelectionMode(): boolean {
+    return this.elementSelectionMode;
   }
 
   private async sendAppConfigToIframe(): Promise<void> {

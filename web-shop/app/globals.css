@@ -32,3 +32,35 @@ body {
     text-wrap: balance;
   }
 }
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.product-card {
+  background-color: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  transition:
+    background-color 0.15s ease-out,
+    box-shadow 0.15s ease-out,
+    transform 0.12s ease-out,
+    border-color 0.15s ease-out;
+}
+
+.product-card:hover {
+  background-color: rgba(30, 64, 175, 0.6);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.4), 0 10px 25px rgba(15, 23, 42, 0.8);
+  transform: translateY(-1px);
+  border-color: rgba(59, 130, 246, 0.8);
+}
+
+.product-card--selected {
+  background-color: rgba(30, 64, 175, 0.85);
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.9), 0 16px 40px rgba(15, 23, 42, 0.9);
+  border-color: rgba(96, 165, 250, 1);
+}

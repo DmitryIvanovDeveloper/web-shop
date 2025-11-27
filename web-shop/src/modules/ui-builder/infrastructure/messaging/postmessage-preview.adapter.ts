@@ -120,4 +120,20 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
     this._iframeEl.contentWindow.postMessage(message, this._targetOrigin);
   }
 
+  public selectElement(elementId: string | null): void {
+    const message = {
+      type: 'SELECT_ELEMENT',
+      payload: { elementId },
+    };
+
+    if (!this._iframeEl?.contentWindow || !this._isIframeReady) {
+      console.warn('[PostMessagePreviewAdapter] iframe not ready, queueing selectElement message');
+      this._pendingMessages.push({ payload: message });
+      return;
+    }
+
+    console.log('[PostMessagePreviewAdapter] Sending selectElement message', { elementId });
+    this._iframeEl.contentWindow.postMessage(message, this._targetOrigin);
+  }
+
 }

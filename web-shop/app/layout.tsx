@@ -17,10 +17,9 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
   const router = useRouter();
   const routes: Record<string, string> = {
     home: '/',
-    'analytics-dashboard': '/dashboard',
+    'analytics-dashboard': '/merchant-admin/analytics/dashboard',
     'merchant-admin-products': '/products',
     'merchant-admin-offers': '/merchant-admin/offers',
-    'merchant-admin-products': '/products',
   };
 
   const handleSelect = (key: string) => {

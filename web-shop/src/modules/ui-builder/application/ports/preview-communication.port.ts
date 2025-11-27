@@ -4,4 +4,5 @@ export interface PreviewCommunicationPort {
   onElementSelected(handler: (elementId: string) => void): void;
   sendConfig(config: Record<string, unknown>): void;
   showAuthPopup(visible: boolean): void;
+  selectElement(elementId: string | null): void;
 }

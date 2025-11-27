@@ -348,7 +348,7 @@ export function ButtonEditor({
                 )}
               </div>
               <p className="text-[10px] text-gray-500 mt-1">
-                Изображение сохраняется как base64 прямо в конфиге. Можно также использовать emoji или текстовый символ.
+                The image is saved as base64 directly in the config. You can also use an emoji or a text symbol.
               </p>
             </>
           )}

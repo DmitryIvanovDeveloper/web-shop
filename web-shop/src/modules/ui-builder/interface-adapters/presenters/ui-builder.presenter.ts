@@ -363,6 +363,8 @@ export class UIBuilderPresenter {
     if (!elementId) {
       this.selectedElementArea = null;
       this.vm = { ...this.vm, selectedElement: null };
+      // Clear element selection in iframe
+      this.preview.selectElement(null);
       this.notify();
       return;
     }
@@ -405,6 +407,10 @@ export class UIBuilderPresenter {
       },
     };
     console.log('[UIBuilderPresenter] Updated viewModel.selectedElement:', this.vm.selectedElement);
+    
+    // Send element selection to iframe for visual highlighting
+    this.preview.selectElement(elementId);
+    
     this.notify();
   }
 
