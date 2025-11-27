@@ -10,18 +10,17 @@ export * from './domain/value-objects/filter-set.value-object';
 
 // Application
 export * from './application/ports/dashboard-repository.port';
-export * from './application/ports/sales-repository.port';
+export * from './application/ports/analytics-repository.port';
 export * from './application/use-cases/load-dashboard.use-case';
 
 // Infrastructure
 export * from './infrastructure/repositories/dashboard.repository';
-export * from './infrastructure/repositories/sales.repository';
+export * from './infrastructure/repositories/analytics.repository';
 export * from './infrastructure/bootstrap/realtime-dashboard.container';
 export * from './infrastructure/bootstrap/realtime-dashboard.types';
 
 // Interface Adapters
 export * from './interface-adapters/presenters/dashboard.presenter';
 export * from './interface-adapters/ui/DashboardView';
-export * from './interface-adapters/ui/SalesPanel';
 
 

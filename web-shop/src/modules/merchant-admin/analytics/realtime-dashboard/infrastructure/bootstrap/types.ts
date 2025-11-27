@@ -8,10 +8,7 @@ export const TYPES = {
   TrendCalculationService: Symbol.for('TrendCalculationService'),
 
   // Repositories
-  SalesRepository: Symbol.for('SalesRepository'),
-  RevenueRepository: Symbol.for('RevenueRepository'),
-  GeographyRepository: Symbol.for('GeographyRepository'),
-  ConversionRepository: Symbol.for('ConversionRepository'),
+  AnalyticsRepository: Symbol.for('AnalyticsRepository'),
   PaymentAnalyticsRepository: Symbol.for('PaymentAnalyticsRepository'),
   PlatformAnalyticsRepository: Symbol.for('PlatformAnalyticsRepository'),
   ProductAnalyticsRepository: Symbol.for('ProductAnalyticsRepository'),

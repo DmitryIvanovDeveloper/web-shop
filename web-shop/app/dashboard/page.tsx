@@ -21,10 +21,12 @@ export default function DashboardPage() {
   const [, force] = useState<number>(0);
 
   useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
     const resolveDeps = () => {
       const load = container.get<LoadDashboardUseCase>(TYPES.LoadDashboardUseCase);
-      const subscribe = container.get<SubscribeRealtimeUseCase>(TYPES.SubscribeRealtimeUseCase);
-      const unsubscribe = container.get<UnsubscribeRealtimeUseCase>(TYPES.UnsubscribeRealtimeUseCase);
+      const subscribeRealtime = container.get<SubscribeRealtimeUseCase>(TYPES.SubscribeRealtimeUseCase);
+      const unsubscribeRealtime = container.get<UnsubscribeRealtimeUseCase>(TYPES.UnsubscribeRealtimeUseCase);
       const applySettings = container.get<ApplySettingsUseCase>(TYPES.ApplySettingsUseCase);
       const resetSettings = container.get<ResetSettingsUseCase>(TYPES.ResetSettingsUseCase);
       const loadSettings = container.get<LoadSettingsUseCase>(TYPES.LoadSettingsUseCase);
@@ -34,8 +36,8 @@ export default function DashboardPage() {
       
       const p = new DashboardPresenter(
         load,
-        subscribe,
-        unsubscribe,
+        subscribeRealtime,
+        unsubscribeRealtime,
         applySettings,
         resetSettings,
         loadSettings,
@@ -43,9 +45,15 @@ export default function DashboardPage() {
         savePreset,
         loadRecentPurchases
       );
+
+      // Subscribe React component to presenter view-model updates
+      unsubscribe = p.subscribe(() => {
+        force((x) => x + 1);
+      });
+
       setPresenter(p);
-      p.loadDashboard('demo-user');
-      p.loadFilterPresets(); // Load presets on init
+      void p.loadDashboard('demo-user');
+      void p.loadFilterPresets(); // Load presets on init
       
       // Load filters from URL if present
       const params = new URLSearchParams(window.location.search);
@@ -59,6 +67,12 @@ export default function DashboardPage() {
     } catch (e) {
       console.error('Failed to resolve dependencies:', e);
     }
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
   const handleApplySettings = (settings: DashboardSettings) => {

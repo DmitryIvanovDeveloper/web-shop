@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { settingsRepository } from '../../infrastructure/repositories/settings.repository.mock';
-import { metricsSelectionRepository } from '../../infrastructure/repositories/metrics-selection.repository.mock';
-import { FilterApplier } from '../../infrastructure/utils/filter-applier';
+import { metricsSelectionRepository, type MetricsSelection } from '../../infrastructure/repositories/metrics-selection.repository.mock';
+import { FilterApplier, type Filters } from '../../infrastructure/utils/filter-applier';
 
 interface DashboardConfig {
-  settings: any | null;
+  settings: unknown | null;
   selectedMetrics: string[];
   visiblePanels: string[];
-  filters: any;
+  filters: Filters;
   isLoading: boolean;
 }
 
@@ -40,8 +40,7 @@ export function useDashboardConfig() {
           filters,
           isLoading: false,
         });
-      } catch (error) {
-        console.error('Failed to load dashboard config:', error);
+      } catch {
         setConfig(prev => ({ ...prev, isLoading: false }));
       }
     }
@@ -49,26 +48,36 @@ export function useDashboardConfig() {
     loadConfig();
   }, []);
 
-  const updateSettings = async (newSettings: any) => {
-    await settingsRepository.save(newSettings);
-    setConfig(prev => ({ ...prev, settings: newSettings }));
+  const updateSettings = async (newSettings: unknown) => {
+    if (newSettings instanceof Object) {
+      await settingsRepository.save(newSettings as never);
+      setConfig(prev => ({ ...prev, settings: newSettings }));
+    }
   };
 
   const updateMetrics = async (metrics: string[]) => {
     const current = metricsSelectionRepository.getCurrent();
-    const updated = { ...current, selectedMetrics: metrics };
-    await metricsSelectionRepository.save(updated as any);
+    const updated: MetricsSelection = {
+      selectedMetrics: metrics,
+      visiblePanels: current?.visiblePanels ?? [],
+      layout: current?.layout ?? 'default',
+    };
+    await metricsSelectionRepository.save(updated);
     setConfig(prev => ({ ...prev, selectedMetrics: metrics }));
   };
 
   const updatePanels = async (panels: string[]) => {
     const current = metricsSelectionRepository.getCurrent();
-    const updated = { ...current, visiblePanels: panels };
-    await metricsSelectionRepository.save(updated as any);
+    const updated: MetricsSelection = {
+      selectedMetrics: current?.selectedMetrics ?? [],
+      visiblePanels: panels,
+      layout: current?.layout ?? 'default',
+    };
+    await metricsSelectionRepository.save(updated);
     setConfig(prev => ({ ...prev, visiblePanels: panels }));
   };
 
-  const updateFilters = async (newFilters: any) => {
+  const updateFilters = async (newFilters: Filters) => {
     await FilterApplier.saveCurrentFilters(newFilters);
     setConfig(prev => ({ ...prev, filters: newFilters }));
   };

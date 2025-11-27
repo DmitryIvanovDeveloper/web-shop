@@ -14,6 +14,8 @@ import { FilterPreset } from '../../domain/entities/filter-preset.entity';
 import { TYPES } from '../../infrastructure/bootstrap/realtime-dashboard.types';
 import type { LoadRecentPurchasesUseCase } from '../../application/use-cases/load-recent-purchases.use-case';
 import type { PurchaseRow } from '../../application/ports/purchase-repository.port';
+import type { Logger } from '@/application/ports/logger.port';
+import { ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 
 export interface DashboardViewModel {
   dashboard: Dashboard | null;
@@ -30,7 +32,7 @@ export interface DashboardViewModel {
 
 @injectable()
 export class DashboardPresenter {
-  private viewModel: DashboardViewModel = {
+  private _viewModel: DashboardViewModel = {
     dashboard: null,
     isLoading: false,
     errorMessage: null,
@@ -43,203 +45,164 @@ export class DashboardPresenter {
     currentPresetId: undefined
   };
 
-  private onViewModelChanged: () => void = () => {}; // Default empty callback
-  private realtimeChannels = [
+  private readonly _subscribers = new Set<() => void>();
+  private _realtimeChannels = [
     'dashboard.sales',
     'dashboard.revenue',
     'dashboard.geography',
     'dashboard.conversion'
   ];
 
-  constructor(
+  public constructor(
     @inject(TYPES.LoadDashboardUseCase)
-    private readonly loadDashboardUseCase: LoadDashboardUseCase,
+    private readonly _loadDashboardUseCase: LoadDashboardUseCase,
     @inject(TYPES.SubscribeRealtimeUseCase)
-    private readonly subscribeRealtimeUseCase: SubscribeRealtimeUseCase,
+    private readonly _subscribeRealtimeUseCase: SubscribeRealtimeUseCase,
     @inject(TYPES.UnsubscribeRealtimeUseCase)
-    private readonly unsubscribeRealtimeUseCase: UnsubscribeRealtimeUseCase,
+    private readonly _unsubscribeRealtimeUseCase: UnsubscribeRealtimeUseCase,
     @inject(TYPES.ApplySettingsUseCase)
-    private readonly applySettingsUseCase: ApplySettingsUseCase,
+    private readonly _applySettingsUseCase: ApplySettingsUseCase,
     @inject(TYPES.ResetSettingsUseCase)
-    private readonly resetSettingsUseCase: ResetSettingsUseCase,
+    private readonly _resetSettingsUseCase: ResetSettingsUseCase,
     @inject(TYPES.LoadSettingsUseCase)
-    private readonly loadSettingsUseCase: LoadSettingsUseCase,
+    private readonly _loadSettingsUseCase: LoadSettingsUseCase,
     @inject(TYPES.LoadPresetsUseCase)
-    private readonly loadPresetsUseCase: LoadPresetsUseCase,
+    private readonly _loadPresetsUseCase: LoadPresetsUseCase,
     @inject(TYPES.SavePresetUseCase)
-    private readonly savePresetUseCase: SavePresetUseCase,
+    private readonly _savePresetUseCase: SavePresetUseCase,
     @inject(TYPES.LoadRecentPurchasesUseCase)
-    private readonly loadRecentPurchasesUseCase: LoadRecentPurchasesUseCase
+    private readonly _loadRecentPurchasesUseCase: LoadRecentPurchasesUseCase,
+    @inject(ROOT_TYPES.Logger)
+    private readonly logger: Logger
   ) {}
 
-  async loadDashboard(userId: string): Promise<void> {
-    this.viewModel.isLoading = true;
-    this.viewModel.errorMessage = null;
+  public subscribe(callback: () => void): () => void {
+    this._subscribers.add(callback);
+    return () => {
+      this._subscribers.delete(callback);
+    };
+  }
+
+  public async loadDashboard(userId: string): Promise<void> {
+    this._viewModel.isLoading = true;
+    this._viewModel.errorMessage = null;
     this.notifyViewModelChanged();
 
     try {
-      const dashboard = await this.loadDashboardUseCase.execute(userId);
-      this.viewModel.dashboard = dashboard;
+      const dashboard = await this._loadDashboardUseCase.execute(userId);
+      this._viewModel.dashboard = dashboard;
     } catch (error) {
-      this.viewModel.errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this._viewModel.errorMessage = error instanceof Error ? error.message : 'Unknown error';
     } finally {
-      this.viewModel.isLoading = false;
+      this._viewModel.isLoading = false;
       this.notifyViewModelChanged();
     }
   }
 
-  getViewModel(): DashboardViewModel {
-    return this.viewModel;
+  public getViewModel(): DashboardViewModel {
+    return this._viewModel;
   }
 
-  getIsLoading(): boolean {
-    return this.viewModel.isLoading;
+  public getIsLoading(): boolean {
+    return this._viewModel.isLoading;
   }
 
-  getErrorMessage(): string | null {
-    return this.viewModel.errorMessage;
+  public getErrorMessage(): string | null {
+    return this._viewModel.errorMessage;
   }
 
-  async enableRealtime(): Promise<void> {
-    if (this.viewModel.realtimeConnected) return;
+  public async enableRealtime(): Promise<void> {
+    if (this._viewModel.realtimeConnected) return;
 
     try {
-      await this.subscribeRealtimeUseCase.execute(
-        this.realtimeChannels,
+      await this._subscribeRealtimeUseCase.execute(
+        this._realtimeChannels,
         (channel, data) => this.handleRealtimeUpdate(channel, data)
       );
       
-      this.viewModel.realtimeConnected = true;
-      this.viewModel.realtimePaused = false;
+      this._viewModel.realtimeConnected = true;
+      this._viewModel.realtimePaused = false;
       this.notifyViewModelChanged();
     } catch (error) {
-      this.viewModel.errorMessage = 'Failed to connect to realtime updates';
+      this._viewModel.errorMessage = 'Failed to connect to realtime updates';
       this.notifyViewModelChanged();
     }
   }
 
-  async disableRealtime(): Promise<void> {
-    if (!this.viewModel.realtimeConnected) return;
+  public async disableRealtime(): Promise<void> {
+    if (!this._viewModel.realtimeConnected) return;
 
     try {
-      await this.unsubscribeRealtimeUseCase.execute(this.realtimeChannels);
-      this.viewModel.realtimeConnected = false;
+      await this._unsubscribeRealtimeUseCase.execute(this._realtimeChannels);
+      this._viewModel.realtimeConnected = false;
       this.notifyViewModelChanged();
     } catch (error) {
-      this.viewModel.errorMessage = 'Failed to disconnect from realtime updates';
+      this._viewModel.errorMessage = 'Failed to disconnect from realtime updates';
       this.notifyViewModelChanged();
     }
   }
 
-  pauseRealtime(): void {
-    this.viewModel.realtimePaused = true;
+  public pauseRealtime(): void {
+    this._viewModel.realtimePaused = true;
     this.notifyViewModelChanged();
   }
 
-  resumeRealtime(): void {
-    this.viewModel.realtimePaused = false;
+  public resumeRealtime(): void {
+    this._viewModel.realtimePaused = false;
     this.notifyViewModelChanged();
   }
 
-  private handleRealtimeUpdate(channel: string, data: any): void {
-    if (this.viewModel.realtimePaused || !this.viewModel.dashboard) return;
+  private handleRealtimeUpdate(channel: string, data: unknown): void {
+    if (this._viewModel.realtimePaused || !this._viewModel.dashboard) return;
 
     // Update dashboard based on channel
-    // For now, we'll just log the update
-    // In a real implementation, we'd update the specific panel data
-    console.log(`Realtime update on ${channel}:`, data);
+    // For now, we only emit a lightweight debug entry through LoggerPort
+    this.logger.debug?.('[DashboardPresenter] Realtime update received', {
+      channel,
+      hasData: data != null,
+    });
     
     // Notify view to re-render
     this.notifyViewModelChanged();
   }
 
   async loadSettings(userId: string, queryParams?: URLSearchParams): Promise<void> {
-    const settingsResult = this.loadSettingsUseCase.execute({ userId, queryParams });
-    if (settingsResult.isSuccess()) {
-      this.viewModel.settings = settingsResult.data!;
-      this.notifyViewModelChanged();
+    const settingsResult = this._loadSettingsUseCase.execute({ userId, queryParams });
+    if (!settingsResult.isSuccess()) {
+      return;
     }
-  }
 
-  applySettings(userId: string, settings: DashboardSettings): void {
-    const result = this.applySettingsUseCase.execute({ settings, userId });
-    if (result.isSuccess()) {
-      this.viewModel.settings = settings;
-      this.viewModel.settingsPreview = null;
-      
-      // Update URL with query params
-      if (typeof window !== 'undefined') {
-        const params = settings.toQueryParams();
-        const newUrl = `${window.location.pathname}?${params.toString()}`;
-        window.history.pushState({}, '', newUrl);
-      }
-      
-      this.notifyViewModelChanged();
-    }
-  }
-
-  resetSettings(userId: string): void {
-    const result = this.resetSettingsUseCase.execute({ userId });
-    if (result.isSuccess()) {
-      this.viewModel.settings = result.data!;
-      this.viewModel.settingsPreview = null;
-      
-      // Clear URL query params
-      if (typeof window !== 'undefined') {
-        window.history.pushState({}, '', window.location.pathname);
-      }
-      
-      this.notifyViewModelChanged();
-    }
-  }
-
-  previewSettings(settings: DashboardSettings): void {
-    this.viewModel.settingsPreview = settings;
+    this._viewModel.settings = settingsResult.data!;
     this.notifyViewModelChanged();
   }
 
-  async loadFilterPresets(): Promise<void> {
-    const presetsResult = await this.loadPresetsUseCase.execute();
-    if (presetsResult.isSuccess()) {
-      this.viewModel.filterPresets = presetsResult.data;
-      this.notifyViewModelChanged();
+  public applySettings(userId: string, settings: DashboardSettings): void {
+    const result = this._applySettingsUseCase.execute({ settings, userId });
+    if (!result.isSuccess()) {
+      return;
     }
-  }
 
-  async loadFilterPreset(presetId: string): Promise<void> {
-    const presetResult = await this.loadPresetsUseCase.executeById(presetId);
-    if (presetResult.isSuccess()) {
-      this.viewModel.filterSet = presetResult.data.filterSet;
-      this.viewModel.currentPresetId = presetId;
-      this.updateUrlWithFilters();
-      this.notifyViewModelChanged();
-    }
-  }
-
-  async saveFilterPreset(name: string): Promise<void> {
-    const result = await this.savePresetUseCase.execute({
-      name,
-      filterSet: this.viewModel.filterSet,
-    });
+    this._viewModel.settings = settings;
+    this._viewModel.settingsPreview = null;
     
-    if (result.isSuccess()) {
-      // Reload presets to include the new one
-      await this.loadFilterPresets();
-      this.viewModel.currentPresetId = result.data.id;
-      this.notifyViewModelChanged();
+    // Update URL with query params
+    if (typeof window !== 'undefined') {
+      const params = settings.toQueryParams();
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      window.history.pushState({}, '', newUrl);
     }
-  }
-
-  applyFilters(filterSet: FilterSet): void {
-    this.viewModel.filterSet = filterSet;
-    this.viewModel.currentPresetId = undefined; // Clear preset when manually changing filters
-    this.updateUrlWithFilters();
+    
     this.notifyViewModelChanged();
   }
 
-  resetFilters(): void {
-    this.viewModel.filterSet = FilterSet.createDefault();
-    this.viewModel.currentPresetId = undefined;
+  public resetSettings(userId: string): void {
+    const result = this._resetSettingsUseCase.execute({ userId });
+    if (!result.isSuccess()) {
+      return;
+    }
+
+    this._viewModel.settings = result.data!;
+    this._viewModel.settingsPreview = null;
     
     // Clear URL query params
     if (typeof window !== 'undefined') {
@@ -249,42 +212,113 @@ export class DashboardPresenter {
     this.notifyViewModelChanged();
   }
 
-  loadFiltersFromUrl(queryParams: URLSearchParams): void {
+  public previewSettings(settings: DashboardSettings): void {
+    this._viewModel.settingsPreview = settings;
+    this.notifyViewModelChanged();
+  }
+
+  public async loadFilterPresets(): Promise<void> {
+    const presetsResult = await this._loadPresetsUseCase.execute();
+    if (!presetsResult.isSuccess()) {
+      return;
+    }
+
+    this._viewModel.filterPresets = presetsResult.data;
+    this.notifyViewModelChanged();
+  }
+
+  public async loadFilterPreset(presetId: string): Promise<void> {
+    const presetResult = await this._loadPresetsUseCase.executeById(presetId);
+    if (!presetResult.isSuccess()) {
+      return;
+    }
+
+    this._viewModel.filterSet = presetResult.data.filterSet;
+    this._viewModel.currentPresetId = presetId;
+    this.updateUrlWithFilters();
+    this.notifyViewModelChanged();
+  }
+
+  public async saveFilterPreset(name: string): Promise<void> {
+    const result = await this._savePresetUseCase.execute({
+      name,
+      filterSet: this._viewModel.filterSet,
+    });
+    
+    if (!result.isSuccess()) {
+      return;
+    }
+
+    // Reload presets to include the new one
+    await this.loadFilterPresets();
+    this._viewModel.currentPresetId = result.data.id;
+    this.notifyViewModelChanged();
+  }
+
+  public applyFilters(filterSet: FilterSet): void {
+    this._viewModel.filterSet = filterSet;
+    this._viewModel.currentPresetId = undefined; // Clear preset when manually changing filters
+    this.updateUrlWithFilters();
+    this.notifyViewModelChanged();
+  }
+
+  public resetFilters(): void {
+    this._viewModel.filterSet = FilterSet.createDefault();
+    this._viewModel.currentPresetId = undefined;
+    
+    // Clear URL query params
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', window.location.pathname);
+    }
+    
+    this.notifyViewModelChanged();
+  }
+
+  public loadFiltersFromUrl(queryParams: URLSearchParams): void {
     const filterSetResult = FilterSet.fromQueryParams(Object.fromEntries(queryParams));
     
-    if (filterSetResult.isSuccess()) {
-      this.viewModel.filterSet = filterSetResult.data!;
-      
-      // Check if this matches a preset
-      const presetId = queryParams.get('preset');
-      if (presetId) {
-        this.viewModel.currentPresetId = presetId;
-      }
-      
-      this.notifyViewModelChanged();
+    if (!filterSetResult.isSuccess()) {
+      return;
     }
+
+    this._viewModel.filterSet = filterSetResult.data!;
+    
+    // Check if this matches a preset
+    const presetId = queryParams.get('preset');
+    if (presetId) {
+      this._viewModel.currentPresetId = presetId;
+    }
+    
+    this.notifyViewModelChanged();
   }
 
   private updateUrlWithFilters(): void {
     if (typeof window !== 'undefined') {
-      const params = this.viewModel.filterSet.toQueryParams();
+      const params = this._viewModel.filterSet.toQueryParams();
       const searchParams = new URLSearchParams(params);
       const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
       window.history.pushState({}, '', newUrl);
     }
   }
 
-  async getRecentPurchases(limit: number = 50): Promise<PurchaseRow[]> {
+  public async getRecentPurchases(limit: number = 50): Promise<PurchaseRow[]> {
     try {
-      return await this.loadRecentPurchasesUseCase.execute(limit);
+      return await this._loadRecentPurchasesUseCase.execute(limit);
     } catch (error) {
-      console.error('Failed to load recent purchases:', error);
+      this.logger.error('[DashboardPresenter] Failed to load recent purchases', error as Error);
       return [];
     }
   }
 
   private notifyViewModelChanged(): void {
-    // No-op for now - we're not using reactive updates
-    // this.onViewModelChanged();
+    this._subscribers.forEach((callback) => {
+      try {
+        callback();
+      } catch (error) {
+        // Swallow subscriber errors to avoid breaking presenter logic
+        this.logger.error('[DashboardPresenter] Error in subscriber callback', error as Error);
+      }
+    });
   }
 }
+

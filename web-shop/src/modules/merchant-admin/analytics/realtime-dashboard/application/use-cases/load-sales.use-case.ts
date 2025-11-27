@@ -2,14 +2,14 @@ import { inject, injectable } from 'inversify';
 import { Result } from '../../../../../../shared/domain/result/result';
 import { Period, DashboardFilters, DataUnavailableError } from '../../domain';
 import { SalesSummary } from '../../domain/entities/sales-summary.entity';
-import type { SalesRepositoryPort } from '../ports/sales-repository.port';
+import type { AnalyticsRepositoryPort } from '../ports/analytics-repository.port';
 import { PeriodComparisonService } from '../../infrastructure/services/period-comparison.service';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 
 @injectable()
 export class LoadSalesUseCase {
   constructor(
-    @inject(TYPES.SalesRepository) private salesRepository: SalesRepositoryPort,
+    @inject(TYPES.AnalyticsRepository) private analyticsRepository: AnalyticsRepositoryPort,
     @inject(TYPES.PeriodComparisonService) private periodComparisonService: PeriodComparisonService
   ) {}
 
@@ -17,7 +17,7 @@ export class LoadSalesUseCase {
     try {
       // Получаем данные о продажах за текущий период
       // Repository уже возвращает SalesSummary с comparison данными из API
-      const salesSummary = await this.salesRepository.getSalesSummary();
+      const salesSummary = await this.analyticsRepository.getSalesSummary();
       return Result.ok(salesSummary);
 
     } catch (error) {

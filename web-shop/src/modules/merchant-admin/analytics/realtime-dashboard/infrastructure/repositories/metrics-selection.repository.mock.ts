@@ -1,11 +1,21 @@
-interface MetricsSelection {
+export interface MetricsSelection {
   selectedMetrics: string[];
   visiblePanels: string[];
   layout: string;
 }
 
+import type { Logger } from '../../../../../../application/ports/logger.port';
+import { ROOT_TYPES } from '../../../../../../infrastructure/bootstrap/types';
+import { inject, injectable } from 'inversify';
+
+@injectable()
 export class MetricsSelectionRepositoryMock {
   private selection: MetricsSelection | null = null;
+
+  constructor(
+    @inject(ROOT_TYPES.Logger)
+    private readonly logger: Logger
+  ) {}
 
   async load(): Promise<MetricsSelection | null> {
     try {
@@ -17,7 +27,7 @@ export class MetricsSelectionRepositoryMock {
       this.selection = data as MetricsSelection;
       return this.selection;
     } catch (error) {
-      console.error('Failed to load metrics selection:', error);
+      this.logger.error('[MetricsSelectionRepositoryMock] Failed to load metrics selection', error as Error);
       return null;
     }
   }
@@ -26,7 +36,6 @@ export class MetricsSelectionRepositoryMock {
     // In real app, this would POST to API
     // For now, just store in memory
     this.selection = selection;
-    console.log('Metrics selection saved (simulated):', selection);
   }
 
   async loadCatalog(): Promise<any> {
@@ -34,7 +43,7 @@ export class MetricsSelectionRepositoryMock {
       const response = await fetch('/mocks/api/metrics/catalog.json');
       return await response.json();
     } catch (error) {
-      console.error('Failed to load metrics catalog:', error);
+      this.logger.error('[MetricsSelectionRepositoryMock] Failed to load metrics catalog', error as Error);
       return { categories: [] };
     }
   }

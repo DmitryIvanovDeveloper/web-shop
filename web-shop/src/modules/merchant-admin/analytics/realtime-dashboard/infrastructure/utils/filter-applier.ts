@@ -7,7 +7,7 @@ interface DateRange {
   end: string;
 }
 
-interface Filters {
+export interface Filters {
   dateRange?: DateRange;
   geography?: {
     countries?: string[];
@@ -216,9 +216,8 @@ export class FilterApplier {
    * Save current filters to mock JSON (simulated - in real app would call API)
    */
   static async saveCurrentFilters(filters: Filters): Promise<void> {
-    console.log('Filters saved (simulated):', filters);
-    // In real app, this would make a POST request to save filters
-    // For now, we just log them
+    // In real app, this would make a POST request to save filters.
+    // For now this is a no-op in production code.
   }
 }
 

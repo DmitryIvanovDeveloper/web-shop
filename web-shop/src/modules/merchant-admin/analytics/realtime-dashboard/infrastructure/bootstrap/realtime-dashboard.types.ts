@@ -2,16 +2,7 @@
 export const TYPES = {
   // Repositories
   DashboardRepository: Symbol.for('DashboardRepository'),
-  SalesRepository: Symbol.for('SalesRepository'),
-  RevenueRepository: Symbol.for('RevenueRepository'),
-  GeographyRepository: Symbol.for('GeographyRepository'),
-  ConversionRepository: Symbol.for('ConversionRepository'),
-  RetentionRepository: Symbol.for('RetentionRepository'),
-  CohortRepository: Symbol.for('CohortRepository'),
-  PaymentMethodsRepository: Symbol.for('PaymentMethodsRepository'),
-  TransactionsRepository: Symbol.for('TransactionsRepository'),
-  RefundsRepository: Symbol.for('RefundsRepository'),
-  MarketingChannelsRepository: Symbol.for('MarketingChannelsRepository'),
+  AnalyticsRepository: Symbol.for('AnalyticsRepository'),
   FilterPresetRepository: Symbol.for('FilterPresetRepository'),
   PurchaseRepository: Symbol.for('PurchaseRepository'),
   
