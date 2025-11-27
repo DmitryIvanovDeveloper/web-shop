@@ -2,7 +2,7 @@ import { Container } from 'inversify';
 import { OFFER_TYPES } from './offers.types';
 import { OfferScenarioApiRepository } from '../repositories/offer-scenario-api.repository';
 import { OfferRuleEngineApiRepository } from '../repositories/offer-rule-engine-api.repository';
-import { ProductSupabaseRepository } from '../repositories/product-supabase.repository';
+import { OffersProductsApiRepository } from '../repositories/offers-products-api.repository';
 import {
   LoadOfferScenariosUseCase,
   SyncOfferRuleTreeUseCase,
@@ -31,11 +31,11 @@ export function bindMerchantAdminOffers(container: Container): void {
     .to(OfferRuleEngineApiRepository)
     .inSingletonScope();
 
-  container.bind(ProductSupabaseRepository).toSelf().inSingletonScope();
+  container.bind(OffersProductsApiRepository).toSelf().inSingletonScope();
 
   container
     .bind<ProductQueryServicePort>(OFFER_TYPES.ProductQueryService)
-    .toService(ProductSupabaseRepository);
+    .toService(OffersProductsApiRepository);
 
   container
     .bind<LoadOfferScenariosUseCase>(OFFER_TYPES.LoadOfferScenariosUseCase)

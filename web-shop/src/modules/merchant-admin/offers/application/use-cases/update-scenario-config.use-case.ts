@@ -20,15 +20,15 @@ export interface UpdateScenarioConfigOutput {
 export class UpdateScenarioConfigUseCase {
   public constructor(
     @inject(OFFER_TYPES.OfferScenarioQueryService)
-    private readonly queryService: OfferScenarioQueryServicePort,
+    private readonly _queryService: OfferScenarioQueryServicePort,
     @inject(OFFER_TYPES.OfferScenarioCommandService)
-    private readonly commandService: OfferScenarioCommandServicePort
+    private readonly _commandService: OfferScenarioCommandServicePort
   ) {}
 
   public async execute(
     input: UpdateScenarioConfigInput
   ): Promise<Result<UpdateScenarioConfigOutput, Error>> {
-    const scenarioResult = await this.queryService.loadScenario(input.appId, input.slug);
+    const scenarioResult = await this._queryService.loadScenario(input.appId, input.slug);
     if (scenarioResult.isFailure()) {
       return Result.error(scenarioResult.error!);
     }
@@ -38,7 +38,7 @@ export class UpdateScenarioConfigUseCase {
       return Result.error(updatedScenarioResult.error);
     }
 
-    const saveResult = await this.commandService.saveScenario(input.appId, updatedScenarioResult.data!);
+    const saveResult = await this._commandService.saveScenario(input.appId, updatedScenarioResult.data!);
     if (saveResult.isFailure()) {
       return Result.error(saveResult.error!);
     }

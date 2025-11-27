@@ -15,11 +15,11 @@ export interface LoadProductsOutput {
 export class LoadProductsUseCase {
   public constructor(
     @inject(OFFER_TYPES.ProductQueryService)
-    private readonly productQueryService: ProductQueryServicePort
+    private readonly _productQueryService: ProductQueryServicePort
   ) {}
 
   public async execute(input: LoadProductsInput): Promise<Result<LoadProductsOutput, Error>> {
-    const productsResult = await this.productQueryService.loadProducts(input.appId);
+    const productsResult = await this._productQueryService.loadProducts(input.appId);
     if (productsResult.isFailure()) {
       return Result.error(productsResult.error!);
     }

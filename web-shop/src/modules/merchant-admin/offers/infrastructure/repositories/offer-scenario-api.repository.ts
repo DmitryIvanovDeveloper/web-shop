@@ -34,12 +34,12 @@ export class OfferScenarioApiRepository
 {
   public constructor(
     @inject(ROOT_TYPES.HttpClient)
-    private readonly httpClient: HttpClient
+    private readonly _httpClient: HttpClient
   ) {}
 
   public async loadScenarios(appId: string): Promise<Result<readonly OfferScenario[], Error>> {
     try {
-      const response = await this.httpClient.get<ListOfferScenariosResponse>(
+      const response = await this._httpClient.get<ListOfferScenariosResponse>(
         `${API_BASE}/scenarios?appId=${encodeURIComponent(appId)}`
       );
 
@@ -95,7 +95,7 @@ export class OfferScenarioApiRepository
         scenario: mapScenarioToDto(scenario),
       };
 
-      const response = await this.httpClient.put<{ success: boolean }>(`${API_BASE}/scenarios`, payload);
+      const response = await this._httpClient.put<{ success: boolean }>(`${API_BASE}/scenarios`, payload);
 
       if (response.status !== 200) {
         return Result.error(new Error(`Failed to save scenario (status ${response.status})`));

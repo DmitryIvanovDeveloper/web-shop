@@ -112,118 +112,118 @@ export class OffersPresenter {
     ruleTreeTitle: 'Rule Tree preview',
   };
 
-  private appId: string | null = null;
-  private scenarios: OfferScenario[] = [];
-  private ruleTree: OfferRuleTree | null = null;
-  private viewModel: OffersPageViewModel = initialOffersPageViewModel;
-  private readonly listeners = new Set<() => void>();
-  private isPublishing = false;
+  private _appId: string | null = null;
+  private _scenarios: OfferScenario[] = [];
+  private _ruleTree: OfferRuleTree | null = null;
+  private _viewModel: OffersPageViewModel = initialOffersPageViewModel;
+  private readonly _listeners = new Set<() => void>();
+  private _isPublishing = false;
 
   public constructor(
     @inject(OFFER_TYPES.LoadOfferScenariosUseCase)
-    private readonly loadOfferScenariosUseCase: LoadOfferScenariosUseCase,
+    private readonly _loadOfferScenariosUseCase: LoadOfferScenariosUseCase,
     @inject(OFFER_TYPES.UpdateScenarioConfigUseCase)
-    private readonly updateScenarioConfigUseCase: UpdateScenarioConfigUseCase,
+    private readonly _updateScenarioConfigUseCase: UpdateScenarioConfigUseCase,
     @inject(OFFER_TYPES.SyncOfferRuleTreeUseCase)
-    private readonly syncOfferRuleTreeUseCase: SyncOfferRuleTreeUseCase,
+    private readonly _syncOfferRuleTreeUseCase: SyncOfferRuleTreeUseCase,
     @inject(OFFER_TYPES.LoadProductsUseCase)
-    private readonly loadProductsUseCase: LoadProductsUseCase,
+    private readonly _loadProductsUseCase: LoadProductsUseCase,
     @inject(ROOT_TYPES.Logger)
-    private readonly logger: Logger
+    private readonly _logger: Logger
   ) {}
 
   public getViewModel(): OffersPageViewModel {
-    return this.viewModel;
+    return this._viewModel;
   }
 
   public subscribe(listener: () => void): () => void {
-    this.listeners.add(listener);
+    this._listeners.add(listener);
     return () => {
-      this.listeners.delete(listener);
+      this._listeners.delete(listener);
     };
   }
 
   public async init(appId: string): Promise<void> {
-    this.appId = appId;
-    this.setViewModel({
-      ...this.viewModel,
+    this._appId = appId;
+    this._setViewModel({
+      ...this._viewModel,
       isLoading: true,
       errorMessage: null,
     });
 
-    this.logger.info('[OffersPresenter] Initializing with appId:', appId);
-    const result = await this.safeLoadScenarios(appId, true);
+    this._logger.info('[OffersPresenter] Initializing with appId:', appId);
+    const result = await this._safeLoadScenarios(appId, true);
     if (result.isFailure()) {
-      this.logger.error('[OffersPresenter] Failed to load scenarios', { error: result.error });
-      this.setViewModel({
+      this._logger.error('[OffersPresenter] Failed to load scenarios', { error: result.error });
+      this._setViewModel({
         ...initialOffersPageViewModel,
         errorMessage: this.labels.errorState,
       });
       return;
     }
 
-    this.logger.info('[OffersPresenter] Loaded scenarios and rule tree:', {
+    this._logger.info('[OffersPresenter] Loaded scenarios and rule tree:', {
       scenariosCount: result.data!.scenarios.length,
       hasRuleTree: !!result.data!.ruleTree,
       ruleTreeVersion: result.data!.ruleTree?.version,
     });
 
-    this.applyLoadResult(result.data!);
+    this._applyLoadResult(result.data!);
   }
 
   public selectScenario(slug: string): void {
-    const scenario = this.scenarios.find((item) => item.slug === slug);
+    const scenario = this._scenarios.find((item) => item.slug === slug);
     if (!scenario) {
       return;
     }
-    this.setViewModel({
-      ...this.viewModel,
-      selectedScenario: this.toDetailViewModel(scenario),
+    this._setViewModel({
+      ...this._viewModel,
+      selectedScenario: this._toDetailViewModel(scenario),
     });
   }
 
   public async refresh(): Promise<void> {
-    if (!this.appId) {
+    if (!this._appId) {
       return;
     }
 
-    this.setViewModel({ ...this.viewModel, isLoading: true, errorMessage: null });
+    this._setViewModel({ ...this._viewModel, isLoading: true, errorMessage: null });
 
-    const result = await this.safeLoadScenarios(this.appId, true);
+    const result = await this._safeLoadScenarios(this._appId, true);
     if (result.isFailure()) {
-      this.logger.error('[OffersPresenter] Refresh failed', { error: result.error });
-      this.setViewModel({
-        ...this.viewModel,
+      this._logger.error('[OffersPresenter] Refresh failed', { error: result.error });
+      this._setViewModel({
+        ...this._viewModel,
         isLoading: false,
         errorMessage: this.labels.errorState,
       });
       return;
     }
 
-    this.applyLoadResult(result.data!);
+    this._applyLoadResult(result.data!);
   }
 
   public async updateScenarioConfiguration(
     slug: string,
     configuration: OfferScenarioConfigurationProps
   ): Promise<void> {
-    if (!this.appId) {
+    if (!this._appId) {
       return;
     }
 
     // Find current scenario in memory to preserve any in-memory updates
-    const currentScenario = this.scenarios.find((s) => s.slug === slug);
+    const currentScenario = this._scenarios.find((s) => s.slug === slug);
     
-    const result = await this.updateScenarioConfigUseCase.execute({
-      appId: this.appId,
+    const result = await this._updateScenarioConfigUseCase.execute({
+      appId: this._appId,
       slug,
       configuration,
     });
 
     if (result.isFailure()) {
-      this.logger.error('[OffersPresenter] Scenario update failed', { error: result.error });
-      this.setViewModel({
-        ...this.viewModel,
+      this._logger.error('[OffersPresenter] Scenario update failed', { error: result.error });
+      this._setViewModel({
+        ...this._viewModel,
         errorMessage: result.error?.message ?? 'Update failed',
       });
       return;
@@ -233,38 +233,38 @@ export class OffersPresenter {
     
     // Use the updated scenario from the use case, which already has the new configuration applied
     // The use case applies the configuration via withConfiguration, so it should be up-to-date
-    this.scenarios = this.scenarios.map((scenario) =>
+    this._scenarios = this._scenarios.map((scenario) =>
       scenario.slug === updatedScenario.slug ? updatedScenario : scenario
     );
 
     // Only update viewModel if the selected scenario is the one we just updated
     // This prevents flickering when updating a different scenario
-    const shouldUpdateViewModel = this.viewModel.selectedScenario?.slug === slug;
+    const shouldUpdateViewModel = this._viewModel.selectedScenario?.slug === slug;
     
     if (shouldUpdateViewModel) {
-      this.setViewModel({
-        ...this.viewModel,
-        categories: this.buildCategoryGroups(),
-        selectedScenario: this.toDetailViewModel(updatedScenario),
+      this._setViewModel({
+        ...this._viewModel,
+        categories: this._buildCategoryGroups(),
+        selectedScenario: this._toDetailViewModel(updatedScenario),
         errorMessage: null,
       });
     }
   }
 
   public async loadProducts(): Promise<Product[]> {
-    this.setViewModel({
-      ...this.viewModel,
+    this._setViewModel({
+      ...this._viewModel,
       isLoadingProducts: true,
     });
 
-    const result = await this.loadProductsUseCase.execute({
+    const result = await this._loadProductsUseCase.execute({
       appId: 'APP123',
     });
 
     if (result.isFailure()) {
-      this.logger.error('[OffersPresenter] Failed to load products', { error: result.error });
-      this.setViewModel({
-        ...this.viewModel,
+      this._logger.error('[OffersPresenter] Failed to load products', { error: result.error });
+      this._setViewModel({
+        ...this._viewModel,
         isLoadingProducts: false,
         products: [],
       });
@@ -272,8 +272,8 @@ export class OffersPresenter {
     }
 
     const products = [...(result.data!.products ?? [])];
-    this.setViewModel({
-      ...this.viewModel,
+    this._setViewModel({
+      ...this._viewModel,
       isLoadingProducts: false,
       products,
     });
@@ -302,20 +302,20 @@ export class OffersPresenter {
   }
 
   public async updateScenarioProducts(slug: string, triggerCode: string, productIds: string[]): Promise<void> {
-    if (!this.appId) {
+    if (!this._appId) {
       return;
     }
 
     // Load current scenario
-    const scenario = this.scenarios.find((s) => s.slug === slug);
+    const scenario = this._scenarios.find((s) => s.slug === slug);
     if (!scenario) {
-      this.logger.error('[OffersPresenter] Scenario not found', { slug });
+      this._logger.error('[OffersPresenter] Scenario not found', { slug });
       return;
     }
 
     // Only allow updating condition that matches scenario's triggerCode
     if (triggerCode !== scenario.trigger.code) {
-      this.logger.warn('[OffersPresenter] Cannot update condition that does not match scenario triggerCode', {
+      this._logger.warn('[OffersPresenter] Cannot update condition that does not match scenario triggerCode', {
         slug,
         scenarioTriggerCode: scenario.trigger.code,
         requestedTriggerCode: triggerCode,
@@ -324,7 +324,7 @@ export class OffersPresenter {
     }
 
     // Get current products from viewModel
-    const allProducts = this.viewModel.products;
+    const allProducts = this._viewModel.products;
 
     // Get current configuration to preserve existing discounts
     const currentConfig = scenario.configuration.toProps();
@@ -377,7 +377,7 @@ export class OffersPresenter {
       // Update existing condition
       // Allow empty arrays - user should be able to uncheck all products
       conditions[existingConditionIndex] = {
-        triggerCode: triggerCode as any,
+        triggerCode,
         offerIds: productIds, // Always use the provided productIds, even if empty
         items: items, // Always use the provided items, even if empty
       };
@@ -385,7 +385,7 @@ export class OffersPresenter {
       // Add new condition (should only happen if triggerCode matches scenario.trigger.code)
       // Allow empty arrays - user should be able to create a condition with no products
       conditions.push({
-        triggerCode: triggerCode as any,
+        triggerCode,
         offerIds: productIds,
         items,
       });
@@ -410,7 +410,7 @@ export class OffersPresenter {
     const interimScenarioResult = scenario.withConfiguration(updatedConfiguration);
     if (interimScenarioResult.isFailure()) {
       const errorMessage = interimScenarioResult.error?.message ?? 'Unknown error';
-      this.logger.error('[OffersPresenter] Interim scenario update failed', {
+      this._logger.error('[OffersPresenter] Interim scenario update failed', {
         error: errorMessage,
         errorType: interimScenarioResult.error?.constructor?.name,
         slug,
@@ -425,15 +425,17 @@ export class OffersPresenter {
     }
 
     const interimScenario = interimScenarioResult.data!;
-    this.scenarios = this.scenarios.map((s) => (s.slug === slug ? interimScenario : s));
+    this._scenarios = this._scenarios.map((scenario: OfferScenario) =>
+      scenario.slug === slug ? interimScenario : scenario
+    );
     
     // Optimistic update: immediately update viewModel only if this is the selected scenario
     // This ensures UI responds instantly to user interaction without causing flickering
-    if (this.viewModel.selectedScenario?.slug === slug) {
-      this.setViewModel({
-        ...this.viewModel,
-        categories: this.buildCategoryGroups(),
-        selectedScenario: this.toDetailViewModel(interimScenario),
+    if (this._viewModel.selectedScenario?.slug === slug) {
+      this._setViewModel({
+        ...this._viewModel,
+        categories: this._buildCategoryGroups(),
+        selectedScenario: this._toDetailViewModel(interimScenario),
         errorMessage: null,
       });
     }
@@ -444,20 +446,20 @@ export class OffersPresenter {
   }
 
   public async updateProductDiscount(slug: string, triggerCode: string, productId: string, discount: string): Promise<void> {
-    if (!this.appId) {
+    if (!this._appId) {
       return;
     }
 
     // Load current scenario
-    const scenario = this.scenarios.find((s) => s.slug === slug);
+    const scenario = this._scenarios.find((s) => s.slug === slug);
     if (!scenario) {
-      this.logger.error('[OffersPresenter] Scenario not found', { slug });
+      this._logger.error('[OffersPresenter] Scenario not found', { slug });
       return;
     }
 
     // Only allow updating condition that matches scenario's triggerCode
     if (triggerCode !== scenario.trigger.code) {
-      this.logger.warn('[OffersPresenter] Cannot update condition that does not match scenario triggerCode', {
+      this._logger.warn('[OffersPresenter] Cannot update condition that does not match scenario triggerCode', {
         slug,
         scenarioTriggerCode: scenario.trigger.code,
         requestedTriggerCode: triggerCode,
@@ -474,11 +476,11 @@ export class OffersPresenter {
       : [];
     
     const existingConditionIndex = conditions.findIndex((c) => c.triggerCode === triggerCode);
-    const allProducts = this.viewModel.products;
+    const allProducts = this._viewModel.products;
     const product = allProducts.find((p) => p.id === productId);
     
     if (!product) {
-      this.logger.error('[OffersPresenter] Product not found', { productId });
+      this._logger.error('[OffersPresenter] Product not found', { productId });
       return;
     }
 
@@ -522,7 +524,7 @@ export class OffersPresenter {
       }
 
       conditions[existingConditionIndex] = {
-        triggerCode: triggerCode as any,
+        triggerCode,
         offerIds: existingCondition.offerIds,
         items: conditionItems,
       };
@@ -540,7 +542,7 @@ export class OffersPresenter {
         },
       ];
       conditions.push({
-        triggerCode: triggerCode as any,
+        triggerCode,
         offerIds: [productId],
         items: conditionItems,
       });
@@ -556,7 +558,7 @@ export class OffersPresenter {
     const interimScenarioResult = scenario.withConfiguration(updatedConfiguration);
     if (interimScenarioResult.isFailure()) {
       const errorMessage = interimScenarioResult.error?.message ?? 'Unknown error';
-      this.logger.error('[OffersPresenter] Failed to update product discount', {
+      this._logger.error('[OffersPresenter] Failed to update product discount', {
         error: errorMessage,
         slug,
         productId,
@@ -565,7 +567,9 @@ export class OffersPresenter {
     }
 
     const interimScenario = interimScenarioResult.data!;
-    this.scenarios = this.scenarios.map((s) => (s.slug === slug ? interimScenario : s));
+    this._scenarios = this._scenarios.map((scenario: OfferScenario) =>
+      scenario.slug === slug ? interimScenario : scenario
+    );
     
     // Don't do optimistic update for discount changes - let API response update the viewModel
     // This prevents flickering in the discount input field
@@ -574,70 +578,68 @@ export class OffersPresenter {
   }
 
   public async publishRuleTree(): Promise<void> {
-    if (!this.appId) {
+    if (!this._appId) {
       return;
     }
 
     // Prevent concurrent publish operations
-    if (this.isPublishing) {
-      this.logger.warn('[OffersPresenter] Publish already in progress, skipping duplicate request');
+    if (this._isPublishing) {
+      this._logger.warn('[OffersPresenter] Publish already in progress, skipping duplicate request');
       return;
     }
 
-    this.isPublishing = true;
+    this._isPublishing = true;
     try {
-      const result = await this.syncOfferRuleTreeUseCase.execute({
-        appId: this.appId,
-      });
+      const result = await this._syncOfferRuleTreeUseCase.execute({ appId: this._appId });
 
       if (result.isFailure()) {
-        this.logger.error('[OffersPresenter] Rule tree publish failed', { error: result.error });
-        this.setViewModel({
-          ...this.viewModel,
+        this._logger.error('[OffersPresenter] Rule tree publish failed', { error: result.error });
+        this._setViewModel({
+          ...this._viewModel,
           errorMessage: result.error?.message ?? 'Publish failed',
         });
         return;
       }
 
-      this.ruleTree = result.data!.ruleTree;
+      this._ruleTree = result.data!.ruleTree;
       
       // Try to stringify, but handle case when rule tree is too large
       let ruleTreeJson: string;
       try {
-        ruleTreeJson = JSON.stringify(this.ruleTree, null, 2);
+        ruleTreeJson = JSON.stringify(this._ruleTree, null, 2);
       } catch (error) {
         // If stringify fails, estimate size using a safer method
         let sizeEstimate = 0;
         try {
           // Try compact JSON for size estimation
-          const compact = JSON.stringify(this.ruleTree);
+          const compact = JSON.stringify(this._ruleTree);
           sizeEstimate = compact.length;
         } catch {
           // If even compact fails, use a rough estimate based on structure
-          sizeEstimate = this.ruleTree.scenarios.length * 1000; // Rough estimate per scenario
+          sizeEstimate = this._ruleTree.scenarios.length * 1000; // Rough estimate per scenario
         }
         
-        this.logger.warn('[OffersPresenter] Rule tree too large to stringify', {
+        this._logger.warn('[OffersPresenter] Rule tree too large to stringify', {
           error: error instanceof Error ? error.message : String(error),
           estimatedSize: `${(sizeEstimate / 1024 / 1024).toFixed(2)} MB`,
-          scenariosCount: this.ruleTree.scenarios.length,
+          scenariosCount: this._ruleTree.scenarios.length,
         });
-        ruleTreeJson = `// Rule tree is too large to display (estimated ${(sizeEstimate / 1024 / 1024).toFixed(2)} MB, ${this.ruleTree.scenarios.length} scenarios). Check server logs for details.`;
+        ruleTreeJson = `// Rule tree is too large to display (estimated ${(sizeEstimate / 1024 / 1024).toFixed(2)} MB, ${this._ruleTree.scenarios.length} scenarios). Check server logs for details.`;
       }
       
-      this.setViewModel({
-        ...this.viewModel,
+      this._setViewModel({
+        ...this._viewModel,
         errorMessage: null,
-        lastUpdatedAt: this.ruleTree.generatedAt,
+        lastUpdatedAt: this._ruleTree.generatedAt,
         ruleTreeJson,
       });
     } finally {
-      this.isPublishing = false;
+      this._isPublishing = false;
     }
   }
 
-  private async safeLoadScenarios(appId: string, includeRuleTree: boolean): Promise<Result<LoadResult, Error>> {
-    const loadResult = await this.loadOfferScenariosUseCase.execute({
+  private async _safeLoadScenarios(appId: string, includeRuleTree: boolean): Promise<Result<LoadResult, Error>> {
+    const loadResult = await this._loadOfferScenariosUseCase.execute({
       appId,
       includeRuleTree,
     });
@@ -651,74 +653,74 @@ export class OffersPresenter {
     });
   }
 
-  private applyLoadResult(result: LoadResult): void {
-    this.scenarios = [...result.scenarios];
-    this.ruleTree = result.ruleTree;
+  private _applyLoadResult(result: LoadResult): void {
+    this._scenarios = [...result.scenarios];
+    this._ruleTree = result.ruleTree;
 
-    this.logger.info('[OffersPresenter] Applying load result:', {
-      scenariosCount: this.scenarios.length,
-      hasRuleTree: !!this.ruleTree,
-      ruleTreeScenariosCount: this.ruleTree?.scenarios.length ?? 0,
+    this._logger.info('[OffersPresenter] Applying load result:', {
+      scenariosCount: this._scenarios.length,
+      hasRuleTree: !!this._ruleTree,
+      ruleTreeScenariosCount: this._ruleTree?.scenarios.length ?? 0,
     });
 
-    const categories = this.buildCategoryGroups();
+    const categories = this._buildCategoryGroups();
     const selectedScenario =
-      this.viewModel.selectedScenario &&
-      this.scenarios.some((scenario) => scenario.slug === this.viewModel.selectedScenario?.slug)
-        ? this.toDetailViewModel(
-            this.scenarios.find((scenario) => scenario.slug === this.viewModel.selectedScenario?.slug)!
+      this._viewModel.selectedScenario &&
+      this._scenarios.some((scenario) => scenario.slug === this._viewModel.selectedScenario?.slug)
+        ? this._toDetailViewModel(
+            this._scenarios.find((scenario) => scenario.slug === this._viewModel.selectedScenario?.slug)!
           )
-        : this.scenarios.length > 0
-          ? this.toDetailViewModel(this.scenarios[0])
+        : this._scenarios.length > 0
+          ? this._toDetailViewModel(this._scenarios[0])
           : null;
 
     // Format rule tree JSON for display
     let ruleTreeJson: string | null = null;
-    if (this.ruleTree) {
+    if (this._ruleTree) {
       try {
-        ruleTreeJson = JSON.stringify(this.ruleTree, null, 2);
-        this.logger.info('[OffersPresenter] Rule tree JSON formatted successfully:', {
+        ruleTreeJson = JSON.stringify(this._ruleTree, null, 2);
+        this._logger.info('[OffersPresenter] Rule tree JSON formatted successfully:', {
           jsonLength: ruleTreeJson.length,
-          scenariosCount: this.ruleTree.scenarios.length,
+          scenariosCount: this._ruleTree.scenarios.length,
         });
       } catch (error) {
         // If stringify fails, estimate size using a safer method
         let sizeEstimate = 0;
         try {
-          const compact = JSON.stringify(this.ruleTree);
+          const compact = JSON.stringify(this._ruleTree);
           sizeEstimate = compact.length;
         } catch {
-          sizeEstimate = this.ruleTree.scenarios.length * 1000; // Rough estimate
+          sizeEstimate = this._ruleTree.scenarios.length * 1000; // Rough estimate
         }
-        this.logger.warn('[OffersPresenter] Rule tree too large to stringify', {
+        this._logger.warn('[OffersPresenter] Rule tree too large to stringify', {
           estimatedSize: `${(sizeEstimate / 1024 / 1024).toFixed(2)} MB`,
-          scenariosCount: this.ruleTree.scenarios.length,
+          scenariosCount: this._ruleTree.scenarios.length,
         });
-        ruleTreeJson = `// Rule tree is too large to display (estimated ${(sizeEstimate / 1024 / 1024).toFixed(2)} MB, ${this.ruleTree.scenarios.length} scenarios). Check server logs for details.`;
+        ruleTreeJson = `// Rule tree is too large to display (estimated ${(sizeEstimate / 1024 / 1024).toFixed(2)} MB, ${this._ruleTree.scenarios.length} scenarios). Check server logs for details.`;
       }
     } else {
-      this.logger.info('[OffersPresenter] No rule tree found, showing placeholder');
+      this._logger.info('[OffersPresenter] No rule tree found, showing placeholder');
       ruleTreeJson = '// Rule tree not yet published';
     }
 
-    this.setViewModel({
-      ...this.viewModel,
+    this._setViewModel({
+      ...this._viewModel,
       isLoading: false,
       errorMessage: null,
-      totalScenarios: this.scenarios.length,
+      totalScenarios: this._scenarios.length,
       categories,
       selectedScenario,
-      lastUpdatedAt: this.ruleTree?.generatedAt ?? null,
+      lastUpdatedAt: this._ruleTree?.generatedAt ?? null,
       ruleTreeJson,
     });
   }
 
-  private buildCategoryGroups(): OfferCategoryGroupViewModel[] {
+  private _buildCategoryGroups(): OfferCategoryGroupViewModel[] {
     const grouped = new Map<string, OfferCategoryGroupViewModel>();
 
-    for (const scenario of this.scenarios) {
+    for (const scenario of this._scenarios) {
       const existing = grouped.get(scenario.category.code);
-      const listItem = this.toListItemViewModel(scenario);
+      const listItem = this._toListItemViewModel(scenario);
 
       if (existing) {
         grouped.set(scenario.category.code, {
@@ -741,7 +743,7 @@ export class OffersPresenter {
     }));
   }
 
-  private toListItemViewModel(scenario: OfferScenario): OfferScenarioListItemViewModel {
+  private _toListItemViewModel(scenario: OfferScenario): OfferScenarioListItemViewModel {
     return {
       slug: scenario.slug,
       title: scenario.title,
@@ -757,8 +759,8 @@ export class OffersPresenter {
     };
   }
 
-  private toDetailViewModel(scenario: OfferScenario): OfferScenarioDetailViewModel {
-    const listItem = this.toListItemViewModel(scenario);
+  private _toDetailViewModel(scenario: OfferScenario): OfferScenarioDetailViewModel {
+    const listItem = this._toListItemViewModel(scenario);
     const configurationProps = scenario.configuration.toProps();
 
     return {
@@ -827,17 +829,17 @@ export class OffersPresenter {
     };
   }
 
-  private setViewModel(viewModel: OffersPageViewModel): void {
-    this.viewModel = viewModel;
-    this.notifyListeners();
+  private _setViewModel(viewModel: OffersPageViewModel): void {
+    this._viewModel = viewModel;
+    this._notifyListeners();
   }
 
-  private notifyListeners(): void {
-    this.listeners.forEach((listener) => {
+  private _notifyListeners(): void {
+    this._listeners.forEach((listener) => {
       try {
         listener();
       } catch (error) {
-        this.logger.error('[OffersPresenter] Listener execution failed', { error });
+        this._logger.error('[OffersPresenter] Listener execution failed', { error });
       }
     });
   }

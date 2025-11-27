@@ -1,5 +1,5 @@
 /**
- * Use Case: Загрузка списка продуктов
+ * Use Case: Load products list for a given app.
  */
 
 import { inject, injectable } from 'inversify';

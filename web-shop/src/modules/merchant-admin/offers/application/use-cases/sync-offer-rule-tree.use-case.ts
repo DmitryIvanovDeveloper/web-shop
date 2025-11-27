@@ -20,15 +20,15 @@ export interface SyncOfferRuleTreeOutput {
 export class SyncOfferRuleTreeUseCase {
   public constructor(
     @inject(OFFER_TYPES.OfferScenarioQueryService)
-    private readonly queryService: OfferScenarioQueryServicePort,
+    private readonly _queryService: OfferScenarioQueryServicePort,
     @inject(OFFER_TYPES.OfferRuleEngineRepository)
-    private readonly ruleRepository: OfferRuleEngineRepositoryPort
+    private readonly _ruleRepository: OfferRuleEngineRepositoryPort
   ) {}
 
   public async execute(
     input: SyncOfferRuleTreeInput
   ): Promise<Result<SyncOfferRuleTreeOutput, Error>> {
-    const scenariosResult = await this.queryService.loadScenarios(input.appId);
+    const scenariosResult = await this._queryService.loadScenarios(input.appId);
     if (scenariosResult.isFailure()) {
       return Result.error(scenariosResult.error!);
     }
@@ -49,7 +49,7 @@ export class SyncOfferRuleTreeUseCase {
       overrides,
     });
 
-    const saveResult = await this.ruleRepository.saveRuleTree(ruleTree);
+    const saveResult = await this._ruleRepository.saveRuleTree(ruleTree);
     if (saveResult.isFailure()) {
       return Result.error(saveResult.error!);
     }

@@ -24,9 +24,9 @@ type ViewModelUpdateCallback = () => void;
 
 @injectable()
 export class ProductsPresenter {
-  private viewModel: ProductsPageViewModel = initialProductsPageViewModel;
-  private subscribers: Set<ViewModelUpdateCallback> = new Set();
-  private appId: string | null = null;
+  private _viewModel: ProductsPageViewModel = initialProductsPageViewModel;
+  private _subscribers: Set<ViewModelUpdateCallback> = new Set();
+  private _appId: string | null = null;
 
   public readonly labels = {
     pageTitle: 'Products Management',
@@ -54,90 +54,90 @@ export class ProductsPresenter {
 
   public constructor(
     @inject(PRODUCT_TYPES.CreateProductUseCase)
-    private readonly createProductUseCase: CreateProductUseCase,
+    private readonly _createProductUseCase: CreateProductUseCase,
     @inject(PRODUCT_TYPES.UpdateProductUseCase)
-    private readonly updateProductUseCase: UpdateProductUseCase,
+    private readonly _updateProductUseCase: UpdateProductUseCase,
     @inject(PRODUCT_TYPES.DeleteProductUseCase)
-    private readonly deleteProductUseCase: DeleteProductUseCase,
+    private readonly _deleteProductUseCase: DeleteProductUseCase,
     @inject(PRODUCT_TYPES.LoadProductsUseCase)
-    private readonly loadProductsUseCase: LoadProductsUseCase,
+    private readonly _loadProductsUseCase: LoadProductsUseCase,
     @inject(PRODUCT_TYPES.UploadProductImageUseCase)
-    private readonly uploadProductImageUseCase: UploadProductImageUseCase,
+    private readonly _uploadProductImageUseCase: UploadProductImageUseCase,
     @inject(ROOT_TYPES.Logger)
-    private readonly logger: Logger
+    private readonly _logger: Logger
   ) {}
 
   public subscribe(callback: ViewModelUpdateCallback): () => void {
-    this.subscribers.add(callback);
+    this._subscribers.add(callback);
     return () => {
-      this.subscribers.delete(callback);
+      this._subscribers.delete(callback);
     };
   }
 
-  private notifySubscribers(): void {
-    this.subscribers.forEach((callback) => callback());
+  private _notifySubscribers(): void {
+    this._subscribers.forEach((callback) => callback());
   }
 
   public getViewModel(): ProductsPageViewModel {
-    return this.viewModel;
+    return this._viewModel;
   }
 
   public async init(appId: string): Promise<void> {
-    this.appId = appId;
+    this._appId = appId;
     await this.loadProducts();
   }
 
   public async loadProducts(): Promise<void> {
-    if (!this.appId) {
-      this.logger.error('[ProductsPresenter] Cannot load products: appId is not set');
+    if (!this._appId) {
+      this._logger.error('[ProductsPresenter] Cannot load products: appId is not set');
       return;
     }
 
-    this.viewModel = {
-      ...this.viewModel,
+    this._viewModel = {
+      ...this._viewModel,
       isLoading: true,
       errorMessage: null,
     };
-    this.notifySubscribers();
+    this._notifySubscribers();
 
-    const result = await this.loadProductsUseCase.execute({ appId: this.appId });
+    const result = await this._loadProductsUseCase.execute({ appId: this._appId });
     if (result.isFailure()) {
-      this.logger.error('[ProductsPresenter] Failed to load products', { error: result.error });
-      this.viewModel = {
-        ...this.viewModel,
+      this._logger.error('[ProductsPresenter] Failed to load products', { error: result.error });
+      this._viewModel = {
+        ...this._viewModel,
         isLoading: false,
         errorMessage: result.error?.message ?? 'Failed to load products',
       };
-      this.notifySubscribers();
+      this._notifySubscribers();
       return;
     }
 
     const products = result.data?.products ?? [];
-    this.viewModel = {
-      ...this.viewModel,
+    this._viewModel = {
+      ...this._viewModel,
       isLoading: false,
       products: products.map(mapProductToListItem),
       errorMessage: null,
     };
-    this.notifySubscribers();
+    this._notifySubscribers();
   }
 
   public async createProduct(productData: Omit<ProductFormViewModel, 'id'>): Promise<void> {
-    if (!this.appId) {
-      this.logger.error('[ProductsPresenter] Cannot create product: appId is not set');
+    if (!this._appId) {
+      this._logger.error('[ProductsPresenter] Cannot create product: appId is not set');
       return;
     }
 
-    this.viewModel = {
-      ...this.viewModel,
+    this._viewModel = {
+      ...this._viewModel,
       isSaving: true,
       errorMessage: null,
     };
-    this.notifySubscribers();
+    this._notifySubscribers();
 
-    const result = await this.createProductUseCase.execute({
+    const result = await this._createProductUseCase.execute({
       title: productData.title,
-      appid: this.appId,
+      appid: this._appId,
       main_image: productData.main_image,
       background_image: productData.background_image,
       rarity: productData.rarity,
@@ -150,13 +150,13 @@ export class ProductsPresenter {
     });
 
     if (result.isFailure()) {
-      this.logger.error('[ProductsPresenter] Failed to create product', { error: result.error });
-      this.viewModel = {
-        ...this.viewModel,
+      this._logger.error('[ProductsPresenter] Failed to create product', { error: result.error });
+      this._viewModel = {
+        ...this._viewModel,
         isSaving: false,
         errorMessage: result.error?.message ?? 'Failed to create product',
       };
-      this.notifySubscribers();
+      this._notifySubscribers();
       return;
     }
 
@@ -164,36 +164,36 @@ export class ProductsPresenter {
     await this.loadProducts();
 
     // Close form
-    this.viewModel = {
-      ...this.viewModel,
+    this._viewModel = {
+      ...this._viewModel,
       isSaving: false,
       selectedProduct: null,
       isCreating: false,
     };
-    this.notifySubscribers();
+    this._notifySubscribers();
   }
 
   public async updateProduct(id: string, productData: Omit<ProductFormViewModel, 'id' | 'appid'>): Promise<void> {
-    if (!this.appId) {
-      this.logger.error('[ProductsPresenter] Cannot update product: appId is not set');
+    if (!this._appId) {
+      this._logger.error('[ProductsPresenter] Cannot update product: appId is not set');
       return;
     }
 
-    this.viewModel = {
-      ...this.viewModel,
+    this._viewModel = {
+      ...this._viewModel,
       isSaving: true,
       errorMessage: null,
     };
-    this.notifySubscribers();
+    this._notifySubscribers();
 
-    this.logger.info('[ProductsPresenter] Updating product', {
+    this._logger.info('[ProductsPresenter] Updating product', {
       id,
       main_image: productData.main_image ? (productData.main_image.startsWith('http') ? 'URL' : 'base64/data') : 'null',
     });
 
-    const result = await this.updateProductUseCase.execute({
+    const result = await this._updateProductUseCase.execute({
       id,
-      appId: this.appId,
+      appId: this._appId,
       title: productData.title,
       main_image: productData.main_image,
       background_image: productData.background_image,
@@ -207,70 +207,70 @@ export class ProductsPresenter {
     });
 
     if (result.isFailure()) {
-      this.logger.error('[ProductsPresenter] Failed to update product', { error: result.error });
-      this.viewModel = {
-        ...this.viewModel,
+      this._logger.error('[ProductsPresenter] Failed to update product', { error: result.error });
+      this._viewModel = {
+        ...this._viewModel,
         isSaving: false,
         errorMessage: result.error?.message ?? 'Failed to update product',
       };
-      this.notifySubscribers();
+      this._notifySubscribers();
       return;
     }
 
     // Update product in local view model without reloading the whole list
     if (!result.data) {
-      this.logger.error('[ProductsPresenter] Update succeeded but no data returned');
-      this.viewModel = {
-        ...this.viewModel,
+      this._logger.error('[ProductsPresenter] Update succeeded but no data returned');
+      this._viewModel = {
+        ...this._viewModel,
         isSaving: false,
         errorMessage: 'Update succeeded but no data returned',
       };
-      this.notifySubscribers();
+      this._notifySubscribers();
       return;
     }
 
     const updatedProduct = result.data.product;
     const updatedListItem = mapProductToListItem(updatedProduct);
 
-    this.viewModel = {
-      ...this.viewModel,
+    this._viewModel = {
+      ...this._viewModel,
       isSaving: false,
-      products: this.viewModel.products.map((p) =>
+      products: this._viewModel.products.map((p) =>
         p.id === updatedListItem.id ? updatedListItem : p
       ),
       errorMessage: null,
       selectedProduct: null,
       isEditing: false,
     };
-    this.notifySubscribers();
+    this._notifySubscribers();
   }
 
   public async deleteProduct(id: string): Promise<void> {
-    if (!this.appId) {
-      this.logger.error('[ProductsPresenter] Cannot delete product: appId is not set');
+    if (!this._appId) {
+      this._logger.error('[ProductsPresenter] Cannot delete product: appId is not set');
       return;
     }
 
-    this.viewModel = {
-      ...this.viewModel,
+    this._viewModel = {
+      ...this._viewModel,
       isLoading: true,
       errorMessage: null,
     };
-    this.notifySubscribers();
+    this._notifySubscribers();
 
-    const result = await this.deleteProductUseCase.execute({
+    const result = await this._deleteProductUseCase.execute({
       id,
-      appId: this.appId,
+      appId: this._appId,
     });
 
     if (result.isFailure()) {
-      this.logger.error('[ProductsPresenter] Failed to delete product', { error: result.error });
-      this.viewModel = {
-        ...this.viewModel,
+      this._logger.error('[ProductsPresenter] Failed to delete product', { error: result.error });
+      this._viewModel = {
+        ...this._viewModel,
         isLoading: false,
         errorMessage: result.error?.message ?? 'Failed to delete product',
       };
-      this.notifySubscribers();
+      this._notifySubscribers();
       return;
     }
 
@@ -279,12 +279,12 @@ export class ProductsPresenter {
   }
 
   public startCreating(): void {
-    this.viewModel = {
-      ...this.viewModel,
+    this._viewModel = {
+      ...this._viewModel,
       isSaving: false,
       selectedProduct: {
         title: '',
-        appid: this.appId,
+        appid: this._appId,
         main_image: null,
         background_image: null,
         rarity: null,
@@ -298,12 +298,12 @@ export class ProductsPresenter {
       isCreating: true,
       isEditing: false,
     };
-    this.notifySubscribers();
+    this._notifySubscribers();
   }
 
   public startEditing(product: ProductListItemViewModel): void {
-    this.viewModel = {
-      ...this.viewModel,
+    this._viewModel = {
+      ...this._viewModel,
       isSaving: false,
       selectedProduct: {
         id: product.id,
@@ -322,37 +322,37 @@ export class ProductsPresenter {
       isCreating: false,
       isEditing: true,
     };
-    this.notifySubscribers();
+    this._notifySubscribers();
   }
 
   public cancelForm(): void {
-    this.viewModel = {
-      ...this.viewModel,
+    this._viewModel = {
+      ...this._viewModel,
       isSaving: false,
       selectedProduct: null,
       isCreating: false,
       isEditing: false,
     };
-    this.notifySubscribers();
+    this._notifySubscribers();
   }
 
   public async uploadProductImage(file: File): Promise<Result<string, Error>> {
-    this.logger.info('[ProductsPresenter] Starting image upload', {
+    this._logger.info('[ProductsPresenter] Starting image upload', {
       fileName: file.name,
       fileSize: file.size,
     });
 
-    const result = await this.uploadProductImageUseCase.execute({ file });
+    const result = await this._uploadProductImageUseCase.execute({ file });
 
     if (result.isFailure()) {
-      this.logger.error('[ProductsPresenter] Failed to upload image', {
+      this._logger.error('[ProductsPresenter] Failed to upload image', {
         error: result.error,
         fileName: file.name,
       });
       return Result.error(result.error!);
     }
 
-    this.logger.info('[ProductsPresenter] Image uploaded successfully', {
+    this._logger.info('[ProductsPresenter] Image uploaded successfully', {
       url: result.data!.url,
     });
 

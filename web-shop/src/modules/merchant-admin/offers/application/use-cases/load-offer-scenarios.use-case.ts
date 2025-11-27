@@ -20,15 +20,15 @@ export interface LoadOfferScenariosOutput {
 export class LoadOfferScenariosUseCase {
   public constructor(
     @inject(OFFER_TYPES.OfferScenarioQueryService)
-    private readonly queryService: OfferScenarioQueryServicePort,
+    private readonly _queryService: OfferScenarioQueryServicePort,
     @inject(OFFER_TYPES.OfferRuleEngineRepository)
-    private readonly ruleRepository: OfferRuleEngineRepositoryPort
+    private readonly _ruleRepository: OfferRuleEngineRepositoryPort
   ) {}
 
   public async execute(
     input: LoadOfferScenariosInput
   ): Promise<Result<LoadOfferScenariosOutput, Error>> {
-    const scenariosResult = await this.queryService.loadScenarios(input.appId);
+    const scenariosResult = await this._queryService.loadScenarios(input.appId);
     if (scenariosResult.isFailure()) {
       return Result.error(scenariosResult.error!);
     }
@@ -36,7 +36,7 @@ export class LoadOfferScenariosUseCase {
     let ruleTree: OfferRuleTree | null = null;
 
     if (input.includeRuleTree) {
-      const ruleTreeResult = await this.ruleRepository.loadRuleTree(input.appId);
+      const ruleTreeResult = await this._ruleRepository.loadRuleTree(input.appId);
       if (ruleTreeResult.isFailure()) {
         return Result.error(ruleTreeResult.error!);
       }

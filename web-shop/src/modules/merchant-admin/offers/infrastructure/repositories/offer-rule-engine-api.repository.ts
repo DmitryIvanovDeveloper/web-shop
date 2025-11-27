@@ -12,12 +12,12 @@ const API_URL = '/api/merchant-admin/offers/publish';
 export class OfferRuleEngineApiRepository implements OfferRuleEngineRepositoryPort {
   public constructor(
     @inject(ROOT_TYPES.HttpClient)
-    private readonly httpClient: HttpClient
+    private readonly _httpClient: HttpClient
   ) {}
 
   public async loadRuleTree(appId: string): Promise<Result<OfferRuleTree | null, Error>> {
     try {
-      const response = await this.httpClient.get<{ ruleTree: OfferRuleTree | null }>(
+      const response = await this._httpClient.get<{ ruleTree: OfferRuleTree | null }>(
         `/api/merchant-admin/offers/rules?appId=${encodeURIComponent(appId)}`
       );
 
@@ -34,7 +34,7 @@ export class OfferRuleEngineApiRepository implements OfferRuleEngineRepositoryPo
 
   public async saveRuleTree(tree: OfferRuleTree): Promise<Result<void, Error>> {
     try {
-      const response = await this.httpClient.post<PublishRuleTreeResponse>(API_URL, {
+      const response = await this._httpClient.post<PublishRuleTreeResponse>(API_URL, {
         appId: tree.appId,
         ruleTree: tree,
       });
