@@ -1,8 +1,10 @@
 import { injectable, inject } from 'inversify';
 import { PAYMENT_TYPES } from '../../infrastructure/bootstrap/types';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
+import { PROMO_CODE_TYPES } from '../../../promo-code/infrastructure/bootstrap/types';
 import { CreatePaymentIntentUseCase } from '../../application/use-cases/create-payment-intent.use-case';
 import { ConfirmPaymentUseCase } from '../../application/use-cases/confirm-payment.use-case';
+import { ValidatePromoCodeUseCase } from '../../../promo-code/application/use-cases/validate-promo-code.use-case';
 import { PaymentViewModel, PaymentViewModelFactory } from '../view-models/payment.view-model';
 import type { Logger } from '../../../../application/ports/logger.port';
 import { PaymentElementsContext } from '../../application/ports/payment-service.port';
@@ -28,7 +30,9 @@ export class PaymentPresenter {
     @inject(PAYMENT_TYPES.CreatePaymentIntentUseCase)
     private readonly _createPaymentIntentUseCase: CreatePaymentIntentUseCase,
     @inject(PAYMENT_TYPES.ConfirmPaymentUseCase)
-    private readonly _confirmPaymentUseCase: ConfirmPaymentUseCase
+    private readonly _confirmPaymentUseCase: ConfirmPaymentUseCase,
+    @inject(PROMO_CODE_TYPES.ValidatePromoCodeUseCase)
+    private readonly _validatePromoCodeUseCase: ValidatePromoCodeUseCase
   ) {}
 
   /**
@@ -117,19 +121,27 @@ export class PaymentPresenter {
 
     // Update view model with product information
     this._viewModel = PaymentViewModelFactory.withProduct(productSnapshot);
+    // Ensure originalPrice and finalPrice are set correctly
+    this._viewModel.originalPrice = productSnapshot.price;
+    this._viewModel.finalPrice = productSnapshot.price;
     this._viewModel.status = 'loading';
 
     try {
+      // Use finalPrice (with promo code discount if applied)
+      const amountToCharge = this._viewModel.finalPrice || productSnapshot.price;
+
       // Create payment intent
       this._logger.info('[PaymentPresenter] Creating payment intent', {
         productId: productSnapshot.id,
-        amount: productSnapshot.price,
-        currency: productSnapshot.currency
+        originalAmount: productSnapshot.price,
+        finalAmount: amountToCharge,
+        currency: productSnapshot.currency,
+        hasPromoCode: !!this._viewModel.promoCode
       });
 
       const result = await this._createPaymentIntentUseCase.execute({
         productId: productSnapshot.id,
-        amount: productSnapshot.price,
+        amount: amountToCharge,
         currency: productSnapshot.currency,
         metadata: {
           userId: this._userId!,
@@ -310,6 +322,150 @@ export class PaymentPresenter {
       this._logger.error('[PaymentPresenter] Unexpected error confirming payment', {
         error,
         intentId: this._viewModel.paymentIntent.intentId
+      });
+    }
+  }
+
+  /**
+   * Handle promo code entered
+   */
+  public async onPromoCodeEntered(code: string): Promise<void> {
+    this._logger.info('[PaymentPresenter] Promo code entered', { code });
+
+    if (!this._viewModel.product) {
+      this._logger.warn('[PaymentPresenter] Cannot apply promo code: no product selected');
+      return;
+    }
+
+    if (!this._appId) {
+      this._logger.warn('[PaymentPresenter] Cannot apply promo code: no appId');
+      return;
+    }
+
+    // Set validating state
+    this._viewModel.isValidatingPromoCode = true;
+    this._viewModel.promoCodeError = null;
+    this.notifyViewModelChange();
+
+    try {
+      const result = await this._validatePromoCodeUseCase.execute({
+        code: code.trim(),
+        appId: this._appId,
+        userId: this._userId,
+        orderAmount: this._viewModel.originalPrice || this._viewModel.product.price,
+        currency: this._viewModel.product.currency
+      });
+
+      if (isFailure(result)) {
+        this._viewModel.promoCodeError = result.error.message;
+        this._viewModel.isValidatingPromoCode = false;
+        this.notifyViewModelChange();
+        return;
+      }
+
+      // Apply discount
+      const appliedDiscount = result.data;
+      this._viewModel.promoCode = {
+        code: appliedDiscount.promoCode.code,
+        discount: appliedDiscount.discountAmount,
+        discountType: appliedDiscount.promoCode.discountType
+      };
+      this._viewModel.originalPrice = this._viewModel.product.price;
+      this._viewModel.finalPrice = appliedDiscount.finalAmount;
+      this._viewModel.isValidatingPromoCode = false;
+      this._viewModel.promoCodeError = null;
+
+      this._logger.info('[PaymentPresenter] Promo code applied successfully', {
+        code,
+        discountAmount: appliedDiscount.discountAmount,
+        finalPrice: appliedDiscount.finalAmount
+      });
+
+      // Recreate payment intent with new amount
+      if (this._viewModel.paymentIntent) {
+        await this._recreatePaymentIntent();
+      }
+
+      this.notifyViewModelChange();
+    } catch (error) {
+      this._logger.error('[PaymentPresenter] Error validating promo code', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        code
+      });
+      this._viewModel.promoCodeError = error instanceof Error ? error.message : 'Failed to validate promo code';
+      this._viewModel.isValidatingPromoCode = false;
+      this.notifyViewModelChange();
+    }
+  }
+
+  /**
+   * Handle promo code removed
+   */
+  public async onPromoCodeRemoved(): Promise<void> {
+    this._logger.info('[PaymentPresenter] Promo code removed');
+
+    if (!this._viewModel.product) {
+      return;
+    }
+
+    // Reset promo code state
+    this._viewModel.promoCode = null;
+    this._viewModel.originalPrice = this._viewModel.product.price;
+    this._viewModel.finalPrice = this._viewModel.product.price;
+    this._viewModel.promoCodeError = null;
+
+    // Recreate payment intent with original amount
+    if (this._viewModel.paymentIntent) {
+      await this._recreatePaymentIntent();
+    }
+
+    this.notifyViewModelChange();
+  }
+
+  /**
+   * Recreate payment intent with current final price
+   */
+  private async _recreatePaymentIntent(): Promise<void> {
+    if (!this._viewModel.product) {
+      return;
+    }
+
+    this._logger.info('[PaymentPresenter] Recreating payment intent', {
+      productId: this._viewModel.product.id,
+      amount: this._viewModel.finalPrice
+    });
+
+    try {
+      const result = await this._createPaymentIntentUseCase.execute({
+        productId: this._viewModel.product.id,
+        amount: this._viewModel.finalPrice,
+        currency: this._viewModel.product.currency,
+        metadata: {
+          userId: this._userId!,
+          appId: this._appId!,
+          productId: this._viewModel.product.id
+        }
+      });
+
+      if (isFailure(result)) {
+        this._logger.error('[PaymentPresenter] Failed to recreate payment intent', {
+          error: result.error
+        });
+        return;
+      }
+
+      this._viewModel.paymentIntent = {
+        intentId: result.data.intentId,
+        clientSecret: result.data.clientSecret,
+        status: result.data.status
+      };
+
+      this._logger.info('[PaymentPresenter] Payment intent recreated successfully', {
+        intentId: result.data.intentId
+      });
+    } catch (error) {
+      this._logger.error('[PaymentPresenter] Error recreating payment intent', {
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   }

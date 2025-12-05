@@ -173,8 +173,8 @@ export class DashboardPresenter {
     }
 
     this._viewModel.settings = settingsResult.data!;
-    this.notifyViewModelChanged();
-  }
+      this.notifyViewModelChanged();
+    }
 
   public applySettings(userId: string, settings: DashboardSettings): void {
     const result = this._applySettingsUseCase.execute({ settings, userId });
@@ -184,16 +184,16 @@ export class DashboardPresenter {
 
     this._viewModel.settings = settings;
     this._viewModel.settingsPreview = null;
-    
-    // Update URL with query params
-    if (typeof window !== 'undefined') {
-      const params = settings.toQueryParams();
-      const newUrl = `${window.location.pathname}?${params.toString()}`;
-      window.history.pushState({}, '', newUrl);
+      
+      // Update URL with query params
+      if (typeof window !== 'undefined') {
+        const params = settings.toQueryParams();
+        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        window.history.pushState({}, '', newUrl);
+      }
+      
+      this.notifyViewModelChanged();
     }
-    
-    this.notifyViewModelChanged();
-  }
 
   public resetSettings(userId: string): void {
     const result = this._resetSettingsUseCase.execute({ userId });
@@ -203,14 +203,14 @@ export class DashboardPresenter {
 
     this._viewModel.settings = result.data!;
     this._viewModel.settingsPreview = null;
-    
-    // Clear URL query params
-    if (typeof window !== 'undefined') {
-      window.history.pushState({}, '', window.location.pathname);
+      
+      // Clear URL query params
+      if (typeof window !== 'undefined') {
+        window.history.pushState({}, '', window.location.pathname);
+      }
+      
+      this.notifyViewModelChanged();
     }
-    
-    this.notifyViewModelChanged();
-  }
 
   public previewSettings(settings: DashboardSettings): void {
     this._viewModel.settingsPreview = settings;
@@ -235,8 +235,8 @@ export class DashboardPresenter {
 
     this._viewModel.filterSet = presetResult.data.filterSet;
     this._viewModel.currentPresetId = presetId;
-    this.updateUrlWithFilters();
-    this.notifyViewModelChanged();
+      this.updateUrlWithFilters();
+      this.notifyViewModelChanged();
   }
 
   public async saveFilterPreset(name: string): Promise<void> {
@@ -249,11 +249,11 @@ export class DashboardPresenter {
       return;
     }
 
-    // Reload presets to include the new one
-    await this.loadFilterPresets();
+      // Reload presets to include the new one
+      await this.loadFilterPresets();
     this._viewModel.currentPresetId = result.data.id;
-    this.notifyViewModelChanged();
-  }
+      this.notifyViewModelChanged();
+    }
 
   public applyFilters(filterSet: FilterSet): void {
     this._viewModel.filterSet = filterSet;
@@ -282,14 +282,14 @@ export class DashboardPresenter {
     }
 
     this._viewModel.filterSet = filterSetResult.data!;
-    
-    // Check if this matches a preset
-    const presetId = queryParams.get('preset');
-    if (presetId) {
+      
+      // Check if this matches a preset
+      const presetId = queryParams.get('preset');
+      if (presetId) {
       this._viewModel.currentPresetId = presetId;
-    }
-    
-    this.notifyViewModelChanged();
+      }
+      
+      this.notifyViewModelChanged();
   }
 
   private updateUrlWithFilters(): void {

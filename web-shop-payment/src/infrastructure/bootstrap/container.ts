@@ -10,6 +10,7 @@ import { HttpClientMock } from '../http/http-client.mock';
 import { HttpClientMode, resolveHttpClientMode, TYPES } from './types';
 import { ConsoleLogger } from '../logging/console-logger';
 import { bindPayments } from '../../modules/payments/infrastructure/bootstrap/bind.payments';
+import { bindPromoCode } from '../../modules/promo-code/infrastructure/bootstrap/bind.promo-code';
 
 // Create Inversify container
 const container = new Container();
@@ -29,5 +30,8 @@ container.bind<EventBusPort>(TYPES.EventBus).to(EventBus).inSingletonScope();
 
 // Register Payments module
 bindPayments(container);
+
+// Register Promo Code module
+bindPromoCode(container);
 
 export { container };

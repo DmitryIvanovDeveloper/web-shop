@@ -235,6 +235,149 @@ All tables live in the **`public`** schema. There are **no foreign-key constrain
 
 ---
 
+## Merchant‑Admin: Promo Codes Module (logical model)
+
+This section describes the **logical data model** for the future Merchant‑Admin "promo codes" module.  
+It is a design reference for future migrations and implementation – tables may evolve, but the core
+concepts and invariants should stay stable.
+
+### Domain concepts
+
+- **PromoCampaign / Affiliate**
+  - A logical grouping for promo codes owned by an **influencer, partner or internal campaign**.
+  - Examples: `"influencer-123"`, `"twitch-partner-42"`, `"summer_sale_2026"`.
+  - Used for reporting and aggregation (usage, revenue, AOV per campaign/affiliate).
+
+- **PromoCode**
+  - A concrete code that users can enter at checkout (e.g. `"IVANOV10"`, `"STREAMER_X_15"`).
+  - Belongs to an app (`app_id`) and may optionally belong to a campaign/affiliate.
+  - Encodes a **discount rule** and restrictions (time window, limits).
+
+- **PromoUsage**
+  - A logical record of a successful promo code application.
+  - Links promo code / campaign / affiliate to a concrete **payment / order**.
+  - Used primarily for analytics (how many times a code was used, how much revenue it generated).
+
+#### PromoCode invariants (business rules)
+
+- **Uniqueness**
+  - `code` is unique **per app** (case‑insensitive match at validation time).
+- **Validity window**
+  - `start_at` / `end_at` define when the code can be used.
+  - Before `start_at` → code is considered **not yet active**.
+  - After `end_at` (or if `end_at` is in the past) → code is considered **expired**.
+- **Activation flag**
+  - `is_active` controls whether the merchant/admin allows the code to be used at all.
+  - Expired codes are effectively inactive even if `is_active = true`.
+- **Limits**
+  - Global limit: `max_redemptions` – maximum number of total uses across all users.
+  - Per‑user limit: `max_redemptions_per_user` – how many times a single user can use the code.
+  - Optional per‑campaign limit: total allowed redemptions across all codes in the same campaign.
+- **Discount types (v1)**
+  - Percentage discount: `discount_type = 'percent'`, `discount_value` in range `(0, 100]`.
+  - Fixed‑amount discount: `discount_type = 'fixed_amount'`, `discount_value` in base currency of the app.
+  - Optional free‑shipping flag can be added later as a separate boolean or discount type.
+- **Compatibility**
+  - v1 assumes **one promo code per order** (no stacking).
+  - A boolean flag `is_exclusive` can be used to express future stacking/priority rules; in v1 it is always treated as exclusive.
+
+---
+
+### Table: `promo_campaigns`
+
+- **Purpose**: Grouping of promo codes by influencer, partner or internal campaign.
+- **Columns**:
+  - `id uuid PK`
+  - `app_id text` – app/merchant application ID.
+  - `slug text` – short identifier (e.g. `"streamer_x"`, `"summer_2026"`).
+  - `name text` – human‑readable name.
+  - `description text` (nullable)
+  - `owner_type text` – `influencer`, `partner`, `internal` (enum at the application level).
+  - `owner_id text` (nullable) – external identifier of influencer/partner in another system.
+  - `metadata jsonb` (default `'{}'`) – arbitrary attributes for reporting (channels, tags, etc.).
+  - `is_active bool` (default `true`)
+  - `created_at timestamptz` (default `now()`)
+  - `updated_at timestamptz` (default `now()`)
+- **Indexes**:
+  - `promo_campaigns_pkey (id)`
+  - `idx_promo_campaigns_app_id (app_id)`
+  - `idx_promo_campaigns_slug (app_id, slug)`
+  - `idx_promo_campaigns_owner (owner_type, owner_id)`
+- **Relations (logical)**:
+  - `promo_codes.campaign_id` → `promo_campaigns.id` (optional).
+  - Analytics can aggregate by `campaign_id` / `owner_type` / `owner_id`.
+
+---
+
+### Table: `promo_codes`
+
+- **Purpose**: Concrete promo codes that can be applied at checkout.
+- **Columns**:
+  - `id uuid PK`
+  - `app_id text`
+  - `campaign_id uuid` (nullable) – links to `promo_campaigns.id` when the code belongs to a campaign/affiliate.
+  - `code text` – visible code string (stored in canonical form, e.g. upper‑case).
+  - `name text` – internal/admin name (e.g. `"Streamer X 10% off"`).
+  - `description text` (nullable)
+  - `discount_type text` – `percent` or `fixed_amount`.
+  - `discount_value numeric` – percentage value (0–100] or fixed amount in base currency.
+  - `currency text` (nullable) – when `discount_type = 'fixed_amount'`; base currency of the app/shop.
+  - `is_free_shipping bool` (default `false`) – optional flag for future support of free‑shipping promos.
+  - `start_at timestamptz` (nullable) – when the code becomes valid; `NULL` means immediately.
+  - `end_at timestamptz` (nullable) – when the code expires; `NULL` means no explicit expiry.
+  - `max_redemptions int` (nullable) – global maximum number of uses across all users.
+  - `max_redemptions_per_user int` (nullable) – per‑user limit.
+  - `priority int` (default `0`) – used to resolve conflicts when multiple codes could apply (for future stacking rules).
+  - `is_exclusive bool` (default `true`) – whether this code can be combined with other discounts.
+  - `is_active bool` (default `true`) – admin‑controlled flag.
+  - `created_by text` (nullable) – identifier of admin who created the code.
+  - `updated_by text` (nullable) – identifier of admin who last updated the code.
+  - `created_at timestamptz` (default `now()`)
+  - `updated_at timestamptz` (default `now()`)
+- **Indexes**:
+  - `promo_codes_pkey (id)`
+  - `idx_promo_codes_app_code (app_id, code)` – unique per app (enforced by a unique index).
+  - `idx_promo_codes_campaign (campaign_id)`
+  - `idx_promo_codes_active (is_active, start_at, end_at)`
+- **Constraints (logical)**:
+  - Unique `(app_id, code)` – case‑insensitive check should be enforced at the application layer.
+  - For `discount_type = 'percent'`, `discount_value` must be in `(0, 100]`.
+  - For `discount_type = 'fixed_amount'`, `discount_value > 0` and `currency` must be set.
+
+---
+
+### Table: `promo_usages`
+
+- **Purpose**: Log of successful promo code applications (used for reporting and analytics).
+- **Columns**:
+  - `id uuid PK`
+  - `app_id text`
+  - `promo_code_id uuid` – reference to `promo_codes.id`.
+  - `campaign_id uuid` (nullable) – denormalized link to `promo_campaigns.id` for faster analytics.
+  - `user_id text` (nullable) – external user identifier (same semantics as in `transaction_log.user_id`).
+  - `order_id uuid` (nullable) – logical order identifier; may reuse `transaction_log.id` when applicable.
+  - `transaction_log_id uuid` (nullable) – explicit link to `transaction_log.id` when the integration is implemented.
+  - `used_at timestamptz` (default `now()`)
+  - `order_amount_before numeric` (nullable) – order total before applying the promo.
+  - `order_amount_after numeric` (nullable) – order total after applying the promo.
+  - `discount_amount numeric` (nullable) – actual discount applied (for percentage promos it depends on order total).
+  - `currency text` (nullable) – currency of the order.
+  - `source text` – where the usage came from: `webshop`, `mobile`, `external`, etc.
+  - `metadata jsonb` (default `'{}'`) – optional extra fields (e.g. channel, device, checkout variant).
+- **Indexes**:
+  - `promo_usages_pkey (id)`
+  - `idx_promo_usages_app (app_id)`
+  - `idx_promo_usages_promo_code (promo_code_id)`
+  - `idx_promo_usages_campaign (campaign_id)`
+  - `idx_promo_usages_user (user_id)`
+  - `idx_promo_usages_used_at (used_at)`
+- **Relations (logical)**:
+  - `promo_usages.promo_code_id` → `promo_codes.id`.
+  - `promo_usages.transaction_log_id` → `transaction_log.id` (when wired).
+  - Used by future analytics to compute **usage counts, revenue, AOV and performance per code/campaign/affiliate**.
+
+---
+
 ## Supabase Storage: `Images` bucket
 
 In addition to database tables, the project uses a **Supabase Storage bucket** named **`Images`** to store product images.

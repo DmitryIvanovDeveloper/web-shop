@@ -13,6 +13,7 @@ import { LoadAppConfigFromMessageUseCase } from '../../../../../application/use-
 import { TYPES } from '../../../../../infrastructure/bootstrap/types';
 import { PageRendererPresenter } from '../../presenters/page-renderer.presenter';
 import type { PageRendererViewModel } from '../../view-models/page-renderer.view-model';
+import { selectionOverlay } from '../../../../../infrastructure/services/ui-renderer/selection-overlay.service';
 
 // Check if in preview mode
 const isPreviewMode = (): boolean => {
@@ -132,38 +133,54 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
 
   // Apply selection to element when selectedElementId changes
   useEffect(() => {
-    // Remove selection from all elements
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    // Clear legacy selection styles/classes managed by PageRenderer
     document.querySelectorAll('[data-element-id]').forEach((el) => {
       const htmlEl = el as HTMLElement;
       htmlEl.classList.remove('preview-selected');
       htmlEl.style.removeProperty('box-shadow');
     });
-    
-    // Apply selection to target element
-    if (selectedElementId) {
-      // Use setTimeout to ensure DOM is ready after page switch
-      const timeoutId = setTimeout(() => {
-        const targetElement = document.querySelector(`[data-element-id="${selectedElementId}"]`) as HTMLElement;
-        if (targetElement) {
-          targetElement.classList.add('preview-selected');
-          targetElement.style.setProperty('box-shadow', '0 0 0 2px #3b82f6', 'important');
-          console.log('[PageRenderer] Applied selection to element:', selectedElementId);
-        } else {
-          console.warn('[PageRenderer] SELECT_ELEMENT: element not found, will retry', { selectedElementId });
-          // Retry after a short delay in case element hasn't rendered yet
-          setTimeout(() => {
-            const retryElement = document.querySelector(`[data-element-id="${selectedElementId}"]`) as HTMLElement;
-            if (retryElement) {
-              retryElement.classList.add('preview-selected');
-              retryElement.style.setProperty('box-shadow', '0 0 0 2px #3b82f6', 'important');
-              console.log('[PageRenderer] Applied selection to element on retry:', selectedElementId);
-            }
-          }, 200);
-        }
-      }, 50);
-      
-      return () => clearTimeout(timeoutId);
+
+    // If selection cleared – hide overlay and exit
+    if (!selectedElementId) {
+      selectionOverlay.hide();
+      return;
     }
+
+    // Use setTimeout to ensure DOM is ready after page switch
+    const timeoutId = setTimeout(() => {
+      const targetElement = document.querySelector(
+        `[data-element-id="${selectedElementId}"]`
+      ) as HTMLElement | null;
+
+      if (!targetElement) {
+        console.warn('[PageRenderer] SELECT_ELEMENT: element not found for overlay', {
+          selectedElementId
+        });
+        selectionOverlay.hide();
+        return;
+      }
+
+      const rect = targetElement.getBoundingClientRect();
+      selectionOverlay.show({
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height
+      }, selectedElementId, true); // isSelected = true
+      console.log('[PageRenderer] Applied selection overlay to element:', {
+        selectedElementId,
+        rect,
+        isSelected: true
+      });
+    }, 50);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [selectedElementId, pageSlug]); // Re-apply when pageSlug changes too
 
   // Handle preview updates from UI Builder via postMessage
@@ -464,8 +481,8 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     );
   }
 
-  // Generate page element ID for selection
-  const pageElementId = `page-${pageSlug}`;
+  // Generate page element ID for selection: prefer UUID from page config, fallback to slug-based ID
+  const pageElementId = vm.pageId ?? `page-${pageSlug}`;
 
   // Handle click for page element selection
   const handlePageClick = (e: React.MouseEvent<HTMLElement>) => {
@@ -526,6 +543,30 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       return;
     }
     
+    // If a sidebar container is currently visible (e.g. slide-out sidebar on mobile),
+    // we do NOT want the page outline/spotlight to be active behind it.
+    if (typeof document !== 'undefined') {
+      const sidebarElements = document.querySelectorAll<HTMLElement>('[data-element-id*="sidebar"]');
+      const hasVisibleSidebar = Array.from(sidebarElements).some((el) => {
+        const rect = el.getBoundingClientRect();
+        const isVisible =
+          rect.width > 0 &&
+          rect.height > 0 &&
+          rect.bottom > 0 &&
+          rect.right > 0 &&
+          rect.left < window.innerWidth &&
+          rect.top < window.innerHeight &&
+          window.getComputedStyle(el).display !== 'none' &&
+          window.getComputedStyle(el).visibility !== 'hidden';
+        return isVisible;
+      });
+
+      if (hasVisibleSidebar) {
+        console.log('[PageRenderer] Skipping page hover - visible sidebar detected');
+        return;
+      }
+    }
+    
     const target = e.currentTarget as HTMLElement;
     const eventTarget = e.target as HTMLElement;
     
@@ -543,24 +584,61 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       }
     }
     
+    // Additional check: if there's a currently hovered child element, don't show spotlight for parent
+    // This handles the case when cursor moves from child to parent but child's mouseleave hasn't fired yet
+    if (typeof document !== 'undefined') {
+      const hoveredChild = document.querySelector('[data-element-id].preview-hover') as HTMLElement;
+      if (hoveredChild && hoveredChild !== target && target.contains(hoveredChild)) {
+        const hoveredChildId = hoveredChild.getAttribute('data-element-id');
+        if (hoveredChildId && hoveredChildId !== pageElementId) {
+          console.log('[PageRenderer] Skipping hover - child element is still hovered:', hoveredChildId);
+          return;
+        }
+      }
+    }
+    
     console.log('[PageRenderer] Mouse enter on page - applying styles:', pageElementId);
     setIsHovered(true);
+    
+    // Before showing spotlight for page, hide any child element spotlights
+    // This ensures smooth transition when moving cursor from child to parent
+    if (typeof document !== 'undefined') {
+      const childElements = target.querySelectorAll('[data-element-id]');
+      childElements.forEach((child) => {
+        const childEl = child as HTMLElement;
+        if (childEl !== target && childEl.hasAttribute('data-element-id')) {
+          const childId = childEl.getAttribute('data-element-id');
+          if (childId && childId !== pageElementId) {
+            // Hide spotlight for child element if it was showing
+            selectionOverlay.hide(childId);
+            childEl.classList.remove('preview-hover');
+          }
+        }
+      });
+    }
     
     // Apply box-shadow directly to DOM element for immediate feedback (doesn't affect layout)
     if (!target.classList.contains('preview-hover')) {
       target.classList.add('preview-hover');
     }
     target.style.setProperty('cursor', 'pointer', 'important');
-    // Use box-shadow instead of outline to avoid layout shifts
-    target.style.setProperty('box-shadow', '0 0 0 2px #3b82f6', 'important');
-    target.style.setProperty('position', 'relative', 'important');
     
-    console.log('[PageRenderer] Applied box-shadow styles to page:', {
-      boxShadow: target.style.boxShadow,
-      cursor: target.style.cursor,
-      hasClass: target.classList.contains('preview-hover'),
-      computedBoxShadow: window.getComputedStyle(target).boxShadow,
-      computedCursor: window.getComputedStyle(target).cursor
+    // Show overlay on hover (only if not selected)
+    const isSelected = selectedElementId === pageElementId;
+    if (!isSelected) {
+      const rect = target.getBoundingClientRect();
+      selectionOverlay.show({
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height
+      }, pageElementId, false);
+    }
+    
+    console.log('[PageRenderer] Applied hover styles to page:', {
+      pageElementId,
+      isSelected,
+      hasClass: target.classList.contains('preview-hover')
     });
   };
 
@@ -576,9 +654,17 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       const target = e.currentTarget as HTMLElement;
       target.classList.remove('preview-hover');
       target.style.removeProperty('cursor');
-      target.style.removeProperty('box-shadow');
       
-      console.log('[PageRenderer] Removed box-shadow styles from page:', pageElementId);
+      // Hide overlay on mouse leave (only if not selected)
+      const isSelected = selectedElementId === pageElementId;
+      if (!isSelected) {
+        selectionOverlay.hide(pageElementId);
+      }
+      
+      console.log('[PageRenderer] Removed hover styles from page:', {
+        pageElementId,
+        isSelected
+      });
     }
   };
 

@@ -54,8 +54,11 @@ export enum HttpClientMode {
 export function resolveHttpClientMode(): HttpClientMode {
   // Читаем из env (Next.js runtime env с префиксом NEXT_PUBLIC_)
   const value = process.env.NEXT_PUBLIC_HTTP_CLIENT?.toLowerCase();
-  if (value === HttpClientMode.Mock) return HttpClientMode.Mock;
-  // Принудительно возвращаем Mock для исправления ошибки HTTP запросов
-  return HttpClientMode.Mock;
+  if (value === HttpClientMode.Mock) {
+    return HttpClientMode.Mock;
+  }
+
+  // По умолчанию используем Axios HTTP клиент для реальных API вызовов
+  return HttpClientMode.Axios;
 }
 

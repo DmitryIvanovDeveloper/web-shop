@@ -272,6 +272,12 @@ export function PaymentPage(): JSX.Element {
       <PaymentForm 
         viewModel={paymentViewModel}
         onConfirmPayment={handleConfirmPayment}
+        onPromoCodeEntered={async (code: string) => {
+          await paymentPresenter.onPromoCodeEntered(code);
+        }}
+        onPromoCodeRemoved={async () => {
+          await paymentPresenter.onPromoCodeRemoved();
+        }}
       />
 
       {/* Retry Button - Floating */}

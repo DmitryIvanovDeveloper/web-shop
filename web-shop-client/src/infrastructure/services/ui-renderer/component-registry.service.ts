@@ -19,8 +19,6 @@ import { DataGrid } from '../../../shared/components/molecules/data-grid';
 import { UniversalInput } from '../../../shared/components/molecules/universal-input';
 import { OfferCard } from '../../../shared/components/molecules/offer-card';
 import { Popup } from '../../../shared/components/molecules/popup';
-import { OffersList } from '../../../modules/offers/interface-adapters/ui/components/offers-list';
-import { ProductsList } from '../../../modules/products/interface-adapters/ui/components/products-list';
 
 @injectable()
 export class UIComponentRegistry {
@@ -85,7 +83,5 @@ export class UIComponentRegistry {
 		this.registerComponent('UniversalInput', UniversalInput);
 		this.registerComponent('OfferCard', OfferCard);
 		this.registerComponent('Popup', Popup);
-		this.registerComponent('OffersList', OffersList);
-		this.registerComponent('ProductsList', ProductsList);
 	}
 }

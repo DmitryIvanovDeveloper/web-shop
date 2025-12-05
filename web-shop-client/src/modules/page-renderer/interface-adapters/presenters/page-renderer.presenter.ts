@@ -8,6 +8,7 @@ import type { OfferCardTemplate } from '../../../../shared/config/app-config.typ
 @injectable()
 export class PageRendererPresenter {
   private _vm: PageRendererViewModel = {
+    pageId: undefined,
     sections: [],
     pageStyles: {},
     isLoading: true,
@@ -80,6 +81,7 @@ export class PageRendererPresenter {
     
     this._vm = {
       ...this._vm,
+      pageId: pageConfig?.id,
       sections: pageConfig?.sections || [],
       pageStyles: pageConfig?.pageStyles || {},
       isLoading: false,

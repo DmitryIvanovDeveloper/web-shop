@@ -17,6 +17,7 @@ import type { ActionContext } from '../../../shared/ui/action-context';
 import { UIComponentRegistry } from './component-registry.service';
 import { UIStyleBuilder } from './style-builder.service';
 import { UIActionHandler } from './action-handler.service';
+import { selectionOverlay } from './selection-overlay.service';
 import { ROOT_TYPES } from '../../bootstrap/types';
 import type { Logger } from '../../../application/ports/logger.port';
 
@@ -33,7 +34,12 @@ export class UIRendererService implements UIRendererPort {
 		private readonly _styleBuilder: UIStyleBuilder,
 		@inject(ROOT_TYPES.UIActionHandler)
 		private readonly _actionHandler: UIActionHandler
-	) {}
+	) {
+		// Setup global selection listener once in browser environment
+		if (typeof window !== 'undefined') {
+			this._setupSelectionListener();
+		}
+	}
 
 	public renderUI({ layout, theme, context }: UIDescriptor): JSX.Element | null {
 		this._logger.info('[UIRendererService] Rendering UI', {
@@ -207,7 +213,9 @@ export class UIRendererService implements UIRendererPort {
 			return false;
 		}
 		const params = new URLSearchParams(window.location.search);
-		return params.get('previewMode') === 'true';
+		const previewParam = params.get('previewMode') === 'true';
+		const uiBuilderParam = params.get('uibuilder') === 'true';
+		return previewParam || uiBuilderParam;
 	}
 
 	private _isElementSelectionMode(): boolean {
@@ -218,6 +226,60 @@ export class UIRendererService implements UIRendererPort {
 			return (window as any).__elementSelectionMode === true;
 		}
 		return false;
+	}
+
+	private _setupSelectionListener(): void {
+		// Avoid registering multiple times
+		const globalFlag = '__uiRendererSelectionListenerInitialized';
+		if ((window as any)[globalFlag]) {
+			return;
+		}
+		(window as any)[globalFlag] = true;
+
+		window.addEventListener('message', (event: MessageEvent) => {
+			if (!event.data || event.data.type !== 'SELECT_ELEMENT') {
+				return;
+			}
+
+			const elementId = event.data.payload?.elementId || event.data.elementId || null;
+			this._logger.info('[UIRendererService] SELECT_ELEMENT received', { elementId });
+
+			if (typeof document === 'undefined') {
+				return;
+			}
+
+			// If elementId is null/undefined – hide overlay
+			if (!elementId) {
+				selectionOverlay.hide();
+				return;
+			}
+
+			// Find target element by data-element-id
+			const targetElement = document.querySelector(
+				`[data-element-id="${elementId}"]`
+			) as HTMLElement | null;
+
+			if (targetElement) {
+				const rect = targetElement.getBoundingClientRect();
+				selectionOverlay.show({
+					left: rect.left,
+					top: rect.top,
+					width: rect.width,
+					height: rect.height,
+				}, elementId, true); // isSelected = true
+				this._logger.info('[UIRendererService] Updated selection overlay for element', {
+					elementId,
+					rect,
+					isSelected: true
+				});
+			} else {
+				// If element not found, hide overlay to avoid stale highlight
+				selectionOverlay.hide();
+				this._logger.warn('[UIRendererService] SELECT_ELEMENT: element not found', {
+					elementId,
+				});
+			}
+		});
 	}
 
 	private _createHoverHandlers(node: ComponentNode): Record<string, unknown> {
@@ -240,26 +302,49 @@ export class UIRendererService implements UIRendererPort {
 				
 				// Check if the cursor is actually over this element, not a child element with data-element-id
 				// If a child element with data-element-id is being hovered, don't highlight the parent
-				if (eventTarget !== target && eventTarget.closest(`[data-element-id="${node.id}"]`) !== target) {
-					// The cursor is over a child element, not this element
-					// Check if the child has its own data-element-id
+				if (eventTarget !== target) {
 					const childWithId = eventTarget.closest('[data-element-id]') as HTMLElement;
 					if (childWithId && childWithId !== target && childWithId.hasAttribute('data-element-id')) {
-						// A child element with data-element-id is being hovered, don't highlight parent
-						return;
+						const childId = childWithId.getAttribute('data-element-id');
+						if (childId && childId !== node.id) {
+							// A child element with data-element-id is being hovered, don't highlight parent
+							this._logger.info(`[UIRendererService] Skipping hover on parent ${node.id} - child ${childId} is being hovered`);
+							return;
+						}
 					}
+				}
+				
+				// Before showing spotlight for parent, hide any child element spotlights
+				// This ensures smooth transition when moving cursor from child to parent
+				if (typeof document !== 'undefined') {
+					const childElements = target.querySelectorAll('[data-element-id]');
+					childElements.forEach((child) => {
+						const childEl = child as HTMLElement;
+						if (childEl !== target && childEl.hasAttribute('data-element-id')) {
+							const childId = childEl.getAttribute('data-element-id');
+							if (childId && childId !== node.id) {
+								// Hide spotlight for child element if it was showing
+								selectionOverlay.hide(childId);
+								childEl.classList.remove('preview-hover');
+							}
+						}
+					});
 				}
 				
 				if (!target.classList.contains('preview-hover')) {
 					target.classList.add('preview-hover');
 				}
-				// Ensure cursor is pointer and box-shadow is visible (doesn't affect layout)
-				// Use setProperty with !important to override any conflicting styles
-				target.style.setProperty('cursor', 'pointer', 'important');
-				// Use box-shadow instead of outline to avoid layout shifts
-				target.style.setProperty('box-shadow', '0 0 0 2px #3b82f6', 'important');
-				target.style.setProperty('position', 'relative', 'important');
-				this._logger.info(`[UIRendererService] Applied outline styles to: ${node.id}`);
+				
+				// Show overlay on hover - this will automatically replace any previous hover overlay
+				const rect = target.getBoundingClientRect();
+				selectionOverlay.show({
+					left: rect.left,
+					top: rect.top,
+					width: rect.width,
+					height: rect.height
+				}, node.id, false); // isSelected = false for hover
+				
+				this._logger.info(`[UIRendererService] Applied preview-hover class and overlay to: ${node.id}`);
 				// Don't stop propagation - allow hover to work on other elements
 			}
 		};
@@ -268,11 +353,13 @@ export class UIRendererService implements UIRendererPort {
 			if (this._isPreviewMode() && this._isElementSelectionMode() && node.id) {
 				const target = e.currentTarget;
 				target.classList.remove('preview-hover');
-				// Reset inline styles
-				target.style.removeProperty('cursor');
-				target.style.removeProperty('box-shadow');
-				target.style.removeProperty('overflow');
-				target.style.removeProperty('border');
+				
+				// Hide overlay on mouse leave (only if not selected)
+				// We can't check if it's selected here, so we pass elementId to hide()
+				// hide() will check internally if it's selected
+				selectionOverlay.hide(node.id);
+				
+				this._logger.info(`[UIRendererService] Removed preview-hover class and overlay from: ${node.id}`);
 				// Don't stop propagation - allow hover to work on other elements
 			}
 		};

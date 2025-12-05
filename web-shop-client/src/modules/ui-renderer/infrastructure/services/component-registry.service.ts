@@ -11,8 +11,6 @@ import { Grid } from '../../../../../src/shared/components/molecules/grid';
 import { DataGrid } from '../../../../../src/shared/components/molecules/data-grid';
 import { OfferCard } from '../../../../../src/shared/components/molecules/offer-card';
 import { Popup } from '../../../../../src/shared/components/molecules/popup';
-import { OffersList } from '../../../offers/interface-adapters/ui/components/offers-list';
-import { ProductsList } from '../../../products/interface-adapters/ui/components/products-list';
 
 @injectable()
 export class ComponentRegistry {
@@ -33,8 +31,6 @@ export class ComponentRegistry {
     this._components.set('Grid', Grid);
     this._components.set('DataGrid', DataGrid);
     this._components.set('OfferCard', OfferCard);
-    this._components.set('OffersList', OffersList);
-    this._components.set('ProductsList', ProductsList);
     this._components.set('Popup', Popup);
   }
 

@@ -13,6 +13,8 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
 interface PaymentFormProps {
   viewModel: PaymentViewModel;
   onConfirmPayment: (paymentContext: PaymentElementsContext) => Promise<void>;
+  onPromoCodeEntered?: (code: string) => Promise<void>;
+  onPromoCodeRemoved?: () => Promise<void>;
 }
 
 /**
@@ -21,9 +23,10 @@ interface PaymentFormProps {
  * React component for payment form UI
  * Integrates with Stripe Elements for secure payment processing
  */
-function PaymentFormContent({ viewModel, onConfirmPayment }: PaymentFormProps) {
+function PaymentFormContent({ viewModel, onConfirmPayment, onPromoCodeEntered, onPromoCodeRemoved }: PaymentFormProps) {
   const stripe = useStripe();
   const elements = useElements();
+  const [promoCodeInput, setPromoCodeInput] = React.useState('');
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -63,16 +66,77 @@ function PaymentFormContent({ viewModel, onConfirmPayment }: PaymentFormProps) {
 
           {/* Product Summary Header */}
           <div className="bg-gray-900 px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-700 flex-shrink-0">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <div>
                 <p className="text-xs text-gray-400 mb-1">You're purchasing</p>
                 <h2 className="text-lg sm:text-xl font-bold text-white">{viewModel.product.title}</h2>
               </div>
               <div className="text-right">
-                <p className="text-xs text-gray-400 mb-1">Total</p>
-                <p className="text-2xl sm:text-3xl font-bold text-white">${viewModel.product.price.toFixed(2)}</p>
+                {viewModel.promoCode ? (
+                  <>
+                    <p className="text-xs text-gray-400 mb-1">Original Price</p>
+                    <p className="text-sm text-gray-500 line-through">${viewModel.originalPrice.toFixed(2)}</p>
+                    <p className="text-xs text-green-400 mb-1 mt-1">Discount: -${viewModel.promoCode.discount.toFixed(2)}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-white">${viewModel.finalPrice.toFixed(2)}</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-gray-400 mb-1">Total</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-white">${viewModel.product.price.toFixed(2)}</p>
+                  </>
+                )}
               </div>
             </div>
+            
+            {/* Promo Code Section */}
+            {onPromoCodeEntered && (
+              <div className="mt-3 pt-3 border-t border-gray-700">
+                {viewModel.promoCode ? (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-green-400 font-medium">Promo code: {viewModel.promoCode.code}</span>
+                    </div>
+                    {onPromoCodeRemoved && (
+                      <button
+                        type="button"
+                        onClick={() => onPromoCodeRemoved()}
+                        className="text-xs text-red-400 hover:text-red-300 underline"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      value={promoCodeInput}
+                      onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
+                      placeholder="Enter promo code"
+                      disabled={viewModel.isValidatingPromoCode}
+                      className="flex-1 bg-gray-800 border border-gray-600 rounded px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && promoCodeInput.trim() && onPromoCodeEntered) {
+                          e.preventDefault();
+                          onPromoCodeEntered(promoCodeInput.trim());
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => promoCodeInput.trim() && onPromoCodeEntered(promoCodeInput.trim())}
+                      disabled={!promoCodeInput.trim() || viewModel.isValidatingPromoCode}
+                      className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
+                    >
+                      {viewModel.isValidatingPromoCode ? '...' : 'Apply'}
+                    </button>
+                  </div>
+                )}
+                {viewModel.promoCodeError && (
+                  <p className="text-xs text-red-400 mt-2">{viewModel.promoCodeError}</p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Payment Form */}
@@ -124,7 +188,7 @@ function PaymentFormContent({ viewModel, onConfirmPayment }: PaymentFormProps) {
                       <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
-                      <span>Pay ${viewModel.product.price.toFixed(2)}</span>
+                      <span>Pay ${(viewModel.finalPrice || viewModel.product.price).toFixed(2)}</span>
                     </>
                   )}
                 </div>
@@ -149,7 +213,7 @@ function PaymentFormContent({ viewModel, onConfirmPayment }: PaymentFormProps) {
 /**
  * Payment Form Wrapper with Stripe Elements
  */
-export function PaymentForm({ viewModel, onConfirmPayment }: PaymentFormProps) {
+export function PaymentForm({ viewModel, onConfirmPayment, onPromoCodeEntered, onPromoCodeRemoved }: PaymentFormProps) {
   if (!viewModel.paymentIntent) {
     return (
       <div className="min-h-screen bg-gray-700 flex items-center justify-center">
@@ -214,7 +278,12 @@ export function PaymentForm({ viewModel, onConfirmPayment }: PaymentFormProps) {
         }
       }}
     >
-      <PaymentFormContent viewModel={viewModel} onConfirmPayment={onConfirmPayment} />
+      <PaymentFormContent 
+        viewModel={viewModel} 
+        onConfirmPayment={onConfirmPayment}
+        onPromoCodeEntered={onPromoCodeEntered}
+        onPromoCodeRemoved={onPromoCodeRemoved}
+      />
     </Elements>
   );
 }

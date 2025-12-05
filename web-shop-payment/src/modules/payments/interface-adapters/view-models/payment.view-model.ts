@@ -21,6 +21,15 @@ export interface PaymentViewModel {
     status: string;
   } | null;
 
+  // Promo Code Information
+  promoCode?: {
+    code: string;
+    discount: number;
+    discountType: 'percent' | 'fixed_amount';
+  } | null;
+  originalPrice: number;
+  finalPrice: number;
+
   // UI State
   status: 'idle' | 'loading' | 'processing' | 'success' | 'error';
   error: string | null;
@@ -28,6 +37,8 @@ export interface PaymentViewModel {
   // Form State
   isFormValid: boolean;
   isProcessing: boolean;
+  isValidatingPromoCode: boolean;
+  promoCodeError: string | null;
 }
 
 /**
@@ -38,10 +49,15 @@ export class PaymentViewModelFactory {
     return {
       product: null,
       paymentIntent: null,
+      promoCode: null,
+      originalPrice: 0,
+      finalPrice: 0,
       status: 'idle',
       error: null,
       isFormValid: false,
-      isProcessing: false
+      isProcessing: false,
+      isValidatingPromoCode: false,
+      promoCodeError: null
     };
   }
 
@@ -54,10 +70,15 @@ export class PaymentViewModelFactory {
     return {
       product,
       paymentIntent: null,
+      promoCode: null,
+      originalPrice: product.price,
+      finalPrice: product.price,
       status: 'idle',
       error: null,
       isFormValid: true,
-      isProcessing: false
+      isProcessing: false,
+      isValidatingPromoCode: false,
+      promoCodeError: null
     };
   }
 }

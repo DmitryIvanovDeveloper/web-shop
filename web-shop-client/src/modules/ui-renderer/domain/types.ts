@@ -1,5 +1,5 @@
 // Типобезопасные типы для стилей
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ComponentType } from 'react';
 
 export type CSSValue = string | number;
 export type SpacingValue = 0 | 0.5 | 1 | 1.5 | 2 | 3 | 4 | 8 | 12 | 16 | 20 | 24 | 32 | 40 | 48 | 64 | 80;
@@ -174,6 +174,10 @@ export interface PopupProps {
 export interface OffersListProps {
   readonly className?: string;
   readonly style?: React.CSSProperties;
+}
+
+export interface ComponentRegistryPort {
+  register(type: string, component: ComponentType<any>): void;
 }
 
 // Action types - discriminated union

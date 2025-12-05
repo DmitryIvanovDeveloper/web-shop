@@ -16,10 +16,12 @@ import { IAsyncEventHandler } from '../../../../infrastructure/events/events-han
 import { UserAuthenticatedEvent } from '../../../../shared/events/auth-events';
 import { AppConfigLoadedEvent } from '../../../../shared/events/app-config-events';
 import type { ProductRepositoryPort } from '../../application/ports/product-repository.port';
-import type { ProductStoragePort } from '../../application/ports/product-storage.port';
 import type { PurchaseRepositoryPort } from '../../application/ports/purchase-repository.port';
 import type { BrowserPort } from '../../application/ports/browser.port';
 import type { PaymentRedirectPort } from '../../application/ports/payment-redirect.port';
+import { TYPES } from '../../../../infrastructure/bootstrap/types';
+import type { UIComponentRegistry } from '../../../../infrastructure/services/ui-renderer/component-registry.service';
+import { ProductsList } from '../../interface-adapters/ui/components/products-list';
 
 export function bindProducts(container: Container): void {
   // Repository Layer
@@ -62,5 +64,9 @@ export function bindProducts(container: Container): void {
     .bind<IAsyncEventHandler<AppConfigLoadedEvent>>(Symbol.for('IAsyncEventHandler<AppConfigLoadedEvent>'))
     .to(ProductsAppConfigLoadedHandler)
     .inTransientScope();
+
+  // Register UI components in shared UI renderer registry
+  const uiComponentRegistry = container.get<UIComponentRegistry>(TYPES.UIComponentRegistry);
+  uiComponentRegistry.register('ProductsList', ProductsList);
 }
 

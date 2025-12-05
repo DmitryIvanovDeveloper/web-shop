@@ -3,6 +3,7 @@ import type { PageSection } from '../../domain/entities/page-section';
 import type { OfferCardTemplate } from '../../../../shared/config/app-config.types';
 
 export interface PageRendererViewModel {
+  pageId?: string;
   sections: PageSection[];
   pageStyles?: {
     padding?: string;

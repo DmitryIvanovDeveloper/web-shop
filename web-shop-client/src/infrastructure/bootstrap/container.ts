@@ -53,6 +53,12 @@ container.bind<EventBusPort>(TYPES.EventBus).to(EventBus).inSingletonScope();
 // Register Database Client (Supabase)
 container.bind<DatabaseClientPort>(TYPES.DatabaseClient).to(SupabaseClient).inSingletonScope();
 
+// Register UI Renderer Service (universal infrastructure service)
+container.bind(TYPES.UIComponentRegistry).to(UIComponentRegistry).inSingletonScope();
+container.bind(TYPES.UIStyleBuilder).to(UIStyleBuilder).inSingletonScope();
+container.bind(TYPES.UIActionHandler).to(UIActionHandler).inSingletonScope();
+container.bind<UIRendererPort>(TYPES.UIRenderer).to(UIRendererService).inSingletonScope();
+
 // Register Authentication module
 bindAuthentication(container);
 
@@ -73,12 +79,6 @@ bindProducts(container);
 
 // Register Page Renderer module
 bindPageRenderer(container);
-
-// Register UI Renderer Service (universal infrastructure service)
-container.bind(TYPES.UIComponentRegistry).to(UIComponentRegistry).inSingletonScope();
-container.bind(TYPES.UIStyleBuilder).to(UIStyleBuilder).inSingletonScope();
-container.bind(TYPES.UIActionHandler).to(UIActionHandler).inSingletonScope();
-container.bind<UIRendererPort>(TYPES.UIRenderer).to(UIRendererService).inSingletonScope();
 
 // App Config
 container.bind(TYPES.SupabaseConfigLoader).to(SupabaseConfigLoader).inSingletonScope();

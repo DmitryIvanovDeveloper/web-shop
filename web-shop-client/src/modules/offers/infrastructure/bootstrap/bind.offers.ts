@@ -11,6 +11,9 @@ import { OffersAppConfigLoadedHandler } from '../../interface-adapters/handlers/
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
 import { UserAuthenticatedEvent } from '../../../../shared/events/auth-events';
 import { AppConfigLoadedEvent } from '../../../../shared/events/app-config-events';
+import { TYPES } from '../../../../infrastructure/bootstrap/types';
+import type { UIComponentRegistry } from '../../../../infrastructure/services/ui-renderer/component-registry.service';
+import { OffersList } from '../../interface-adapters/ui/components/offers-list';
 
 export function bindOffers(container: Container): void {
   // Repositories
@@ -30,4 +33,8 @@ export function bindOffers(container: Container): void {
     .bind<IAsyncEventHandler<UserAuthenticatedEvent>>(OFFERS_TYPES.UserAuthenticatedHandler)
     .to(OffersUserAuthenticatedHandler)
     .inTransientScope();
+
+  // Register UI components in shared UI renderer registry
+  const uiComponentRegistry = container.get<UIComponentRegistry>(TYPES.UIComponentRegistry);
+  uiComponentRegistry.register('OffersList', OffersList);
 }
