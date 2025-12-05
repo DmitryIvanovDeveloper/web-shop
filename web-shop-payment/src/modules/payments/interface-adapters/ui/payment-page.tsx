@@ -26,13 +26,6 @@ export function PaymentPage(): JSX.Element {
   // Get PaymentPresenter from DI container (singleton)
   const paymentPresenter = container.get<PaymentPresenter>(PAYMENT_TYPES.PaymentPresenter);
   
-  // Debug: Check if we're getting the same instance
-  console.log('[PaymentPage] PaymentPresenter instance:', {
-    instanceId: paymentPresenter.constructor.name,
-    hasViewModel: !!paymentPresenter.viewModel,
-    viewModelStatus: paymentPresenter.viewModel.status
-  });
-
   useEffect(() => {
     // Prevent multiple initializations
     if (initialized) {
@@ -51,8 +44,6 @@ export function PaymentPage(): JSX.Element {
     // Load product data and create payment intent
     const initializePayment = async () => {
       try {
-        console.log('[PaymentPage] Initializing payment for product:', productId);
-        
         // Get product data from URL params
         const productData = {
           id: productId,
@@ -63,32 +54,11 @@ export function PaymentPage(): JSX.Element {
           userId: searchParams.get('userId') || undefined // user-003 from query params
         };
 
-        console.log('[PaymentPage] Product data:', productData);
-
         // Initialize payment presenter with product data
         await paymentPresenter.onProductSelectedForPayment(productData);
-        
-        console.log('[PaymentPage] Payment initialized:', {
-          hasProduct: !!paymentPresenter.viewModel.product,
-          hasPaymentIntent: !!paymentPresenter.viewModel.paymentIntent,
-          status: paymentPresenter.viewModel.status,
-          productId: paymentPresenter.viewModel.product?.id,
-          intentId: paymentPresenter.viewModel.paymentIntent?.intentId,
-          fullViewModel: paymentPresenter.viewModel
-        });
-
-        // Double-check PaymentPresenter state
-        console.log('[PaymentPage] PaymentPresenter state after initialization:', {
-          presenterStatus: paymentPresenter.viewModel.status,
-          presenterHasProduct: !!paymentPresenter.viewModel.product,
-          presenterHasPaymentIntent: !!paymentPresenter.viewModel.paymentIntent,
-          presenterProductId: paymentPresenter.viewModel.product?.id,
-          presenterIntentId: paymentPresenter.viewModel.paymentIntent?.intentId
-        });
 
         // Subscribe to PaymentPresenter changes
-        const unsubscribe = paymentPresenter.onViewModelChange(() => {
-          console.log('[PaymentPage] ViewModel changed, forcing re-render');
+        paymentPresenter.onViewModelChange(() => {
           forceUpdate({});
         });
         
@@ -110,14 +80,6 @@ export function PaymentPage(): JSX.Element {
     // Always use PaymentPresenter's viewModel as source of truth
     const currentViewModel = paymentPresenter.viewModel;
     
-    console.log('[PaymentPage] handleConfirmPayment called', {
-      presenterViewModel: currentViewModel,
-      presenterStatus: currentViewModel.status,
-      presenterHasProduct: !!currentViewModel.product,
-      presenterHasPaymentIntent: !!currentViewModel.paymentIntent,
-      presenterInstanceId: paymentPresenter.constructor.name
-    });
-    
     if (!currentViewModel.product || !currentViewModel.paymentIntent) {
       console.error('[PaymentPage] Payment not properly initialized in PaymentPresenter', {
         hasProduct: !!currentViewModel.product,
@@ -134,14 +96,7 @@ export function PaymentPage(): JSX.Element {
       
       // Check if payment was successful
       const updatedViewModel = paymentPresenter.viewModel;
-      console.log('[PaymentPage] Payment confirmation result:', {
-        status: updatedViewModel.status,
-        hasError: !!updatedViewModel.error
-      });
-      
       if (updatedViewModel.status === 'success') {
-        // Payment successful - redirect to success page
-        console.log('[PaymentPage] Payment successful, redirecting to success page');
         // The redirect is handled in PaymentPresenter
       }
     } catch (error) {
@@ -150,8 +105,6 @@ export function PaymentPage(): JSX.Element {
   };
 
   const handleRetryPayment = async () => {
-    console.log('[PaymentPage] Retrying payment - creating new payment intent');
-    
     try {
       // Reset and create new payment intent
           const productData = {
@@ -164,13 +117,6 @@ export function PaymentPage(): JSX.Element {
           };
 
       await paymentPresenter.onProductSelectedForPayment(productData);
-      
-      console.log('[PaymentPage] New payment intent created:', {
-        hasProduct: !!paymentPresenter.viewModel.product,
-        hasPaymentIntent: !!paymentPresenter.viewModel.paymentIntent,
-        status: paymentPresenter.viewModel.status,
-        intentId: paymentPresenter.viewModel.paymentIntent?.intentId
-      });
     } catch (error) {
       console.error('[PaymentPage] Failed to retry payment:', error);
     }
