@@ -242,7 +242,10 @@ if (result.isSuccess()) {
   // discount.promoCode.isFreeShipping;
 } else {
   const error = result.error;
-сде  // Handle specific errors
+  console.error('Validation failed:', error.message);
+  console.error('Error code:', error.code);
+  
+  // Handle specific errors
   switch (error.code) {
     case 'CODE_NOT_FOUND':
       // Show "Promo code not found" message

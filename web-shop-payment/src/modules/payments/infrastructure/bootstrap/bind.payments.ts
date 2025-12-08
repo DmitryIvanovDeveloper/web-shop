@@ -9,12 +9,15 @@ import { MockPaymentService } from '../services/mock-payment.service';
 import { CreatePaymentIntentUseCase } from '../../application/use-cases/create-payment-intent.use-case';
 import { ConfirmPaymentUseCase } from '../../application/use-cases/confirm-payment.use-case';
 import { SavePaymentTransactionUseCase } from '../../application/use-cases/save-payment-transaction.use-case';
+import { LoadPaymentProductUseCase } from '../../application/use-cases/load-payment-product.use-case';
 import { WebhookService } from '../../application/services/webhook.service';
 import { PaymentPresenter } from '../../interface-adapters/presenters/payment.presenter';
 import { PaymentWebhookHandler } from '../../interface-adapters/handlers/payment-webhook.handler';
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
 import { PaymentConfirmedEvent } from '../../../../shared/events/payment-events';
 import { PAYMENT_TYPES } from './types';
+import { PaymentProductRepositoryPort } from '../../application/ports/payment-product.repository.port';
+import { PaymentProductHttpRepository } from '../repositories/payment-product-http.repository';
 
 /**
  * Bind Payments Module Dependencies
@@ -38,6 +41,11 @@ export function bindPayments(container: Container): void {
     .to(PaymentRepository)
     .inSingletonScope();
 
+  container
+    .bind<PaymentProductRepositoryPort>(PAYMENT_TYPES.PaymentProductRepository)
+    .to(PaymentProductHttpRepository)
+    .inSingletonScope();
+
   // Payment Service (Infrastructure) - Stripe implementation
   container
     .bind<PaymentServicePort>(PAYMENT_TYPES.PaymentService)
@@ -58,6 +66,10 @@ export function bindPayments(container: Container): void {
   container
     .bind<SavePaymentTransactionUseCase>(PAYMENT_TYPES.SavePaymentTransactionUseCase)
     .to(SavePaymentTransactionUseCase);
+
+  container
+    .bind<LoadPaymentProductUseCase>(PAYMENT_TYPES.LoadPaymentProductUseCase)
+    .to(LoadPaymentProductUseCase);
 
   // Application Services (exports functionality for webhooks and other modules)
   container

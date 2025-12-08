@@ -10,11 +10,13 @@ export const PAYMENT_TYPES = {
   PaymentRepository: Symbol.for('Payments.PaymentRepository'),
   PaymentStorage: Symbol.for('Payments.PaymentStorage'),
   PaymentService: Symbol.for('Payments.PaymentService'),
+  PaymentProductRepository: Symbol.for('Payments.PaymentProductRepository'),
   
   // Use Cases (Application Layer)
   CreatePaymentIntentUseCase: Symbol.for('Payments.CreatePaymentIntentUseCase'),
   ConfirmPaymentUseCase: Symbol.for('Payments.ConfirmPaymentUseCase'),
   SavePaymentTransactionUseCase: Symbol.for('Payments.SavePaymentTransactionUseCase'),
+  LoadPaymentProductUseCase: Symbol.for('Payments.LoadPaymentProductUseCase'),
   
   // Application Services
   WebhookService: Symbol.for('Payments.WebhookService'),

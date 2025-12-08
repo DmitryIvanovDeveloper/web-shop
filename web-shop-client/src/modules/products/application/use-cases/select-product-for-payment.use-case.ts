@@ -118,14 +118,11 @@ export class SelectProductForPaymentUseCase {
     );
 
     // Build payment URL through Payment Redirect Port
-    const paymentUrl = this._paymentRedirect.buildPaymentUrl({
-      productId: productSnapshot.id,
-      productTitle: productSnapshot.title,
-      productPrice: productSnapshot.price,
-      productCurrency: productSnapshot.currency,
-      userId: userContext.userId,
-      appId: userContext.appId
-    });
+      const paymentUrl = this._paymentRedirect.buildPaymentUrl({
+        productId: productSnapshot.id,
+        userId: userContext.userId,
+        appId: userContext.appId
+      });
 
     // Redirect through Payment Redirect Port
     this._paymentRedirect.redirectToPayment(paymentUrl);

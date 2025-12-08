@@ -21,9 +21,6 @@ export interface PaymentRedirectPort {
  */
 export interface PaymentRedirectRequest {
   readonly productId: string;
-  readonly productTitle: string;
-  readonly productPrice: number;
-  readonly productCurrency: string;
   readonly userId: string;
   readonly appId: string;
 }

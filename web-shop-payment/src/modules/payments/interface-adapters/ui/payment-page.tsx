@@ -7,6 +7,8 @@ import { PaymentPresenter } from '../presenters/payment.presenter';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { PAYMENT_TYPES } from '../../infrastructure/bootstrap/types';
 import { PaymentViewModel } from '../view-models/payment.view-model';
+import { LoadPaymentProductUseCase } from '../../application/use-cases/load-payment-product.use-case';
+import { isFailure } from '../../../../shared/result/result';
 
 /**
  * Payment Page UI Component
@@ -25,6 +27,7 @@ export function PaymentPage(): JSX.Element {
   
   // Get PaymentPresenter from DI container (singleton)
   const paymentPresenter = container.get<PaymentPresenter>(PAYMENT_TYPES.PaymentPresenter);
+  const loadPaymentProductUseCase = container.get<LoadPaymentProductUseCase>(PAYMENT_TYPES.LoadPaymentProductUseCase);
   
   useEffect(() => {
     // Prevent multiple initializations
@@ -33,9 +36,18 @@ export function PaymentPage(): JSX.Element {
     }
 
     const productId = searchParams.get('productId');
-    
+    const appId = searchParams.get('appId');
+    const userId = searchParams.get('userId') || undefined;
+
     if (!productId) {
       setError('Product ID is required');
+      setLoading(false);
+      setInitialized(true);
+      return;
+    }
+
+    if (!appId) {
+      setError('App ID is required');
       setLoading(false);
       setInitialized(true);
       return;
@@ -45,17 +57,24 @@ export function PaymentPage(): JSX.Element {
     const initializePayment = async () => {
       try {
         // Get product data from URL params
-        const productData = {
-          id: productId,
-          title: searchParams.get('title') || 'Product',
-          price: parseFloat(searchParams.get('price') || '0'),
-          currency: searchParams.get('currency') || 'USD',
-          appId: searchParams.get('appId') || undefined, // APP123 from query params
-          userId: searchParams.get('userId') || undefined // user-003 from query params
-        };
+        const productResult = await loadPaymentProductUseCase.execute({
+          productId,
+          appId
+        });
 
-        // Initialize payment presenter with product data
-        await paymentPresenter.onProductSelectedForPayment(productData);
+        if (isFailure(productResult)) {
+          setError(productResult.error.message);
+          setLoading(false);
+          setInitialized(true);
+          return;
+        }
+
+        // Initialize payment presenter with product data from API
+        await paymentPresenter.onProductSelectedForPayment({
+          ...productResult.data,
+          appId,
+          userId
+        });
 
         // Subscribe to PaymentPresenter changes
         paymentPresenter.onViewModelChange(() => {

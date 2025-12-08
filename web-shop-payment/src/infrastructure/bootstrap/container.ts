@@ -23,7 +23,11 @@ const mode = resolveHttpClientMode();
 if (mode === HttpClientMode.Mock) {
   container.bind<HttpClient>(TYPES.HttpClient).to(HttpClientMock).inSingletonScope();
 } else {
-  container.bind<HttpClient>(TYPES.HttpClient).to(AxiosHttpClient).inSingletonScope();
+  const apiBaseUrl = process.env.NEXT_PUBLIC_WEB_SHOP_API_BASE_URL || '';
+  container
+    .bind<HttpClient>(TYPES.HttpClient)
+    .toDynamicValue(() => new AxiosHttpClient(apiBaseUrl))
+    .inSingletonScope();
 }
 
 container.bind<EventBusPort>(TYPES.EventBus).to(EventBus).inSingletonScope();

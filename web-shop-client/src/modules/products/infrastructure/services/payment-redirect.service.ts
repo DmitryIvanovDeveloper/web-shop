@@ -26,13 +26,8 @@ export class PaymentRedirectService implements PaymentRedirectPort {
     const appConfig = this._browser.getAppConfig();
     const paymentUrl = new URL('/payment', appConfig.paymentServiceUrl);
     
-    // Product parameters
+    // Only pass minimal parameters
     paymentUrl.searchParams.set('productId', request.productId);
-    paymentUrl.searchParams.set('title', request.productTitle);
-    paymentUrl.searchParams.set('price', request.productPrice.toString());
-    paymentUrl.searchParams.set('currency', request.productCurrency);
-    
-    // User and App parameters
     paymentUrl.searchParams.set('userId', request.userId);
     paymentUrl.searchParams.set('appId', request.appId);
     
