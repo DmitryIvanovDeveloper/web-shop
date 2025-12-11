@@ -7,10 +7,20 @@ interface SlideOutSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   appId: string;
+  isAdmin?: boolean;
 }
 
-export function SlideOutSidebar({ isOpen, onClose, appId }: SlideOutSidebarProps) {
+export function SlideOutSidebar({ isOpen, onClose, appId, isAdmin = false }: SlideOutSidebarProps) {
   const pathname = usePathname();
+
+  // Fallback: also treat role=admin in query string as admin mode
+  let effectiveIsAdmin = isAdmin;
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('role') === 'admin') {
+      effectiveIsAdmin = true;
+    }
+  }
 
   // Close on Escape key
   useEffect(() => {
@@ -51,7 +61,9 @@ export function SlideOutSidebar({ isOpen, onClose, appId }: SlideOutSidebarProps
         </svg>
       ),
     },
-    {
+    // Offers / Products are only relevant for merchant-admin flows.
+    // Hide them when working in admin UI Builder mode (role=admin).
+    !effectiveIsAdmin && {
       label: 'Offers',
       href: `/merchant-admin/offers?appId=${appId}`,
       icon: (
@@ -60,7 +72,7 @@ export function SlideOutSidebar({ isOpen, onClose, appId }: SlideOutSidebarProps
         </svg>
       ),
     },
-    {
+    !effectiveIsAdmin && {
       label: 'Products',
       href: `/products?appId=${appId}`,
       icon: (
@@ -127,7 +139,7 @@ export function SlideOutSidebar({ isOpen, onClose, appId }: SlideOutSidebarProps
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-4">
             <div className="space-y-1">
-              {navItems.map((item) => {
+              {navItems.filter(Boolean).map((item) => {
                 const active = isActive(item.href);
                 return (
                   <a

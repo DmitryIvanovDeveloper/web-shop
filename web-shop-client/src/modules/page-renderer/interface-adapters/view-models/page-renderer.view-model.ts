@@ -13,6 +13,7 @@ export interface PageRendererViewModel {
   };
   isLoading: boolean;
   error: string | null;
+  selectedElementId?: string | null;
   selectedOfferCardId: string | null;
   offerCards: OfferCardTemplate[];
 }

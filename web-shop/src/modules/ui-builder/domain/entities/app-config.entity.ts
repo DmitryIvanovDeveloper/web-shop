@@ -73,10 +73,17 @@ export interface OfferCardStyles {
     fontWeight?: string;
     padding?: string;
     minHeight?: string;
+    // preview flag (persisted)
+    enabled?: boolean;
   };
   purchasedBadge?: {
     backgroundColor?: string;
     color?: string;
+    padding?: string;
+    borderRadius?: string;
+    minHeight?: string;
+    // preview flag (persisted)
+    enabled?: boolean;
   };
   bonuses?: {
     rpColor?: string;

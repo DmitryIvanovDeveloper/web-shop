@@ -21,6 +21,9 @@ const menuItems: Array<{ key: string; label: string; icon: string; href: string 
 
 export function Sidebar({ children, widthClassName = "w-64", title = "Navigation", onSelect }: SidebarProps): JSX.Element {
   const pathname = usePathname();
+  const isAdmin =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("role") === "admin";
   const containerStyle: React.CSSProperties = {
     position: "fixed",
     top: 0,
@@ -85,7 +88,17 @@ export function Sidebar({ children, widthClassName = "w-64", title = "Navigation
             <span style={{ color: "#E5E7EB", fontWeight: 600, letterSpacing: 0.3 }}>Web Shop</span>
           </div>
           <nav style={listStyle}>
-            {menuItems.map((item) => (
+            {(
+              isAdmin
+                ? menuItems
+                    .filter((item) => item.key !== "merchant-admin-offers" && item.key !== "merchant-admin-products")
+                    .map((item) =>
+                      item.key === "ui-builder"
+                        ? { ...item, href: "/ui-builder?role=admin" }
+                        : item
+                    )
+                : menuItems
+            ).map((item) => (
               <Link
                 key={item.key}
                 href={item.href}

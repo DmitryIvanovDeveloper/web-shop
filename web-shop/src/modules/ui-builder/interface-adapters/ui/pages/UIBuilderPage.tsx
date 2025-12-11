@@ -17,6 +17,7 @@ import { SectionPalette } from '../components/SectionPalette';
 import type { SidebarElement } from '../../../domain/types/sidebar-element.types';
 import type { AppConfigStructure } from '../../../domain/entities/app-config.entity';
 import type { PageConstructorPresenter } from '../../presenters/page-constructor.presenter';
+import type { TemplatesPresenter } from '../../presenters/templates.presenter';
 import { env } from '@/env';
 import { container } from '@/infrastructure/bootstrap/container';
 import { UI_BUILDER_TYPES } from '../../../infrastructure/bootstrap/types';
@@ -34,11 +35,22 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   const [device, setDevice] = useState<DeviceType>('iphone-15-pro');
   const [orientation, setOrientation] = useState<Orientation>('portrait');
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const clientUrl = env.NEXT_PUBLIC_CLIENT_URL;
+  // Allow overriding clientUrl via previewHost query param (useful when running client on a different port)
+  const clientUrl = (() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const override = params.get('previewHost');
+      if (override) return override;
+    }
+    return env.NEXT_PUBLIC_CLIENT_URL;
+  })();
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
-  const [activeSection, setActiveSection] = useState<'background' | 'sidebar' | 'rightSidebar' | 'authButton' | 'authPopup' | 'pageConstructor' | 'offerCards'>('sidebar');
+  const [activeSection, setActiveSection] = useState<
+    'background' | 'sidebar' | 'rightSidebar' | 'authButton' | 'authPopup' | 'pageConstructor' | 'offerCards' | 'templates'
+  >('sidebar');
   const [activeTab, setActiveTab] = useState<string>('leftSidebar');
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isSlideOutSidebarOpen, setIsSlideOutSidebarOpen] = useState(false);
   const [isElementSelectionMode, setIsElementSelectionMode] = useState(
     () => (typeof presenter.getElementSelectionMode === 'function' ? presenter.getElementSelectionMode() : false)
@@ -59,6 +71,8 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       setActiveTab('pages');
     } else if (activeSection === 'offerCards') {
       setActiveTab('offerCards');
+    } else if (activeSection === 'templates') {
+      setActiveTab('templates');
     }
   }, [activeSection]);
   
@@ -71,12 +85,14 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   
   const [selectedPageSlug, setSelectedPageSlug] = useState<string>(getPageSlugFromUrl());
   
-  // Update selectedPageSlug when URL changes
+  // Update selectedPageSlug and role when URL changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const pageSlug = params.get('pageSlug') || 'home';
+       const role = params.get('role');
       setSelectedPageSlug(pageSlug);
+      setIsAdmin(role === 'admin');
     }
   }, []);
   
@@ -84,6 +100,32 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   const pageConstructorPresenter = React.useMemo(() => {
     return container.get<PageConstructorPresenter>(UI_BUILDER_TYPES.PageConstructorPresenter);
   }, []);
+
+  // Get TemplatesPresenter from DI container
+  const templatesPresenter = React.useMemo(() => {
+    return container.get<TemplatesPresenter>(UI_BUILDER_TYPES.TemplatesPresenter);
+  }, []);
+
+  const [templatesVm, setTemplatesVm] = useState(templatesPresenter.getViewModel());
+
+  useEffect(() => {
+    const unsubscribe = templatesPresenter.subscribe(setTemplatesVm);
+    // Initial access mode + load
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const role = params.get('role');
+      const admin = role === 'admin';
+      setIsAdmin(admin);
+      templatesPresenter.setAdmin(admin);
+    } else {
+      templatesPresenter.setAdmin(false);
+    }
+
+    templatesPresenter.loadTemplates().catch(() => {
+      // errors are already logged inside presenter
+    });
+    return unsubscribe;
+  }, [templatesPresenter]);
 
   // Offer Cards state
   const [offerCards, setOfferCards] = useState(pageConstructorPresenter.getOfferCards());
@@ -124,12 +166,9 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   // The page content will be updated via postMessage instead
   const iframeSrc = React.useMemo(() => {
     if (!clientUrl) return null;
-    if (activeSection === 'pageConstructor') {
-      // Use 'home' as base URL to avoid reloads - page content will be updated via postMessage
-      return `${clientUrl}/home?appId=${appId}&previewMode=true&uibuilder=true`;
-    }
-    return `${clientUrl}/?appId=${appId}&previewMode=true&uibuilder=true`;
-  }, [activeSection, appId, clientUrl]);
+    const targetSlug = activeSection === 'pageConstructor' ? 'home' : (selectedPageSlug || 'home');
+    return `${clientUrl.replace(/\/$/, '')}/${targetSlug}?appId=${appId}&previewMode=true&uibuilder=true`;
+  }, [activeSection, appId, clientUrl, selectedPageSlug]);
 
   // Callback to set iframe ref when PhoneMockup mounts
   const handleIframeRef = useCallback(
@@ -202,8 +241,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         return;
       }
 
-      const clientUrl = env.NEXT_PUBLIC_CLIENT_URL;
-
       if (!clientUrl || !iframeWindow.postMessage) {
         return;
       }
@@ -267,7 +304,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   };
 
   const handlePublish = async () => {
-    // Confirmation dialog
     const confirmed = window.confirm(
       'Are you sure you want to publish these changes? This will update the live configuration for all users.'
     );
@@ -275,7 +311,20 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     if (!confirmed) return;
 
     const success = await presenter.publishDraft();
+
     if (success) {
+      // If admin, also mark selected template as published (template-level flag),
+      // but only if some template is currently selected in Templates tab.
+      if (isAdmin && templatesVm.selectedTemplateId) {
+        const result = await templatesPresenter.markSelectedTemplatePublished();
+        if (result.isFailure) {
+          // Ошибка публикации шаблона не должна блокировать publish конфига,
+          // но покажем пользователю предупреждение.
+          alert(`Config published, but template publish failed: ${result.error?.message ?? 'Unknown error'}`);
+          return;
+        }
+      }
+
       alert('Configuration published successfully!');
     } else if (viewModel.error) {
       alert(`Failed to publish: ${viewModel.error}`);
@@ -712,6 +761,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     { id: 'authentication', label: 'Authentication' },
     { id: 'pages', label: 'Pages' },
     { id: 'offerCards', label: 'Offer Cards' },
+    { id: 'templates', label: 'Templates' },
   ];
 
   const handleTabChange = (tabId: string) => {
@@ -738,9 +788,18 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           handleSidebarElementSelect(rightElements[0].id, 'rightSidebar');
         }
         break;
-      case 'authentication':
-        setActiveSection('authButton');
+      case 'authentication': {
+        // By default show popup so user sees something in preview
+        setActiveSection('authPopup');
+        presenter.previewAuthPopup(true);
+        // Clear other selections so unrelated sidebars/pages are not shown
+        presenter.selectElement(null);
+        pageConstructorPresenter.selectSection(null);
+        pageConstructorPresenter.selectComponent(null, null);
+        pageConstructorPresenter.selectOfferCard(null);
+        setSelectedOfferCardId(null);
         break;
+      }
       case 'pages':
         setActiveSection('pageConstructor');
         // Clear offer card selection when switching to Pages tab
@@ -750,7 +809,23 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         }
         break;
       case 'offerCards':
-        // Don't change activeSection for offer cards, just show the manager
+        setActiveSection('offerCards');
+        // Clear page constructor selection when switching to Offer Cards
+        pageConstructorPresenter.selectSection(null);
+        pageConstructorPresenter.selectComponent(null, null);
+        // Clear sidebar element selection
+        if (viewModel.selectedElement) {
+          presenter.selectElement(null);
+        }
+        break;
+      case 'templates':
+        setActiveSection('templates');
+        // Clear other selections when switching to Templates
+        presenter.selectElement(null);
+        pageConstructorPresenter.selectSection(null);
+        pageConstructorPresenter.selectComponent(null, null);
+        pageConstructorPresenter.selectOfferCard(null);
+        setSelectedOfferCardId(null);
         break;
       default:
         break;
@@ -825,6 +900,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         return (
           <div className="p-3">
             <div className="flex flex-col gap-1">
+              <div className="text-[11px] text-gray-500 mb-1">Authentication elements</div>
               <button
                 onClick={() => {
                   setActiveSection('authPopup');
@@ -955,6 +1031,14 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           </div>
         );
 
+      case 'templates':
+        return (
+          <div className="p-3 text-[11px] text-gray-500">
+            Use the Templates list in the left sidebar to create and select templates. Details and
+            Apply button are shown in the right panel.
+          </div>
+        );
+
       default:
         return null;
     }
@@ -967,6 +1051,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         isOpen={isSlideOutSidebarOpen}
         onClose={() => setIsSlideOutSidebarOpen(false)}
         appId={appId}
+        isAdmin={isAdmin}
       />
 
       {/* Main Menu Button */}
@@ -983,8 +1068,8 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       {/* Left Sidebar - список компонентов для редактирования */}
       <aside className="w-72 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
         <div className="p-3">
-          {/* Page Builder - Add Section (only when pageConstructor is active) */}
-          {activeSection === 'pageConstructor' && (() => {
+          {/* Page Builder - Add Section (only when Pages tab is active) */}
+          {activeTab === 'pages' && activeSection === 'pageConstructor' && (() => {
             const pageVm = pageConstructorPresenter.getViewModel();
             const selectedSectionId = pageVm?.selectedSection?.id || null;
             return (
@@ -1000,8 +1085,115 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             );
           })()}
 
-          {/* Left Sidebar Elements (only when not in pageConstructor) */}
-          {activeSection !== 'pageConstructor' && (
+          {/* Offer Cards Manager (only when Offer Cards tab is active) */}
+          {activeTab === 'offerCards' && (
+            <div className="mb-4">
+              <OfferCardsManager
+                offerCards={offerCards}
+                selectedCardId={selectedOfferCardId}
+                onSelect={(cardId) => {
+                  pageConstructorPresenter.selectOfferCard(cardId);
+                  setSelectedOfferCardId(cardId);
+                  setActiveTab('offerCards');
+                  // Clear sidebar element selection when selecting offer card
+                  if (viewModel.selectedElement) {
+                    handleSidebarElementSelect(null, 'sidebar');
+                  }
+                }}
+                onMigrate={async () => {
+                  if (window.confirm('Migrate all offer cards to Figma styles? This will update existing styles but preserve your customizations.')) {
+                    await pageConstructorPresenter.migrateOfferCardsToFigmaStyles();
+                    setOfferCards(pageConstructorPresenter.getOfferCards());
+                  }
+                }}
+                onAdd={async () => {
+                  await pageConstructorPresenter.addOfferCard();
+                  setOfferCards(pageConstructorPresenter.getOfferCards());
+                  setSelectedOfferCardId(pageConstructorPresenter.getSelectedOfferCardId());
+                }}
+                onDelete={async (cardId) => {
+                  await pageConstructorPresenter.removeOfferCard(cardId);
+                  setOfferCards(pageConstructorPresenter.getOfferCards());
+                  setSelectedOfferCardId(pageConstructorPresenter.getSelectedOfferCardId());
+                }}
+              />
+            </div>
+          )}
+
+          {/* Templates Manager (list + create buttons) when Templates tab is active */}
+          {activeTab === 'templates' && (
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] text-gray-500">Templates</span>
+                {isAdmin && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const name = window.prompt('Base template name');
+                        if (!name) {
+                          return;
+                        }
+                        void templatesPresenter.createBaseTemplate(name);
+                      }}
+                      className="px-2 py-1 text-[11px] rounded bg-emerald-500 text-white hover:bg-emerald-600"
+                    >
+                      Base
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const name = window.prompt('Template name from current config');
+                        if (!name) {
+                          return;
+                        }
+                        void templatesPresenter.createTemplateFromCurrentConfig(name);
+                      }}
+                      className="px-2 py-1 text-[11px] rounded bg-blue-500 text-white hover:bg-blue-600"
+                    >
+                      Current
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-1">
+                {templatesVm.templates.map((tpl) => (
+                  <button
+                    key={tpl.id}
+                    type="button"
+                    onClick={() => {
+                      void templatesPresenter.selectTemplate(tpl.id);
+                    }}
+                    className={`w-full text-left px-2 py-1.5 rounded text-xs transition-colors ${
+                      templatesVm.selectedTemplateId === tpl.id
+                        ? 'bg-blue-500 text-white'
+                        : 'hover:bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span>{tpl.name}</span>
+                      {tpl.updatedAt && (
+                        <span className="text-[10px] text-gray-400">
+                          {tpl.updatedAt.toLocaleDateString?.() ?? ''}
+                        </span>
+                      )}
+                    </div>
+                    {tpl.description && (
+                      <div className="text-[10px] text-gray-500 truncate">{tpl.description}</div>
+                    )}
+                  </button>
+                ))}
+                {templatesVm.templates.length === 0 && !templatesVm.isLoadingList && (
+                  <div className="text-[11px] text-gray-400 italic">
+                    No templates yet. Use buttons above to create one.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Left Sidebar Elements (hide when in authentication, pageConstructor, offerCards or templates) */}
+          {activeTab !== 'pages' && activeTab !== 'offerCards' && activeTab !== 'templates' && activeTab !== 'authentication' && activeSection !== 'pageConstructor' && (
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[11px] text-gray-500">Manage buttons</span>
@@ -1338,6 +1530,91 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 pageSlug={selectedPageSlug}
                 pages={viewModel.pages}
               />
+            )}
+
+            {activeSection === 'templates' && (
+              <div className="bg-white rounded-lg shadow p-4 space-y-3">
+                <h4 className="text-xs font-semibold text-gray-800 mb-1">Template details</h4>
+                {templatesVm.selectedTemplate ? (
+                  <>
+                    <div className="space-y-2">
+                      <div>
+                        <div className="text-[11px] text-gray-500 mb-0.5">Name</div>
+                        {isAdmin ? (
+                          <input
+                            type="text"
+                            defaultValue={templatesVm.selectedTemplate.name}
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded"
+                            onBlur={(e) => {
+                              const value = e.target.value.trim();
+                              if (!templatesVm.selectedTemplate) return;
+                              if (value && value !== templatesVm.selectedTemplate.name) {
+                                void templatesPresenter.updateTemplate({
+                                  id: templatesVm.selectedTemplate.id,
+                                  name: value,
+                                });
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div className="text-xs font-medium text-gray-900">
+                            {templatesVm.selectedTemplate.name}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <div className="text-[11px] text-gray-500 mb-0.5">Description</div>
+                        {isAdmin ? (
+                          <textarea
+                            defaultValue={templatesVm.selectedTemplate.metadata?.description ?? ''}
+                            className="w-full px-2 py-1 text-xs border border-gray-300 rounded resize-none"
+                            rows={3}
+                            onBlur={(e) => {
+                              const value = e.target.value;
+                              if (!templatesVm.selectedTemplate) return;
+                              void templatesPresenter.updateTemplate({
+                                id: templatesVm.selectedTemplate.id,
+                                description: value || undefined,
+                              });
+                            }}
+                          />
+                        ) : (
+                          <div className="text-xs text-gray-800">
+                            {templatesVm.selectedTemplate.metadata?.description || '—'}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 pt-2 border-t border-gray-100">
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void templatesPresenter.saveSelectedTemplateFromCurrentConfig();
+                          }}
+                          className="px-3 py-1.5 text-xs rounded bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-60"
+                          disabled={templatesVm.isSaving}
+                        >
+                          {templatesVm.isSaving ? 'Saving...' : 'Save Template'}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void templatesPresenter.applySelectedTemplateToBuilder();
+                        }}
+                        className="px-3 py-1.5 text-xs rounded bg-gray-700 text-white hover:bg-gray-800"
+                      >
+                        Apply Template
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-[11px] text-gray-500">
+                    Select a template from the list on the left to see details and apply it.
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Validation Errors */}

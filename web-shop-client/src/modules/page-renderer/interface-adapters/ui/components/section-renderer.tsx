@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import type { PageSection } from '../../../domain/entities/page-section';
 import { DynamicRenderer } from '../../../../app-layout/interface-adapters/ui/components/dynamic-renderer';
+import type { ActionContext } from '../../../../../shared/ui/action-context';
 
 interface SectionRendererProps {
   section: PageSection;
   theme: any;
+  actionContext?: ActionContext;
 }
 
 function getGridTemplate(grid: string): string {
@@ -36,7 +38,7 @@ const readSelectionModeFlag = (): boolean => {
   return false;
 };
 
-export function SectionRenderer({ section, theme }: SectionRendererProps): JSX.Element {
+export function SectionRenderer({ section, theme, actionContext }: SectionRendererProps): JSX.Element {
   // State for hover effect in element selection mode
   const [isHovered, setIsHovered] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
@@ -241,6 +243,7 @@ export function SectionRenderer({ section, theme }: SectionRendererProps): JSX.E
             key={component.id}
             node={component}
             theme={theme}
+            actionContext={actionContext}
           />
         );
       })}

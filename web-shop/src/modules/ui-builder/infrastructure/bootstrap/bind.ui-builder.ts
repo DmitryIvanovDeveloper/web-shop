@@ -12,6 +12,7 @@ import { SupabaseConfigStorage } from '../storage/supabase-config.storage';
 import { JsonSchemaValidator } from '../storage/json-schema-validator';
 import { PostMessagePreviewAdapter } from '../messaging/postmessage-preview.adapter';
 import { SupabasePageConfigStorage } from '../storage/supabase-page-config.storage';
+import { SupabaseTemplateRepository } from '../storage/supabase-template.repository';
 
 // Use Cases
 import { LoadConfigUseCase } from '../../application/use-cases/load-config.use-case';
@@ -28,10 +29,17 @@ import { SavePageDraftUseCase } from '../../application/use-cases/save-page-draf
 import { PublishPageUseCase } from '../../application/use-cases/publish-page.use-case';
 import { CreatePageUseCase } from '../../application/use-cases/create-page.use-case';
 import { ListPagesUseCase } from '../../application/use-cases/list-pages.use-case';
+import { CreateTemplateUseCase } from '../../application/use-cases/create-template.use-case';
+import { UpdateTemplateUseCase } from '../../application/use-cases/update-template.use-case';
+import { DeleteTemplateUseCase } from '../../application/use-cases/delete-template.use-case';
+import { ListTemplatesUseCase } from '../../application/use-cases/list-templates.use-case';
+import { GetTemplateDetailsUseCase } from '../../application/use-cases/get-template-details.use-case';
+import { PublishTemplateUseCase } from '../../application/use-cases/publish-template.use-case';
 
 // Presenters
 import { UIBuilderPresenter } from '../../interface-adapters/presenters/ui-builder.presenter';
 import { PageConstructorPresenter } from '../../interface-adapters/presenters/page-constructor.presenter';
+import { TemplatesPresenter } from '../../interface-adapters/presenters/templates.presenter';
 
 export function bindUIBuilder(container: Container): void {
   // Storage
@@ -61,6 +69,14 @@ export function bindUIBuilder(container: Container): void {
   container
     .bind<PageConfigStoragePort>(UI_BUILDER_TYPES.PageConfigStorage)
     .to(SupabasePageConfigStorage)
+    .inSingletonScope();
+
+  // Templates repository
+  container
+    .bind<import('../../application/ports/template-repository.port').TemplateRepositoryPort>(
+      UI_BUILDER_TYPES.TemplateRepository
+    )
+    .to(SupabaseTemplateRepository)
     .inSingletonScope();
 
   // Use Cases
@@ -135,6 +151,37 @@ export function bindUIBuilder(container: Container): void {
     .to(ListPagesUseCase)
     .inSingletonScope();
 
+  // Template use cases
+  container
+    .bind<CreateTemplateUseCase>(UI_BUILDER_TYPES.CreateTemplateUseCase)
+    .to(CreateTemplateUseCase)
+    .inSingletonScope();
+
+  container
+    .bind<UpdateTemplateUseCase>(UI_BUILDER_TYPES.UpdateTemplateUseCase)
+    .to(UpdateTemplateUseCase)
+    .inSingletonScope();
+
+  container
+    .bind<DeleteTemplateUseCase>(UI_BUILDER_TYPES.DeleteTemplateUseCase)
+    .to(DeleteTemplateUseCase)
+    .inSingletonScope();
+
+  container
+    .bind<ListTemplatesUseCase>(UI_BUILDER_TYPES.ListTemplatesUseCase)
+    .to(ListTemplatesUseCase)
+    .inSingletonScope();
+
+  container
+    .bind<GetTemplateDetailsUseCase>(UI_BUILDER_TYPES.GetTemplateDetailsUseCase)
+    .to(GetTemplateDetailsUseCase)
+    .inSingletonScope();
+
+  container
+    .bind<PublishTemplateUseCase>(UI_BUILDER_TYPES.PublishTemplateUseCase)
+    .to(PublishTemplateUseCase)
+    .inSingletonScope();
+
   // Presenters
   container
     .bind<UIBuilderPresenter>(UI_BUILDER_TYPES.UIBuilderPresenter)
@@ -144,6 +191,11 @@ export function bindUIBuilder(container: Container): void {
   container
     .bind<PageConstructorPresenter>(UI_BUILDER_TYPES.PageConstructorPresenter)
     .to(PageConstructorPresenter)
+    .inSingletonScope();
+
+  container
+    .bind<TemplatesPresenter>(UI_BUILDER_TYPES.TemplatesPresenter)
+    .to(TemplatesPresenter)
     .inSingletonScope();
 }
 

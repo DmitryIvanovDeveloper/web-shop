@@ -28,9 +28,19 @@ export const UI_BUILDER_TYPES = {
   CreatePageUseCase: Symbol.for('UIBuilder.CreatePageUseCase'),
   ListPagesUseCase: Symbol.for('UIBuilder.ListPagesUseCase'),
 
+  // Templates
+  TemplateRepository: Symbol.for('UIBuilder.TemplateRepository'),
+  CreateTemplateUseCase: Symbol.for('UIBuilder.CreateTemplateUseCase'),
+  UpdateTemplateUseCase: Symbol.for('UIBuilder.UpdateTemplateUseCase'),
+  DeleteTemplateUseCase: Symbol.for('UIBuilder.DeleteTemplateUseCase'),
+  ListTemplatesUseCase: Symbol.for('UIBuilder.ListTemplatesUseCase'),
+  GetTemplateDetailsUseCase: Symbol.for('UIBuilder.GetTemplateDetailsUseCase'),
+  PublishTemplateUseCase: Symbol.for('UIBuilder.PublishTemplateUseCase'),
+
   // Presenters
   UIBuilderPresenter: Symbol.for('UIBuilder.UIBuilderPresenter'),
   PageConstructorPresenter: Symbol.for('UIBuilder.PageConstructorPresenter'),
+  TemplatesPresenter: Symbol.for('UIBuilder.TemplatesPresenter'),
 };
 
 

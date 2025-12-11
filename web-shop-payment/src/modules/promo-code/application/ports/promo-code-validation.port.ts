@@ -28,3 +28,9 @@ export interface PromoCodeValidationPort {
   ): Promise<Result<AppliedDiscount, PromoCodeError>>;
 }
 
+
+
+
+
+
+

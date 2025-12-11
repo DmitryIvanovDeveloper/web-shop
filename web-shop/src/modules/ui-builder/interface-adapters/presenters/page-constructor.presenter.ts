@@ -11,6 +11,7 @@ import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import type { PageConfig } from '../../domain/entities/page-config.entity';
 import type { PageSection, SectionLayout, ComponentNode } from '../../domain/entities/page-section.entity';
 import type { OfferCardTemplate, AppConfigStructure, AppConfig } from '../../domain/entities/app-config.entity';
+import type { TemplatePageSnapshot } from '../../domain/entities/template.entity';
 import { generateElementId } from '../../shared/utils/id-generator';
 import { migratePageConfigIds } from '../../shared/utils/config-migrator';
 
@@ -637,6 +638,64 @@ export class PageConstructorPresenter {
     return { ...this.pageStyles };
   }
 
+  /**
+   * Create default Template page snapshot (home page with default sections).
+   */
+  public createDefaultTemplatePageSnapshot(): TemplatePageSnapshot {
+    const sections = this.createDefaultSectionsForHome();
+    return {
+      pageSlug: 'home',
+      pageConfig: {
+        sections,
+        pageStyles: {},
+      },
+    };
+  }
+
+  /**
+   * Apply page configuration snapshot from a Template into the current page.
+   * Expects pageConfig to contain { sections, pageStyles? } structure.
+   */
+  public applyTemplatePageConfig(input: { appId: string; pageSlug: string; pageConfig: unknown }): void {
+    this._logger.info('[PageConstructorPresenter] Applying template page config', {
+      appId: input.appId,
+      pageSlug: input.pageSlug,
+    });
+
+    if (
+      !input.pageConfig ||
+      typeof input.pageConfig !== 'object' ||
+      !Array.isArray((input.pageConfig as any).sections)
+    ) {
+      this._logger.warn('[PageConstructorPresenter] Invalid template pageConfig payload', {
+        hasConfig: !!input.pageConfig,
+      });
+      return;
+    }
+
+    const snapshot = input.pageConfig as {
+      sections: PageSection[];
+      pageStyles?: { padding?: string; gap?: string; backgroundColor?: string; backgroundOpacity?: number };
+    };
+
+    this.vm = {
+      ...this.vm,
+      appId: input.appId,
+      pageSlug: input.pageSlug,
+      sections: snapshot.sections,
+      selectedSection: null,
+      selectedComponent: null,
+      isDraft: true,
+      error: null,
+    };
+
+    this.pageStyles = snapshot.pageStyles ? { ...snapshot.pageStyles } : {};
+
+    this.notify();
+    this.saveConfigDebounced();
+    this.sendConfigToIframe();
+  }
+
   private sendActiveConfigToIframe(config: PageConfig): void {
     if (typeof window === 'undefined') return;
 
@@ -830,16 +889,23 @@ export class PageConstructorPresenter {
       this.lastAppConfig = updatedAppConfig;
 
       // Send CONFIG_UPDATE message with app-config, offerCards, and selectedOfferCardId
-      // Only send selectedOfferCardId if it's actually selected (not null)
+      // Only include selectedOfferCardId in payload if it's actually selected (not null)
       // This prevents showing offer-card in iframe when editing pages
+      // If null, don't include it in payload so PageRenderer preserves current value
+      const payload: Record<string, unknown> = {
+        config: updatedAppConfig,
+        offerCards: [...this.offerCards],
+      };
+      
+      // Only include selectedOfferCardId if it's not null
+      if (this.selectedOfferCardId !== null) {
+        payload.selectedOfferCardId = this.selectedOfferCardId;
+      }
+      
       iframe.contentWindow.postMessage(
         {
           type: 'CONFIG_UPDATE',
-          payload: {
-            config: updatedAppConfig,
-            offerCards: [...this.offerCards],
-            selectedOfferCardId: this.selectedOfferCardId || null,
-          },
+          payload,
         },
         '*'
       );
@@ -1096,10 +1162,20 @@ export class PageConstructorPresenter {
         fontWeight: 'bold',
         padding: '12px 8px',
         minHeight: '48px',
+        // explicit enabled flag to persist preview state
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        enabled: true,
       },
       purchasedBadge: {
         backgroundColor: '#10B981',
         color: '#FFFFFF',
+        padding: '12px 16px',
+        borderRadius: '8px',
+        minHeight: '44px',
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        enabled: false,
       },
       bonuses: {
         rpColor: '#FBBF24',

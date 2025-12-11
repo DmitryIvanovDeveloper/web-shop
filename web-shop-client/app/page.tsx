@@ -150,12 +150,18 @@ export default function HomePage(): JSX.Element {
             console.log('[HomePage] Setting offer cards', { count: event.data.payload.offerCards.length });
             presenter.setOfferCards(event.data.payload.offerCards);
           }
+          // Only update selectedOfferCardId if explicitly provided in payload (preserve current value if not provided)
           if (event.data.payload?.selectedOfferCardId !== undefined) {
-            console.log('[HomePage] Setting selected offer card ID', { cardId: event.data.payload.selectedOfferCardId });
-            presenter.setSelectedOfferCardId(event.data.payload.selectedOfferCardId);
-          } else {
-            presenter.setSelectedOfferCardId(null);
+            if (event.data.payload.selectedOfferCardId !== null) {
+              console.log('[HomePage] Setting selected offer card ID', { cardId: event.data.payload.selectedOfferCardId });
+              presenter.setSelectedOfferCardId(event.data.payload.selectedOfferCardId);
+            } else {
+              // Explicitly clear when null is provided
+              console.log('[HomePage] Clearing selected offer card ID (explicit null)');
+              presenter.setSelectedOfferCardId(null);
+            }
           }
+          // If selectedOfferCardId is not in payload, keep current value (don't clear it)
         } catch (error) {
           console.error('[HomePage] Failed to process app config update from message', error);
         }
@@ -254,6 +260,13 @@ export default function HomePage(): JSX.Element {
             Offer Card Preview: {selectedOfferCard.name}
           </h2>
           <div style={{ maxWidth: '400px', width: '100%', display: 'flex', justifyContent: 'center' }}>
+            {(() => {
+              const isPurchased =
+                (selectedOfferCard.styles as any)?.buyButton?.enabled === false ||
+                (selectedOfferCard as any)?.buyButton?.enabled === false ||
+                (selectedOfferCard.styles as any)?.purchasedBadge?.enabled === true ||
+                false;
+              return (
             <OfferCard
               id={selectedOfferCard.id}
               topLabel="Limited Offer🎁"
@@ -264,7 +277,10 @@ export default function HomePage(): JSX.Element {
               discount="80%"
               originalPrice="24,99 $"
               currentPrice="14,99 $"
+              isPurchased={isPurchased}
             />
+              );
+            })()}
           </div>
         </div>
       )}

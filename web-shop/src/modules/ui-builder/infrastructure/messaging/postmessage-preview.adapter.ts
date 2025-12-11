@@ -85,10 +85,13 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
     this._readyCallbacks.forEach(cb => cb());
   }
 
-  public sendConfig(config: Record<string, unknown>): void {
+  public sendConfig(config: Record<string, unknown>, selectedElementId?: string | null): void {
     const message = {
       type: 'CONFIG_UPDATE',
-      payload: { config },
+      payload: {
+        config,
+        selectedElementId: selectedElementId ?? null,
+      },
     };
 
     console.log('[PostMessagePreviewAdapter] Sending config update', {

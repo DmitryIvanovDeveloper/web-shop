@@ -147,6 +147,39 @@ export class UIBuilderPresenter {
     this.sendConfigToIframe();
   }
 
+  /**
+   * Return a fresh default app config snapshot without mutating current state.
+   */
+  public createDefaultConfigSnapshot(): Record<string, unknown> {
+    return this.getDefaultConfig();
+  }
+
+  /**
+   * Apply full app-level configuration from a Template into the current draft.
+   * Does not publish; changes are saved as draft via debounced save.
+   */
+  public applyTemplateConfig(appConfig: unknown): void {
+    this._logger.info('[UIBuilderPresenter] Applying template config');
+
+    if (!appConfig || typeof appConfig !== 'object') {
+      this._logger.warn('[UIBuilderPresenter] applyTemplateConfig called with invalid config', {
+        hasConfig: !!appConfig,
+      });
+      return;
+    }
+
+    this.vm = {
+      ...this.vm,
+      config: appConfig as Record<string, unknown>,
+      isDraft: true,
+      error: null,
+    };
+
+    this.notify();
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
+  }
+
   public async initialize(appId: string): Promise<void> {
     this._logger.info('[UIBuilderPresenter] Initializing with appId', { appId });
     this.vm = { ...this.vm, isLoading: true, appId };
@@ -1120,7 +1153,8 @@ export class UIBuilderPresenter {
       ...this.vm.config,
       elementSelectionMode: this.vm.elementSelectionMode,
     };
-    this.preview.sendConfig(configForPreview);
+    const selectedElementId = this.vm.selectedElement?.id ?? null;
+    this.preview.sendConfig(configForPreview, selectedElementId);
   }
 
   /**

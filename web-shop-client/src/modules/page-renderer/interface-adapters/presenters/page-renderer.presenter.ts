@@ -23,6 +23,41 @@ export class PageRendererPresenter {
     @inject(ROOT_TYPES.Logger) private readonly _logger: Logger
   ) {}
 
+  /**
+   * Deep clone component node to avoid shared references between editor elements.
+   */
+  private _cloneComponentNode(node: any): any {
+    if (!node) {
+      return node;
+    }
+    return {
+      ...node,
+      props: node.props ? { ...node.props } : {},
+      styles: node.styles ? { ...node.styles } : {},
+      actions: node.actions ? { ...node.actions } : undefined,
+      children: Array.isArray(node.children)
+        ? node.children.map((child: any) => this._cloneComponentNode(child))
+        : [],
+    };
+  }
+
+  /**
+   * Deep clone sections to ensure style updates of one element do not mutate others via shared refs.
+   */
+  private _cloneSections(sections: any[] | undefined) {
+    if (!Array.isArray(sections)) {
+      return [];
+    }
+    return sections.map((section) => ({
+      ...section,
+      layout: section.layout ? { ...section.layout } : undefined,
+      styles: section.styles ? { ...section.styles } : undefined,
+      components: Array.isArray(section.components)
+        ? section.components.map((c: any) => this._cloneComponentNode(c))
+        : [],
+    }));
+  }
+
   get viewModel(): PageRendererViewModel {
     return this._vm;
   }
@@ -82,8 +117,8 @@ export class PageRendererPresenter {
     this._vm = {
       ...this._vm,
       pageId: pageConfig?.id,
-      sections: pageConfig?.sections || [],
-      pageStyles: pageConfig?.pageStyles || {},
+      sections: this._cloneSections(pageConfig?.sections),
+      pageStyles: pageConfig?.pageStyles ? { ...pageConfig.pageStyles } : {},
       isLoading: false,
       error: null
     };

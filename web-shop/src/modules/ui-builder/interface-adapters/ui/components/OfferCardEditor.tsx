@@ -48,6 +48,14 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
   };
 
   const [isMainImageUploading, setIsMainImageUploading] = React.useState(false);
+  // Button / Purchased toggle: derive initial from buyButton.enabled
+  const initialButtonMode: 'buy' | 'purchased' =
+    card.styles.buyButton && (card.styles.buyButton as any).enabled === false
+      ? 'purchased'
+      : (card.styles.purchasedBadge && (card.styles.purchasedBadge as any).enabled === true)
+      ? 'purchased'
+      : 'buy';
+  const [buttonMode, setButtonMode] = React.useState<'buy' | 'purchased'>(initialButtonMode);
 
   const readFileAsDataUrl = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -138,6 +146,70 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
 
     const clamped = Math.max(numeric, 0);
     updateStyleField('container', 'blurAmount', clamped.toString());
+  };
+
+  // Helpers for padding input with value + unit
+  const parsePadding = (padding: string | number | undefined): { value: string; unit: 'px' | 'rem' } => {
+    if (padding === undefined || padding === null || padding === '') {
+      return { value: '', unit: 'px' };
+    }
+
+    const str = typeof padding === 'number' ? `${padding}px` : padding.toString().trim();
+    const match = str.match(/^([\d.,]+)\s*(px|rem)$/i);
+    if (match) {
+      return { value: match[1], unit: match[2].toLowerCase() as 'px' | 'rem' };
+    }
+
+    // fallback: try to extract numeric part, default px
+    const numericMatch = str.match(/([\d.,]+)/);
+    return {
+      value: numericMatch ? numericMatch[1] : '',
+      unit: 'px',
+    };
+  };
+
+  const buildPadding = (value: string, unit: 'px' | 'rem'): string => {
+    const normalized = value.trim();
+    if (!normalized) {
+      return '';
+    }
+    const numeric = normalized.replace(',', '.');
+    return `${numeric}${unit}`;
+  };
+
+  // Generic size helpers (px / rem)
+  const parseSize = (
+    size: string | number | undefined,
+    defaultUnit: 'px' | 'rem' = 'px'
+  ): { value: string; unit: 'px' | 'rem' } => {
+    if (size === undefined || size === null || size === '') {
+      return { value: '', unit: defaultUnit };
+    }
+    const str = typeof size === 'number' ? `${size}${defaultUnit}` : size.toString().trim();
+    const match = str.match(/^([\d.,]+)\s*(px|rem)?$/i);
+    if (match) {
+      return {
+        value: match[1],
+        unit: (match[2]?.toLowerCase() as 'px' | 'rem') || defaultUnit,
+      };
+    }
+    const numericMatch = str.match(/([\d.,]+)/);
+    return {
+      value: numericMatch ? numericMatch[1] : '',
+      unit: defaultUnit,
+    };
+  };
+
+  const buildSize = (value: string, unit: 'px' | 'rem'): string => {
+    const normalized = value.trim();
+    if (!normalized) return '';
+    return `${normalized.replace(',', '.')}${unit}`;
+  };
+
+  const buildNumberString = (value: string): string => {
+    const normalized = value.trim();
+    if (!normalized) return '';
+    return normalized.replace(',', '.');
   };
 
   const containerOpacityRaw = card.styles.container?.backgroundOpacity;
@@ -295,13 +367,30 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Border Radius
           </label>
+          {(() => {
+            const { value, unit } = parseSize(card.styles.container?.borderRadius);
+            return (
+              <div className="flex gap-2">
           <input
-            type="text"
-            value={card.styles.container?.borderRadius || ''}
-            onChange={(e) => updateStyleField('container', 'borderRadius', e.target.value)}
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => updateStyleField('container', 'borderRadius', buildSize(e.target.value, unit))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="8px"
-          />
+                  placeholder="8"
+                />
+                <select
+                  value={unit}
+                  onChange={(e) => updateStyleField('container', 'borderRadius', buildSize(value, e.target.value as 'px' | 'rem'))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                </select>
+              </div>
+            );
+          })()}
         </div>
 
         <div>
@@ -489,15 +578,62 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
 
         <div>
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
+            Border Radius
+          </label>
+          {(() => {
+            const { value, unit } = parseSize(card.styles.purchasedBadge?.borderRadius);
+            return (
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => updateStyleField('purchasedBadge', 'borderRadius', buildSize(e.target.value, unit))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus-border-transparent text-sm"
+                  placeholder="8"
+                />
+                <select
+                  value={unit}
+                  onChange={(e) => updateStyleField('purchasedBadge', 'borderRadius', buildSize(value, e.target.value as 'px' | 'rem'))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus-border-transparent text-sm"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                </select>
+              </div>
+            );
+          })()}
+        </div>
+
+        <div>
+          <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Font Size
           </label>
+          {(() => {
+            const { value, unit } = parseSize(card.styles.topLabel?.fontSize);
+            return (
+              <div className="flex gap-2">
           <input
-            type="text"
-            value={card.styles.topLabel?.fontSize || ''}
-            onChange={(e) => updateStyleField('topLabel', 'fontSize', e.target.value)}
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => updateStyleField('topLabel', 'fontSize', buildSize(e.target.value, unit))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="12px"
-          />
+                  placeholder="12"
+                />
+                <select
+                  value={unit}
+                  onChange={(e) => updateStyleField('topLabel', 'fontSize', buildSize(value, e.target.value as 'px' | 'rem'))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                </select>
+              </div>
+            );
+          })()}
         </div>
 
         <div>
@@ -505,9 +641,11 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
             Font Weight
           </label>
           <input
-            type="text"
-            value={card.styles.topLabel?.fontWeight || ''}
-            onChange={(e) => updateStyleField('topLabel', 'fontWeight', e.target.value)}
+            type="number"
+            inputMode="decimal"
+            step="10"
+            value={card.styles.topLabel?.fontWeight ?? ''}
+            onChange={(e) => updateStyleField('topLabel', 'fontWeight', buildNumberString(e.target.value))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             placeholder="600"
           />
@@ -517,26 +655,60 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Padding
           </label>
+          {(() => {
+            const { value, unit } = parsePadding(card.styles.topLabel?.padding);
+            return (
+              <div className="flex gap-2">
           <input
-            type="text"
-            value={card.styles.topLabel?.padding || ''}
-            onChange={(e) => updateStyleField('topLabel', 'padding', e.target.value)}
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => updateStyleField('topLabel', 'padding', buildPadding(e.target.value, unit))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="8px 4px"
-          />
+                  placeholder="32.7"
+                />
+                <select
+                  value={unit}
+                  onChange={(e) => updateStyleField('topLabel', 'padding', buildPadding(value, e.target.value as 'px' | 'rem'))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                </select>
+              </div>
+            );
+          })()}
         </div>
 
         <div>
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Border Radius
           </label>
+          {(() => {
+            const { value, unit } = parseSize(card.styles.topLabel?.borderRadius);
+            return (
+              <div className="flex gap-2">
           <input
-            type="text"
-            value={card.styles.topLabel?.borderRadius || ''}
-            onChange={(e) => updateStyleField('topLabel', 'borderRadius', e.target.value)}
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => updateStyleField('topLabel', 'borderRadius', buildSize(e.target.value, unit))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="20px"
-          />
+                  placeholder="20"
+                />
+                <select
+                  value={unit}
+                  onChange={(e) => updateStyleField('topLabel', 'borderRadius', buildSize(value, e.target.value as 'px' | 'rem'))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                </select>
+              </div>
+            );
+          })()}
         </div>
       </div>
 
@@ -590,13 +762,30 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Font Size
           </label>
+          {(() => {
+            const { value, unit } = parseSize(card.styles.discountBadge?.fontSize);
+            return (
+              <div className="flex gap-2">
           <input
-            type="text"
-            value={card.styles.discountBadge?.fontSize || ''}
-            onChange={(e) => updateStyleField('discountBadge', 'fontSize', e.target.value)}
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => updateStyleField('discountBadge', 'fontSize', buildSize(e.target.value, unit))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="12px"
-          />
+                  placeholder="12"
+                />
+                <select
+                  value={unit}
+                  onChange={(e) => updateStyleField('discountBadge', 'fontSize', buildSize(value, e.target.value as 'px' | 'rem'))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                </select>
+              </div>
+            );
+          })()}
         </div>
 
         <div>
@@ -604,9 +793,11 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
             Font Weight
           </label>
           <input
-            type="text"
-            value={card.styles.discountBadge?.fontWeight || ''}
-            onChange={(e) => updateStyleField('discountBadge', 'fontWeight', e.target.value)}
+            type="number"
+            inputMode="decimal"
+            step="10"
+            value={card.styles.discountBadge?.fontWeight ?? ''}
+            onChange={(e) => updateStyleField('discountBadge', 'fontWeight', buildNumberString(e.target.value))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             placeholder="500"
           />
@@ -616,26 +807,60 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Padding
           </label>
+          {(() => {
+            const { value, unit } = parsePadding(card.styles.discountBadge?.padding);
+            return (
+              <div className="flex gap-2">
           <input
-            type="text"
-            value={card.styles.discountBadge?.padding || ''}
-            onChange={(e) => updateStyleField('discountBadge', 'padding', e.target.value)}
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => updateStyleField('discountBadge', 'padding', buildPadding(e.target.value, unit))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="8px 4px"
-          />
+                  placeholder="32.7"
+                />
+                <select
+                  value={unit}
+                  onChange={(e) => updateStyleField('discountBadge', 'padding', buildPadding(value, e.target.value as 'px' | 'rem'))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                </select>
+              </div>
+            );
+          })()}
         </div>
 
         <div>
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Border Radius
           </label>
+          {(() => {
+            const { value, unit } = parseSize(card.styles.discountBadge?.borderRadius);
+            return (
+              <div className="flex gap-2">
           <input
-            type="text"
-            value={card.styles.discountBadge?.borderRadius || ''}
-            onChange={(e) => updateStyleField('discountBadge', 'borderRadius', e.target.value)}
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => updateStyleField('discountBadge', 'borderRadius', buildSize(e.target.value, unit))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="20px"
-          />
+                  placeholder="20"
+                />
+                <select
+                  value={unit}
+                  onChange={(e) => updateStyleField('discountBadge', 'borderRadius', buildSize(value, e.target.value as 'px' | 'rem'))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                </select>
+              </div>
+            );
+          })()}
         </div>
       </div>
 
@@ -647,13 +872,30 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Font Size
           </label>
-          <input
-            type="text"
-            value={card.styles.title?.fontSize || ''}
-            onChange={(e) => updateStyleField('title', 'fontSize', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="18px"
-          />
+          {(() => {
+            const { value, unit } = parseSize(card.styles.title?.fontSize);
+            return (
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => updateStyleField('title', 'fontSize', buildSize(e.target.value, unit))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  placeholder="18"
+                />
+                <select
+                  value={unit}
+                  onChange={(e) => updateStyleField('title', 'fontSize', buildSize(value, e.target.value as 'px' | 'rem'))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                </select>
+              </div>
+            );
+          })()}
         </div>
 
         <div>
@@ -661,9 +903,11 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
             Font Weight
           </label>
           <input
-            type="text"
-            value={card.styles.title?.fontWeight || ''}
-            onChange={(e) => updateStyleField('title', 'fontWeight', e.target.value)}
+            type="number"
+            inputMode="decimal"
+            step="10"
+            value={card.styles.title?.fontWeight ?? ''}
+            onChange={(e) => updateStyleField('title', 'fontWeight', buildNumberString(e.target.value))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             placeholder="500"
           />
@@ -699,13 +943,30 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Font Size
           </label>
-          <input
-            type="text"
-            value={card.styles.description?.fontSize || ''}
-            onChange={(e) => updateStyleField('description', 'fontSize', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="16px"
-          />
+          {(() => {
+            const { value, unit } = parseSize(card.styles.description?.fontSize);
+            return (
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => updateStyleField('description', 'fontSize', buildSize(e.target.value, unit))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  placeholder="16"
+                />
+                <select
+                  value={unit}
+                  onChange={(e) => updateStyleField('description', 'fontSize', buildSize(value, e.target.value as 'px' | 'rem'))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                </select>
+              </div>
+            );
+          })()}
         </div>
 
         <div>
@@ -713,9 +974,11 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
             Font Weight
           </label>
           <input
-            type="text"
-            value={card.styles.description?.fontWeight || ''}
-            onChange={(e) => updateStyleField('description', 'fontWeight', e.target.value)}
+            type="number"
+            inputMode="decimal"
+            step="10"
+            value={card.styles.description?.fontWeight ?? ''}
+            onChange={(e) => updateStyleField('description', 'fontWeight', buildNumberString(e.target.value))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             placeholder="400"
           />
@@ -746,13 +1009,30 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Line Height
           </label>
-          <input
-            type="text"
-            value={card.styles.description?.lineHeight || ''}
-            onChange={(e) => updateStyleField('description', 'lineHeight', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="23px"
-          />
+          {(() => {
+            const { value, unit } = parseSize(card.styles.description?.lineHeight);
+            return (
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => updateStyleField('description', 'lineHeight', buildSize(e.target.value, unit))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  placeholder="23"
+                />
+                <select
+                  value={unit}
+                  onChange={(e) => updateStyleField('description', 'lineHeight', buildSize(value, e.target.value as 'px' | 'rem'))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                </select>
+              </div>
+            );
+          })()}
         </div>
       </div>
 
@@ -764,13 +1044,30 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Font Size
           </label>
-          <input
-            type="text"
-            value={card.styles.originalPrice?.fontSize || ''}
-            onChange={(e) => updateStyleField('originalPrice', 'fontSize', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="16px"
-          />
+          {(() => {
+            const { value, unit } = parseSize(card.styles.originalPrice?.fontSize);
+            return (
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => updateStyleField('originalPrice', 'fontSize', buildSize(e.target.value, unit))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  placeholder="16"
+                />
+                <select
+                  value={unit}
+                  onChange={(e) => updateStyleField('originalPrice', 'fontSize', buildSize(value, e.target.value as 'px' | 'rem'))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                </select>
+              </div>
+            );
+          })()}
         </div>
 
         <div>
@@ -778,9 +1075,11 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
             Font Weight
           </label>
           <input
-            type="text"
-            value={card.styles.originalPrice?.fontWeight || ''}
-            onChange={(e) => updateStyleField('originalPrice', 'fontWeight', e.target.value)}
+            type="number"
+            inputMode="decimal"
+            step="10"
+            value={card.styles.originalPrice?.fontWeight ?? ''}
+            onChange={(e) => updateStyleField('originalPrice', 'fontWeight', buildNumberString(e.target.value))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             placeholder="500"
           />
@@ -816,13 +1115,30 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Font Size
           </label>
-          <input
-            type="text"
-            value={card.styles.currentPrice?.fontSize || ''}
-            onChange={(e) => updateStyleField('currentPrice', 'fontSize', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="16px"
-          />
+          {(() => {
+            const { value, unit } = parseSize(card.styles.currentPrice?.fontSize);
+            return (
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => updateStyleField('currentPrice', 'fontSize', buildSize(e.target.value, unit))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  placeholder="16"
+                />
+                <select
+                  value={unit}
+                  onChange={(e) => updateStyleField('currentPrice', 'fontSize', buildSize(value, e.target.value as 'px' | 'rem'))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                </select>
+              </div>
+            );
+          })()}
         </div>
 
         <div>
@@ -830,9 +1146,11 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
             Font Weight
           </label>
           <input
-            type="text"
-            value={card.styles.currentPrice?.fontWeight || ''}
-            onChange={(e) => updateStyleField('currentPrice', 'fontWeight', e.target.value)}
+            type="number"
+            inputMode="decimal"
+            step="10"
+            value={card.styles.currentPrice?.fontWeight ?? ''}
+            onChange={(e) => updateStyleField('currentPrice', 'fontWeight', buildNumberString(e.target.value))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             placeholder="500"
           />
@@ -907,134 +1225,146 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
         </div>
       </div>
 
-      {/* Buy Button + Price Block Styles */}
+      {/* Action State: Buy vs Purchased */}
       <div className="space-y-3">
-        <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Buy Button &amp; Price Block</h4>
-        <p className="text-[11px] text-gray-500">
-          Price block оформляет текст на кнопке &mdash; все параметры ниже применяются к кнопке целиком.
-        </p>
-
-        <div>
-          <label className="text-xs font-medium text-gray-600 block mb-1.5">
-            Background Color
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="color"
-              value={card.styles.buyButton?.backgroundColor || '#FF6B35'}
-              onChange={(e) => updateStyleField('buyButton', 'backgroundColor', e.target.value)}
-              className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
-            />
-            <input
-              type="text"
-              value={card.styles.buyButton?.backgroundColor || ''}
-              onChange={(e) => updateStyleField('buyButton', 'backgroundColor', e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
-              placeholder="#FF6B35"
-            />
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Action State</h4>
+          <div className="inline-flex rounded-md border border-gray-200 overflow-hidden text-xs">
+            <button
+              type="button"
+              onClick={() => {
+                setButtonMode('buy');
+                // Ensure buy button is enabled when switching to Buy
+                updateStyles({
+                  buyButton: {
+                    ...(card.styles.buyButton || {}),
+                    enabled: true,
+                  }
+                  ,
+                  purchasedBadge: {
+                    ...(card.styles.purchasedBadge || {}),
+                    enabled: false,
+                  }
+                });
+              }}
+              className={`px-3 py-1.5 ${buttonMode === 'buy' ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+            >
+              Buy Button
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setButtonMode('purchased');
+                // Disable buy button when purchased to force preview state
+                updateStyles({
+                  buyButton: {
+                    ...(card.styles.buyButton || {}),
+                    enabled: false,
+                  }
+                  ,
+                  purchasedBadge: {
+                    ...(card.styles.purchasedBadge || {}),
+                    enabled: true,
+                  }
+                });
+              }}
+              className={`px-3 py-1.5 border-l border-gray-200 ${buttonMode === 'purchased' ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+            >
+              Purchased Badge
+            </button>
           </div>
         </div>
 
-        <div>
-          <label className="text-xs font-medium text-gray-600 block mb-1.5">
-            Color
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="color"
-              value={card.styles.buyButton?.color || '#FFFFFF'}
-              onChange={(e) => updateStyleField('buyButton', 'color', e.target.value)}
-              className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
-            />
-            <input
-              type="text"
-              value={card.styles.buyButton?.color || ''}
-              onChange={(e) => updateStyleField('buyButton', 'color', e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
-              placeholder="#FFFFFF"
-            />
-          </div>
-        </div>
+        {buttonMode === 'buy' && (
+          <>
+            <p className="text-[11px] text-gray-500">
+              Price block оформляет текст на кнопке &mdash; все параметры ниже применяются к кнопке целиком.
+            </p>
 
-        <div>
-          <label className="text-xs font-medium text-gray-600 block mb-1.5">
-            Border Radius
-          </label>
-          <input
-            type="text"
-            value={card.styles.buyButton?.borderRadius || ''}
-            onChange={(e) => updateStyleField('buyButton', 'borderRadius', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="8px"
-          />
-        </div>
-
-        <div>
-          <label className="text-xs font-medium text-gray-600 block mb-1.5">
-            Font Size
-          </label>
-          <input
-            type="text"
-            value={card.styles.buyButton?.fontSize || ''}
-            onChange={(e) => updateStyleField('buyButton', 'fontSize', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="clamp(12px, 4cqw, 18px)"
-          />
-        </div>
-
-        <div>
-          <label className="text-xs font-medium text-gray-600 block mb-1.5">
-            Font Weight
-          </label>
-          <input
-            type="text"
-            value={card.styles.buyButton?.fontWeight || ''}
-            onChange={(e) => updateStyleField('buyButton', 'fontWeight', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="bold"
-          />
-        </div>
-
-        <div>
-          <label className="text-xs font-medium text-gray-600 block mb-1.5">
-            Padding
-          </label>
-          <input
-            type="text"
-            value={card.styles.buyButton?.padding || ''}
-            onChange={(e) => updateStyleField('buyButton', 'padding', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="12px 8px"
-          />
-        </div>
-
-        <div>
-          <label className="text-xs font-medium text-gray-600 block mb-1.5">
-            Min Height
-          </label>
-          <input
-            type="text"
-            value={card.styles.buyButton?.minHeight || ''}
-            onChange={(e) => updateStyleField('buyButton', 'minHeight', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="48px"
-          />
-        </div>
-
-        <div className="pt-3 border-t border-gray-200">
-          <p className="text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-2">Price Block внутри кнопки</p>
-
-          <div className="space-y-3">
             <div>
               <label className="text-xs font-medium text-gray-600 block mb-1.5">
-                Border Radius
+                Background Color
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  value={card.styles.buyButton?.backgroundColor || '#FF6B35'}
+                  onChange={(e) => updateStyleField('buyButton', 'backgroundColor', e.target.value)}
+                  className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={card.styles.buyButton?.backgroundColor || ''}
+                  onChange={(e) => updateStyleField('buyButton', 'backgroundColor', e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                  placeholder="#FF6B35"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-gray-600 block mb-1.5">
+                Color
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  value={card.styles.buyButton?.color || '#FFFFFF'}
+                  onChange={(e) => updateStyleField('buyButton', 'color', e.target.value)}
+                  className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={card.styles.buyButton?.color || ''}
+                  onChange={(e) => updateStyleField('buyButton', 'color', e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                  placeholder="#FFFFFF"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-gray-600 block mb-1.5">
+                Font Size
+              </label>
+              {(() => {
+                const { value, unit } = parseSize(card.styles.buyButton?.fontSize);
+                return (
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
+                      value={value}
+                      onChange={(e) => updateStyleField('buyButton', 'fontSize', buildSize(e.target.value, unit))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      placeholder="16"
+                    />
+                    <select
+                      value={unit}
+                      onChange={(e) => updateStyleField('buyButton', 'fontSize', buildSize(value, e.target.value as 'px' | 'rem'))}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    >
+                      <option value="px">px</option>
+                      <option value="rem">rem</option>
+                    </select>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-gray-600 block mb-1.5">
+                Font Weight
               </label>
               <input
-                type="text"
-                value={card.styles.priceBlock?.borderRadius || ''}
-                onChange={(e) => updateStyleField('priceBlock', 'borderRadius', e.target.value)}
+                type="number"
+                inputMode="decimal"
+                step="10"
+                value={card.styles.buyButton?.fontWeight ?? ''}
+                onChange={(e) => updateStyleField('buyButton', 'fontWeight', buildNumberString(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                placeholder="20px"
+                placeholder="500"
               />
             </div>
 
@@ -1042,45 +1372,315 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
               <label className="text-xs font-medium text-gray-600 block mb-1.5">
                 Padding
               </label>
-              <input
-                type="text"
-                value={card.styles.priceBlock?.padding || ''}
-                onChange={(e) => updateStyleField('priceBlock', 'padding', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                placeholder="16px 12px"
-              />
+              {(() => {
+                const { value, unit } = parsePadding(card.styles.buyButton?.padding);
+                return (
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
+                      value={value}
+                      onChange={(e) => updateStyleField('buyButton', 'padding', buildPadding(e.target.value, unit))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      placeholder="32.7"
+                    />
+                    <select
+                      value={unit}
+                      onChange={(e) => updateStyleField('buyButton', 'padding', buildPadding(value, e.target.value as 'px' | 'rem'))}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    >
+                      <option value="px">px</option>
+                      <option value="rem">rem</option>
+                    </select>
+                  </div>
+                );
+              })()}
             </div>
 
             <div>
               <label className="text-xs font-medium text-gray-600 block mb-1.5">
                 Min Height
               </label>
-              <input
-                type="text"
-                value={card.styles.priceBlock?.minHeight || ''}
-                onChange={(e) => updateStyleField('priceBlock', 'minHeight', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                placeholder="60px"
-              />
+              {(() => {
+                const { value, unit } = parseSize(card.styles.buyButton?.minHeight);
+                return (
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
+                      value={value}
+                      onChange={(e) => updateStyleField('buyButton', 'minHeight', buildSize(e.target.value, unit))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      placeholder="48"
+                    />
+                    <select
+                      value={unit}
+                      onChange={(e) => updateStyleField('buyButton', 'minHeight', buildSize(value, e.target.value as 'px' | 'rem'))}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    >
+                      <option value="px">px</option>
+                      <option value="rem">rem</option>
+                    </select>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className="pt-3 border-t border-gray-200">
+              <p className="text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-2">Price Block внутри кнопки</p>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-medium text-gray-600 block mb-1.5">
+                    Border Radius
+                  </label>
+                  {(() => {
+                const { value, unit } = parseSize(card.styles.priceBlock?.borderRadius);
+                    return (
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          step="0.1"
+                          value={value}
+                          onChange={(e) => updateStyleField('priceBlock', 'borderRadius', buildSize(e.target.value, unit))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                          placeholder="20"
+                        />
+                        <select
+                          value={unit}
+                          onChange={(e) => updateStyleField('priceBlock', 'borderRadius', buildSize(value, e.target.value as 'px' | 'rem'))}
+                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        >
+                          <option value="px">px</option>
+                          <option value="rem">rem</option>
+                        </select>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-gray-600 block mb-1.5">
+                    Padding
+                  </label>
+                  {(() => {
+                    const { value, unit } = parsePadding(card.styles.priceBlock?.padding);
+                    return (
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          step="0.1"
+                          value={value}
+                          onChange={(e) => updateStyleField('priceBlock', 'padding', buildPadding(e.target.value, unit))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                          placeholder="32.7"
+                        />
+                        <select
+                          value={unit}
+                          onChange={(e) => updateStyleField('priceBlock', 'padding', buildPadding(value, e.target.value as 'px' | 'rem'))}
+                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        >
+                          <option value="px">px</option>
+                          <option value="rem">rem</option>
+                        </select>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-gray-600 block mb-1.5">
+                    Min Height
+                  </label>
+                  {(() => {
+                    const { value, unit } = parseSize(card.styles.priceBlock?.minHeight);
+                    return (
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          step="0.1"
+                          value={value}
+                          onChange={(e) => updateStyleField('priceBlock', 'minHeight', buildSize(e.target.value, unit))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                          placeholder="60"
+                        />
+                        <select
+                          value={unit}
+                          onChange={(e) => updateStyleField('priceBlock', 'minHeight', buildSize(value, e.target.value as 'px' | 'rem'))}
+                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        >
+                          <option value="px">px</option>
+                          <option value="rem">rem</option>
+                        </select>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-gray-600 block mb-1.5">
+                    Alignment
+                  </label>
+                  <select
+                    value={card.styles.priceBlock?.alignment || ''}
+                    onChange={(e) => updateStyleField('priceBlock', 'alignment', e.target.value as 'left' | 'center' | 'right' | '')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  >
+                    <option value="">Default</option>
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {buttonMode === 'purchased' && (
+          <div className="space-y-3">
+            <p className="text-[11px] text-gray-500">
+              Purchased Badge отображается вместо кнопки, когда товар уже куплен.
+            </p>
+
+            <div>
+              <label className="text-xs font-medium text-gray-600 block mb-1.5">
+                Background Color
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  value={card.styles.purchasedBadge?.backgroundColor || '#10B981'}
+                  onChange={(e) => updateStyleField('purchasedBadge', 'backgroundColor', e.target.value)}
+                  className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={card.styles.purchasedBadge?.backgroundColor || ''}
+                  onChange={(e) => updateStyleField('purchasedBadge', 'backgroundColor', e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                  placeholder="#10B981"
+                />
+              </div>
             </div>
 
             <div>
               <label className="text-xs font-medium text-gray-600 block mb-1.5">
-                Alignment
+                Color
               </label>
-              <select
-                value={card.styles.priceBlock?.alignment || ''}
-                onChange={(e) => updateStyleField('priceBlock', 'alignment', e.target.value as 'left' | 'center' | 'right' | '')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              >
-                <option value="">Default</option>
-                <option value="left">Left</option>
-                <option value="center">Center</option>
-                <option value="right">Right</option>
-              </select>
+              <div className="flex gap-2">
+                <input
+                  type="color"
+                  value={card.styles.purchasedBadge?.color || '#FFFFFF'}
+                  onChange={(e) => updateStyleField('purchasedBadge', 'color', e.target.value)}
+                  className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={card.styles.purchasedBadge?.color || ''}
+                  onChange={(e) => updateStyleField('purchasedBadge', 'color', e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                  placeholder="#FFFFFF"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-gray-600 block mb-1.5">
+                Border Radius
+              </label>
+              {(() => {
+                const { value, unit } = parseSize(card.styles.purchasedBadge?.borderRadius);
+                return (
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
+                      value={value}
+                      onChange={(e) => updateStyleField('purchasedBadge', 'borderRadius', buildSize(e.target.value, unit))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      placeholder="8"
+                    />
+                    <select
+                      value={unit}
+                      onChange={(e) => updateStyleField('purchasedBadge', 'borderRadius', buildSize(value, e.target.value as 'px' | 'rem'))}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    >
+                      <option value="px">px</option>
+                      <option value="rem">rem</option>
+                    </select>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-gray-600 block mb-1.5">
+                Padding
+              </label>
+              {(() => {
+                const { value, unit } = parsePadding(card.styles.purchasedBadge?.padding);
+                return (
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
+                      value={value}
+                      onChange={(e) => updateStyleField('purchasedBadge', 'padding', buildPadding(e.target.value, unit))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      placeholder="12"
+                    />
+                    <select
+                      value={unit}
+                      onChange={(e) => updateStyleField('purchasedBadge', 'padding', buildPadding(value, e.target.value as 'px' | 'rem'))}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    >
+                      <option value="px">px</option>
+                      <option value="rem">rem</option>
+                    </select>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-gray-600 block mb-1.5">
+                Min Height
+              </label>
+              {(() => {
+                const { value, unit } = parseSize(card.styles.purchasedBadge?.minHeight);
+                return (
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      step="0.1"
+                      value={value}
+                      onChange={(e) => updateStyleField('purchasedBadge', 'minHeight', buildSize(e.target.value, unit))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      placeholder="44"
+                    />
+                    <select
+                      value={unit}
+                      onChange={(e) => updateStyleField('purchasedBadge', 'minHeight', buildSize(value, e.target.value as 'px' | 'rem'))}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    >
+                      <option value="px">px</option>
+                      <option value="rem">rem</option>
+                    </select>
+                  </div>
+                );
+              })()}
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Purchased Badge Styles */}
@@ -1127,6 +1727,96 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
               placeholder="#FFFFFF"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="text-xs font-medium text-gray-600 block mb-1.5">
+            Border Radius
+          </label>
+          {(() => {
+            const { value, unit } = parseSize(card.styles.purchasedBadge?.borderRadius);
+            return (
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => updateStyleField('purchasedBadge', 'borderRadius', buildSize(e.target.value, unit))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm"
+                  placeholder="8"
+                />
+                <select
+                  value={unit}
+                  onChange={(e) => updateStyleField('purchasedBadge', 'borderRadius', buildSize(value, e.target.value as 'px' | 'rem'))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus-border-transparent text-sm"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                </select>
+              </div>
+            );
+          })()}
+        </div>
+
+        <div>
+          <label className="text-xs font-medium text-gray-600 block mb-1.5">
+            Padding
+          </label>
+          {(() => {
+            const { value, unit } = parsePadding(card.styles.purchasedBadge?.padding);
+            return (
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => updateStyleField('purchasedBadge', 'padding', buildPadding(e.target.value, unit))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  placeholder="12"
+                />
+                <select
+                  value={unit}
+                  onChange={(e) => updateStyleField('purchasedBadge', 'padding', buildPadding(value, e.target.value as 'px' | 'rem'))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus-border-transparent text-sm"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                </select>
+              </div>
+            );
+          })()}
+        </div>
+
+        <div>
+          <label className="text-xs font-medium text-gray-600 block mb-1.5">
+            Min Height
+          </label>
+          {(() => {
+            const { value, unit } = parseSize(card.styles.purchasedBadge?.minHeight);
+            return (
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => updateStyleField('purchasedBadge', 'minHeight', buildSize(e.target.value, unit))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus-border-transparent text-sm"
+                  placeholder="44"
+                />
+                <select
+                  value={unit}
+                  onChange={(e) => updateStyleField('purchasedBadge', 'minHeight', buildSize(value, e.target.value as 'px' | 'rem'))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus-border-transparent text-sm"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                </select>
+              </div>
+            );
+          })()}
         </div>
       </div>
 
@@ -1180,13 +1870,30 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Font Size
           </label>
-          <input
-            type="text"
-            value={card.styles.bonuses?.fontSize || ''}
-            onChange={(e) => updateStyleField('bonuses', 'fontSize', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="12px"
-          />
+          {(() => {
+            const { value, unit } = parseSize(card.styles.bonuses?.fontSize);
+            return (
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) => updateStyleField('bonuses', 'fontSize', buildSize(e.target.value, unit))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  placeholder="12"
+                />
+                <select
+                  value={unit}
+                  onChange={(e) => updateStyleField('bonuses', 'fontSize', buildSize(value, e.target.value as 'px' | 'rem'))}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                </select>
+              </div>
+            );
+          })()}
         </div>
       </div>
 

@@ -428,6 +428,9 @@ export function OfferCard({
   const buyButtonMinHeight = responsive<string | number>(styles.buyButton?.minHeight);
   const purchasedBg = responsive<string>(styles.purchasedBadge?.backgroundColor);
   const purchasedColor = responsive<string>(styles.purchasedBadge?.color);
+  const purchasedPadding = responsive<string | number>(styles.purchasedBadge?.padding) ?? '12px 16px';
+  const purchasedRadius = responsive<string | number>(styles.purchasedBadge?.borderRadius);
+  const purchasedMinHeight = responsive<string | number>(styles.purchasedBadge?.minHeight);
   const rpColor = responsive<string>(styles.bonuses?.rpColor);
   const lpColor = responsive<string>(styles.bonuses?.lpColor);
   
@@ -460,6 +463,7 @@ export function OfferCard({
     return 'BUY NOW';
   };
   
+  const rootElementId = id ?? 'offer-card';
   return (
     <div
       ref={cardRef}
@@ -468,6 +472,7 @@ export function OfferCard({
         height: '100%',
         ...style
       }}
+      data-element-id={rootElementId}
       onClick={onClick}
     >
       {/* Top Label */}
@@ -530,6 +535,7 @@ export function OfferCard({
                 objectFit: 'cover',
                 objectPosition: '50% 50%',
               }}
+              data-element-id={rootElementId ? `${rootElementId}-image` : undefined}
             />
             {/* Discount Badge */}
             {discount && (
@@ -606,11 +612,15 @@ export function OfferCard({
                 width: '100%',
                 backgroundColor: purchasedBg,
                 color: purchasedColor,
+                padding: purchasedPadding,
+                borderRadius: purchasedRadius,
+                minHeight: purchasedMinHeight,
                 textAlign: 'center',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
+              data-element-id={rootElementId ? `${rootElementId}-purchased` : undefined}
             >
               PURCHASED
             </div>
@@ -638,6 +648,7 @@ export function OfferCard({
                   opacity: isLoading ? 0.85 : 1,
                   cursor: isLoading ? 'wait' : 'pointer'
                 }}
+                data-element-id={rootElementId ? `${rootElementId}-buy-button` : undefined}
                 disabled={isLoading}
                 aria-busy={isLoading}
                 aria-live={isLoading ? 'assertive' : 'off'}

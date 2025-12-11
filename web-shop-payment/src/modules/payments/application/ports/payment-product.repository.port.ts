@@ -11,3 +11,9 @@ export interface PaymentProductRepositoryPort {
   getById(appId: string, productId: string): Promise<Result<PaymentProduct, Error>>;
 }
 
+
+
+
+
+
+
