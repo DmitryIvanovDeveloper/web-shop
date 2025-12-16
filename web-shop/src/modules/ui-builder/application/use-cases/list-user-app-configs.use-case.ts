@@ -1,4 +1,5 @@
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
+import { UI_BUILDER_TYPES } from '../../infrastructure/bootstrap/types';
 import type { UserAppConfigRepositoryPort, ListUserAppConfigsFilter } from '../ports/user-app-config-repository.port';
 import type { UserAppConfigSummary } from '../../domain/entities/user-app-config.entity';
 import { Result } from '@/shared/result/result';
@@ -6,6 +7,7 @@ import { Result } from '@/shared/result/result';
 @injectable()
 export class ListUserAppConfigsUseCase {
   constructor(
+    @inject(UI_BUILDER_TYPES.UserAppConfigRepository)
     private readonly userAppConfigRepository: UserAppConfigRepositoryPort
   ) {}
 
