@@ -161,7 +161,12 @@ export class UIBuilderPresenter {
    * Does not publish; changes are saved as draft via debounced save.
    */
   public applyTemplateConfig(appConfig: unknown): void {
-    this._logger.info('[UIBuilderPresenter] Applying template config');
+    this._logger.info('[UIBuilderPresenter] Applying template config', {
+      hasConfig: !!appConfig,
+      configType: typeof appConfig,
+      isObject: typeof appConfig === 'object',
+      configKeys: typeof appConfig === 'object' && appConfig !== null ? Object.keys(appConfig as any) : []
+    });
 
     if (!appConfig || typeof appConfig !== 'object') {
       this._logger.warn('[UIBuilderPresenter] applyTemplateConfig called with invalid config', {
@@ -176,6 +181,11 @@ export class UIBuilderPresenter {
       isDraft: true,
       error: null,
     };
+
+    this._logger.info('[UIBuilderPresenter] Template config applied to VM', {
+      hasNewConfig: !!this.vm.config,
+      configKeys: Object.keys(this.vm.config)
+    });
 
     this.notify();
     this.sendConfigToIframe();
