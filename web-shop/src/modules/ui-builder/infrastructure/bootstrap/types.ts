@@ -37,6 +37,11 @@ export const UI_BUILDER_TYPES = {
   GetTemplateDetailsUseCase: Symbol.for('UIBuilder.GetTemplateDetailsUseCase'),
   PublishTemplateUseCase: Symbol.for('UIBuilder.PublishTemplateUseCase'),
 
+  // User App Configs
+  UserAppConfigRepository: Symbol.for('UIBuilder.UserAppConfigRepository'),
+  ListUserAppConfigsUseCase: Symbol.for('UIBuilder.ListUserAppConfigsUseCase'),
+  ApplyUserAppConfigUseCase: Symbol.for('UIBuilder.ApplyUserAppConfigUseCase'),
+
   // Presenters
   UIBuilderPresenter: Symbol.for('UIBuilder.UIBuilderPresenter'),
   PageConstructorPresenter: Symbol.for('UIBuilder.PageConstructorPresenter'),

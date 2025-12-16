@@ -13,6 +13,7 @@ import { JsonSchemaValidator } from '../storage/json-schema-validator';
 import { PostMessagePreviewAdapter } from '../messaging/postmessage-preview.adapter';
 import { SupabasePageConfigStorage } from '../storage/supabase-page-config.storage';
 import { SupabaseTemplateRepository } from '../storage/supabase-template.repository';
+import { SupabaseUserAppConfigRepository } from '../storage/supabase-user-app-config.repository';
 
 // Use Cases
 import { LoadConfigUseCase } from '../../application/use-cases/load-config.use-case';
@@ -35,6 +36,8 @@ import { DeleteTemplateUseCase } from '../../application/use-cases/delete-templa
 import { ListTemplatesUseCase } from '../../application/use-cases/list-templates.use-case';
 import { GetTemplateDetailsUseCase } from '../../application/use-cases/get-template-details.use-case';
 import { PublishTemplateUseCase } from '../../application/use-cases/publish-template.use-case';
+import { ListUserAppConfigsUseCase } from '../../application/use-cases/list-user-app-configs.use-case';
+import { ApplyUserAppConfigUseCase } from '../../application/use-cases/apply-user-app-config.use-case';
 
 // Presenters
 import { UIBuilderPresenter } from '../../interface-adapters/presenters/ui-builder.presenter';
@@ -77,6 +80,14 @@ export function bindUIBuilder(container: Container): void {
       UI_BUILDER_TYPES.TemplateRepository
     )
     .to(SupabaseTemplateRepository)
+    .inSingletonScope();
+
+  // User App Config repository
+  container
+    .bind<import('../../application/ports/user-app-config-repository.port').UserAppConfigRepositoryPort>(
+      UI_BUILDER_TYPES.UserAppConfigRepository
+    )
+    .to(SupabaseUserAppConfigRepository)
     .inSingletonScope();
 
   // Use Cases
@@ -180,6 +191,17 @@ export function bindUIBuilder(container: Container): void {
   container
     .bind<PublishTemplateUseCase>(UI_BUILDER_TYPES.PublishTemplateUseCase)
     .to(PublishTemplateUseCase)
+    .inSingletonScope();
+
+  // User App Config use cases
+  container
+    .bind<ListUserAppConfigsUseCase>(UI_BUILDER_TYPES.ListUserAppConfigsUseCase)
+    .to(ListUserAppConfigsUseCase)
+    .inSingletonScope();
+
+  container
+    .bind<ApplyUserAppConfigUseCase>(UI_BUILDER_TYPES.ApplyUserAppConfigUseCase)
+    .to(ApplyUserAppConfigUseCase)
     .inSingletonScope();
 
   // Presenters

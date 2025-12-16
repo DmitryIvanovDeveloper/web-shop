@@ -8,6 +8,9 @@ import type {
   TemplateSummary,
   PaginationParams,
 } from '../../application/ports/template-repository.port';
+import type { UserAppConfig, UserAppConfigSummary } from '../../domain/entities/user-app-config.entity';
+import type { ListUserAppConfigsUseCase } from '../../application/use-cases/list-user-app-configs.use-case';
+import type { ApplyUserAppConfigUseCase } from '../../application/use-cases/apply-user-app-config.use-case';
 import type { CreateTemplateUseCase, CreateTemplateInput } from '../../application/use-cases/create-template.use-case';
 import type { UpdateTemplateUseCase, UpdateTemplateInput } from '../../application/use-cases/update-template.use-case';
 import type { DeleteTemplateUseCase } from '../../application/use-cases/delete-template.use-case';
@@ -21,8 +24,11 @@ export interface TemplatesViewModel {
   templates: TemplateSummary[];
   selectedTemplateId: string | null;
   selectedTemplate: Template | null;
+  userAppConfigs: UserAppConfigSummary[];
+  selectedUserAppConfigId: string | null;
   isLoadingList: boolean;
   isLoadingDetails: boolean;
+  isLoadingUserAppConfigs: boolean;
   isSaving: boolean;
   error: string | null;
   // Optional search / pagination state for future extension
@@ -35,13 +41,17 @@ export class TemplatesPresenter {
   private readonly subscribers: Array<(vm: TemplatesViewModel) => void> = [];
 
   private isAdmin: boolean = false;
+  private currentAppId: string | null = null;
 
   private vm: TemplatesViewModel = {
     templates: [],
     selectedTemplateId: null,
     selectedTemplate: null,
+    userAppConfigs: [],
+    selectedUserAppConfigId: null,
     isLoadingList: false,
     isLoadingDetails: false,
+    isLoadingUserAppConfigs: false,
     isSaving: false,
     error: null,
     query: '',
@@ -61,6 +71,10 @@ export class TemplatesPresenter {
     private readonly getTemplateDetailsUseCase: GetTemplateDetailsUseCase,
     @inject(UI_BUILDER_TYPES.PublishTemplateUseCase)
     private readonly publishTemplateUseCase: PublishTemplateUseCase,
+    @inject(UI_BUILDER_TYPES.ListUserAppConfigsUseCase)
+    private readonly listUserAppConfigsUseCase: ListUserAppConfigsUseCase,
+    @inject(UI_BUILDER_TYPES.ApplyUserAppConfigUseCase)
+    private readonly applyUserAppConfigUseCase: ApplyUserAppConfigUseCase,
     @inject(UI_BUILDER_TYPES.UIBuilderPresenter)
     private readonly uiBuilderPresenter: UIBuilderPresenter,
     @inject(UI_BUILDER_TYPES.PageConstructorPresenter)
@@ -92,6 +106,16 @@ export class TemplatesPresenter {
     }
   }
 
+  public async setAppId(appId: string): Promise<void> {
+    this.logger.info('[TemplatesPresenter] App ID updated', { appId });
+    this.currentAppId = appId;
+
+    // For non-admin users, load their saved app configs
+    if (!this.isAdmin) {
+      await this.loadUserAppConfigs(appId);
+    }
+  }
+
   public subscribe(cb: (vm: TemplatesViewModel) => void): () => void {
     this.subscribers.push(cb);
     cb(this.vm);
@@ -107,6 +131,156 @@ export class TemplatesPresenter {
 
   public getViewModel(): TemplatesViewModel {
     return this.vm;
+  }
+
+  public async loadUserAppConfigs(appId: string): Promise<Result<void, Error>> {
+    this.logger.info('[TemplatesPresenter] Loading user app configs', { appId });
+    this.vm = {
+      ...this.vm,
+      isLoadingUserAppConfigs: true,
+      error: null,
+    };
+    this.notify();
+
+    const result = await this.listUserAppConfigsUseCase.execute({
+      appId,
+      includeInactive: true,
+    });
+
+    if (result.isFailure) {
+      this.logger.error('[TemplatesPresenter] Failed to load user app configs', {
+        appId,
+        error: result.error,
+      });
+      this.vm = {
+        ...this.vm,
+        isLoadingUserAppConfigs: false,
+        error: result.error?.message ?? 'Failed to load user app configs',
+      };
+      this.notify();
+      return Result.error(result.error ?? new Error('Failed to load user app configs'));
+    }
+
+    this.vm = {
+      ...this.vm,
+      isLoadingUserAppConfigs: false,
+      userAppConfigs: result.value ?? [],
+    };
+    this.notify();
+
+    return Result.ok<void, Error>(undefined as void);
+  }
+
+  public async applyUserAppConfig(userAppConfigId: string): Promise<Result<void, Error>> {
+    if (!this.isAdmin) {
+      return await this.applyUserAppConfigUseCase.execute(userAppConfigId);
+    }
+    return Result.error(new Error('Admins cannot apply user app configs'));
+  }
+
+  public async saveCurrentConfigAsUserAppConfig(name?: string): Promise<Result<UserAppConfig, Error>> {
+    if (this.isAdmin) {
+      return Result.error(new Error('Admins cannot save user app configs'));
+    }
+
+    this.logger.info('[TemplatesPresenter] Saving current config as user app config', { name });
+
+    // We need to get the appId from somewhere. Since this is called from UIBuilderPage,
+    // we should pass appId as parameter or store it in the presenter
+    if (!this.currentAppId) {
+      return Result.error(new Error('AppId not set'));
+    }
+
+    const builderVm = this.uiBuilderPresenter.getViewModel();
+    const pageVm = this.pageConstructorPresenter.getViewModel();
+
+    // Get current config or fallback to default config
+    let appConfigSnapshot = builderVm.config;
+    const defaultConfig = this.uiBuilderPresenter.createDefaultConfigSnapshot();
+
+    if (!appConfigSnapshot || typeof appConfigSnapshot !== 'object' || Object.keys(appConfigSnapshot).length === 0) {
+      this.logger.info('[TemplatesPresenter] Using default config as current config is empty');
+      appConfigSnapshot = defaultConfig;
+    }
+
+    // Ensure we have a valid config by merging with default if needed
+    if (typeof defaultConfig === 'object' && defaultConfig !== null &&
+        typeof appConfigSnapshot === 'object' && appConfigSnapshot !== null) {
+      try {
+        appConfigSnapshot = this.mergeConfigs(defaultConfig as Record<string, unknown>, appConfigSnapshot as Record<string, unknown>);
+      } catch (error) {
+        this.logger.warn('[TemplatesPresenter] Failed to merge configs, using default', { error });
+        appConfigSnapshot = defaultConfig;
+      }
+    }
+
+    this.vm = {
+      ...this.vm,
+      isSaving: true,
+      error: null,
+    };
+    this.notify();
+
+    try {
+      const response = await fetch('/api/app-configs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          appId: this.currentAppId,
+          name: name || `Config v${Date.now()}`,
+          config: appConfigSnapshot,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`HTTP ${response.status}: ${errorData.error || 'Unknown error'}`);
+      }
+
+      const data = await response.json();
+
+      this.logger.info('[TemplatesPresenter] User app config saved successfully', {
+        id: data.appConfig.id,
+        appId: data.appConfig.app_id,
+      });
+
+      // Reload the list to include the new config
+      await this.loadUserAppConfigs(this.currentAppId);
+
+      this.vm = {
+        ...this.vm,
+        isSaving: false,
+      };
+      this.notify();
+
+      // Return the created config (mapped to domain entity)
+      return Result.ok({
+        id: data.appConfig.id,
+        appId: data.appConfig.app_id,
+        name: name,
+        config: data.appConfig.config,
+        version: data.appConfig.version,
+        isActive: data.appConfig.is_active,
+        isDraft: data.appConfig.is_draft,
+        createdAt: new Date(data.appConfig.created_at),
+        updatedAt: new Date(data.appConfig.updated_at),
+      });
+    } catch (error) {
+      this.logger.error('[TemplatesPresenter] Failed to save user app config', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      this.vm = {
+        ...this.vm,
+        isSaving: false,
+        error: error instanceof Error ? error.message : 'Failed to save config',
+      };
+      this.notify();
+
+      return Result.error(error instanceof Error ? error : new Error('Failed to save user app config'));
+    }
   }
 
   public async loadTemplates(query?: string): Promise<Result<void, Error>> {

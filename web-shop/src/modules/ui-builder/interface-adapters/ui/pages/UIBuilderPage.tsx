@@ -19,6 +19,7 @@ import type { SidebarElement } from '../../../domain/types/sidebar-element.types
 import type { AppConfigStructure } from '../../../domain/entities/app-config.entity';
 import type { PageConstructorPresenter } from '../../presenters/page-constructor.presenter';
 import type { TemplatesPresenter } from '../../presenters/templates.presenter';
+import type { UserAppConfig } from '../../../domain/entities/user-app-config.entity';
 import { env } from '@/env';
 import { container } from '@/infrastructure/bootstrap/container';
 import { UI_BUILDER_TYPES } from '../../../infrastructure/bootstrap/types';
@@ -120,8 +121,10 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       const admin = role === 'admin';
       setIsAdmin(admin);
       templatesPresenter.setAdmin(admin);
+      templatesPresenter.setAppId(appId);
     } else {
       templatesPresenter.setAdmin(false);
+      templatesPresenter.setAppId(appId);
     }
 
     templatesPresenter.loadTemplates().catch(() => {
@@ -1263,6 +1266,55 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                   </div>
                 )}
               </div>
+
+              {/* User App Configs for non-admin users */}
+              {!isAdmin && (
+                <div className="mt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] text-gray-500">Your Saved Configs</span>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const name = prompt('Enter a name for this configuration:');
+                        if (name) {
+                          await templatesPresenter.saveCurrentConfigAsUserAppConfig(name);
+                        }
+                      }}
+                      className="px-2 py-1 text-[11px] rounded bg-green-500 text-white hover:bg-green-600"
+                    >
+                      Save Current
+                    </button>
+                  </div>
+                  <div className="space-y-1">
+                    {templatesVm.userAppConfigs.map((config) => (
+                      <button
+                        key={config.id}
+                        type="button"
+                        onClick={() => {
+                          void templatesPresenter.applyUserAppConfig(config.id);
+                        }}
+                        className={`w-full text-left px-2 py-1.5 rounded text-xs transition-colors ${
+                          templatesVm.selectedUserAppConfigId === config.id
+                            ? 'bg-green-500 text-white'
+                            : 'hover:bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>{config.name || `Config v${config.version}`}</span>
+                          <span className="text-[10px] text-gray-400">
+                            {config.updatedAt.toLocaleDateString?.() ?? ''}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                    {templatesVm.userAppConfigs.length === 0 && !templatesVm.isLoadingUserAppConfigs && (
+                      <div className="text-[11px] text-gray-400 italic">
+                        No saved configs yet. Use "Save Current" to save your configuration.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
