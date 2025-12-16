@@ -204,8 +204,17 @@ export class TemplatesPresenter {
       }
     }
 
-    // Template config is now applied during UIBuilderPresenter initialization
-    // No need to apply it here again
+    this.logger.info('[TemplatesPresenter] Template selection completed', {
+      id,
+      hasTemplate: !!template,
+      hasAppConfig: !!template?.appConfig
+    });
+
+    // Automatically apply template config for admin users
+    if (this.isAdmin && template?.appConfig) {
+      this.logger.info('[TemplatesPresenter] Auto-applying template config for admin');
+      this.uiBuilderPresenter.applyTemplateConfig(template.appConfig);
+    }
   }
 
   /**

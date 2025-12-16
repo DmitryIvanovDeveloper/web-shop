@@ -373,13 +373,8 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     presenter.loadPages();
   }, [presenter, appId]);
 
-  // Apply template config after initialization if admin has selected template
-  useEffect(() => {
-    if (isAdmin && templatesVm.selectedTemplateId && templatesVm.selectedTemplate?.appConfig) {
-      // Apply template config to already initialized presenter
-      presenter.applyTemplateConfig(templatesVm.selectedTemplate.appConfig);
-    }
-  }, [isAdmin, templatesVm.selectedTemplateId, templatesVm.selectedTemplate, presenter]);
+  // Template config is now applied automatically in TemplatesPresenter.selectTemplate()
+  // No need for separate useEffect
 
   useEffect(() => {
     if (!viewModel.config) {
