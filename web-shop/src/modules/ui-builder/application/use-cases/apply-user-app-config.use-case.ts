@@ -1,7 +1,9 @@
+import { injectable } from 'inversify';
 import type { UserAppConfigRepositoryPort } from '../ports/user-app-config-repository.port';
 import type { UIBuilderPresenter } from '../../interface-adapters/presenters/ui-builder.presenter';
 import { Result } from '@/shared/result/result';
 
+@injectable()
 export class ApplyUserAppConfigUseCase {
   constructor(
     private readonly userAppConfigRepository: UserAppConfigRepositoryPort,
