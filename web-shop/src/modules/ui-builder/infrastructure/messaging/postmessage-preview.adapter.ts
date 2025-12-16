@@ -86,6 +86,12 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
   }
 
   public sendConfig(config: Record<string, unknown>, selectedElementId?: string | null): void {
+    console.log('[PostMessagePreviewAdapter] sendConfig called', {
+      hasConfig: !!config,
+      configKeys: config ? Object.keys(config) : null,
+      selectedElementId
+    });
+
     const message = {
       type: 'CONFIG_UPDATE',
       payload: {
@@ -93,6 +99,13 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
         selectedElementId: selectedElementId ?? null,
       },
     };
+
+    console.log('[PostMessagePreviewAdapter] created message', {
+      hasPayload: !!message.payload,
+      payloadKeys: message.payload ? Object.keys(message.payload) : null,
+      hasConfigInPayload: !!message.payload?.config,
+      configInPayloadKeys: message.payload?.config ? Object.keys(message.payload.config) : null
+    });
 
     if (!this._iframeEl?.contentWindow || !this._isIframeReady) {
       console.warn('[PostMessagePreviewAdapter] iframe not ready, queueing config update', {
@@ -104,6 +117,7 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
       return;
     }
 
+    console.log('[PostMessagePreviewAdapter] sending message to iframe');
     this._iframeEl.contentWindow.postMessage(message, this._targetOrigin);
   }
 
