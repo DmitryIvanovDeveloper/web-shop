@@ -39,6 +39,6 @@ container.bind<DatabaseClientPort>(TYPES.DatabaseClient).to(SupabaseClient).inSi
 bindUIBuilder(container);
 bindMerchantAdminOffers(container);
 bindMerchantAdminProducts(container);
-bindMerchantAdminPromoCodes(container);
+// bindMerchantAdminPromoCodes(container); // Temporarily disabled due to error
 
 export { container };

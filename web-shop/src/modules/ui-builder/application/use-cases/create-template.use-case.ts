@@ -9,7 +9,7 @@ import {
   TemplateValidationError,
 } from '../../domain/errors/template.error';
 import type { TemplateRepositoryPort } from '../ports/template-repository.port';
-import { generateElementId } from '../../shared/utils/id-generator';
+import { generateUuid } from '../../shared/utils/id-generator';
 
 export interface CreateTemplateInput {
   name: string;
@@ -63,7 +63,7 @@ export class CreateTemplateUseCase {
       };
 
       const template: Template = {
-        id: generateElementId('template'),
+        id: generateUuid(),
         name: input.name.trim(),
         appConfig: input.appConfig,
         pages: input.pages,

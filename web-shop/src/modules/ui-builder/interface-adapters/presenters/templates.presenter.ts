@@ -72,6 +72,24 @@ export class TemplatesPresenter {
   public setAdmin(isAdmin: boolean): void {
     this.isAdmin = isAdmin;
     this.logger.info('[TemplatesPresenter] Access mode updated', { isAdmin });
+
+    // Load selected template ID from localStorage for admin
+    if (isAdmin) {
+      try {
+        const savedTemplateId = localStorage.getItem('ui-builder-selected-template-id');
+        if (savedTemplateId) {
+          this.logger.info('[TemplatesPresenter] Restoring selected template from localStorage', { savedTemplateId });
+          // Load template details but don't auto-apply yet (will be done in UIBuilderPage)
+          this.selectTemplate(savedTemplateId).catch(error => {
+            this.logger.error('[TemplatesPresenter] Failed to restore selected template', { savedTemplateId, error });
+            // Clear invalid template ID from localStorage
+            localStorage.removeItem('ui-builder-selected-template-id');
+          });
+        }
+      } catch (error) {
+        this.logger.warn('[TemplatesPresenter] Failed to load selected template ID from localStorage', { error });
+      }
+    }
   }
 
   public subscribe(cb: (vm: TemplatesViewModel) => void): () => void {
@@ -176,6 +194,18 @@ export class TemplatesPresenter {
       selectedTemplate: template,
     };
     this.notify();
+
+    // Save selected template ID to localStorage for persistence across page reloads
+    if (this.isAdmin && id) {
+      try {
+        localStorage.setItem('ui-builder-selected-template-id', id);
+      } catch (error) {
+        this.logger.warn('[TemplatesPresenter] Failed to save selected template ID to localStorage', { error });
+      }
+    }
+
+    // Template config is now applied during UIBuilderPresenter initialization
+    // No need to apply it here again
   }
 
   /**
@@ -200,11 +230,24 @@ export class TemplatesPresenter {
     const pageVm = this.pageConstructorPresenter.getViewModel();
     const pageStyles = this.pageConstructorPresenter.getPageStyles();
 
-    const appConfigSnapshot = builderVm.config;
-    if (!appConfigSnapshot) {
-      const error = new Error('Cannot create template: app config is not loaded');
-      this.logger.error('[TemplatesPresenter] No app config in view model', { error });
-      return Result.error(error);
+    // Get current config or fallback to default config
+    let appConfigSnapshot = builderVm.config;
+    const defaultConfig = this.uiBuilderPresenter.createDefaultConfigSnapshot();
+
+    if (!appConfigSnapshot || typeof appConfigSnapshot !== 'object' || Object.keys(appConfigSnapshot).length === 0) {
+      this.logger.info('[TemplatesPresenter] Using default config as current config is empty or not loaded');
+      appConfigSnapshot = defaultConfig;
+    }
+
+    // Ensure we have a valid config by merging with default if needed
+    if (typeof defaultConfig === 'object' && defaultConfig !== null &&
+        typeof appConfigSnapshot === 'object' && appConfigSnapshot !== null) {
+      try {
+        appConfigSnapshot = this.mergeConfigs(defaultConfig as Record<string, unknown>, appConfigSnapshot as Record<string, unknown>);
+      } catch (error) {
+        this.logger.warn('[TemplatesPresenter] Failed to merge configs, using default', { error });
+        appConfigSnapshot = defaultConfig;
+      }
     }
 
     const pageSnapshot: TemplatePageSnapshot = {
@@ -277,14 +320,37 @@ export class TemplatesPresenter {
 
     this.logger.info('[TemplatesPresenter] Creating base template', { name });
 
+    // Use the complete default config from UIBuilderPresenter for full editing capabilities
     const appConfigSnapshot = this.uiBuilderPresenter.createDefaultConfigSnapshot();
     const pageSnapshot: TemplatePageSnapshot = this.pageConstructorPresenter.createDefaultTemplatePageSnapshot();
+
+    // Ensure app_config and page_configs are serializable
+    let cleanAppConfig: unknown;
+    let cleanPages: TemplatePageSnapshot[];
+
+    try {
+      cleanAppConfig = JSON.parse(JSON.stringify(appConfigSnapshot));
+      this.logger.info('[TemplatesPresenter] App config serialized successfully');
+    } catch (error) {
+      this.logger.error('[TemplatesPresenter] Failed to serialize app config', { error });
+      cleanAppConfig = { error: 'App config contains non-serializable data' };
+    }
+
+    try {
+      cleanPages = JSON.parse(JSON.stringify([pageSnapshot]));
+      this.logger.info('[TemplatesPresenter] Pages serialized successfully');
+    } catch (error) {
+      this.logger.error('[TemplatesPresenter] Failed to serialize pages', { error });
+      cleanPages = [{ pageSlug: 'home', pageConfig: { sections: [], pageStyles: {} }, error: 'Page data contains non-serializable data' }];
+    }
+
+    this.logger.info('[TemplatesPresenter] Using complete default config for base template');
 
     const input: CreateTemplateInput = {
       name,
       description: options?.description,
-      appConfig: appConfigSnapshot,
-      pages: [pageSnapshot],
+      appConfig: cleanAppConfig,
+      pages: cleanPages,
     };
 
     this.vm = {
@@ -430,14 +496,30 @@ export class TemplatesPresenter {
    * without changing its published state (draft update in templates table).
    */
   public async saveSelectedTemplateFromCurrentConfig(): Promise<Result<Template, Error>> {
+    const callId = Math.random().toString(36).substr(2, 9);
+    this.logger.info(`[TemplatesPresenter] saveSelectedTemplateFromCurrentConfig called [${callId}]`, {
+      isAdmin: this.isAdmin,
+      selectedTemplateId: this.vm.selectedTemplateId,
+    });
+
+    // Protection against concurrent saves
+    if ((this.vm as any).isSavingTemplate) {
+      this.logger.warn(`[TemplatesPresenter] saveSelectedTemplateFromCurrentConfig skipped - already saving [${callId}]`);
+      return Result.error(new Error('Already saving template'));
+    }
+    (this.vm as any).isSavingTemplate = true;
+
     if (!this.isAdmin) {
       const error = new Error('Only admin can save template drafts');
       this.logger.warn('[TemplatesPresenter] saveSelectedTemplateFromCurrentConfig forbidden for non-admin');
+      (this.vm as any).isSavingTemplate = false;
       return Result.error(error);
     }
 
     if (!this.vm.selectedTemplateId) {
       const error = new Error('No template selected to save');
+      this.logger.warn('[TemplatesPresenter] saveSelectedTemplateFromCurrentConfig: no template selected');
+      (this.vm as any).isSavingTemplate = false;
       return Result.error(error);
     }
 
@@ -445,13 +527,31 @@ export class TemplatesPresenter {
     const pageVm = this.pageConstructorPresenter.getViewModel();
     const pageStyles = this.pageConstructorPresenter.getPageStyles();
 
+    this.logger.info('[TemplatesPresenter] Retrieved current config', {
+      hasAppConfig: !!builderVm.config,
+      pageSlug: pageVm.pageSlug,
+    });
+
     const appConfigSnapshot = builderVm.config;
     if (!appConfigSnapshot) {
       const error = new Error('Cannot save template: app config is not loaded');
       this.logger.error('[TemplatesPresenter] No app config in view model when saving template', {
         error,
       });
+      (this.vm as any).isSavingTemplate = false;
       return Result.error(error);
+    }
+
+    // Ensure app_config and page_configs are serializable before saving
+    let cleanAppConfig: unknown;
+    let cleanPages: TemplatePageSnapshot[];
+
+    try {
+      cleanAppConfig = JSON.parse(JSON.stringify(appConfigSnapshot));
+      this.logger.info('[TemplatesPresenter] App config serialized successfully for autosave');
+    } catch (error) {
+      this.logger.error('[TemplatesPresenter] Failed to serialize app config for autosave', { error });
+      cleanAppConfig = { error: 'App config contains non-serializable data' };
     }
 
     const pageSnapshot: TemplatePageSnapshot = {
@@ -462,11 +562,81 @@ export class TemplatesPresenter {
       },
     };
 
-    return this.updateTemplate({
-      id: this.vm.selectedTemplateId,
-      appConfig: appConfigSnapshot,
-      pages: [pageSnapshot],
-    });
+    try {
+      cleanPages = JSON.parse(JSON.stringify([pageSnapshot]));
+      this.logger.info('[TemplatesPresenter] Pages serialized successfully for autosave');
+    } catch (error) {
+      this.logger.error('[TemplatesPresenter] Failed to serialize pages for autosave', { error });
+      cleanPages = [{ pageSlug: pageVm.pageSlug || 'home', pageConfig: { sections: [], pageStyles: {} }, error: 'Page data contains non-serializable data' }];
+    }
+
+    // For autosave, use HTTP API instead of direct repository access
+    // to ensure proper server-side authentication and RLS policies
+    try {
+      const response = await fetch('/api/templates', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: this.vm.selectedTemplateId,
+          appConfig: cleanAppConfig,
+          pages: cleanPages,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`HTTP ${response.status}: ${errorData.error || 'Unknown error'}`);
+      }
+
+      const data = await response.json();
+
+      this.logger.info('[TemplatesPresenter] Template autosaved via API', {
+        id: this.vm.selectedTemplateId,
+      });
+
+      // Update local template data
+      if (this.vm.selectedTemplateId === data.id) {
+        this.vm = {
+          ...this.vm,
+          selectedTemplate: data,
+        };
+        this.notify();
+      }
+
+      return Result.ok(data);
+    } catch (error) {
+      this.logger.error('[TemplatesPresenter] Failed to autosave template via API', {
+        id: this.vm.selectedTemplateId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      (this.vm as any).isSavingTemplate = false;
+      return Result.error(error instanceof Error ? error : new Error('Failed to autosave template'));
+    }
+
+    if (result.isFailure) {
+      this.logger.error('[TemplatesPresenter] Failed to autosave template config', {
+        id: patch.id,
+        error: result.error,
+      });
+      (this.vm as any).isSavingTemplate = false;
+      return Result.error(result.error ?? new Error('Failed to autosave template'));
+    }
+
+    const updated = result.value!;
+
+    // Keep selectedTemplate in sync without touching list/selection.
+    if (this.vm.selectedTemplateId === updated.id) {
+      this.vm = {
+        ...this.vm,
+        selectedTemplate: updated,
+      };
+      this.notify();
+    }
+
+    (this.vm as any).isSavingTemplate = false;
+    return Result.ok(updated);
   }
 
   /**
@@ -517,6 +687,30 @@ export class TemplatesPresenter {
     }
 
     return Result.ok<void, Error>(undefined as void);
+  }
+
+  /**
+   * Helper method to merge default config with current config to ensure completeness.
+   */
+  private mergeConfigs(defaultConfig: Record<string, unknown>, currentConfig: Record<string, unknown>): Record<string, unknown> {
+    const result = { ...defaultConfig };
+
+    // Deep merge current config over default config
+    const mergeDeep = (target: Record<string, unknown>, source: Record<string, unknown>) => {
+      for (const key in source) {
+        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+          if (!target[key] || typeof target[key] !== 'object' || Array.isArray(target[key])) {
+            target[key] = {};
+          }
+          mergeDeep(target[key] as Record<string, unknown>, source[key] as Record<string, unknown>);
+        } else if (source[key] !== undefined) {
+          target[key] = source[key];
+        }
+      }
+    };
+
+    mergeDeep(result, currentConfig);
+    return result;
   }
 
   /**

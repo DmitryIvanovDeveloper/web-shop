@@ -24,3 +24,28 @@ export function generateElementId(type: string): string {
   const uuid = crypto.randomUUID();
   return `${type}-${uuid}`;
 }
+
+/**
+ * Generates a pure UUID v4 string (without type prefix)
+ * Format: uuid-v4
+ * Example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+ */
+export function generateUuid(): string {
+  if (typeof crypto === 'undefined' || !crypto.randomUUID) {
+    // Fallback for environments without crypto.randomUUID
+    // Generate a simple UUID-like string
+    const chars = '0123456789abcdef';
+    const segments = [8, 4, 4, 4, 12];
+    return segments
+      .map((len) => {
+        let segment = '';
+        for (let i = 0; i < len; i++) {
+          segment += chars[Math.floor(Math.random() * chars.length)];
+        }
+        return segment;
+      })
+      .join('-');
+  }
+
+  return crypto.randomUUID();
+}

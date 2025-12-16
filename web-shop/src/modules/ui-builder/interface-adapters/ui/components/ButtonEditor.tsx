@@ -52,6 +52,8 @@ export interface ButtonEditorProps {
   onBorderRadiusChange?: (value: string) => void;
   padding?: string;
   onPaddingChange?: (value: string) => void;
+  width?: string;
+  onWidthChange?: (value: string) => void;
   textAlign?: string;
   onTextAlignChange?: (value: string) => void;
   
@@ -79,6 +81,8 @@ export function ButtonEditor({
   onPaddingChange,
   textAlign,
   onTextAlignChange,
+  width,
+  onWidthChange,
 }: ButtonEditorProps): JSX.Element {
   const [isIconUploading, setIsIconUploading] = useState(false);
   const hasImageIcon = Boolean(icon && icon.startsWith('data:image'));
@@ -169,6 +173,31 @@ export function ButtonEditor({
     }
   };
 
+  // Parse width value and unit
+  const parseWidth = (widthString: string | number | undefined): { value: number; unit: string } => {
+    if (!widthString || widthString === '') return { value: 100, unit: '%' };
+    const width = typeof widthString === 'number' ? `${widthString}px` : widthString;
+    const match = width.match(/^([\d.]+)(rem|px|%|vw|vh)$/);
+    if (match) {
+      return { value: parseFloat(match[1]), unit: match[2] };
+    }
+    return { value: 100, unit: '%' };
+  };
+
+  const { value: widthValue, unit: widthUnit } = parseWidth(width);
+
+  const handleWidthValueChange = (newValue: string) => {
+    if (onWidthChange) {
+      onWidthChange(`${newValue}${widthUnit}`);
+    }
+  };
+
+  const handleWidthUnitChange = (newUnit: string) => {
+    if (onWidthChange) {
+      onWidthChange(`${widthValue}${newUnit}`);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Colors Section */}
@@ -224,33 +253,67 @@ export function ButtonEditor({
         </div>
       </div>
 
-      {/* Padding */}
+      {/* Width and Padding */}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Spacing</h4>
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-            Padding
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min="0"
-              step="0.1"
-              value={paddingValue}
-              onChange={(e) => handlePaddingValueChange(e.target.value)}
-              disabled={!onPaddingChange}
-              className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              placeholder="1"
-            />
-            <select
-              value={paddingUnit}
-              onChange={(e) => handlePaddingUnitChange(e.target.value)}
-              disabled={!onPaddingChange}
-              className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <option value="rem">rem</option>
-              <option value="px">px</option>
-            </select>
+        <div className="space-y-3">
+          {/* Width */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+              Width
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={widthValue}
+                onChange={(e) => handleWidthValueChange(e.target.value)}
+                disabled={!onWidthChange}
+                className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                placeholder="200"
+              />
+              <select
+                value={widthUnit}
+                onChange={(e) => handleWidthUnitChange(e.target.value)}
+                disabled={!onWidthChange}
+                className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="px">px</option>
+                <option value="rem">rem</option>
+                <option value="%">%</option>
+                <option value="vw">vw</option>
+                <option value="vh">vh</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Padding */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+              Padding
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                value={paddingValue}
+                onChange={(e) => handlePaddingValueChange(e.target.value)}
+                disabled={!onPaddingChange}
+                className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                placeholder="1"
+              />
+              <select
+                value={paddingUnit}
+                onChange={(e) => handlePaddingUnitChange(e.target.value)}
+                disabled={!onPaddingChange}
+                className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="rem">rem</option>
+                <option value="px">px</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>

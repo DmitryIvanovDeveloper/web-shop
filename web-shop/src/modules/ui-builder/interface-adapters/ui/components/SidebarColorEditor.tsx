@@ -9,6 +9,7 @@ interface SidebarColorEditorProps {
   onChange: (elementId: string, colors: Record<string, string>) => void;
   onGapChange?: (elementId: string, gap: string) => void;
   onPaddingChange?: (elementId: string, padding: string) => void;
+  onWidthChange?: (elementId: string, width: string) => void;
   onBorderRadiusChange?: (elementId: string, borderRadius: string) => void;
   onLabelChange?: (elementId: string, label: string) => void;
   onTextAlignChange?: (elementId: string, textAlign: string) => void;
@@ -41,7 +42,7 @@ const readFileAsDataUrl = (file: File): Promise<string> => {
 
 import { ColorInput } from './ColorInput';
 
-export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingChange, onBorderRadiusChange, onLabelChange, onTextAlignChange, onFlexDirectionChange, onIconChange, onBackgroundOpacityChange, onPageSlugChange, pages = [] }: SidebarColorEditorProps): JSX.Element {
+export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingChange, onWidthChange, onBorderRadiusChange, onLabelChange, onTextAlignChange, onFlexDirectionChange, onIconChange, onBackgroundOpacityChange, onPageSlugChange, pages = [] }: SidebarColorEditorProps): JSX.Element {
   const [isIconUploading, setIsIconUploading] = useState(false);
 
   if (!element) {
@@ -309,6 +310,8 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
             onBorderRadiusChange={(value) => onBorderRadiusChange?.(element.id, value)}
             padding={element.padding}
             onPaddingChange={(value) => onPaddingChange?.(element.id, value)}
+            width={element.width}
+            onWidthChange={(value) => onWidthChange?.(element.id, value)}
             textAlign={element.textAlign}
             onTextAlignChange={(value) => onTextAlignChange?.(element.id, value)}
           />

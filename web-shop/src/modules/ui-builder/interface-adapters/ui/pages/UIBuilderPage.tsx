@@ -14,6 +14,7 @@ import { FullscreenPreview } from '../components/FullscreenPreview';
 import { Tabs, type Tab } from '../components/Tabs';
 import { SlideOutSidebar } from '../components/SlideOutSidebar';
 import { SectionPalette } from '../components/SectionPalette';
+import { CreateTemplateModal } from '../components/CreateTemplateModal';
 import type { SidebarElement } from '../../../domain/types/sidebar-element.types';
 import type { AppConfigStructure } from '../../../domain/entities/app-config.entity';
 import type { PageConstructorPresenter } from '../../presenters/page-constructor.presenter';
@@ -55,6 +56,8 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   const [isElementSelectionMode, setIsElementSelectionMode] = useState(
     () => (typeof presenter.getElementSelectionMode === 'function' ? presenter.getElementSelectionMode() : false)
   );
+  const [isCreateTemplateModalOpen, setIsCreateTemplateModalOpen] = useState(false);
+  const [createTemplateType, setCreateTemplateType] = useState<'base' | 'current'>('base');
   const ensuredSectionsRef = useRef<Set<'sidebar' | 'rightSidebar'>>(new Set());
 
   // Auto-switch tab based on activeSection
@@ -124,8 +127,9 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     templatesPresenter.loadTemplates().catch(() => {
       // errors are already logged inside presenter
     });
+
     return unsubscribe;
-  }, [templatesPresenter]);
+  }, [templatesPresenter, isAdmin, presenter, pageConstructorPresenter]);
 
   // Offer Cards state
   const [offerCards, setOfferCards] = useState(pageConstructorPresenter.getOfferCards());
@@ -224,6 +228,102 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     ensuredSectionsRef.current.clear();
   }, [viewModel.config]);
 
+  // Track last template/config pair to avoid autosaving on mere template switch.
+  const lastTemplateAutosaveRef = useRef<{
+    templateId: string | null;
+    lastModified: number;
+    configSnapshot: string | null; // JSON string of config for comparison
+  }>({
+    templateId: null,
+    lastModified: 0,
+    configSnapshot: null,
+  });
+
+  // Track autosave timeout to prevent multiple concurrent saves
+  const autosaveTimeoutRef = useRef<number | null>(null);
+
+  /**
+   * Autosave Template for admin:
+   * When the main app configuration changes while a specific template is selected,
+   * persist the current builder + page state back into that Template in Supabase.
+   * Switching between templates should not immediately overwrite each other.
+   */
+  useEffect(() => {
+    const effectId = Math.random().toString(36).substr(2, 9);
+    console.log(`[UIBuilderPage] Autosave useEffect triggered [${effectId}]`, {
+      isAdmin,
+      selectedTemplateId: templatesVm.selectedTemplateId,
+      lastModified: viewModel.lastModified,
+      hasConfig: !!viewModel.config
+    });
+
+    if (!isAdmin) {
+      console.log('[UIBuilderPage] Autosave skipped: not admin');
+      return;
+    }
+
+
+    if (!templatesVm.selectedTemplateId) {
+      console.log('[UIBuilderPage] Autosave skipped: no template selected');
+      return;
+    }
+    if (!viewModel.config) {
+      console.log('[UIBuilderPage] Autosave skipped: no config');
+      return;
+    }
+
+    const last = lastTemplateAutosaveRef.current;
+    const currentConfigSnapshot = JSON.stringify(viewModel.config);
+
+    // If template changed – just record new state and skip autosave for this tick.
+    if (last.templateId !== templatesVm.selectedTemplateId) {
+      console.log('[UIBuilderPage] Autosave: template changed, resetting tracking');
+      lastTemplateAutosaveRef.current = {
+        templateId: templatesVm.selectedTemplateId,
+        lastModified: viewModel.lastModified,
+        configSnapshot: currentConfigSnapshot,
+      };
+      return;
+    }
+
+    // If config didn't actually change – nothing to save.
+    if (last.configSnapshot === currentConfigSnapshot) {
+      console.log('[UIBuilderPage] Autosave skipped: config unchanged');
+      return;
+    }
+
+    console.log('[UIBuilderPage] Autosave: config changed, scheduling save');
+
+    // Clear any existing timeout
+    if (autosaveTimeoutRef.current) {
+      window.clearTimeout(autosaveTimeoutRef.current);
+    }
+
+    // Update tracking
+    lastTemplateAutosaveRef.current = {
+      templateId: templatesVm.selectedTemplateId,
+      lastModified: viewModel.lastModified,
+      configSnapshot: currentConfigSnapshot,
+    };
+
+    // Set new timeout
+    autosaveTimeoutRef.current = window.setTimeout(() => {
+      const timeoutId = Math.random().toString(36).substr(2, 9);
+      console.log(`[UIBuilderPage] Autosave: executing save [${timeoutId}]`);
+      void templatesPresenter.saveSelectedTemplateFromCurrentConfig();
+      autosaveTimeoutRef.current = null; // Reset after execution
+    }, 2000); // 2s debounce to avoid excessive writes
+
+    // Cleanup function to clear timeout on unmount or dependency change
+    return () => {
+      if (autosaveTimeoutRef.current) {
+        window.clearTimeout(autosaveTimeoutRef.current);
+        autosaveTimeoutRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, viewModel.lastModified]);
+
   // Send viewport mode update to iframe when device or orientation changes
   useEffect(() => {
     if (!iframeRef.current?.contentWindow || !isClient) return;
@@ -235,7 +335,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     };
 
     const sendViewportModeUpdate = () => {
-      const iframeWindow = iframeRef.current?.contentWindow;
+        const iframeWindow = iframeRef.current?.contentWindow;
 
       if (!iframeWindow) {
         return;
@@ -245,15 +345,15 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         return;
       }
 
-      const mappedViewportMode = deviceToViewportMode(device);
+            const mappedViewportMode = deviceToViewportMode(device);
 
-      iframeWindow.postMessage(
-        {
-          type: 'VIEWPORT_MODE_UPDATE',
-          payload: { viewportMode: mappedViewportMode },
-        },
-        clientUrl
-      );
+            iframeWindow.postMessage(
+              {
+                type: 'VIEWPORT_MODE_UPDATE',
+                payload: { viewportMode: mappedViewportMode },
+              },
+              clientUrl
+            );
     };
 
     // Send immediately when device or orientation changes
@@ -266,10 +366,20 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   }, [device, orientation, isClient]);
 
   // Initialize and load full config from Supabase on mount
+  // Initialize presenter on mount
   useEffect(() => {
-    presenter.initialize(appId);
+    // Always initialize with default config first
+    presenter.initialize(appId, false);
     presenter.loadPages();
   }, [presenter, appId]);
+
+  // Apply template config after initialization if admin has selected template
+  useEffect(() => {
+    if (isAdmin && templatesVm.selectedTemplateId && templatesVm.selectedTemplate?.appConfig) {
+      // Apply template config to already initialized presenter
+      presenter.applyTemplateConfig(templatesVm.selectedTemplate.appConfig);
+    }
+  }, [isAdmin, templatesVm.selectedTemplateId, templatesVm.selectedTemplate, presenter]);
 
   useEffect(() => {
     if (!viewModel.config) {
@@ -609,8 +719,8 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           if (pageVm?.sections) {
             // First check if elementId matches a section ID
             for (const section of pageVm.sections) {
-                if (section.id === elementId) {
-                  foundSectionId = section.id;
+              if (section.id === elementId) {
+                foundSectionId = section.id;
                   foundComponentId = null;
                 break;
               }
@@ -621,9 +731,9 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               for (const section of pageVm.sections) {
                 // Search directly in section.components array
                 const foundComponent = section.components?.find(comp => comp.id === elementId);
-                  if (foundComponent) {
-                    foundSectionId = section.id;
-                    foundComponentId = foundComponent.id;
+                if (foundComponent) {
+                  foundSectionId = section.id;
+                  foundComponentId = foundComponent.id;
                   break;
                 }
               }
@@ -654,44 +764,19 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   }, [presenter, pageConstructorPresenter]);
 
   // Send initial theme and sidebar colors when preview signals ready or when config changes
-  // Temporarily disabled postMessage - using only Supabase Realtime
-  // useEffect(() => {
-  //   const previewComm = presenter.getPreviewCommunication();
-  //   if (!previewComm) return;
+  // Setup iframe ready handler - this is needed for sendConfig to work
+  useEffect(() => {
+    const previewComm = presenter.getPreviewCommunication();
+    if (!previewComm) return;
 
-  //   const sendInitial = () => {
-  //     try {
-  //       // Delay to ensure iframe is ready
-  //       setTimeout(() => {
-  //         // send theme
-  //         const themeColors = ((viewModel.config as any)?.theme?.colors || {}) as Record<string, string>;
-  //         if (themeColors) {
-  //           previewComm.sendThemeUpdate(themeColors);
-  //         }
-  //         // send store-button colors (and others later if needed)
-  //         const storeColors = getElementColorsFromConfig('store-button');
-  //         if (storeColors) {
-  //           previewComm.sendSidebarUpdate({ elementId: 'store-button', colors: storeColors });
-  //         }
+    const handlePreviewReady = () => {
+      console.log('[UIBuilderPage] Preview iframe is ready');
+    };
 
-  //         // send current left sidebar structure so new buttons appear without reload
-  //         const layout = (viewModel.config as any)?.modules?.uiRenderer?.sidebar?.layout;
-  //         if (layout && previewComm.sendSidebarStructure) {
-  //           previewComm.sendSidebarStructure(layout);
-  //         }
-  //       }, 100);
-  //     } catch {}
-  //   };
-
-  //   if (previewComm.onPreviewReady) {
-  //     previewComm.onPreviewReady(sendInitial);
-  //   }
-
-  //   // also send once when config is ready (in case iframe was already ready)
-  //   if (viewModel.config) {
-  //     sendInitial();
-  //   }
-  // }, [presenter, viewModel.config]);
+    if (previewComm.onPreviewReady) {
+      previewComm.onPreviewReady(handlePreviewReady);
+    }
+  }, [presenter]);
 
   if (viewModel.isLoading) {
     return (
@@ -1130,11 +1215,8 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                     <button
                       type="button"
                       onClick={() => {
-                        const name = window.prompt('Base template name');
-                        if (!name) {
-                          return;
-                        }
-                        void templatesPresenter.createBaseTemplate(name);
+                        setCreateTemplateType('base');
+                        setIsCreateTemplateModalOpen(true);
                       }}
                       className="px-2 py-1 text-[11px] rounded bg-emerald-500 text-white hover:bg-emerald-600"
                     >
@@ -1143,11 +1225,8 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                     <button
                       type="button"
                       onClick={() => {
-                        const name = window.prompt('Template name from current config');
-                        if (!name) {
-                          return;
-                        }
-                        void templatesPresenter.createTemplateFromCurrentConfig(name);
+                        setCreateTemplateType('current');
+                        setIsCreateTemplateModalOpen(true);
                       }}
                       className="px-2 py-1 text-[11px] rounded bg-blue-500 text-white hover:bg-blue-600"
                     >
@@ -1494,6 +1573,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 onChange={handleElementColorChange}
                 onGapChange={(elementId, gap) => presenter.updateContainerGap(elementId, gap)}
                 onPaddingChange={(elementId, padding) => presenter.updateContainerPadding(elementId, padding)}
+                onWidthChange={(elementId, width) => presenter.updateButtonWidth(elementId, width)}
                 onBorderRadiusChange={(elementId, borderRadius) => presenter.updateButtonBorderRadius(elementId, borderRadius)}
                 onLabelChange={(elementId, label) => presenter.updateButtonLabel(elementId, label)}
                 onTextAlignChange={(elementId, textAlign) => presenter.updateButtonTextAlign(elementId, textAlign)}
@@ -1586,18 +1666,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                       </div>
                     </div>
                     <div className="flex gap-2 pt-2 border-t border-gray-100">
-                      {isAdmin && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            void templatesPresenter.saveSelectedTemplateFromCurrentConfig();
-                          }}
-                          className="px-3 py-1.5 text-xs rounded bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-60"
-                          disabled={templatesVm.isSaving}
-                        >
-                          {templatesVm.isSaving ? 'Saving...' : 'Save Template'}
-                        </button>
-                      )}
                       <button
                         type="button"
                         onClick={() => {
@@ -1607,6 +1675,19 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                       >
                         Apply Template
                       </button>
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm(`Are you sure you want to delete template "${templatesVm.selectedTemplate?.name}"? This action cannot be undone.`)) {
+                              void templatesPresenter.deleteTemplate(templatesVm.selectedTemplate!.id);
+                            }
+                          }}
+                          className="px-3 py-1.5 text-xs rounded bg-red-600 text-white hover:bg-red-700"
+                        >
+                          Delete Template
+                        </button>
+                      )}
                     </div>
                   </>
                 ) : (
@@ -1644,6 +1725,31 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           onIframeRef={handleIframeRef}
         />
       )}
+
+      {/* Create Template Modal */}
+      <CreateTemplateModal
+        isOpen={isCreateTemplateModalOpen}
+        onClose={() => {
+          setIsCreateTemplateModalOpen(false);
+          setCreateTemplateType('base');
+        }}
+        onCreate={async (name, description) => {
+          try {
+            if (createTemplateType === 'base') {
+              await templatesPresenter.createBaseTemplate(name, { description });
+            } else {
+              await templatesPresenter.createTemplateFromCurrentConfig(name, { description });
+            }
+            setIsCreateTemplateModalOpen(false);
+            setCreateTemplateType('base');
+          } catch (error) {
+            // Error handling is done in presenter
+            console.error('Failed to create template:', error);
+          }
+        }}
+        templateType={createTemplateType}
+        isLoading={templatesVm.isSaving}
+      />
     </div>
   );
 }

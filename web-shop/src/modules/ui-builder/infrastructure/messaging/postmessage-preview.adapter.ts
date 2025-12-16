@@ -94,13 +94,12 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
       },
     };
 
-    console.log('[PostMessagePreviewAdapter] Sending config update', {
-      hasElementSelectionMode: 'elementSelectionMode' in config,
-      elementSelectionMode: config.elementSelectionMode
-    });
-
     if (!this._iframeEl?.contentWindow || !this._isIframeReady) {
-      console.warn('[PostMessagePreviewAdapter] iframe not ready, queueing config update');
+      console.warn('[PostMessagePreviewAdapter] iframe not ready, queueing config update', {
+        hasIframe: !!this._iframeEl,
+        hasContentWindow: !!this._iframeEl?.contentWindow,
+        isIframeReady: this._isIframeReady
+      });
       this._pendingMessages.push({ payload: message });
       return;
     }

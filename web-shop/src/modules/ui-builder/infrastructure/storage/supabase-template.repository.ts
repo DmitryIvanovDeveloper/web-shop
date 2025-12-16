@@ -46,6 +46,36 @@ export class SupabaseTemplateRepository implements TemplateRepositoryPort {
         updatedAt: template.updatedAt ?? new Date(nowIso),
       });
 
+      this.logger.info('[SupabaseTemplateRepository] Mapped row data', {
+        id: row.id,
+        name: row.name,
+        app_config_type: typeof row.app_config,
+        page_configs_type: typeof row.page_configs,
+        page_configs_length: Array.isArray(row.page_configs) ? row.page_configs.length : 'not_array',
+        metadata_type: typeof row.metadata,
+        is_active: row.is_active,
+        published: row.published,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      });
+
+      // Try to serialize the row data to check for circular references
+      try {
+        const serialized = JSON.stringify(row);
+        this.logger.info('[SupabaseTemplateRepository] Row data serialized successfully', {
+          size: serialized.length,
+        });
+      } catch (serializeError) {
+        this.logger.error('[SupabaseTemplateRepository] Failed to serialize row data', {
+          error: serializeError,
+          app_config_keys: Object.keys(row.app_config || {}),
+          page_configs_sample: Array.isArray(row.page_configs) && row.page_configs.length > 0
+            ? { pageSlug: row.page_configs[0].pageSlug, pageConfig_keys: Object.keys(row.page_configs[0].pageConfig || {}) }
+            : 'no_page_configs'
+        });
+        return Result.error(new Error(`Failed to serialize template data: ${serializeError instanceof Error ? serializeError.message : 'Unknown serialization error'}`));
+      }
+
       const { data, error } = await this.db
         .from('templates')
         .insert(row)
@@ -53,7 +83,13 @@ export class SupabaseTemplateRepository implements TemplateRepositoryPort {
         .single();
 
       if (error) {
-        this.logger.error('[SupabaseTemplateRepository] Failed to insert template', { error });
+        this.logger.error('[SupabaseTemplateRepository] Failed to insert template', {
+          error,
+          error_message: error.message,
+          error_details: error.details,
+          error_hint: error.hint,
+          error_code: error.code,
+        });
         return Result.error(new Error(`Failed to create template: ${error.message}`));
       }
 

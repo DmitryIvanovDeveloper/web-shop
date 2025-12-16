@@ -1,6 +1,6 @@
  'use client';
 
-import React from "react";
+import React, { useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -21,9 +21,11 @@ const menuItems: Array<{ key: string; label: string; icon: string; href: string 
 
 export function Sidebar({ children, widthClassName = "w-64", title = "Navigation", onSelect }: SidebarProps): JSX.Element {
   const pathname = usePathname();
-  const isAdmin =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("role") === "admin";
+  const isAdmin = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    const url = new URL(window.location.href);
+    return url.searchParams.get("role") === "admin";
+  }, [pathname]); // Re-evaluate when pathname changes
   const containerStyle: React.CSSProperties = {
     position: "fixed",
     top: 0,
@@ -95,6 +97,10 @@ export function Sidebar({ children, widthClassName = "w-64", title = "Navigation
                     .map((item) =>
                       item.key === "ui-builder"
                         ? { ...item, href: "/ui-builder?role=admin" }
+                        : item.key === "merchant-admin-offers"
+                        ? { ...item, href: "/merchant-admin/offers" }
+                        : item.key === "merchant-admin-products"
+                        ? { ...item, href: "/products" }
                         : item
                     )
                 : menuItems

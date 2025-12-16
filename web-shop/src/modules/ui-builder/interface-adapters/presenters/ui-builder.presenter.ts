@@ -26,6 +26,7 @@ interface ViewModel {
   pages: string[];
   isLoadingPages: boolean;
   elementSelectionMode: boolean;
+  lastModified: number;
 }
 
 @injectable()
@@ -64,7 +65,7 @@ export class UIBuilderPresenter {
                   id: 'store-button',
                   type: 'Button',
                   props: { text: 'Store' },
-                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af' },
+                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%' },
                 },
               ],
             },
@@ -90,6 +91,7 @@ export class UIBuilderPresenter {
     pages: [],
     isLoadingPages: false,
     elementSelectionMode: false,
+    lastModified: Date.now(),
   };
 
   constructor(
@@ -180,43 +182,71 @@ export class UIBuilderPresenter {
     this.saveConfigToSupabaseDebounced();
   }
 
-  public async initialize(appId: string): Promise<void> {
-    this._logger.info('[UIBuilderPresenter] Initializing with appId', { appId });
+  public async initialize(appId: string, skipConfigLoad = false, templateConfig?: unknown): Promise<void> {
+    this._logger.info('[UIBuilderPresenter] Initializing with appId', { appId, hasTemplateConfig: !!templateConfig });
     this.vm = { ...this.vm, isLoading: true, appId };
     this.notify();
 
     try {
-      const result = await this._loadDraftConfigUseCase.execute(appId);
-      
-      if (result.isSuccess && result.value) {
-        this._logger.info('[UIBuilderPresenter] Config loaded successfully', { appId });
-        let appConfig = result.value as any;
-        
+      if (templateConfig) {
+        // Use template config for admin users
+        this._logger.info('[UIBuilderPresenter] Using template config for initialization', { appId });
+        let appConfig = templateConfig as any;
+
         // Migrate all IDs to UUID format
         appConfig = migrateConfigIds(appConfig);
-        
+
         const version = appConfig.version;
-        const versionValue = typeof version === 'object' && version !== null && 'value' in version 
-          ? (version as { value: number }).value 
+        const versionValue = typeof version === 'object' && version !== null && 'value' in version
+          ? (version as { value: number }).value
           : (typeof version === 'number' ? version : null);
-        this.vm = { 
-          ...this.vm, 
-          config: appConfig.config as unknown as Record<string, unknown>, 
+
+        this.vm = {
+          ...this.vm,
+          config: appConfig as unknown as Record<string, unknown>,
           isLoading: false,
-          isDraft: appConfig.isDraft ?? false, // Set isDraft from AppConfig
+          isDraft: true, // Template configs are treated as drafts
           version: versionValue
         };
-        
-        // Save migrated config back to Supabase
-        await this.saveConfigToSupabase();
-        
+
         this.sendConfigToIframe();
+      } else if (!skipConfigLoad) {
+        const result = await this._loadDraftConfigUseCase.execute(appId);
+
+        if (result.isSuccess && result.value) {
+          this._logger.info('[UIBuilderPresenter] Config loaded successfully', { appId });
+          let appConfig = result.value as any;
+
+          // Migrate all IDs to UUID format
+          appConfig = migrateConfigIds(appConfig);
+
+          const version = appConfig.version;
+          const versionValue = typeof version === 'object' && version !== null && 'value' in version
+            ? (version as { value: number }).value
+            : (typeof version === 'number' ? version : null);
+          this.vm = {
+            ...this.vm,
+            config: appConfig.config as unknown as Record<string, unknown>,
+            isLoading: false,
+            isDraft: appConfig.isDraft ?? false, // Set isDraft from AppConfig
+            version: versionValue
+          };
+
+          // Save migrated config back to Supabase
+          await this.saveConfigToSupabase();
+
+          this.sendConfigToIframe();
+        } else {
+          this._logger.warn('[UIBuilderPresenter] Failed to load config, using default', { appId, error: result.error });
+          this.vm = { ...this.vm, config: this.getDefaultConfig(), isLoading: false };
+          this.sendConfigToIframe();
+        }
       } else {
-        this._logger.warn('[UIBuilderPresenter] Failed to load config, using default', { appId, error: result.error });
+        this._logger.info('[UIBuilderPresenter] Skipping config load, using default config', { appId });
         this.vm = { ...this.vm, config: this.getDefaultConfig(), isLoading: false };
         this.sendConfigToIframe();
       }
-      
+
       this.notify();
     } catch (error) {
       this._logger.error('[UIBuilderPresenter] Error initializing', { appId, error });
@@ -297,7 +327,7 @@ export class UIBuilderPresenter {
                   id: generateElementId('button'),
                   type: 'Button',
                   props: { text: 'Store' },
-                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af' },
+                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%' },
                 },
               ],
             },
@@ -426,6 +456,7 @@ export class UIBuilderPresenter {
         colors: colors || undefined,
         gap: node?.styles?.gap,
         padding: node?.styles?.padding,
+        width: node?.styles?.width,
         flexDirection: node?.styles?.flexDirection,
         type: node?.type,
         borderRadius: node?.styles?.borderRadius,
@@ -446,9 +477,11 @@ export class UIBuilderPresenter {
 
   public updateElementColors(elementId: string, colors: Record<string, string>): void {
     this.applyColorsToConfig(elementId, colors);
+    this.vm = { ...this.vm, lastModified: Date.now() };
     this.selectElement(elementId);
     this.sendConfigToIframe();
     this.saveConfigToSupabaseDebounced();
+    this.notify();
   }
 
   public updateContainerBackgroundOpacity(elementId: string, opacity: string): void {
@@ -499,12 +532,26 @@ export class UIBuilderPresenter {
   public updateButtonBorderRadius(elementId: string, borderRadius: string): void {
     const node = this.findNode(elementId);
     if (!node) return;
-    
+
     if (!node.styles) {
       node.styles = {};
     }
     node.styles.borderRadius = borderRadius;
-    
+
+    this.selectElement(elementId);
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
+  }
+
+  public updateButtonWidth(elementId: string, width: string): void {
+    const node = this.findNode(elementId);
+    if (!node) return;
+
+    if (!node.styles) {
+      node.styles = {};
+    }
+    node.styles.width = width;
+
     this.selectElement(elementId);
     this.sendConfigToIframe();
     this.saveConfigToSupabaseDebounced();
@@ -607,6 +654,7 @@ export class UIBuilderPresenter {
       backgroundColor: '#1d4ed8',
       textColor: '#ffffff',
       borderColor: '#1e40af',
+      width: '100%',
     };
     
     const copiedStyles = lastButton?.styles 
@@ -1065,7 +1113,7 @@ export class UIBuilderPresenter {
             id: 'store-button',
             type: 'Button',
             props: { text: 'Store' },
-            styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af' },
+            styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%' },
           },
         ],
       };

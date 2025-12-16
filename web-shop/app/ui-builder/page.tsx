@@ -9,7 +9,8 @@ import { useSearchParams } from 'next/navigation';
 function UIBuilderContent(): JSX.Element {
   const searchParams = useSearchParams();
   const presenter = container.get<any>(UI_BUILDER_TYPES.UIBuilderPresenter);
-  const appId = searchParams.get('appId') || 'APP123';
+  const isAdmin = searchParams.get('role') === 'admin';
+  const appId = isAdmin ? (searchParams.get('appId') || 'APP123') : (searchParams.get('appId') || 'default-app');
   return <UIBuilderPage presenter={presenter} appId={appId} />;
 }
 

@@ -13,6 +13,7 @@ export interface SelectedElement {
   colors?: Record<string, string>;
   gap?: string;
   padding?: string;
+  width?: string;
   type?: string;
   borderRadius?: string;
   label?: string;
