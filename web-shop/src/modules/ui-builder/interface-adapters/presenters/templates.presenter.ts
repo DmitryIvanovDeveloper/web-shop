@@ -350,7 +350,7 @@ export class TemplatesPresenter {
       this.logger.info('[TemplatesPresenter] Pages serialized successfully');
     } catch (error) {
       this.logger.error('[TemplatesPresenter] Failed to serialize pages', { error });
-      cleanPages = [{ pageSlug: 'home', pageConfig: { sections: [], pageStyles: {} }, error: 'Page data contains non-serializable data' }];
+      cleanPages = [{ pageSlug: 'home', pageConfig: { sections: [], pageStyles: {} } }];
     }
 
     this.logger.info('[TemplatesPresenter] Using complete default config for base template');
@@ -576,7 +576,7 @@ export class TemplatesPresenter {
       this.logger.info('[TemplatesPresenter] Pages serialized successfully for autosave');
     } catch (error) {
       this.logger.error('[TemplatesPresenter] Failed to serialize pages for autosave', { error });
-      cleanPages = [{ pageSlug: pageVm.pageSlug || 'home', pageConfig: { sections: [], pageStyles: {} }, error: 'Page data contains non-serializable data' }];
+      cleanPages = [{ pageSlug: pageVm.pageSlug || 'home', pageConfig: { sections: [], pageStyles: {} } }];
     }
 
     // For autosave, use HTTP API instead of direct repository access
@@ -623,29 +623,6 @@ export class TemplatesPresenter {
       (this.vm as any).isSavingTemplate = false;
       return Result.error(error instanceof Error ? error : new Error('Failed to autosave template'));
     }
-
-    if (result.isFailure) {
-      this.logger.error('[TemplatesPresenter] Failed to autosave template config', {
-        id: patch.id,
-        error: result.error,
-      });
-      (this.vm as any).isSavingTemplate = false;
-      return Result.error(result.error ?? new Error('Failed to autosave template'));
-    }
-
-    const updated = result.value!;
-
-    // Keep selectedTemplate in sync without touching list/selection.
-    if (this.vm.selectedTemplateId === updated.id) {
-      this.vm = {
-        ...this.vm,
-        selectedTemplate: updated,
-      };
-      this.notify();
-    }
-
-    (this.vm as any).isSavingTemplate = false;
-    return Result.ok(updated);
   }
 
   /**
