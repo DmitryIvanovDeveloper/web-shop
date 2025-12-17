@@ -1300,7 +1300,31 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span>{config.name || `Config v${config.version}`}</span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void templatesPresenter.updateUserAppConfigStatus(config.id, !config.isActive);
+                              }}
+                              className={`w-3 h-3 rounded-full border-2 transition-colors ${
+                                config.isActive
+                                  ? 'bg-green-500 border-green-500'
+                                  : 'bg-white border-gray-300 hover:border-gray-400'
+                              }`}
+                              title={config.isActive ? 'Deactivate config' : 'Activate config'}
+                            />
+                            <span>{config.name || `Config v${config.version}`}</span>
+                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${
+                              config.isActive
+                                ? 'bg-green-100 text-green-700'
+                                : config.isDraft
+                                  ? 'bg-orange-100 text-orange-700'
+                                  : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {config.isActive ? 'Active' : config.isDraft ? 'Draft' : 'Inactive'}
+                            </span>
+                          </div>
                           <span className="text-[10px] text-gray-400">
                             {config.updatedAt.toLocaleDateString?.() ?? ''}
                           </span>

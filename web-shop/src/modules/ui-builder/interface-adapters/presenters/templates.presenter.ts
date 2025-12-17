@@ -873,6 +873,88 @@ export class TemplatesPresenter {
     return result;
   }
 
+  public async updateUserAppConfigStatus(id: string, isActive: boolean): Promise<Result<UserAppConfig, Error>> {
+    if (this.isAdmin) {
+      return Result.error(new Error('Admins cannot modify user app config status'));
+    }
+
+    this.logger.info('[TemplatesPresenter] Updating user app config status', { id, isActive });
+
+    this.vm = {
+      ...this.vm,
+      isSaving: true,
+      error: null,
+    };
+    this.notify();
+
+    try {
+      const response = await fetch(`/api/app-configs`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id,
+          isActive,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`HTTP ${response.status}: ${errorData.error || 'Unknown error'}`);
+      }
+
+      const data = await response.json();
+
+      this.logger.info('[TemplatesPresenter] User app config status updated successfully', {
+        id,
+        isActive,
+      });
+
+      // Update local config data
+      const updatedConfig = data.appConfig;
+      this.vm = {
+        ...this.vm,
+        userAppConfigs: this.vm.userAppConfigs.map(config =>
+          config.id === id ? {
+            ...config,
+            isActive: updatedConfig.is_active,
+            isDraft: updatedConfig.is_draft,
+            updatedAt: new Date(updatedConfig.updated_at),
+          } : config
+        ),
+        isSaving: false,
+      };
+      this.notify();
+
+      return Result.ok({
+        id: updatedConfig.id,
+        appId: updatedConfig.app_id,
+        config: updatedConfig.config,
+        version: updatedConfig.version,
+        isActive: updatedConfig.is_active,
+        isDraft: updatedConfig.is_draft,
+        createdAt: new Date(updatedConfig.created_at),
+        updatedAt: new Date(updatedConfig.updated_at),
+      });
+    } catch (error) {
+      this.logger.error('[TemplatesPresenter] Failed to update user app config status', {
+        id,
+        isActive,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      this.vm = {
+        ...this.vm,
+        isSaving: false,
+        error: error instanceof Error ? error.message : 'Failed to update config status',
+      };
+      this.notify();
+
+      return Result.error(error instanceof Error ? error : new Error('Failed to update user app config status'));
+    }
+  }
+
   /**
    * Called by UIBuilderPresenter after successful app-config publish when admin role is active.
    * Marks currently selected template as published at template level.
