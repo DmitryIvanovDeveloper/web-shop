@@ -955,67 +955,6 @@ export class TemplatesPresenter {
     }
   }
 
-  public async deleteUserAppConfig(id: string): Promise<Result<void, Error>> {
-    if (this.isAdmin) {
-      return Result.error(new Error('Admins cannot delete user app configs'));
-    }
-
-    // Check if config is active - don't allow deletion of active configs
-    const config = this.vm.userAppConfigs.find(c => c.id === id);
-    if (!config) {
-      return Result.error(new Error('Config not found'));
-    }
-
-    if (config.isActive) {
-      return Result.error(new Error('Cannot delete active config. Deactivate it first.'));
-    }
-
-    this.logger.info('[TemplatesPresenter] Deleting user app config', { id });
-
-    this.vm = {
-      ...this.vm,
-      isSaving: true,
-      error: null,
-    };
-    this.notify();
-
-    try {
-      const response = await fetch(`/api/app-configs?id=${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`HTTP ${response.status}: ${errorData.error || 'Unknown error'}`);
-      }
-
-      this.logger.info('[TemplatesPresenter] User app config deleted successfully', { id });
-
-      // Remove from local state
-      this.vm = {
-        ...this.vm,
-        userAppConfigs: this.vm.userAppConfigs.filter(c => c.id !== id),
-        isSaving: false,
-      };
-      this.notify();
-
-      return Result.ok(undefined);
-    } catch (error) {
-      this.logger.error('[TemplatesPresenter] Failed to delete user app config', {
-        id,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-
-      this.vm = {
-        ...this.vm,
-        isSaving: false,
-        error: error instanceof Error ? error.message : 'Failed to delete config',
-      };
-      this.notify();
-
-      return Result.error(error instanceof Error ? error : new Error('Failed to delete user app config'));
-    }
-  }
 
   /**
    * Called by UIBuilderPresenter after successful app-config publish when admin role is active.

@@ -1325,26 +1325,9 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                               {config.isActive ? 'Active' : config.isDraft ? 'Draft' : 'Inactive'}
                             </span>
                           </div>
-                          <div className="flex items-center gap-1">
-                            {!config.isActive && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (confirm('Are you sure you want to delete this config?')) {
-                                    void templatesPresenter.deleteUserAppConfig(config.id);
-                                  }
-                                }}
-                                className="text-red-500 hover:text-red-700 text-xs p-1"
-                                title="Delete config"
-                              >
-                                🗑️
-                              </button>
-                            )}
-                            <span className="text-[10px] text-gray-400">
-                              {config.updatedAt.toLocaleDateString?.() ?? ''}
-                            </span>
-                          </div>
+                          <span className="text-[10px] text-gray-400">
+                            {config.updatedAt.toLocaleDateString?.() ?? ''}
+                          </span>
                         </div>
                       </button>
                     ))}
