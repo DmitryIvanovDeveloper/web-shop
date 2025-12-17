@@ -82,20 +82,26 @@ export default function HomePage(): JSX.Element {
   useEffect(() => {
     const loadAppConfig = async () => {
       try {
-        // Get appId from URL
+        // Get appId from URL (support both 'appId' and 'app' parameters)
         const url = new URL(window.location.href);
-        const appId = url.searchParams.get('appId');
+        const appId = url.searchParams.get('appId') || url.searchParams.get('app');
         
         // Check if we're in an iframe (likely Builder preview)
         const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
         
-        if (appId && (previewMode || isInIframe)) {
+        if (appId) {
           // Try to load config from Supabase if not loaded yet
           const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
-          
-          // Load draft config for preview mode
-          await loadAppConfigUseCase.execute(true);
-          console.log('[HomePage] App config loaded from Supabase for preview mode', { appId, isInIframe });
+
+          if (previewMode || isInIframe) {
+            // Load draft config for preview mode
+            await loadAppConfigUseCase.execute(true);
+            console.log('[HomePage] Draft app config loaded from Supabase for preview mode', { appId, isInIframe });
+          } else {
+            // Load active config for regular client usage
+            await loadAppConfigUseCase.execute(false);
+            console.log('[HomePage] Active app config loaded from Supabase for regular client', { appId });
+          }
         }
       } catch (error) {
         console.warn('[HomePage] Failed to load app config on mount, will wait for CONFIG_UPDATE message', error);

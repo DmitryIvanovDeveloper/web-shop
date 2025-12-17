@@ -78,7 +78,8 @@ export class LoadAppConfigUseCase {
     if (typeof window !== 'undefined') {
       try {
         const url = new URL(window.location.href);
-        const fromQuery = url.searchParams.get('appId');
+        // Support both 'appId' and 'app' query parameters
+        const fromQuery = url.searchParams.get('appId') || url.searchParams.get('app');
         if (fromQuery) return fromQuery;
       } catch {}
     }
