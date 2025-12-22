@@ -21,7 +21,8 @@ export class GetPatchNotesUseCase {
       }
 
       // Sort by created date (newest first)
-      const sortedNotes = result.data.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      const patchNotes = result.data || [];
+      const sortedNotes = patchNotes.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
       const outputs = sortedNotes.map(note => this.mapToOutput(note));
 
