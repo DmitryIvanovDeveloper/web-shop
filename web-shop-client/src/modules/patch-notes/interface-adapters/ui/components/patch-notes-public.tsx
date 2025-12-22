@@ -8,14 +8,29 @@ import { PATCH_NOTES_TYPES } from '../../../infrastructure/bootstrap/types';
 
 export function PatchNotesPublic(): JSX.Element | null {
   const [, forceUpdate] = useState({});
-  const [presenter] = useState(() =>
-    container.get<PatchNotesPublicPresenter>(PATCH_NOTES_TYPES.PatchNotesPublicPresenter)
-  );
+  const [presenter, setPresenter] = useState<PatchNotesPublicPresenter | null>(null);
 
   useEffect(() => {
-    presenter.setOnViewModelChanged(() => forceUpdate({}));
-    presenter.loadPublishedNotes();
+    // Initialize presenter on client side only
+    const presenterInstance = container.get<PatchNotesPublicPresenter>(PATCH_NOTES_TYPES.PatchNotesPublicPresenter);
+    setPresenter(presenterInstance);
+  }, []);
+
+  useEffect(() => {
+    if (presenter) {
+      presenter.setOnViewModelChanged(() => forceUpdate({}));
+      presenter.loadPublishedNotes();
+    }
   }, [presenter]);
+
+  // Don't render anything until presenter is initialized
+  if (!presenter) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   const viewModel = presenter.getViewModel();
 
