@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import type { Result } from '../../../../../shared/utils/result';
+import { Success, Failure, type Result } from '../../../../../shared/result/result';
 import { TYPES } from '../../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../../application/ports/logger.port';
 import { MERCHANT_ADMIN_PATCH_NOTES_TYPES } from '../../infrastructure/bootstrap/types';

@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import type { Result } from '../../../../../shared/utils/result';
+import { Success, Failure, type Result } from '../../../../../shared/result/result';
 import { TYPES } from '../../../../../infrastructure/bootstrap/types';
 import type { DatabaseClientPort } from '../../../../../application/ports/database-client.port';
 import type { Logger } from '../../../../../application/ports/logger.port';
@@ -65,15 +65,15 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
 
       if (error) {
         this._logger.error('[SupabasePatchNoteRepository] Failed to save patch note', { error });
-        return Result.fail(new Error(`Failed to save patch note: ${error.message}`));
+        return Failure.fail(new Error(`Failed to save patch note: ${error.message}`));
       }
 
       this._logger.info('[SupabasePatchNoteRepository] Patch note saved successfully');
-      return Result.success(patchNote);
+      return Success.ok(patchNote);
 
     } catch (error) {
       this._logger.error('[SupabasePatchNoteRepository] Unexpected error saving patch note', { error });
-      return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
@@ -87,19 +87,19 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
         this._logger.error('[SupabasePatchNoteRepository] Failed to find patch note by ID', { error, id: id.value });
-        return Result.fail(new Error(`Failed to find patch note: ${error.message}`));
+        return Failure.fail(new Error(`Failed to find patch note: ${error.message}`));
       }
 
       if (!data) {
-        return Result.success(null);
+        return Success.ok(null);
       }
 
       const patchNote = this.mapRowToEntity(data);
-      return Result.success(patchNote);
+      return Success.ok(patchNote);
 
     } catch (error) {
       this._logger.error('[SupabasePatchNoteRepository] Unexpected error finding patch note by ID', { error });
-      return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
@@ -114,19 +114,19 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
 
       if (error && error.code !== 'PGRST116') {
         this._logger.error('[SupabasePatchNoteRepository] Failed to find patch note by version', { error, version: version.value });
-        return Result.fail(new Error(`Failed to find patch note: ${error.message}`));
+        return Failure.fail(new Error(`Failed to find patch note: ${error.message}`));
       }
 
       if (!data) {
-        return Result.success(null);
+        return Success.ok(null);
       }
 
       const patchNote = this.mapRowToEntity(data);
-      return Result.success(patchNote);
+      return Success.ok(patchNote);
 
     } catch (error) {
       this._logger.error('[SupabasePatchNoteRepository] Unexpected error finding patch note by version', { error });
-      return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
@@ -145,7 +145,7 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
 
       if (error) {
         this._logger.error('[SupabasePatchNoteRepository] Failed to find all patch notes', { error });
-        return Result.fail(new Error(`Failed to find patch notes: ${error.message}`));
+        return Failure.fail(new Error(`Failed to find patch notes: ${error.message}`));
       }
 
       const patchNotes = data?.map(row => this.mapRowToEntity(row)) || [];
@@ -153,7 +153,7 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
 
     } catch (error) {
       this._logger.error('[SupabasePatchNoteRepository] Unexpected error finding all patch notes', { error });
-      return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
@@ -182,7 +182,7 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
 
     } catch (error) {
       this._logger.error('[SupabasePatchNoteRepository] Unexpected error deleting patch note', { error });
-      return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 

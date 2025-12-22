@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import type { Result } from '../../../../../shared/utils/result';
+import { Success, Failure, type Result } from '../../../../../shared/result/result';
 import { TYPES } from '../../../../../infrastructure/bootstrap/types';
 import type { EventBus } from '../../../../../application/ports/event-bus.port';
 import type { PatchNoteRepositoryPort } from '../ports/patch-note-repository.port';
@@ -30,7 +30,7 @@ export class CreatePatchNoteUseCase {
       );
 
       if (existingPatchNote.isSuccess && existingPatchNote.data) {
-        return Result.fail(new PatchNoteAlreadyExistsError(input.version));
+        return Failure.fail(new PatchNoteAlreadyExistsError(input.version));
       }
 
       // Create domain objects
@@ -54,7 +54,7 @@ export class CreatePatchNoteUseCase {
       // Save to repository
       const saveResult = await this._patchNoteRepository.save(patchNote);
       if (!saveResult.isSuccess) {
-        return Result.fail(saveResult.error);
+        return Failure.fail(saveResult.error);
       }
 
       // Publish domain event
@@ -63,10 +63,10 @@ export class CreatePatchNoteUseCase {
       );
 
       // Return output
-      return Result.success(this.mapToOutput(saveResult.data));
+      return Success.ok(this.mapToOutput(saveResult.data));
 
     } catch (error) {
-      return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
