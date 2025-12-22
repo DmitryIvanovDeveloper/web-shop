@@ -9,12 +9,14 @@ import {
 export interface ProductProps {
   readonly id: string;
   readonly title: string;
+  readonly description?: string | null;
   readonly appid?: string | null;
   readonly main_image?: string | null;
   readonly background_image?: string | null;
   readonly rarity?: string | null;
   readonly discount?: string | null;
   readonly player_limit?: string | null;
+  readonly limited_offer?: number | null;
   readonly expires_at?: string | null;
   readonly price?: number | null;
   readonly rp_bonus?: number | null;
@@ -27,12 +29,14 @@ export class Product {
   private constructor(
     public readonly id: string,
     public readonly title: string,
+    public readonly description: string | null,
     public readonly appid: string | null,
     public readonly main_image: string | null,
     public readonly background_image: string | null,
     public readonly rarity: string | null,
     public readonly discount: string | null,
     public readonly player_limit: string | null,
+    public readonly limited_offer: number | null,
     public readonly expires_at: string | null,
     public readonly price: number | null,
     public readonly rp_bonus: number | null,
@@ -71,18 +75,27 @@ export class Product {
       );
     }
 
+    // Validate limited_offer is non-negative if provided
+    if (props.limited_offer !== null && props.limited_offer !== undefined && props.limited_offer < 0) {
+      return Result.error(
+        new ProductValidationError('Product limited_offer must be non-negative')
+      );
+    }
+
     // Note: expires_at can be in the past (for expired products) - no validation needed
 
     return Result.ok(
       new Product(
         props.id,
         props.title.trim(),
+        props.description ?? null,
         props.appid ?? null,
         props.main_image ?? null,
         props.background_image ?? null,
         props.rarity ?? null,
         props.discount ?? null,
         props.player_limit ?? null,
+        props.limited_offer ?? null,
         props.expires_at ?? null,
         props.price ?? null,
         props.rp_bonus ?? null,
@@ -97,6 +110,13 @@ export class Product {
     return Product.create({
       ...this.toProps(),
       title,
+    });
+  }
+
+  public withDescription(description: string | null): Result<Product, ProductValidationError> {
+    return Product.create({
+      ...this.toProps(),
+      description,
     });
   }
 
@@ -170,16 +190,25 @@ export class Product {
     });
   }
 
+  public withLimitedOffer(limited_offer: number | null): Result<Product, ProductValidationError> {
+    return Product.create({
+      ...this.toProps(),
+      limited_offer,
+    });
+  }
+
   public toProps(): ProductProps {
     return {
       id: this.id,
       title: this.title,
+      description: this.description,
       appid: this.appid,
       main_image: this.main_image,
       background_image: this.background_image,
       rarity: this.rarity,
       discount: this.discount,
       player_limit: this.player_limit,
+      limited_offer: this.limited_offer,
       expires_at: this.expires_at,
       price: this.price,
       rp_bonus: this.rp_bonus,

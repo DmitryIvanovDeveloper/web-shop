@@ -8,6 +8,8 @@ import type { Offer } from '../../../domain/types';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { PRODUCTS_TYPES } from '../../../../products/infrastructure/bootstrap/types';
 import type { SelectProductForPaymentUseCase } from '../../../../products/application/use-cases/select-product-for-payment.use-case';
+import { OFFERS_TYPES } from '../../../infrastructure/bootstrap/types';
+import type { OffersListPresenter } from '../../presenters/offers-list.presenter';
 
 export interface OffersListProps {
   readonly className?: string;
@@ -28,158 +30,38 @@ export function OffersList({
   const [loadingOffers, setLoadingOffers] = useState<Set<string>>(new Set());
   const isFirstLoadRef = useRef(true);
 
-  // DISABLED: Offers loading is now handled only via UserAuthenticatedEvent through PersonalOffersWidget
-  // This ensures that context is loaded and conditions are checked only after authentication
-  // useEffect(() => {
-  //   console.log('[OffersList] useEffect triggered');
-
-  //   const loadOffers = async () => {
-  //     try {
-  //       console.log('[OffersList] Loading offers...');
-
-  //       // Загружаем правила
-  //       const rulesResponse = await fetch('/api/offers/rules');
-  //       const ruleTree = await rulesResponse.json();
-  //       console.log('[OffersList] Rule tree loaded:', {
-  //         hasRuleSet: !!ruleTree.ruleSet,
-  //         scenariosCount: ruleTree.scenarios?.length ?? 0,
-  //       });
-
-  //       // Check if ruleTree has scenarios array with items
-  //       // IMPORTANT: We should evaluate conditions before using items
-  //       // For now, OffersList uses a simplified approach - it should be refactored to use EvaluateOffersUseCase
-  //       // This is a temporary workaround that uses items directly, but ideally conditions should be checked
-  //       if (ruleTree.scenarios && Array.isArray(ruleTree.scenarios)) {
-  //         console.log('[OffersList] Checking scenarios for items...');
-          
-  //         // Load user context to evaluate conditions
-  //         const contextResponse = await fetch('/api/user/offer-context');
-  //         const context = await contextResponse.json();
-  //         const userContext = context?.data || {};
-          
-  //         console.log('[OffersList] User context loaded:', {
-  //           isNew: userContext['user.flags.isNew'],
-  //           purchasesLength: userContext['user.purchases.length'],
-  //         });
-          
-  //         // Find scenarios with items that match returning_no_purchase
-  //         // AND check if condition is met: user.flags.isNew === false AND user.purchases.length === 0
-  //         const returningScenarios = ruleTree.scenarios.filter((s: any) => {
-  //           if (s.triggerCode === 'returning_no_purchase' && s.items && s.items.length > 0) {
-  //             // Evaluate condition: user.flags.isNew === false AND user.purchases.length === 0
-  //             const isNew = userContext['user.flags.isNew'] === true;
-  //             const purchasesLength = userContext['user.purchases.length'] ?? 0;
-  //             const conditionMet = !isNew && purchasesLength === 0;
-              
-  //             console.log('[OffersList] Evaluating returning_no_purchase condition:', {
-  //               scenarioSlug: s.slug,
-  //               isNew,
-  //               purchasesLength,
-  //               conditionMet,
-  //             });
-              
-  //             return conditionMet;
-  //           }
-  //           return false;
-  //         });
-          
-  //         if (returningScenarios.length > 0) {
-  //           console.log('[OffersList] Found returning scenarios with items and matching conditions:', returningScenarios.length);
-            
-  //           // Convert items directly to offers
-  //           const offersFromItems: Offer[] = [];
-  //           for (const scenario of returningScenarios) {
-  //             if (scenario.items) {
-  //               for (const item of scenario.items) {
-  //                 // Create Offer object from item
-  //                 const offer: Offer = {
-  //                   id: item.id,
-  //                   title: item.title,
-  //                   // Add other properties as needed
-  //                 };
-  //                 offersFromItems.push(offer);
-  //               }
-  //             }
-  //           }
-            
-  //           if (offersFromItems.length > 0) {
-  //             console.log('[OffersList] Created offers from scenario items:', offersFromItems.length);
-  //             setOffers(offersFromItems);
-  //             setLoading(false);
-  //             return;
-  //           }
-  //         } else {
-  //           console.log('[OffersList] No returning scenarios with matching conditions found');
-  //         }
-  //       }
-
-  //       // Fallback: original logic using ruleSet
-  //       // Загружаем покупки пользователя
-  //       const purchasesResponse = await fetch('/api/user/purchases');
-  //       const purchases = await purchasesResponse.json();
-  //       console.log('[OffersList] User purchases:', purchases);
-
-  //       // Проверяем условие из rules
-  //       const purchasesLength = Array.isArray(purchases) ? purchases.length : 0;
-  //       console.log('[OffersList] User purchases length:', purchasesLength);
-
-  //       // Извлекаем условие из rules
-  //       const condition = ruleTree.ruleSet?.condition;
-  //       const threshold = condition?.value2?.value || 1;
-  //       const conditionType = condition?.conditionType || 'gte';
-
-  //       console.log('[OffersList] Condition:', { conditionType, threshold, purchasesLength });
-
-  //       let conditionMet = false;
-  //       if (conditionType === 'gte') {
-  //         conditionMet = purchasesLength >= threshold;
-  //       } else if (conditionType === 'lte') {
-  //         conditionMet = purchasesLength <= threshold;
-  //       } else if (conditionType === 'eq') {
-  //         conditionMet = purchasesLength === threshold;
-  //       }
-
-  //       if (conditionMet) {
-  //         // Условие выполнено, загружаем offers
-  //         const offerIds = ruleTree.ruleSet?.nextOperation?.action?.params?.offerId;
-  //         if (offerIds) {
-
-  //           // Если offerId - массив, загружаем все offers
-  //           if (Array.isArray(offerIds)) {
-  //             const offersPromises = offerIds.map(async (offerId) => {
-  //               const offerResponse = await fetch(`/api/products/offers/${offerId}`);
-  //               const offer = await offerResponse.json();
-  //               return offer;
-  //             });
-
-  //             const loadedOffers = await Promise.all(offersPromises);
-  //             console.log('[OffersList] All offers loaded:', loadedOffers);
-  //             setOffers(loadedOffers);
-  //           } else {
-  //             // Если offerId - строка (для обратной совместимости)
-  //             const offerResponse = await fetch(`/api/products/offers/${offerIds}`);
-  //             const offer = await offerResponse.json();
-  //             const loadedOffers = [offer];
-  //             setOffers(loadedOffers);
-  //           }
-  //         }
-  //       }
-
-  //       setLoading(false);
-  //     } catch (error) {
-  //       console.error('[OffersList] Error loading offers:', error);
-  //       setError(error instanceof Error ? error.message : 'Failed to load offers');
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   loadOffers();
-  // }, [showPopupOnFirstLoad]);
-
-  // Set loading to false immediately since we're not loading offers on mount
+  // Load offers using the proper use case instead of direct API calls
   useEffect(() => {
-    setLoading(false);
-  }, []);
+    console.log('[OffersList] useEffect triggered - loading offers using SelectOffersUseCase');
+
+    const loadOffers = async () => {
+      try {
+        console.log('[OffersList] Loading offers using OffersListPresenter...');
+
+        // Use the proper presenter to load offers
+        const presenter = container.get<OffersListPresenter>(OFFERS_TYPES.OffersListPresenter);
+        const viewModel = await presenter.present();
+
+        if (viewModel.status === 'success') {
+          console.log('[OffersList] Offers loaded successfully:', viewModel.offers.length);
+          setOffers(viewModel.offers);
+          setError(null);
+        } else {
+          console.warn('[OffersList] Failed to load offers:', viewModel.message);
+          setError(viewModel.message || 'Failed to load offers');
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error('[OffersList] Error loading offers:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load offers');
+        setLoading(false);
+      }
+    };
+
+    loadOffers();
+  }, [showPopupOnFirstLoad]);
+
 
   // Открываем popup только после полной загрузки данных
   useEffect(() => {

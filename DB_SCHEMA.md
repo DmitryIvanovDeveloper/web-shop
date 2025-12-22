@@ -88,9 +88,11 @@ All tables live in the **`public`** schema. There are **no foreign-key constrain
   - `main_image text`
   - `background_image text`
   - `title text`
+  - `description text` – product description text
   - `rarity text`
   - `discount text`
   - `player_limit text`
+  - `limited_offer int` – number of limited offers available
   - `expires_at timestamptz`
   - `rp_bonus int`
   - `lp_bonus int`
@@ -104,7 +106,13 @@ All tables live in the **`public`** schema. There are **no foreign-key constrain
   - `transaction_log.product_id` → `products.id` (by convention).
   - Product IDs also appear in `offer_scenarios.configuration` and `offer_engine_rules.rule_tree` JSON.
 - **Minimal example**:
-  - `id: "product-1763386231177-oyg8dde"`, `appid: "APP123"`, `title: "Test Product"`, `price: 100.00`.
+  - `id: "product-1763386231177-oyg8dde"`, `appid: "APP123"`, `title: "Test Product"`, `price: 100.00`, `limited_offer: 100`.
+
+#### Migration SQL for adding `limited_offer` field
+
+```sql
+ALTER TABLE products ADD COLUMN limited_offer int;
+```
 
 ---
 

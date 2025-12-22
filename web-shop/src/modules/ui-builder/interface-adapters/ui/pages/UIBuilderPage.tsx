@@ -1645,6 +1645,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 onGapChange={(elementId, gap) => presenter.updateContainerGap(elementId, gap)}
                 onPaddingChange={(elementId, padding) => presenter.updateContainerPadding(elementId, padding)}
                 onWidthChange={(elementId, width) => presenter.updateButtonWidth(elementId, width)}
+                onMaxHeightChange={(elementId, maxHeight) => presenter.updateButtonMaxHeight(elementId, maxHeight)}
                 onBorderRadiusChange={(elementId, borderRadius) => presenter.updateButtonBorderRadius(elementId, borderRadius)}
                 onLabelChange={(elementId, label) => presenter.updateButtonLabel(elementId, label)}
                 onTextAlignChange={(elementId, textAlign) => presenter.updateButtonTextAlign(elementId, textAlign)}

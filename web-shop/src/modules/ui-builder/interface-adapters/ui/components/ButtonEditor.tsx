@@ -3,6 +3,35 @@
 import React, { useState } from 'react';
 import { ColorInput } from './ColorInput';
 
+// Generic size helpers (px / rem)
+const parseSize = (
+  size: string | number | undefined,
+  defaultUnit: 'px' | 'rem' = 'px'
+): { value: string; unit: 'px' | 'rem' } => {
+  if (size === undefined || size === null || size === '') {
+    return { value: '', unit: defaultUnit };
+  }
+  const str = typeof size === 'number' ? `${size}${defaultUnit}` : size.toString().trim();
+  const match = str.match(/^([\d.,]+)\s*(px|rem)?$/i);
+  if (match) {
+    return {
+      value: match[1],
+      unit: (match[2]?.toLowerCase() as 'px' | 'rem') || defaultUnit,
+    };
+  }
+  const numericMatch = str.match(/([\d.,]+)/);
+  return {
+    value: numericMatch ? numericMatch[1] : '',
+    unit: defaultUnit,
+  };
+};
+
+const buildSize = (value: string, unit: 'px' | 'rem'): string => {
+  const normalized = value.trim();
+  if (!normalized) return '';
+  return `${normalized.replace(',', '.')}${unit}`;
+};
+
 const readFileAsDataUrl = (file: File): Promise<string> => {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -29,24 +58,24 @@ export interface ButtonEditorProps {
   textColor: string;
   borderColor: string;
   onColorChange: (colorKey: 'backgroundColor' | 'textColor' | 'borderColor', value: string) => void;
-  
+
   // Content
   label: string;
   onLabelChange: (value: string) => void;
-  
+
   // Icon
   icon?: string | null;
   onIconChange?: (value: string | null) => void;
-  
+
   // Navigation
   pageSlug?: string | null;
   onPageSlugChange?: (value: string | null) => void;
   pages?: string[];
-  
+
   // Action
   onClick?: string;
   onActionChange?: (value: string) => void;
-  
+
   // Layout (for sidebar buttons)
   borderRadius?: string;
   onBorderRadiusChange?: (value: string) => void;
@@ -54,9 +83,19 @@ export interface ButtonEditorProps {
   onPaddingChange?: (value: string) => void;
   width?: string;
   onWidthChange?: (value: string) => void;
+  maxHeight?: string;
+  onMaxHeightChange?: (value: string) => void;
   textAlign?: string;
   onTextAlignChange?: (value: string) => void;
-  
+
+  // Typography
+  fontSize?: string;
+  onFontSizeChange?: (value: string) => void;
+  fontWeight?: string;
+  onFontWeightChange?: (value: string) => void;
+  minHeight?: string;
+  onMinHeightChange?: (value: string) => void;
+
   // Sections are shown automatically if corresponding handlers are provided
   // No need for showLayout/showPadding/showAction flags
 }
@@ -79,10 +118,18 @@ export function ButtonEditor({
   onBorderRadiusChange,
   padding,
   onPaddingChange,
-  textAlign,
-  onTextAlignChange,
   width,
   onWidthChange,
+  maxHeight,
+  onMaxHeightChange,
+  textAlign,
+  onTextAlignChange,
+  fontSize,
+  onFontSizeChange,
+  fontWeight,
+  onFontWeightChange,
+  minHeight,
+  onMinHeightChange,
 }: ButtonEditorProps): JSX.Element {
   const [isIconUploading, setIsIconUploading] = useState(false);
   const hasImageIcon = Boolean(icon && icon.startsWith('data:image'));
@@ -223,92 +270,27 @@ export function ButtonEditor({
       </div>
 
       {/* Border Radius */}
-      <div className="space-y-3">
-        <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Border</h4>
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-            Border Radius
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min="0"
-              step="0.1"
-              value={borderRadiusValue}
-              onChange={(e) => handleBorderRadiusValueChange(e.target.value)}
-              disabled={!onBorderRadiusChange}
-              className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              placeholder="0.5"
-            />
-            <select
-              value={borderRadiusUnit}
-              onChange={(e) => handleBorderRadiusUnitChange(e.target.value)}
-              disabled={!onBorderRadiusChange}
-              className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <option value="rem">rem</option>
-              <option value="px">px</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Width and Padding */}
-      <div className="space-y-3">
-        <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Spacing</h4>
+      {onBorderRadiusChange && (
         <div className="space-y-3">
-          {/* Width */}
+          <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Border</h4>
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-              Width
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                min="0"
-                step="1"
-                value={widthValue}
-                onChange={(e) => handleWidthValueChange(e.target.value)}
-                disabled={!onWidthChange}
-                className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                placeholder="200"
-              />
-              <select
-                value={widthUnit}
-                onChange={(e) => handleWidthUnitChange(e.target.value)}
-                disabled={!onWidthChange}
-                className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <option value="px">px</option>
-                <option value="rem">rem</option>
-                <option value="%">%</option>
-                <option value="vw">vw</option>
-                <option value="vh">vh</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Padding */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-              Padding
+              Border Radius
             </label>
             <div className="flex items-center gap-2">
               <input
                 type="number"
                 min="0"
                 step="0.1"
-                value={paddingValue}
-                onChange={(e) => handlePaddingValueChange(e.target.value)}
-                disabled={!onPaddingChange}
-                className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                placeholder="1"
+                value={borderRadiusValue}
+                onChange={(e) => handleBorderRadiusValueChange(e.target.value)}
+                className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                placeholder="0.5"
               />
               <select
-                value={paddingUnit}
-                onChange={(e) => handlePaddingUnitChange(e.target.value)}
-                disabled={!onPaddingChange}
-                className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                value={borderRadiusUnit}
+                onChange={(e) => handleBorderRadiusUnitChange(e.target.value)}
+                className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
               >
                 <option value="rem">rem</option>
                 <option value="px">px</option>
@@ -316,32 +298,230 @@ export function ButtonEditor({
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Text Align */}
+      {/* Spacing */}
       <div className="space-y-3">
-        <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Layout</h4>
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-            Text Alignment
-          </label>
-          <select
-            value={textAlign || 'center'}
-            onChange={(e) => onTextAlignChange?.(e.target.value)}
-            disabled={!onTextAlignChange}
-            className="w-32 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <option value="left">Left</option>
-            <option value="center">Center</option>
-            <option value="right">Right</option>
-          </select>
+        <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Spacing</h4>
+        <div className="space-y-3">
+          {/* Width */}
+          {onWidthChange && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                Width
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={widthValue}
+                  onChange={(e) => handleWidthValueChange(e.target.value)}
+                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                  placeholder="200"
+                />
+                <select
+                  value={widthUnit}
+                  onChange={(e) => handleWidthUnitChange(e.target.value)}
+                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                  <option value="%">%</option>
+                  <option value="vw">vw</option>
+                  <option value="vh">vh</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Max Height */}
+          {onMaxHeightChange && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                Max Height
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={parseSize(maxHeight).value}
+                  onChange={(e) => {
+                    const currentUnit = parseSize(maxHeight).unit;
+                    onMaxHeightChange?.(buildSize(e.target.value, currentUnit));
+                  }}
+                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                  placeholder="200"
+                />
+                <select
+                  value={parseSize(maxHeight).unit}
+                  onChange={(e) => {
+                    const currentValue = parseSize(maxHeight).value;
+                    onMaxHeightChange?.(buildSize(currentValue, e.target.value as 'px' | 'rem'));
+                  }}
+                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                  <option value="%">%</option>
+                  <option value="vw">vw</option>
+                  <option value="vh">vh</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Min Height */}
+          {onMinHeightChange && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                Min Height
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={parseSize(minHeight).value}
+                  onChange={(e) => {
+                    const currentUnit = parseSize(minHeight).unit;
+                    onMinHeightChange?.(buildSize(e.target.value, currentUnit));
+                  }}
+                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                  placeholder="44"
+                />
+                <select
+                  value={parseSize(minHeight).unit}
+                  onChange={(e) => {
+                    const currentValue = parseSize(minHeight).value;
+                    onMinHeightChange?.(buildSize(currentValue, e.target.value as 'px' | 'rem'));
+                  }}
+                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                >
+                  <option value="px">px</option>
+                  <option value="rem">rem</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Padding */}
+          {onPaddingChange && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                Padding
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={paddingValue}
+                  onChange={(e) => handlePaddingValueChange(e.target.value)}
+                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                  placeholder="1"
+                />
+                <select
+                  value={paddingUnit}
+                  onChange={(e) => handlePaddingUnitChange(e.target.value)}
+                  className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                >
+                  <option value="rem">rem</option>
+                  <option value="px">px</option>
+                </select>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Typography */}
+      {(onFontSizeChange || onFontWeightChange) && (
+        <div className="space-y-3">
+          <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Typography</h4>
+          <div className="space-y-3">
+            {/* Font Size */}
+            {onFontSizeChange && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                  Font Size
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={parseSize(fontSize).value}
+                    onChange={(e) => {
+                      const currentUnit = parseSize(fontSize).unit;
+                      onFontSizeChange?.(buildSize(e.target.value, currentUnit));
+                    }}
+                    className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                    placeholder="16"
+                  />
+                  <select
+                    value={parseSize(fontSize).unit}
+                    onChange={(e) => {
+                      const currentValue = parseSize(fontSize).value;
+                      onFontSizeChange?.(buildSize(currentValue, e.target.value as 'px' | 'rem'));
+                    }}
+                    className="w-20 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                  >
+                    <option value="px">px</option>
+                    <option value="rem">rem</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Font Weight */}
+            {onFontWeightChange && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                  Font Weight
+                </label>
+                <input
+                  type="number"
+                  min="100"
+                  max="900"
+                  step="100"
+                  value={fontWeight || ''}
+                  onChange={(e) => onFontWeightChange?.(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  placeholder="500"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Layout */}
+      {onTextAlignChange && (
+        <div className="space-y-3">
+          <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Layout</h4>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+              Text Alignment
+            </label>
+            <select
+              value={textAlign || 'center'}
+              onChange={(e) => onTextAlignChange?.(e.target.value)}
+              className="w-32 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+            >
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </div>
+        </div>
+      )}
 
       {/* Content editor for buttons */}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Content</h4>
-        
+
         {/* Label */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
@@ -357,108 +537,104 @@ export function ButtonEditor({
         </div>
 
         {/* Icon */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-            Icon (emoji, symbol or image)
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={icon || ''}
-              onChange={(e) => handleIconValueChange(e.target.value)}
-              disabled={!onIconChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              placeholder="🛒 or data:image/png;base64,..."
-            />
-            {icon && onIconChange && (
-              <button
-                type="button"
-                onClick={handleIconClear}
-                className="px-2 py-1 text-xs text-gray-500 border border-gray-300 rounded hover:bg-gray-50"
-                title="Remove icon"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-          {onIconChange && (
-            <>
-              <div className="flex items-center gap-2 mt-2">
-                <label
-                  className={`inline-flex px-3 py-2 border border-gray-300 rounded text-xs ${
-                    isIconUploading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'
-                  }`}
+        {onIconChange && (
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+              Icon (emoji, symbol or image)
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={icon || ''}
+                onChange={(e) => handleIconValueChange(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                placeholder="🛒 or data:image/png;base64,..."
+              />
+              {icon && (
+                <button
+                  type="button"
+                  onClick={handleIconClear}
+                  className="px-2 py-1 text-xs text-gray-500 border border-gray-300 rounded hover:bg-gray-50"
+                  title="Remove icon"
                 >
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    disabled={isIconUploading}
-                    onChange={handleIconFileUpload}
+                  ✕
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-2 mt-2">
+              <label className={`inline-flex px-3 py-2 border border-gray-300 rounded text-xs ${
+                isIconUploading ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'
+              }`}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={isIconUploading}
+                  onChange={handleIconFileUpload}
+                />
+                {isIconUploading ? '📤 Uploading…' : '📤 Upload Icon'}
+              </label>
+              {icon && (
+                hasImageIcon ? (
+                  <img
+                    src={icon}
+                    alt="Button icon preview"
+                    className="w-10 h-10 object-contain rounded border border-gray-200"
                   />
-                  {isIconUploading ? '📤 Uploading…' : '📤 Upload Icon'}
-                </label>
-                {icon && (
-                  hasImageIcon ? (
-                    <img
-                      src={icon}
-                      alt="Button icon preview"
-                      className="w-10 h-10 object-contain rounded border border-gray-200"
-                    />
-                  ) : (
-                    <span className="text-xl leading-none">{icon}</span>
-                  )
-                )}
-              </div>
-              <p className="text-[10px] text-gray-500 mt-1">
-                The image is saved as base64 directly in the config. You can also use an emoji or a text symbol.
-              </p>
-            </>
-          )}
-        </div>
+                ) : (
+                  <span className="text-xl leading-none">{icon}</span>
+                )
+              )}
+            </div>
+            <p className="text-[10px] text-gray-500 mt-1">
+              The image is saved as base64 directly in the config. You can also use an emoji or a text symbol.
+            </p>
+          </div>
+        )}
 
         {/* Navigate to Page */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-            Navigate to Page
-          </label>
-          <select
-            value={pageSlug || ''}
-            onChange={(e) => onPageSlugChange?.(e.target.value || null)}
-            disabled={!onPageSlugChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <option value="">No navigation (use custom action)</option>
-            {pages.map((page) => (
-              <option key={page} value={page}>
-                {page}
-              </option>
-            ))}
-          </select>
-          <p className="text-[10px] text-gray-500 mt-1">
-            Select a page to navigate to when button is clicked. URL will be /{'{'}pageSlug{'}'}
-          </p>
-        </div>
+        {onPageSlugChange && pages && pages.length > 0 && (
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+              Navigate to Page
+            </label>
+            <select
+              value={pageSlug || ''}
+              onChange={(e) => onPageSlugChange?.(e.target.value || null)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            >
+              <option value="">No navigation (use custom action)</option>
+              {pages.map((page) => (
+                <option key={page} value={page}>
+                  {page}
+                </option>
+              ))}
+            </select>
+            <p className="text-[10px] text-gray-500 mt-1">
+              Select a page to navigate to when button is clicked. URL will be /{pageSlug}
+            </p>
+          </div>
+        )}
 
         {/* Action (URL or function) */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-            Action (URL or function)
-          </label>
-          <input
-            type="text"
-            value={onClick || ''}
-            onChange={(e) => onActionChange?.(e.target.value)}
-            disabled={!onActionChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono disabled:opacity-50 disabled:cursor-not-allowed"
-            placeholder="/shop"
-          />
-          <p className="text-[10px] text-gray-500 mt-1">
-            Custom action (used if no page is selected above)
-          </p>
-        </div>
+        {onActionChange && (
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+              Action (URL or function)
+            </label>
+            <input
+              type="text"
+              value={onClick || ''}
+              onChange={(e) => onActionChange?.(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+              placeholder="/shop"
+            />
+            <p className="text-[10px] text-gray-500 mt-1">
+              Custom action (used if no page is selected above)
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
 }
-

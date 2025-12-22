@@ -199,6 +199,7 @@ export interface OfferCardProps {
   readonly includedItems?: string[];
   readonly discount?: string;
   readonly playerLimit?: string;
+  readonly limitedOffer?: number;
   readonly timer?: Date;
   readonly title?: string;
   readonly description?: string;
@@ -226,6 +227,7 @@ export function OfferCard({
   includedItems = [],
   discount,
   playerLimit,
+  limitedOffer,
   timer,
   title = "",
   description,
@@ -383,39 +385,19 @@ export function OfferCard({
   const descriptionColor = responsive<string>(styles.description?.color);
   const descriptionLineHeight = responsive<string | number>(styles.description?.lineHeight);
 
-  const priceBlockRadius = responsive<string>(styles.priceBlock?.borderRadius);
-  const priceBlockPadding =
-    responsive<string | number>(styles.priceBlock?.padding) ?? '12px 16px';
-  const priceBlockMinHeight = responsive<string | number>(styles.priceBlock?.minHeight);
-  const priceBlockAlignment = responsive<'center' | 'left' | 'right'>(
-    styles.priceBlock?.alignment
-  ) ?? styles.priceBlock?.alignment;
-  const priceBlockAlignItems =
-    priceBlockAlignment === 'center'
-      ? 'center'
-      : priceBlockAlignment === 'right'
-        ? 'flex-end'
-        : 'flex-start';
-  const priceBlockTextAlign =
-    priceBlockAlignment === 'center'
-      ? 'center'
-      : priceBlockAlignment === 'right'
-        ? 'right'
-        : 'left';
-  const priceBlockJustify =
-    priceBlockAlignment === 'center'
-      ? 'center'
-      : priceBlockAlignment === 'right'
-        ? 'flex-end'
-        : 'flex-start';
 
   const originalPriceFontSize = responsive<string | number>(styles.originalPrice?.fontSize);
   const originalPriceFontWeight = responsive<string | number>(styles.originalPrice?.fontWeight);
   const originalPriceColor = responsive<string>(styles.originalPrice?.color);
+  const originalPriceShow = responsive<boolean>(styles.originalPrice?.show) !== false;
 
   const currentPriceFontSize = responsive<string | number>(styles.currentPrice?.fontSize);
   const currentPriceFontWeight = responsive<string | number>(styles.currentPrice?.fontWeight);
   const currentPriceColor = responsive<string>(styles.currentPrice?.color);
+
+  // Simple price block styling for vertical layout
+  const priceBlockPadding = '4px 8px';
+  const priceBlockMinHeight = 'auto';
 
   const rarityBg = responsive<string>(styles.rarity?.backgroundColor);
   const rarityColor = responsive<string>(styles.rarity?.color);
@@ -426,6 +408,7 @@ export function OfferCard({
   const buyButtonFontSize = responsive<string | number>(styles.buyButton?.fontSize);
   const buyButtonPadding = responsive<string | number>(styles.buyButton?.padding) ?? '12px 16px';
   const buyButtonMinHeight = responsive<string | number>(styles.buyButton?.minHeight);
+    const buyButtonMaxHeight = responsive<string | number>(styles.buyButton?.maxHeight);
   const purchasedBg = responsive<string>(styles.purchasedBadge?.backgroundColor);
   const purchasedColor = responsive<string>(styles.purchasedBadge?.color);
   const purchasedPadding = responsive<string | number>(styles.purchasedBadge?.padding) ?? '12px 16px';
@@ -452,11 +435,16 @@ export function OfferCard({
       return buyButton.text;
     }
 
+    // If we have both prices and original price should be shown
+    if (currentPriceParsed.value && originalPrice && originalPriceShow) {
+      return `${originalPriceParsed.value}/${currentPriceParsed.value} ${currentPriceParsed.symbol || '$'}`.trim();
+    }
+
     if (currentPriceParsed.value) {
       return `${currentPriceParsed.value} ${currentPriceParsed.symbol || '$'}`.trim();
     }
 
-    if (originalPriceParsed.value) {
+    if (originalPriceParsed.value && originalPriceShow) {
       return `${originalPriceParsed.value} ${originalPriceParsed.symbol || '$'}`.trim();
     }
 
@@ -496,7 +484,29 @@ export function OfferCard({
           {topLabel}
         </div>
       )}
-      
+
+      {/* Limited Offer Banner */}
+      {limitedOffer && limitedOffer > 0 && (
+        <div
+          style={{
+            width: '100%',
+            textAlign: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxSizing: 'border-box',
+            backgroundColor: 'rgb(255, 182, 62)',
+            color: 'rgb(255, 255, 255)',
+            fontSize: '12px',
+            fontWeight: '600',
+            padding: '8px 4px',
+            borderRadius: topLabel ? '0' : '20px 20px 0px 0px',
+          }}
+        >
+          Limited Offer ({limitedOffer} left)
+        </div>
+      )}
+
       {/* Main Card Container */}
       <div
         style={{
@@ -600,8 +610,8 @@ export function OfferCard({
             </div>
           )}
           
-          {/* Legacy Rarity Badge (for backward compatibility) - only show if no price block */}
-          {rarity && !(originalPrice || currentPrice) && (
+          {/* Rarity Badge */}
+          {rarity && (
             <Badge text={rarity} variant="rarity" style={{ backgroundColor: rarityBg, color: rarityColor }} />
         )}
           
@@ -638,6 +648,7 @@ export function OfferCard({
                   padding: buyButtonPadding,
                   minHeight:
                     buyButtonMinHeight ?? (originalPrice || currentPrice ? '48px' : '44px'),
+                  maxHeight: buyButtonMaxHeight,
                   border: 'none',
                   outline: 'none',
                   width: '100%',
@@ -702,17 +713,15 @@ export function OfferCard({
                 ) : (originalPrice || currentPrice) ? (
                   <div
                     style={{
-                      borderRadius: priceBlockRadius,
-                      padding: priceBlockPadding,
-                      minHeight: priceBlockMinHeight,
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '4px',
+                      gap: '2px',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       width: '100%',
-                      alignItems: priceBlockAlignItems,
                     }}
                   >
-                    {originalPrice && (
+                    {originalPrice && originalPriceShow && (
                       <div
                         style={{
                           display: 'flex',
@@ -722,9 +731,7 @@ export function OfferCard({
                           fontWeight: originalPriceFontWeight,
                           color: originalPriceColor,
                           textDecoration: 'line-through',
-                          textAlign: priceBlockTextAlign,
-                          width: '100%',
-                          justifyContent: priceBlockJustify,
+                          opacity: 0.7,
                         }}
                       >
                         <span>{originalPriceParsed.value}</span>
@@ -740,9 +747,6 @@ export function OfferCard({
                           fontSize: currentPriceFontSize,
                           fontWeight: currentPriceFontWeight,
                           color: currentPriceColor,
-                          textAlign: priceBlockTextAlign,
-                          width: '100%',
-                          justifyContent: priceBlockJustify,
                         }}
                       >
                         <span>{currentPriceParsed.value}</span>
@@ -751,14 +755,14 @@ export function OfferCard({
                     )}
                   </div>
                 ) : (
-                  buyButton?.text ?? 'Buy'
+                  resolveBuyButtonLabel()
                 )}
             </button>
             )
           )}
           
-          {/* Timer - only show if no price block */}
-          {timer && !(originalPrice || currentPrice) && (
+          {/* Timer */}
+          {timer && (
             <div style={{ textAlign: 'center' }}>{countdown}</div>
         )}
         </div>

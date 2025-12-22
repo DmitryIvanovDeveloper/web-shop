@@ -36,7 +36,8 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
     // 2. Fallback to query parameters
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
-      const appIdFromQuery = searchParams.get('appId');
+      // Support both 'appId' and 'app' query parameters
+      const appIdFromQuery = searchParams.get('appId') || searchParams.get('app');
       if (appIdFromQuery) {
         return appIdFromQuery;
       }
@@ -62,16 +63,20 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
       try {
         // Small delay to allow session restoration to complete
         await new Promise(resolve => setTimeout(resolve, 200));
-        
+
         const appId = getAppId();
+        const currentUser = authService.getCurrentUser();
+
         if (!appId) {
           return;
         }
-        const currentUser = authService.getCurrentUser();
-        await presenter.present({ 
+
+        await presenter.present({
           appId,
           userId: currentUser?.userId || undefined
         });
+
+        console.log('[ProductsList] Products loaded successfully');
       } catch (error) {
         console.error('[ProductsList] Failed to load products:', error);
       }
@@ -161,39 +166,43 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
   }
 
   return (
-        <div className={`${className || ''} mt-8`} style={style}>
-          <h2 className="text-white text-xl font-bold mb-4">Products</h2>
-          <Grid>
-            {Array.isArray(viewModel.products) ? viewModel.products.map((product, index) => (
+    <div className={`${className || ''} mt-8`} style={style}>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-white text-xl font-bold">Products</h2>
+      </div>
+      <Grid>
+        {Array.isArray(viewModel.products) ? viewModel.products.map((product, index) => (
           <div key={product?.id?.value || `product-${index}`} className="@container">
-            <OfferCard 
-            mainImage={product.mainImage}
-            mainImageAlt={product.mainImageAlt}
-            sideImage={product.sideImage}
-            backgroundImage={product.backgroundImage}
-            includedItems={product.includedItems}
-            discount={product.discount}
-            playerLimit={product.playerLimit}
-            timer={product.timer}
-            title={product.title}
-            titleStyle={product.titleStyle}
-            rarity={product.rarity}
-            rpBonus={product.rpBonus}
-            lpBonus={product.lpBonus}
-            isPurchased={product.isPurchased}
-            isLoading={loadingProducts.has(product.id.value)}
-            buyButton={{
-              text: product.currentPrice?.format() || product.originalPrice?.format() || 'BUY NOW',
-              enabled: !product.isPurchased,
-              style: product.buyButton?.style
-            }}
-            onClick={() => !product.isPurchased && handleBuyProduct(product)}
+            <OfferCard
+              mainImage={product.mainImage}
+              mainImageAlt={product.mainImageAlt}
+              sideImage={product.sideImage}
+              backgroundImage={product.backgroundImage}
+              includedItems={product.includedItems}
+              discount={product.discount}
+              playerLimit={product.playerLimit}
+              limitedOffer={product.limitedOffer}
+              timer={product.timer}
+              title={product.title}
+              description={product.description}
+              titleStyle={product.titleStyle}
+              rarity={product.rarity}
+              rpBonus={product.rpBonus}
+              lpBonus={product.lpBonus}
+              isPurchased={product.isPurchased}
+              isLoading={loadingProducts.has(product.id.value)}
+              buyButton={{
+                text: product.currentPrice?.format() || product.originalPrice?.format() || 'BUY NOW',
+                enabled: !product.isPurchased,
+                style: product.buyButton?.style
+              }}
+              onClick={() => !product.isPurchased && handleBuyProduct(product)}
             />
           </div>
-          )) : (
-            <div className="text-white">No products available</div>
-          )}
-        </Grid>
-      </div>
-    );
+        )) : (
+          <div className="text-white">No products available</div>
+        )}
+      </Grid>
+    </div>
+  );
 }

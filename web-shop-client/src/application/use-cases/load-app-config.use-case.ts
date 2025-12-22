@@ -18,7 +18,7 @@ export class LoadAppConfigUseCase {
 		private readonly _supabaseLoader: SupabaseConfigLoader
 	) {}
 
-	public async execute(isDraft?: boolean): Promise<void> {
+	public async execute(isDraft?: boolean, appId?: string): Promise<void> {
 		const shouldLoadDraft = typeof isDraft === 'boolean'
 			? isDraft
 			: this._shouldLoadDraftFromEnvironment();
@@ -29,8 +29,8 @@ export class LoadAppConfigUseCase {
 		});
 
 		try {
-      const appId = this._getAppIdFromEnvironment();
-      if (!appId) {
+      const resolvedAppId = appId || this._getAppIdFromEnvironment();
+      if (!resolvedAppId) {
         throw new Error('[LoadAppConfigUseCase] appId is required but was not provided');
       }
 
@@ -38,24 +38,24 @@ export class LoadAppConfigUseCase {
 			let config: AppConfig | null = null;
 
 			if (shouldLoadDraft) {
-				config = await this._supabaseLoader.loadDraftConfig(appId);
+				config = await this._supabaseLoader.loadDraftConfig(resolvedAppId);
 				if (!config) {
-					this._logger.warn('[LoadAppConfigUseCase] Draft config not found, trying active as fallback', { appId });
-					config = await this._supabaseLoader.loadConfig(appId);
+					this._logger.warn('[LoadAppConfigUseCase] Draft config not found, trying active as fallback', { appId: resolvedAppId });
+					config = await this._supabaseLoader.loadConfig(resolvedAppId);
 				}
 			} else {
-				config = await this._supabaseLoader.loadConfig(appId);
+				config = await this._supabaseLoader.loadConfig(resolvedAppId);
 
 				// If active config not found, try to load draft as fallback (for UI Builder preview mode)
 				if (!config) {
-					this._logger.warn('[LoadAppConfigUseCase] Active config not found, trying draft as fallback', { appId });
-					config = await this._supabaseLoader.loadDraftConfig(appId);
+					this._logger.warn('[LoadAppConfigUseCase] Active config not found, trying draft as fallback', { appId: resolvedAppId });
+					config = await this._supabaseLoader.loadDraftConfig(resolvedAppId);
 				}
 			}
 
       if (!config) {
 				const configType = shouldLoadDraft ? 'draft' : 'active';
-        throw new Error(`[LoadAppConfigUseCase] Failed to load ${configType} config from Supabase for appId: ${appId}`);
+        throw new Error(`[LoadAppConfigUseCase] Failed to load ${configType} config from Supabase for appId: ${resolvedAppId}`);
       }
 
       this._logger.info('[LoadAppConfigUseCase] App config loaded successfully (Supabase)', {

@@ -123,10 +123,19 @@ export function SectionRenderer({ section, theme }: SectionRendererProps): JSX.E
           origin: builderOrigin
         });
         
-        window.parent.postMessage(
-          { type: 'ELEMENT_SELECTED', elementId: section.id },
-          builderOrigin
-        );
+        // Check if parent window still exists before sending message
+        if (window.parent && typeof window.parent.postMessage === 'function') {
+          try {
+            window.parent.postMessage(
+              { type: 'ELEMENT_SELECTED', elementId: section.id },
+              builderOrigin
+            );
+          } catch (error) {
+            console.warn('[SectionRenderer] Failed to send ELEMENT_SELECTED message to parent:', error);
+          }
+        } else {
+          console.warn('[SectionRenderer] Parent window not available for ELEMENT_SELECTED message');
+        }
       }
     }
   };

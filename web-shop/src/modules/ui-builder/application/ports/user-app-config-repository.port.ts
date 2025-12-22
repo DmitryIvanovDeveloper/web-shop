@@ -12,3 +12,5 @@ export interface UserAppConfigRepositoryPort {
   findById(id: string): Promise<UserAppConfig | null>;
   list(filter: ListUserAppConfigsFilter): Promise<UserAppConfigSummary[]>;
 }
+
+

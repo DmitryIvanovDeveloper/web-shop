@@ -468,10 +468,19 @@ export class UIRendererService implements UIRendererPort {
 						origin: builderOrigin
 					});
 					
-					window.parent.postMessage(
-						{ type: 'ELEMENT_SELECTED', elementId: elementIdToSend },
-						builderOrigin
-					);
+					// Check if parent window still exists before sending message
+					if (window.parent && typeof window.parent.postMessage === 'function') {
+						try {
+							window.parent.postMessage(
+								{ type: 'ELEMENT_SELECTED', elementId: elementIdToSend },
+								builderOrigin
+							);
+						} catch (error) {
+							this._logger.warn('[UIRendererService] Failed to send ELEMENT_SELECTED message to parent:', error);
+						}
+					} else {
+						this._logger.warn('[UIRendererService] Parent window not available for ELEMENT_SELECTED message');
+					}
 				} else {
 					this._logger.warn('[UIRendererService] No parent window or same window');
 				}

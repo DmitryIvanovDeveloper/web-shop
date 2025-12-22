@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '../../_lib/supabase-server-client';
 
-const DEFAULT_APP_ID = process.env.NEXT_PUBLIC_APP_ID ?? 'webshop-demo';
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const appId = searchParams.get('appId') ?? DEFAULT_APP_ID;
+    const appId = searchParams.get('appId');
 
     const supabase = getSupabaseServerClient();
     const { data, error } = await supabase

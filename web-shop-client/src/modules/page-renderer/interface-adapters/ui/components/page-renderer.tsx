@@ -61,7 +61,6 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
 
   // State for hover effect in element selection mode
   const [isHovered, setIsHovered] = useState(false);
-  const [isOfferCardHovered, setIsOfferCardHovered] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
   // State for selected element from UI Builder
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
@@ -355,32 +354,16 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
           });
 
           // Track selected element from builder; use to guard style application
-          // If builder didn't send selectedElementId but config clearly targets sidebar layout, infer it
           if (event.data.payload?.selectedElementId !== undefined) {
             const selId = event.data.payload.selectedElementId || null;
             setSelectedElementId(selId);
             selectedElementIdRef.current = selId;
-          } else {
-            const inferredSelId =
-              (event.data.payload?.config as any)?.modules?.uiRenderer?.sidebar?.layout?.id;
-            if (inferredSelId) {
-              setSelectedElementId(inferredSelId);
-              selectedElementIdRef.current = inferredSelId;
-              console.log('[PageRenderer] Inferred selectedElementId from sidebar layout in CONFIG_UPDATE', {
-                selectedElementId: inferredSelId
-              });
-            }
           }
 
-          // 1. Load app-config only when updating page/global context (avoid touching body/theme for unrelated elements)
-          const selId = selectedElementIdRef.current;
-          const shouldApplyAppConfig = selId === null; // apply app-config only when nothing is selected
-          if (shouldApplyAppConfig && event.data.payload?.config) {
+          // 1. Load app-config (this will publish AppConfigLoadedEvent)
+          // PageRendererAppConfigLoadedHandler will extract offerCards from config and update presenter
+          if (event.data.payload?.config) {
             await loadAppConfigFromMessageUseCase.execute(event.data.payload.config);
-          } else {
-            console.log('[PageRenderer] Skipping app-config apply because an element is selected', {
-              selectedElementId: selId
-            });
           }
 
           // 2. Determine elementSelectionMode from either:
@@ -429,38 +412,15 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
             console.log('[PageRenderer] CONFIG_UPDATE without elementSelectionMode - keeping current mode');
           }
 
-          // 3. Set offerCards if provided in payload (they come directly in CONFIG_UPDATE, not via EventBus)
-          if (event.data.payload?.offerCards && Array.isArray(event.data.payload.offerCards)) {
-            console.log('[PageRenderer] Setting offer cards from CONFIG_UPDATE', { 
-              count: event.data.payload.offerCards.length 
-            });
-            presenter.setOfferCards(event.data.payload.offerCards);
-          }
-
-          // 4. Set selected offer card ID in presenter
-          //    Only update if explicitly provided in payload (preserve current value if not provided)
-          console.log('[PageRenderer] Processing selectedOfferCardId in CONFIG_UPDATE', {
-            hasPayload: !!event.data.payload,
-            selectedOfferCardIdInPayload: event.data.payload?.selectedOfferCardId,
-            currentSelectedOfferCardId: vm.selectedOfferCardId,
-            payloadKeys: event.data.payload ? Object.keys(event.data.payload) : []
-          });
-          
-          if (event.data.payload?.selectedOfferCardId !== undefined) {
-            if (event.data.payload.selectedOfferCardId !== null) {
-              console.log('[PageRenderer] Setting selected offer card ID', { cardId: event.data.payload.selectedOfferCardId });
-              presenter.setSelectedOfferCardId(event.data.payload.selectedOfferCardId);
-            } else {
-              // Explicitly clear when null is provided
-              console.log('[PageRenderer] Clearing selected offer card ID (explicit null)');
-              presenter.setSelectedOfferCardId(null);
-            }
+          // 3. Set selected offer card ID in presenter (offerCards are updated via EventBus handler)
+          //    Only set if it's explicitly provided and not null (to avoid showing offer-card when editing pages)
+          if (event.data.payload?.selectedOfferCardId !== undefined && event.data.payload?.selectedOfferCardId !== null) {
+            console.log('[PageRenderer] Setting selected offer card ID', { cardId: event.data.payload.selectedOfferCardId });
+            presenter.setSelectedOfferCardId(event.data.payload.selectedOfferCardId);
           } else {
-            console.log('[PageRenderer] selectedOfferCardId not in payload - preserving current value', {
-              currentValue: vm.selectedOfferCardId
-            });
+            // Always clear when null or undefined to prevent showing offer-card when editing pages
+            presenter.setSelectedOfferCardId(null);
           }
-          // If selectedOfferCardId is not in payload, keep current value (don't clear it)
         } catch (error) {
           console.error('[PageRenderer] Failed to process app config update from message', error);
         }
@@ -522,20 +482,6 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     }
   }, [previewMode, selectedOfferCard, selectedOfferCard?.styles, selectedOfferCard?.id]);
 
-  // Compute page element id early so it can be reused (and set on body)
-  const pageElementId = vm.pageId ?? `page-${pageSlug}`;
-
-  // Ensure body carries a stable data-element-id for selection/inspection
-  useEffect(() => {
-    if (typeof document === 'undefined') {
-      return;
-    }
-    document.body.setAttribute('data-element-id', pageElementId);
-    return () => {
-      document.body.removeAttribute('data-element-id');
-    };
-  }, [pageElementId]);
-
   // Helper function to convert hex color to rgba with opacity
   const getBackgroundColorWithOpacity = (color: string | undefined, opacity: number | undefined): string | undefined => {
     if (!color) return undefined;
@@ -583,6 +529,9 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       </div>
     );
   }
+
+  // Generate page element ID for selection: prefer UUID from page config, fallback to slug-based ID
+  const pageElementId = vm.pageId ?? `page-${pageSlug}`;
 
   // Handle click for page element selection
   const handlePageClick = (e: React.MouseEvent<HTMLElement>) => {
@@ -768,119 +717,6 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     }
   };
 
-  // Handle click for offer card element selection
-  const handleOfferCardClick = (e: React.MouseEvent<HTMLDivElement>): void => {
-    const previewModeValue = isPreviewMode();
-    const selectionMode = elementSelectionMode;
-    
-    if (previewModeValue && selectionMode && selectedOfferCard) {
-      const target = e.target as HTMLElement;
-      const currentTarget = e.currentTarget as HTMLElement;
-      
-      // If clicking on a child element with data-element-id, let it handle the click
-      if (target !== currentTarget && target.closest('[data-element-id]') !== currentTarget) {
-        return;
-      }
-      
-      e.preventDefault();
-      e.stopPropagation();
-      
-      const cardId = selectedOfferCard.id;
-      console.log('[PageRenderer] Offer card clicked in selection mode:', cardId);
-      
-      if (window.parent && window.parent !== window) {
-        const builderOrigin = process.env.NEXT_PUBLIC_BUILDER_URL || '*';
-        console.log('[PageRenderer] Sending ELEMENT_SELECTED to parent:', {
-          elementId: cardId,
-          origin: builderOrigin
-        });
-        
-        window.parent.postMessage(
-          { type: 'ELEMENT_SELECTED', elementId: cardId },
-          builderOrigin
-        );
-      }
-    }
-  };
-
-  // Handle hover for offer card in selection mode
-  const handleOfferCardMouseEnter = (e: React.MouseEvent<HTMLDivElement>): void => {
-    const previewModeValue = isPreviewMode();
-    const selectionMode = elementSelectionMode;
-    
-    console.log('[PageRenderer] Offer card mouse enter check:', {
-      previewMode: previewModeValue,
-      selectionMode,
-      hasSelectedOfferCard: !!selectedOfferCard,
-      selectedOfferCardId: selectedOfferCard?.id
-    });
-    
-    if (!previewModeValue || !selectionMode || !selectedOfferCard) {
-      console.log('[PageRenderer] Offer card hover conditions not met');
-      return;
-    }
-
-    const target = e.currentTarget as HTMLElement;
-    const cardId = selectedOfferCard.id;
-
-    console.log('[PageRenderer] Mouse enter on offer card:', cardId);
-    
-    // Set hover state
-    setIsOfferCardHovered(true);
-    
-    // Apply hover class and cursor
-    if (!target.classList.contains('preview-hover')) {
-      target.classList.add('preview-hover');
-      console.log('[PageRenderer] Added preview-hover class to offer card');
-    }
-    target.style.setProperty('cursor', 'pointer', 'important');
-    target.style.setProperty('position', 'relative', 'important');
-    
-    // Show overlay on hover (only if not selected)
-    const isSelected = selectedElementId === cardId;
-    if (!isSelected) {
-      const rect = target.getBoundingClientRect();
-      console.log('[PageRenderer] Showing overlay for offer card:', {
-        cardId,
-        rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height }
-      });
-      selectionOverlay.show({
-        left: rect.left,
-        top: rect.top,
-        width: rect.width,
-        height: rect.height,
-      }, cardId);
-    } else {
-      console.log('[PageRenderer] Offer card is already selected, skipping overlay');
-    }
-  };
-
-  const handleOfferCardMouseLeave = (e: React.MouseEvent<HTMLDivElement>): void => {
-    const previewModeValue = isPreviewMode();
-    const selectionMode = elementSelectionMode;
-    
-    if (!previewModeValue || !selectionMode || !selectedOfferCard) {
-      return;
-    }
-
-    const target = e.currentTarget as HTMLElement;
-    const cardId = selectedOfferCard.id;
-
-    console.log('[PageRenderer] Mouse leave on offer card:', cardId);
-    
-    // Clear hover state
-    setIsOfferCardHovered(false);
-    
-    target.classList.remove('preview-hover');
-    target.style.removeProperty('cursor');
-    
-    // Hide overlay on mouse leave (only if not selected)
-    const isSelected = selectedElementId === cardId;
-    if (!isSelected) {
-      selectionOverlay.hide(cardId);
-    }
-  };
-
   // For /store page, always render ProductsList
   if (pageSlug === 'store') {
     console.log('[PageRenderer] Rendering /store page with ProductsList', {
@@ -966,56 +802,15 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       onMouseEnter={handlePageMouseEnter}
       onMouseLeave={handlePageMouseLeave}
     >
-      {/* Demo section for selected offer card (show in preview mode when offer card is selected) */}
+      {/* Demo section for selected offer card (only when explicitly requested via URL param) */}
       {(() => {
-        const shouldShow = previewMode && selectedOfferCard;
-        if (previewMode) {
-          console.log('[PageRenderer] Offer card render check:', {
-            previewMode,
-            hasSelectedOfferCard: !!selectedOfferCard,
-            selectedOfferCardId: vm.selectedOfferCardId,
-            offerCardsCount: vm.offerCards.length,
-            shouldShow
-          });
-        }
-        return shouldShow;
+        if (typeof window === 'undefined') return false;
+        const params = new URLSearchParams(window.location.search);
+        const showOfferCard = params.get('showOfferCard') === 'true';
+        return previewMode && showOfferCard && selectedOfferCard;
       })() && selectedOfferCard && (
-        (() => {
-          const isPurchasedPreview =
-            (selectedOfferCard.styles as any)?.buyButton?.enabled === false ||
-            (selectedOfferCard as any)?.buyButton?.enabled === false ||
-            (selectedOfferCard.styles as any)?.purchasedBadge?.enabled === true ||
-            false;
-
-          if (previewMode) {
-            console.log('[PageRenderer] OfferCard preview state', {
-              isPurchasedPreview,
-              buyButtonStyles: (selectedOfferCard.styles as any)?.buyButton,
-              buyButtonTop: (selectedOfferCard as any)?.buyButton,
-              purchasedBadge: (selectedOfferCard.styles as any)?.purchasedBadge,
-            });
-          }
-          return (
-        <div
-          key="offer-card-demo-section"
-          className="offer-card-demo-section"
-          style={{ 
-            padding: '20px', 
-            marginBottom: '20px', 
-            position: 'relative',
-            ...(isPreviewMode() && elementSelectionMode ? {
-              cursor: 'pointer',
-              ...(isOfferCardHovered ? {
-                boxShadow: '0 0 0 2px #3b82f6',
-              } : {})
-            } : {})
-          }}
-          data-element-id={selectedOfferCard.id}
-          onClick={handleOfferCardClick}
-          onMouseEnter={handleOfferCardMouseEnter}
-          onMouseLeave={handleOfferCardMouseLeave}
-        >
-          <h2 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: 'bold', pointerEvents: 'none' }}>
+        <div key="offer-card-demo-section" className="offer-card-demo-section" style={{ padding: '20px', marginBottom: '20px' }}>
+          <h2 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: 'bold' }}>
             Offer Card Preview: {selectedOfferCard.name}
           </h2>
           <div style={{ maxWidth: '400px' }}>
@@ -1029,12 +824,9 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
               discount="80%"
               originalPrice="24,99 $"
               currentPrice="14,99 $"
-              isPurchased={isPurchasedPreview}
             />
           </div>
         </div>
-          );
-        })()
       )}
       
       {vm.sections.map(section => (

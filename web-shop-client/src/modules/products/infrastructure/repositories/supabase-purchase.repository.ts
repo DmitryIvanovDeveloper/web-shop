@@ -32,8 +32,8 @@ export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
         .eq('payment_status', 'succeeded');
 
       if (error) {
-        this._logger.error('[SupabasePurchaseRepository] Failed to load purchased products', { 
-          error, 
+        this._logger.error('[SupabasePurchaseRepository] Failed to load purchased products', {
+          error,
           userId,
           appId
         });
@@ -45,19 +45,62 @@ export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
           ?.map((item: { product_id: string | null }) => item.product_id)
           .filter((productId: string | null): productId is string => typeof productId === 'string' && productId.length > 0) ||
         [];
-      
-      this._logger.info('[SupabasePurchaseRepository] Purchased products loaded', { 
+
+      this._logger.info('[SupabasePurchaseRepository] Purchased products loaded', {
         userId,
         appId,
         count: productIds.length,
-        productIds 
+        productIds
       });
 
       return productIds;
     } catch (error) {
-      this._logger.error('[SupabasePurchaseRepository] Unexpected error loading purchased products', { 
-        error, 
+      this._logger.error('[SupabasePurchaseRepository] Unexpected error loading purchased products', {
+        error,
         userId,
+        appId
+      });
+      throw error;
+    }
+  }
+
+  public async getProductPurchaseCounts(appId: string): Promise<Map<string, number>> {
+    try {
+      this._logger.info('[SupabasePurchaseRepository] Loading product purchase counts', { appId });
+
+      const { data, error } = await this._databaseClient
+        .from('transaction_log')
+        .select('product_id')
+        .eq('app_id', appId)
+        .eq('payment_status', 'succeeded');
+
+      if (error) {
+        this._logger.error('[SupabasePurchaseRepository] Failed to load product purchase counts', {
+          error,
+          appId
+        });
+        throw new Error(`Failed to load product purchase counts: ${error.message}`);
+      }
+
+      // Count purchases per product
+      const purchaseCounts = new Map<string, number>();
+      data?.forEach((item: { product_id: string | null }) => {
+        const productId = item.product_id;
+        if (typeof productId === 'string' && productId.length > 0) {
+          purchaseCounts.set(productId, (purchaseCounts.get(productId) || 0) + 1);
+        }
+      });
+
+      this._logger.info('[SupabasePurchaseRepository] Product purchase counts loaded', {
+        appId,
+        productCount: purchaseCounts.size,
+        counts: Object.fromEntries(purchaseCounts)
+      });
+
+      return purchaseCounts;
+    } catch (error) {
+      this._logger.error('[SupabasePurchaseRepository] Unexpected error loading product purchase counts', {
+        error,
         appId
       });
       throw error;

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { ButtonEditor } from './ButtonEditor';
 import type { OfferCardTemplate, OfferCardStyles } from '../../../domain/entities/app-config.entity';
 
 interface OfferCardEditorProps {
@@ -1039,6 +1040,21 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
       {/* Original Price Styles */}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Original Price</h4>
+
+        <div>
+          <label className="text-xs font-medium text-gray-600 block mb-1.5">
+            Show Original Price
+          </label>
+          <input
+            type="checkbox"
+            checked={card.styles.originalPrice?.show !== false}
+            onChange={(e) => updateStyleField('originalPrice', 'show', e.target.checked)}
+            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+          />
+          <p className="text-[10px] text-gray-500 mt-1">
+            Show/hide the crossed-out original price in the price block
+          </p>
+        </div>
         
         <div>
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
@@ -1281,264 +1297,38 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
               Price block оформляет текст на кнопке &mdash; все параметры ниже применяются к кнопке целиком.
             </p>
 
-            <div>
-              <label className="text-xs font-medium text-gray-600 block mb-1.5">
-                Background Color
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="color"
-                  value={card.styles.buyButton?.backgroundColor || '#FF6B35'}
-                  onChange={(e) => updateStyleField('buyButton', 'backgroundColor', e.target.value)}
-                  className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
-                />
-                <input
-                  type="text"
-                  value={card.styles.buyButton?.backgroundColor || ''}
-                  onChange={(e) => updateStyleField('buyButton', 'backgroundColor', e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
-                  placeholder="#FF6B35"
-                />
-              </div>
-            </div>
+            <ButtonEditor
+              backgroundColor={card.styles.buyButton?.backgroundColor || '#FF6B35'}
+              textColor={card.styles.buyButton?.color || '#FFFFFF'}
+              borderColor={card.styles.buyButton?.borderColor || '#FF6B35'}
+              onColorChange={(colorKey, value) => {
+                if (colorKey === 'textColor') {
+                  updateStyleField('buyButton', 'color', value);
+                } else {
+                  updateStyleField('buyButton', colorKey, value);
+                }
+              }}
+              label={card.buyButtonLabel || 'Buy Now'}
+              onLabelChange={(value) => {
+                // For now, we'll store this in card object, but it could be moved to styles later
+                onUpdate({ ...card, buyButtonLabel: value });
+              }}
+              borderRadius={card.styles.buyButton?.borderRadius}
+              onBorderRadiusChange={(value) => updateStyleField('buyButton', 'borderRadius', value)}
+              padding={card.styles.buyButton?.padding}
+              onPaddingChange={(value) => updateStyleField('buyButton', 'padding', value)}
+              width="100%"
+              onWidthChange={() => {}} // Fixed width for offer card buttons
+              maxHeight={card.styles.buyButton?.maxHeight}
+              onMaxHeightChange={(value) => updateStyleField('buyButton', 'maxHeight', value)}
+              fontSize={card.styles.buyButton?.fontSize}
+              onFontSizeChange={(value) => updateStyleField('buyButton', 'fontSize', value)}
+              fontWeight={card.styles.buyButton?.fontWeight}
+              onFontWeightChange={(value) => updateStyleField('buyButton', 'fontWeight', value)}
+              minHeight={card.styles.buyButton?.minHeight}
+              onMinHeightChange={(value) => updateStyleField('buyButton', 'minHeight', value)}
+            />
 
-            <div>
-              <label className="text-xs font-medium text-gray-600 block mb-1.5">
-                Color
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="color"
-                  value={card.styles.buyButton?.color || '#FFFFFF'}
-                  onChange={(e) => updateStyleField('buyButton', 'color', e.target.value)}
-                  className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
-                />
-                <input
-                  type="text"
-                  value={card.styles.buyButton?.color || ''}
-                  onChange={(e) => updateStyleField('buyButton', 'color', e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
-                  placeholder="#FFFFFF"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-medium text-gray-600 block mb-1.5">
-                Font Size
-              </label>
-              {(() => {
-                const { value, unit } = parseSize(card.styles.buyButton?.fontSize);
-                return (
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      inputMode="decimal"
-                      step="0.1"
-                      value={value}
-                      onChange={(e) => updateStyleField('buyButton', 'fontSize', buildSize(e.target.value, unit))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                      placeholder="16"
-                    />
-                    <select
-                      value={unit}
-                      onChange={(e) => updateStyleField('buyButton', 'fontSize', buildSize(value, e.target.value as 'px' | 'rem'))}
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    >
-                      <option value="px">px</option>
-                      <option value="rem">rem</option>
-                    </select>
-                  </div>
-                );
-              })()}
-            </div>
-
-            <div>
-              <label className="text-xs font-medium text-gray-600 block mb-1.5">
-                Font Weight
-              </label>
-              <input
-                type="number"
-                inputMode="decimal"
-                step="10"
-                value={card.styles.buyButton?.fontWeight ?? ''}
-                onChange={(e) => updateStyleField('buyButton', 'fontWeight', buildNumberString(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                placeholder="500"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-medium text-gray-600 block mb-1.5">
-                Padding
-              </label>
-              {(() => {
-                const { value, unit } = parsePadding(card.styles.buyButton?.padding);
-                return (
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      inputMode="decimal"
-                      step="0.1"
-                      value={value}
-                      onChange={(e) => updateStyleField('buyButton', 'padding', buildPadding(e.target.value, unit))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                      placeholder="32.7"
-                    />
-                    <select
-                      value={unit}
-                      onChange={(e) => updateStyleField('buyButton', 'padding', buildPadding(value, e.target.value as 'px' | 'rem'))}
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    >
-                      <option value="px">px</option>
-                      <option value="rem">rem</option>
-                    </select>
-                  </div>
-                );
-              })()}
-            </div>
-
-            <div>
-              <label className="text-xs font-medium text-gray-600 block mb-1.5">
-                Min Height
-              </label>
-              {(() => {
-                const { value, unit } = parseSize(card.styles.buyButton?.minHeight);
-                return (
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      inputMode="decimal"
-                      step="0.1"
-                      value={value}
-                      onChange={(e) => updateStyleField('buyButton', 'minHeight', buildSize(e.target.value, unit))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                      placeholder="48"
-                    />
-                    <select
-                      value={unit}
-                      onChange={(e) => updateStyleField('buyButton', 'minHeight', buildSize(value, e.target.value as 'px' | 'rem'))}
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    >
-                      <option value="px">px</option>
-                      <option value="rem">rem</option>
-                    </select>
-                  </div>
-                );
-              })()}
-            </div>
-
-            <div className="pt-3 border-t border-gray-200">
-              <p className="text-[11px] font-semibold text-gray-600 uppercase tracking-wide mb-2">Price Block внутри кнопки</p>
-
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs font-medium text-gray-600 block mb-1.5">
-                    Border Radius
-                  </label>
-                  {(() => {
-                const { value, unit } = parseSize(card.styles.priceBlock?.borderRadius);
-                    return (
-                      <div className="flex gap-2">
-                        <input
-                          type="number"
-                          inputMode="decimal"
-                          step="0.1"
-                          value={value}
-                          onChange={(e) => updateStyleField('priceBlock', 'borderRadius', buildSize(e.target.value, unit))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                          placeholder="20"
-                        />
-                        <select
-                          value={unit}
-                          onChange={(e) => updateStyleField('priceBlock', 'borderRadius', buildSize(value, e.target.value as 'px' | 'rem'))}
-                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                        >
-                          <option value="px">px</option>
-                          <option value="rem">rem</option>
-                        </select>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                <div>
-                  <label className="text-xs font-medium text-gray-600 block mb-1.5">
-                    Padding
-                  </label>
-                  {(() => {
-                    const { value, unit } = parsePadding(card.styles.priceBlock?.padding);
-                    return (
-                      <div className="flex gap-2">
-                        <input
-                          type="number"
-                          inputMode="decimal"
-                          step="0.1"
-                          value={value}
-                          onChange={(e) => updateStyleField('priceBlock', 'padding', buildPadding(e.target.value, unit))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                          placeholder="32.7"
-                        />
-                        <select
-                          value={unit}
-                          onChange={(e) => updateStyleField('priceBlock', 'padding', buildPadding(value, e.target.value as 'px' | 'rem'))}
-                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                        >
-                          <option value="px">px</option>
-                          <option value="rem">rem</option>
-                        </select>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                <div>
-                  <label className="text-xs font-medium text-gray-600 block mb-1.5">
-                    Min Height
-                  </label>
-                  {(() => {
-                    const { value, unit } = parseSize(card.styles.priceBlock?.minHeight);
-                    return (
-                      <div className="flex gap-2">
-                        <input
-                          type="number"
-                          inputMode="decimal"
-                          step="0.1"
-                          value={value}
-                          onChange={(e) => updateStyleField('priceBlock', 'minHeight', buildSize(e.target.value, unit))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                          placeholder="60"
-                        />
-                        <select
-                          value={unit}
-                          onChange={(e) => updateStyleField('priceBlock', 'minHeight', buildSize(value, e.target.value as 'px' | 'rem'))}
-                          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                        >
-                          <option value="px">px</option>
-                          <option value="rem">rem</option>
-                        </select>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                <div>
-                  <label className="text-xs font-medium text-gray-600 block mb-1.5">
-                    Alignment
-                  </label>
-                  <select
-                    value={card.styles.priceBlock?.alignment || ''}
-                    onChange={(e) => updateStyleField('priceBlock', 'alignment', e.target.value as 'left' | 'center' | 'right' | '')}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                  >
-                    <option value="">Default</option>
-                    <option value="left">Left</option>
-                    <option value="center">Center</option>
-                    <option value="right">Right</option>
-                  </select>
-                </div>
-              </div>
-            </div>
           </>
         )}
 

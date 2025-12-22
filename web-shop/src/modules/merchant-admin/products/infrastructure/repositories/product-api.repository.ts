@@ -16,12 +16,14 @@ interface ProductsApiResponse {
 interface ProductDto {
   id: string;
   title: string;
+  description?: string | null;
   appid?: string | null;
   main_image?: string | null;
   background_image?: string | null;
   rarity?: string | null;
   discount?: string | null;
   player_limit?: string | null;
+  limited_offer?: number | null;
   expires_at?: string | null;
   price?: number | null;
   rp_bonus?: number | null;
@@ -45,12 +47,14 @@ const mapDtoToProduct = (dto: ProductDto): Result<Product, Error> => {
   return Product.create({
     id: dto.id,
     title: dto.title,
+    description: dto.description ?? null,
     appid: dto.appid ?? null,
     main_image: dto.main_image ?? null,
     background_image: dto.background_image ?? null,
     rarity: dto.rarity ?? null,
     discount: dto.discount ?? null,
     player_limit: dto.player_limit ?? null,
+    limited_offer: dto.limited_offer ?? null,
     expires_at: dto.expires_at ?? null,
     price: dto.price ?? null,
     rp_bonus: dto.rp_bonus ?? null,
@@ -64,12 +68,14 @@ const mapProductToDto = (product: Product): ProductDto => {
   return {
     id: product.id,
     title: product.title,
+    description: product.description,
     appid: product.appid,
     main_image: product.main_image,
     background_image: product.background_image,
     rarity: product.rarity,
     discount: product.discount,
     player_limit: product.player_limit,
+    limited_offer: product.limited_offer,
     expires_at: product.expires_at,
     price: product.price,
     rp_bonus: product.rp_bonus,

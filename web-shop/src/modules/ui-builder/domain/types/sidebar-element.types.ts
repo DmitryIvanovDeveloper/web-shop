@@ -14,6 +14,7 @@ export interface SelectedElement {
   gap?: string;
   padding?: string;
   width?: string;
+  maxHeight?: string;
   type?: string;
   borderRadius?: string;
   label?: string;

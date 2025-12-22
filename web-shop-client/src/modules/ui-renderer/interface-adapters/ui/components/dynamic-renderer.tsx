@@ -209,13 +209,19 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
           origin: builderOrigin
         });
         
-        window.parent.postMessage(
-          { type: 'ELEMENT_SELECTED', elementId: elementIdToSend },
-          builderOrigin
-        );
-      } else {
-        console.warn('[DynamicRenderer] No parent window or same window');
-      }
+        // Check if parent window still exists before sending message
+        if (window.parent && typeof window.parent.postMessage === 'function') {
+          try {
+            window.parent.postMessage(
+              { type: 'ELEMENT_SELECTED', elementId: elementIdToSend },
+              builderOrigin
+            );
+          } catch (error) {
+            console.warn('[DynamicRenderer] Failed to send ELEMENT_SELECTED message to parent:', error);
+          }
+        } else {
+          console.warn('[DynamicRenderer] Parent window not available for ELEMENT_SELECTED message');
+        }
       return;
     }
 

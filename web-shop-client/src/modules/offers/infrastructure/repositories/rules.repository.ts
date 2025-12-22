@@ -4,7 +4,7 @@ import { TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { OfferRuleTree } from '../../domain/types';
 import type { RulesRepositoryPort } from '../../application/ports/rules-repository.port';
 
-const DEFAULT_APP_ID = process.env.NEXT_PUBLIC_APP_ID ?? 'webshop-demo';
+const DEFAULT_APP_ID = process.env.NEXT_PUBLIC_APP_ID;
 
 interface CachedRuleTree {
   readonly ruleTree: OfferRuleTree;
@@ -22,7 +22,11 @@ export class RulesRepository implements RulesRepositoryPort {
 
   public async loadRules(appId?: string): Promise<OfferRuleTree> {
     const targetAppId = appId ?? DEFAULT_APP_ID;
-    
+
+    if (!targetAppId) {
+      throw new Error('App ID is required to load offer rules');
+    }
+
     // Check cache first
     const cached = this.cache.get(targetAppId);
     if (cached) {

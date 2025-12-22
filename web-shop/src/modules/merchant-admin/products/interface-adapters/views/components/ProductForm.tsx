@@ -23,12 +23,14 @@ export function ProductForm({
 }: ProductFormProps): JSX.Element {
   const [formData, setFormData] = useState<Omit<ProductFormViewModel, 'id'>>({
     title: product.title,
+    description: product.description ?? '',
     appid: product.appid,
     main_image: product.main_image,
     background_image: product.background_image,
     rarity: product.rarity,
     discount: product.discount,
     player_limit: product.player_limit,
+    limited_offer: product.limited_offer,
     expires_at: product.expires_at,
     price: product.price,
     rp_bonus: product.rp_bonus,
@@ -41,12 +43,14 @@ export function ProductForm({
   React.useEffect(() => {
     setFormData({
       title: product.title,
+      description: product.description ?? '',
       appid: product.appid,
       main_image: product.main_image,
       background_image: product.background_image,
       rarity: product.rarity,
       discount: product.discount,
       player_limit: product.player_limit,
+      limited_offer: product.limited_offer,
       expires_at: product.expires_at,
       price: product.price,
       rp_bonus: product.rp_bonus,
@@ -102,6 +106,77 @@ export function ProductForm({
             color: '#F8FAFC',
             fontSize: '14px',
           }}
+        />
+      </div>
+
+      <div>
+        <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: 500 }}>
+          Description
+        </label>
+        <textarea
+          value={formData.description || ''}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          rows={3}
+          style={{
+            width: '100%',
+            padding: '8px 12px',
+            backgroundColor: 'rgba(30, 41, 59, 0.5)',
+            border: '1px solid rgba(148, 163, 184, 0.2)',
+            borderRadius: '6px',
+            color: '#F8FAFC',
+            fontSize: '14px',
+            resize: 'vertical',
+            fontFamily: 'inherit',
+          }}
+          placeholder="Product description..."
+        />
+      </div>
+
+      <div>
+        <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: 500 }}>
+          {labels.rarity}
+        </label>
+        <input
+          type="text"
+          value={formData.rarity || ''}
+          onChange={(e) => setFormData({ ...formData, rarity: e.target.value })}
+          style={{
+            width: '100%',
+            padding: '8px 12px',
+            backgroundColor: 'rgba(30, 41, 59, 0.5)',
+            border: '1px solid rgba(148, 163, 184, 0.2)',
+            borderRadius: '6px',
+            color: '#F8FAFC',
+            fontSize: '14px',
+          }}
+          placeholder="Product rarity..."
+        />
+      </div>
+
+      <div>
+        <label style={{ display: 'block', marginBottom: '4px', fontSize: '14px', fontWeight: 500 }}>
+          {labels.limitedOffer}
+        </label>
+        <input
+          type="number"
+          min="0"
+          value={formData.limited_offer ?? ''}
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              limited_offer: e.target.value ? Number.parseInt(e.target.value, 10) : null,
+            })
+          }
+          style={{
+            width: '100%',
+            padding: '8px 12px',
+            backgroundColor: 'rgba(30, 41, 59, 0.5)',
+            border: '1px solid rgba(148, 163, 184, 0.2)',
+            borderRadius: '6px',
+            color: '#F8FAFC',
+            fontSize: '14px',
+          }}
+          placeholder="Number of limited offers..."
         />
       </div>
 

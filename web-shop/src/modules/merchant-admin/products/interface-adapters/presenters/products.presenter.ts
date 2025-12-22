@@ -40,6 +40,7 @@ export class ProductsPresenter {
     mainImage: 'Main Image URL',
     backgroundImage: 'Background Image URL',
     rarity: 'Rarity',
+    limitedOffer: 'Limited Offer',
     discount: 'Discount',
     playerLimit: 'Player Limit',
     expiresAt: 'Expires At',
@@ -191,10 +192,13 @@ export class ProductsPresenter {
       main_image: productData.main_image ? (productData.main_image.startsWith('http') ? 'URL' : 'base64/data') : 'null',
     });
 
+    console.log('[ProductsPresenter] updateProduct called with:', { id, appId: this._appId, description: productData.description });
+
     const result = await this._updateProductUseCase.execute({
       id,
       appId: this._appId,
       title: productData.title,
+      description: productData.description,
       main_image: productData.main_image,
       background_image: productData.background_image,
       rarity: productData.rarity,
@@ -308,6 +312,7 @@ export class ProductsPresenter {
       selectedProduct: {
         id: product.id,
         title: product.title,
+        description: product.description,
         appid: product.appid,
         main_image: product.main_image,
         background_image: product.background_image,

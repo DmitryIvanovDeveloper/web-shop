@@ -337,7 +337,7 @@ export class UIBuilderPresenter {
                   id: generateElementId('button'),
                   type: 'Button',
                   props: { text: 'Store' },
-                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%' },
+                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%', maxHeight: '100%' },
                 },
               ],
             },
@@ -467,6 +467,7 @@ export class UIBuilderPresenter {
         gap: node?.styles?.gap,
         padding: node?.styles?.padding,
         width: node?.styles?.width,
+        maxHeight: node?.styles?.maxHeight,
         flexDirection: node?.styles?.flexDirection,
         type: node?.type,
         borderRadius: node?.styles?.borderRadius,
@@ -562,6 +563,21 @@ export class UIBuilderPresenter {
     }
     node.styles.width = width;
 
+    this.selectElement(elementId);
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
+  }
+
+  public updateButtonMaxHeight(elementId: string, maxHeight: string): void {
+    const node = this.findNode(elementId);
+    if (!node) return;
+
+    if (!node.styles) {
+      node.styles = {};
+    }
+    node.styles.maxHeight = maxHeight;
+
+    this.vm = { ...this.vm, lastModified: Date.now() };
     this.selectElement(elementId);
     this.sendConfigToIframe();
     this.saveConfigToSupabaseDebounced();
@@ -665,6 +681,7 @@ export class UIBuilderPresenter {
       textColor: '#ffffff',
       borderColor: '#1e40af',
       width: '100%',
+      maxHeight: '100%',
     };
     
     const copiedStyles = lastButton?.styles 
@@ -1123,7 +1140,7 @@ export class UIBuilderPresenter {
             id: 'store-button',
             type: 'Button',
             props: { text: 'Store' },
-            styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%' },
+            styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%', maxHeight: '100%' },
           },
         ],
       };

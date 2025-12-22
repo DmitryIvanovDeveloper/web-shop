@@ -45,16 +45,11 @@ export interface OfferCardStyles {
     color?: string;
     lineHeight?: string;
   };
-  priceBlock?: {
-    borderRadius?: string;
-    padding?: string;
-    minHeight?: string;
-    alignment?: 'left' | 'center' | 'right';
-  };
   originalPrice?: {
     fontSize?: string;
     fontWeight?: string;
     color?: string;
+    show?: boolean;
   };
   currentPrice?: {
     fontSize?: string;
@@ -73,6 +68,7 @@ export interface OfferCardStyles {
     fontWeight?: string;
     padding?: string;
     minHeight?: string;
+    maxHeight?: string;
     // preview flag (persisted)
     enabled?: boolean;
   };

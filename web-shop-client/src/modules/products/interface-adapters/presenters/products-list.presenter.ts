@@ -84,6 +84,7 @@ export class ProductsListPresenter {
     }
   }
 
+
   async present(options?: { userId?: string; appId?: string }): Promise<ProductsListViewModel> {
     const totalStart = typeof performance !== 'undefined' ? performance.now() : Date.now();
     this._logger.info('[ProductsListPresenter] Presenting products list...', { options });
@@ -147,12 +148,6 @@ export class ProductsListPresenter {
       // 5. Enrich products with isPurchased and buyButton
       const enrichedProducts = products.map(product => {
         const isPurchased = purchasedIds.includes(product.id.value);
-        this._logger.info('[ProductsListPresenter] Product purchase check', {
-          productId: product.id.value,
-          productTitle: product.title,
-          isPurchased,
-          purchasedIds
-        });
         
         return {
           ...product,

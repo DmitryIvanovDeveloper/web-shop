@@ -132,6 +132,18 @@ export class AuthRepository implements AuthRepositoryPort {
       if (insertError) {
         // Handle race condition: if user was created by another request (409 conflict or duplicate key)
         // Try to fetch the user that was just created
+        this._logger.error('[AuthRepository] Insert error - checking for conflict', {
+          error: insertError,
+          errorCode: insertError.code,
+          errorMessage: insertError.message,
+          errorDetails: insertError.details,
+          errorHint: insertError.hint,
+          checkingForConflict: true,
+          appId,
+          userId,
+          userUuid,
+        });
+
         if (insertError.code === '23505' || insertError.code === 'PGRST116' || insertError.message?.includes('duplicate') || insertError.message?.includes('already exists')) {
           this._logger.warn('[AuthRepository] User creation conflict (likely race condition), fetching existing user', { 
             errorCode: insertError.code,

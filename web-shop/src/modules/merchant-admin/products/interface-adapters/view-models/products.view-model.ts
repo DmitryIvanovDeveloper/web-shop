@@ -3,12 +3,14 @@ import type { Product } from '../../domain/entities/product.entity';
 export interface ProductListItemViewModel {
   readonly id: string;
   readonly title: string;
+  readonly description: string | null;
   readonly appid: string | null;
   readonly main_image: string | null;
   readonly background_image: string | null;
   readonly rarity: string | null;
   readonly discount: string | null;
   readonly player_limit: string | null;
+  readonly limited_offer: number | null;
   readonly expires_at: string | null;
   readonly price: number | null;
   readonly rp_bonus: number | null;
@@ -20,12 +22,14 @@ export interface ProductListItemViewModel {
 export interface ProductFormViewModel {
   readonly id?: string;
   readonly title: string;
+  readonly description: string | null;
   readonly appid: string | null;
   readonly main_image: string | null;
   readonly background_image: string | null;
   readonly rarity: string | null;
   readonly discount: string | null;
   readonly player_limit: string | null;
+  readonly limited_offer: number | null;
   readonly expires_at: string | null;
   readonly price: number | null;
   readonly rp_bonus: number | null;
@@ -56,12 +60,14 @@ export const mapProductToListItem = (product: Product): ProductListItemViewModel
   return {
     id: product.id,
     title: product.title,
+    description: product.description,
     appid: product.appid,
     main_image: product.main_image,
     background_image: product.background_image,
     rarity: product.rarity,
     discount: product.discount,
     player_limit: product.player_limit,
+    limited_offer: product.limited_offer,
     expires_at: product.expires_at,
     price: product.price,
     rp_bonus: product.rp_bonus,
@@ -78,12 +84,14 @@ export const mapProductToForm = (product: Product | null): ProductFormViewModel 
   return {
     id: product.id,
     title: product.title,
+    description: product.description,
     appid: product.appid,
     main_image: product.main_image,
     background_image: product.background_image,
     rarity: product.rarity,
     discount: product.discount,
     player_limit: product.player_limit,
+    limited_offer: product.limited_offer,
     expires_at: product.expires_at,
     price: product.price,
     rp_bonus: product.rp_bonus,

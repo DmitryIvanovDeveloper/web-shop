@@ -118,16 +118,23 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 
 	// Инициализация авторизации из query params или localStorage
 	useEffect(() => {
-		if (isAuthenticated) {
-			console.log('[AuthModule] Already authenticated, skipping initialization');
+		const appIdFromQuery = getAppIdFromQuery();
+		const userIdFromQuery = getUserIdFromQuery();
+
+		// Check if we need to re-authenticate with different appId
+		const currentUser = authPresenter.getCurrentUser();
+		const needsReauth = isAuthenticated && appIdFromQuery && currentUser && currentUser.appId !== appIdFromQuery;
+
+		if (isAuthenticated && !needsReauth) {
+			console.log('[AuthModule] Already authenticated with correct appId, skipping initialization');
 			return;
 		}
 
-		const appId = getAppIdFromQuery() || getAppIdFromStorage() || getAppIdFromEnv();
-		const userId = getUserIdFromQuery() || getUserIdFromStorage();
-		
-		console.log('[AuthModule] Found appId:', appId, { userId });
-		
+		const appId = appIdFromQuery || getAppIdFromStorage() || getAppIdFromEnv();
+		const userId = userIdFromQuery || getUserIdFromStorage();
+
+		console.log('[AuthModule] Found appId:', appId, { userId, needsReauth });
+
 		if (!appId) {
 			console.log('[AuthModule] No appId found, skipping initialization');
 			return;
@@ -138,7 +145,7 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 
 	}, [searchParams, isAuthenticated, authPresenter]);
 
-	const getAppIdFromQuery = () => searchParams.get('appId');
+	const getAppIdFromQuery = () => searchParams.get('appId') || searchParams.get('app');
 	const getUserIdFromQuery = () => searchParams.get('userId');
 	
 	const getAppIdFromStorage = () => {

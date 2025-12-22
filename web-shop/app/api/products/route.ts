@@ -74,12 +74,14 @@ export async function POST(request: NextRequest) {
       .insert({
         id: product.id,
         title: product.title,
+        description: product.description ?? null,
         appid: appId,
         main_image: product.main_image ?? null,
         background_image: product.background_image ?? null,
         rarity: product.rarity ?? null,
         discount: product.discount ?? null,
         player_limit: product.player_limit ?? null,
+        limited_offer: product.limited_offer ?? null,
         expires_at: product.expires_at ?? null,
         price: product.price ?? null,
         rp_bonus: product.rp_bonus ?? null,
@@ -154,11 +156,13 @@ export async function PUT(request: NextRequest) {
       .from('products')
       .update({
         title: product.title,
+        description: product.description ?? null,
         main_image: product.main_image ?? null,
         background_image: product.background_image ?? null,
         rarity: product.rarity ?? null,
         discount: product.discount ?? null,
         player_limit: product.player_limit ?? null,
+        limited_offer: product.limited_offer ?? null,
         expires_at: product.expires_at ?? null,
         price: product.price ?? null,
         rp_bonus: product.rp_bonus ?? null,

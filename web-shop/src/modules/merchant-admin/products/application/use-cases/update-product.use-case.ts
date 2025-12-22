@@ -9,6 +9,7 @@ export interface UpdateProductInput {
   readonly id: string;
   readonly appId: string;
   readonly title?: string;
+  readonly description?: string | null;
   readonly main_image?: string | null;
   readonly background_image?: string | null;
   readonly rarity?: string | null;
@@ -36,6 +37,8 @@ export class UpdateProductUseCase {
   public async execute(
     input: UpdateProductInput
   ): Promise<Result<UpdateProductOutput, Error>> {
+    console.log('[UpdateProductUseCase] execute called with input:', input);
+
     // Load existing product via port
     const loadResult = await this.queryService.loadById(input.id, input.appId);
     if (loadResult.isFailure()) {
@@ -53,6 +56,14 @@ export class UpdateProductUseCase {
         return Result.error(titleResult.error!);
       }
       updatedProduct = titleResult.data!;
+    }
+
+    if (input.description !== undefined) {
+      const descriptionResult = updatedProduct.withDescription(input.description);
+      if (descriptionResult.isFailure()) {
+        return Result.error(descriptionResult.error!);
+      }
+      updatedProduct = descriptionResult.data!;
     }
 
     if (input.main_image !== undefined) {

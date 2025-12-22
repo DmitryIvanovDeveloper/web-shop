@@ -282,7 +282,9 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         
         const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
         const shouldLoadDraft = resolveShouldLoadDraft();
-        await loadAppConfigUseCase.execute(shouldLoadDraft);
+        const appId = getAppIdFromEnvironment();
+        console.log('[RootLayout] Resolved appId:', appId, 'URL:', window.location.href);
+        await loadAppConfigUseCase.execute(shouldLoadDraft, appId);
         console.log('[RootLayout] App config loaded and distributed via EventBus');
         
         // 2. Subscribe to real-time config updates (only if not in UI Builder preview mode)
@@ -325,10 +327,14 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       if (typeof window !== 'undefined') {
         try {
           const url = new URL(window.location.href);
+          console.log('[getAppIdFromEnvironment] URL:', url.href, 'search:', url.search);
           // Support both 'appId' and 'app' query parameters
           const fromQuery = url.searchParams.get('appId') || url.searchParams.get('app');
+          console.log('[getAppIdFromEnvironment] appId from query:', fromQuery);
           if (fromQuery) return fromQuery;
-        } catch {}
+        } catch (e) {
+          console.error('[getAppIdFromEnvironment] Error parsing URL:', e);
+        }
       }
       return process.env.NEXT_PUBLIC_APP_ID || null;
     };

@@ -291,8 +291,8 @@ export default function HomePage(): JSX.Element {
         </div>
       )}
 
-      <SidebarRenderer 
-        presenter={sidebarPresenter} 
+      <SidebarRenderer
+        presenter={sidebarPresenter}
         layoutType="store"
         actionContext={actionContext}
       />

@@ -11,8 +11,10 @@ export interface Product {
   readonly includedItems?: string[];
   readonly discount?: string;
   readonly playerLimit?: string;
+  readonly limitedOffer?: number;
   readonly timer?: Date;
   readonly title?: string;
+  readonly description?: string;
   readonly titleStyle?: TitleStyle;
   readonly rarity?: string;
   readonly originalPrice?: Price;
