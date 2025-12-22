@@ -46,12 +46,22 @@ export function PatchNotesAdmin(): JSX.Element {
 
     // Validate form
     if (!formData.version || !formData.title || !formData.description) {
-      alert('Please fill in all required fields');
+      presenter.clearError();
+      setTimeout(() => presenter.updateViewModel({ error: 'Please fill in all required fields' }), 0);
+      return;
+    }
+
+    // Validate version format
+    const semverRegex = /^\d+\.\d+\.\d+$/;
+    if (!semverRegex.test(formData.version.trim())) {
+      presenter.clearError();
+      setTimeout(() => presenter.updateViewModel({ error: 'Version must be in format x.y.z (e.g., 1.0.0, 2.5.3)' }), 0);
       return;
     }
 
     if (formData.changes.some(change => !change.description.trim())) {
-      alert('All change descriptions must be filled');
+      presenter.clearError();
+      setTimeout(() => presenter.updateViewModel({ error: 'All change descriptions must be filled' }), 0);
       return;
     }
 
@@ -269,10 +279,12 @@ export function PatchNotesAdmin(): JSX.Element {
                     value={formData.version}
                     onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
                     placeholder="1.0.0"
+                    pattern="^\d+\.\d+\.\d+$"
+                    title="Version must be in format x.y.z (e.g., 1.0.0, 2.5.3)"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">Semantic version format (x.y.z)</p>
+                  <p className="text-xs text-gray-500 mt-1">Format: x.y.z (e.g., 1.0.0, 2.5.3)</p>
                 </div>
 
                 <div>

@@ -94,9 +94,18 @@ export class PatchNotesAdminPresenter {
 
       if (!result.isSuccess) {
         this._logger.error('[PatchNotesAdminPresenter] Failed to create patch note', result.error);
+
+        // Provide more user-friendly error messages
+        let errorMessage = result.error.message;
+        if (result.error.message.includes('Version must follow semantic versioning format')) {
+          errorMessage = 'Version must be in format x.y.z (e.g., 1.0.0, 2.5.3)';
+        } else if (result.error.message.includes('already exists')) {
+          errorMessage = 'A patch note with this version already exists';
+        }
+
         this.updateViewModel({
           status: 'loaded',
-          error: result.error.message
+          error: errorMessage
         });
         return false;
       }
