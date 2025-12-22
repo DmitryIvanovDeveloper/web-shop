@@ -1,4 +1,4 @@
-import type { Result } from '../../../../shared/utils/result';
+import type { Result } from '../../../../shared/result/result';
 import type { PatchNoteId } from '../../domain/value-objects/patch-note-id';
 
 export interface PatchNoteSchedulerPort {

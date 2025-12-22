@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
-import type { Result } from '../../../../shared/utils/result';
+import { Success, Failure, type Result } from '../../../../shared/result/result';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
-import type { Logger } from '../../../../infrastructure/ports/logger.port';
+import type { Logger } from '../../../../application/ports/logger.port';
 import type { PatchNoteSchedulerPort } from '../../application/ports/patch-note-scheduler.port';
 import type { PatchNoteId } from '../../domain/value-objects/patch-note-id';
 
@@ -35,7 +35,7 @@ export class PatchNoteSchedulerService implements PatchNoteSchedulerPort {
       const delay = publishDate.getTime() - now.getTime();
 
       if (delay <= 0) {
-        return Result.fail(new Error('Publish date must be in the future'));
+        return Failure.fail(new Error('Publish date must be in the future'));
       }
 
       // Schedule the publication
@@ -66,11 +66,11 @@ export class PatchNoteSchedulerService implements PatchNoteSchedulerPort {
       });
 
       this._logger.info('[PatchNoteSchedulerService] Publication scheduled successfully');
-      return Result.success(undefined);
+      return Success.ok(undefined);
 
     } catch (error) {
       this._logger.error('[PatchNoteSchedulerService] Failed to schedule publication', { error });
-      return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
@@ -92,11 +92,11 @@ export class PatchNoteSchedulerService implements PatchNoteSchedulerPort {
         });
       }
 
-      return Result.success(undefined);
+      return Success.ok(undefined);
 
     } catch (error) {
       this._logger.error('[PatchNoteSchedulerService] Failed to cancel scheduled publication', { error });
-      return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
