@@ -14,6 +14,7 @@ import { LoadAppConfigFromMessageUseCase } from '../src/application/use-cases/lo
 import { LoadAppConfigUseCase } from '../src/application/use-cases/load-app-config.use-case';
 import { TYPES } from '../src/infrastructure/bootstrap/types';
 import { OfferCard } from '../src/shared/components/molecules/offer-card';
+import { PatchNotesPublic } from '../src/modules/patch-notes/interface-adapters/ui/components/patch-notes-public';
 import type { AppConfig } from '../src/shared/config/app-config.types';
 
 export default function HomePage(): JSX.Element {
@@ -296,6 +297,11 @@ export default function HomePage(): JSX.Element {
         layoutType="store"
         actionContext={actionContext}
       />
+
+      {/* Patch Notes Section */}
+      <section className="mt-12">
+        <PatchNotesPublic />
+      </section>
     </main>
   );
 }
