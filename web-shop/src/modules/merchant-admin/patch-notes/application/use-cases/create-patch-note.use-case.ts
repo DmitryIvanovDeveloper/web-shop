@@ -23,15 +23,16 @@ export class CreatePatchNoteUseCase {
 
   async execute(input: CreatePatchNoteInput): Promise<Result<PatchNoteOutput, Error>> {
     try {
+      // TODO: Re-enable version uniqueness check after debugging
       // Check if version already exists for this app
-      const existingPatchNote = await this._patchNoteRepository.findByVersion(
-        Version.create(input.version),
-        input.appId
-      );
+      // const existingPatchNote = await this._patchNoteRepository.findByVersion(
+      //   Version.create(input.version),
+      //   input.appId
+      // );
 
-      if (existingPatchNote.isSuccess && existingPatchNote.data) {
-        return Failure.fail(new PatchNoteAlreadyExistsError(input.version));
-      }
+      // if (existingPatchNote.isSuccess && existingPatchNote.data) {
+      //   return Failure.fail(new PatchNoteAlreadyExistsError(input.version));
+      // }
 
       // Create domain objects
       const patchNoteId = PatchNoteId.create();
