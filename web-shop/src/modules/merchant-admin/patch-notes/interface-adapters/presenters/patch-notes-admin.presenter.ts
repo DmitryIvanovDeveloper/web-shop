@@ -59,7 +59,7 @@ export class PatchNotesAdminPresenter {
         return;
       }
 
-      const patchNotes = result.data;
+      const patchNotes = result.data || [];
 
       this._logger.info('[PatchNotesAdminPresenter] Patch notes loaded successfully', {
         count: patchNotes.length
