@@ -59,17 +59,24 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
         scheduled_for: patchNote.scheduledFor?.toISOString()
       };
 
-      const { error } = await this._databaseClient
+      const { data, error } = await this._databaseClient
         .from('patch_notes')
-        .upsert(row, { onConflict: 'id' });
+        .upsert(row, { onConflict: 'id' })
+        .select()
+        .single();
 
       if (error) {
-        this._logger.error('[SupabasePatchNoteRepository] Failed to save patch note', { error });
+        this._logger.error('[SupabasePatchNoteRepository] Failed to save patch note', { error, row });
         return Failure.fail(new Error(`Failed to save patch note: ${error.message}`));
       }
 
-      this._logger.info('[SupabasePatchNoteRepository] Patch note saved successfully');
-      return Success.ok(patchNote);
+      if (!data) {
+        this._logger.error('[SupabasePatchNoteRepository] Save succeeded but no data returned');
+        return Failure.fail(new Error('Save operation failed: no data returned from database'));
+      }
+
+      this._logger.info('[SupabasePatchNoteRepository] Patch note saved successfully', { id: data.id });
+      return Success.ok(this.mapRowToEntity(data));
 
     } catch (error) {
       this._logger.error('[SupabasePatchNoteRepository] Unexpected error saving patch note', { error });

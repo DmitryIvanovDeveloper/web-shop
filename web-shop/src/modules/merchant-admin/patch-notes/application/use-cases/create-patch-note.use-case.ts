@@ -36,7 +36,7 @@ export class CreatePatchNoteUseCase {
 
       // Create domain objects
       const patchNoteId = PatchNoteId.create();
-      const version = Version.create(input.version);
+      const version = Version.create(input.version.trim());
 
       const changes = input.changes.map(change =>
         ChangeItem.create(change.type, change.description)
@@ -55,7 +55,13 @@ export class CreatePatchNoteUseCase {
       // Save to repository
       const saveResult = await this._patchNoteRepository.save(patchNote);
       if (!saveResult.isSuccess) {
+        console.error('[CreatePatchNoteUseCase] Save failed:', saveResult.error);
         return Failure.fail(saveResult.error);
+      }
+
+      if (!saveResult.data) {
+        console.error('[CreatePatchNoteUseCase] Save returned success but no data');
+        return Failure.fail(new Error('Save operation failed: no data returned'));
       }
 
       // Publish domain event
