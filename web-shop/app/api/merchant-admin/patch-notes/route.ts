@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { container } from '../../../../../src/infrastructure/bootstrap/container';
-import { MERCHANT_ADMIN_PATCH_NOTES_TYPES } from '../../../../../src/modules/merchant-admin/patch-notes/infrastructure/bootstrap/types';
-import type { GetPatchNotesUseCase } from '../../../../../src/modules/merchant-admin/patch-notes/application/use-cases/get-patch-notes.use-case';
-import type { CreatePatchNoteUseCase } from '../../../../../src/modules/merchant-admin/patch-notes/application/use-cases/create-patch-note.use-case';
+import { container } from '@/infrastructure/bootstrap/container';
+import { MERCHANT_ADMIN_PATCH_NOTES_TYPES } from '@/modules/merchant-admin/patch-notes/infrastructure/bootstrap/types';
+import type { GetPatchNotesUseCase } from '@/modules/merchant-admin/patch-notes/application/use-cases/get-patch-notes.use-case';
+import type { CreatePatchNoteUseCase } from '@/modules/merchant-admin/patch-notes/application/use-cases/create-patch-note.use-case';
 import { z } from 'zod';
 
 const CreatePatchNoteSchema = z.object({

@@ -21,7 +21,8 @@
     "react-dom": "^18",
     "recharts": "^3.2.1",
     "reflect-metadata": "^0.2.2",
-    "uuidv4": "^6.2.13"
+    "uuidv4": "^6.2.13",
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { container } from '../../../../../../src/infrastructure/bootstrap/container';
-import { MERCHANT_ADMIN_PATCH_NOTES_TYPES } from '../../../../../../src/modules/merchant-admin/patch-notes/infrastructure/bootstrap/types';
-import type { PatchNoteRepositoryPort } from '../../../../../../src/modules/merchant-admin/patch-notes/application/ports/patch-note-repository.port';
-import { PatchNoteId } from '../../../../../../src/modules/merchant-admin/patch-notes/domain/value-objects/patch-note-id';
+import { container } from '@/infrastructure/bootstrap/container';
+import { MERCHANT_ADMIN_PATCH_NOTES_TYPES } from '@/modules/merchant-admin/patch-notes/infrastructure/bootstrap/types';
+import type { PatchNoteRepositoryPort } from '@/modules/merchant-admin/patch-notes/application/ports/patch-note-repository.port';
+import { PatchNoteId } from '@/modules/merchant-admin/patch-notes/domain/value-objects/patch-note-id';
 
 // DELETE /api/merchant-admin/patch-notes/[id]
 export async function DELETE(
