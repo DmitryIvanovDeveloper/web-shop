@@ -16,6 +16,7 @@ const menuItems: Array<{ key: string; label: string; icon: string; href: string 
   { key: "analytics-dashboard", label: "Analytics\nDashboard", icon: "📈", href: "/dashboard" },
   { key: "merchant-admin-offers", label: "Offers", icon: "🎁", href: "/merchant-admin/offers?appId=APP123" },
   { key: "merchant-admin-products", label: "Products", icon: "📦", href: "/products?appId=APP123" },
+  { key: "merchant-admin-patch-notes", label: "Patch Notes", icon: "📋", href: "/merchant-admin/patch-notes?appId=APP123" },
   { key: "ui-builder", label: "Builder", icon: "🛠️", href: "/ui-builder?appId=APP123&pageSlug=store" },
 ];
 
@@ -101,6 +102,8 @@ export function Sidebar({ children, widthClassName = "w-64", title = "Navigation
                         ? { ...item, href: "/merchant-admin/offers" }
                         : item.key === "merchant-admin-products"
                         ? { ...item, href: "/products" }
+                        : item.key === "merchant-admin-patch-notes"
+                        ? { ...item, href: "/merchant-admin/patch-notes" }
                         : item
                     )
                 : menuItems

@@ -4,13 +4,16 @@ import { PATCH_NOTES_TYPES } from '../../../src/modules/patch-notes/infrastructu
 import { CreatePatchNoteUseCase } from '../../../src/modules/patch-notes/application/use-cases/create-patch-note.use-case';
 import { GetPublishedPatchNotesUseCase } from '../../../src/modules/patch-notes/application/use-cases/get-published-patch-notes.use-case';
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    const searchParams = request.nextUrl.searchParams;
+    const appId = searchParams.get('appId') || 'default-app';
+
     const useCase = container.get<GetPublishedPatchNotesUseCase>(
       PATCH_NOTES_TYPES.GetPublishedPatchNotesUseCase
     );
 
-    const result = await useCase.execute();
+    const result = await useCase.execute(appId);
 
     if (!result.isSuccess) {
       console.error('[GET /api/patch-notes] Use case failed', result.error);
@@ -34,6 +37,12 @@ export async function GET(): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json();
+
+    // Ensure appId is provided
+    if (!body.appId) {
+      body.appId = 'default-app';
+    }
+
     const useCase = container.get<CreatePatchNoteUseCase>(
       PATCH_NOTES_TYPES.CreatePatchNoteUseCase
     );

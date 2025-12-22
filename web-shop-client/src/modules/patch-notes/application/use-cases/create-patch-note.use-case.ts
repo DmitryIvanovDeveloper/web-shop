@@ -23,9 +23,10 @@ export class CreatePatchNoteUseCase {
 
   async execute(input: CreatePatchNoteInput): Promise<Result<PatchNoteOutput, Error>> {
     try {
-      // Check if version already exists
+      // Check if version already exists for this app
       const existingPatchNote = await this._patchNoteRepository.findByVersion(
-        Version.create(input.version)
+        Version.create(input.version),
+        input.appId
       );
 
       if (existingPatchNote.isSuccess && existingPatchNote.data) {
@@ -43,6 +44,7 @@ export class CreatePatchNoteUseCase {
       // Create patch note entity
       const patchNote = PatchNote.create(
         patchNoteId,
+        input.appId,
         version,
         input.title,
         input.description,

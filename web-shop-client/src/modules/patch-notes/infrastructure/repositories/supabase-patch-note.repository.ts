@@ -11,6 +11,7 @@ import { Version } from '../../domain/value-objects/version';
 
 interface PatchNoteRow {
   id: string;
+  app_id: string;
   version: string;
   title: string;
   description: string;
@@ -43,6 +44,7 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
 
       const row: PatchNoteRow = {
         id: patchNote.id.value,
+        app_id: patchNote.appId,
         version: patchNote.version.value,
         title: patchNote.title,
         description: patchNote.description,
@@ -101,12 +103,13 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
     }
   }
 
-  async findByVersion(version: Version): Promise<Result<PatchNote | null, Error>> {
+  async findByVersion(version: Version, appId: string): Promise<Result<PatchNote | null, Error>> {
     try {
       const { data, error } = await this._databaseClient
         .from('patch_notes')
         .select('*')
         .eq('version', version.value)
+        .eq('app_id', appId)
         .single();
 
       if (error && error.code !== 'PGRST116') {
@@ -127,9 +130,12 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
     }
   }
 
-  async findAll(status?: PatchNoteStatus): Promise<Result<PatchNote[], Error>> {
+  async findAll(appId: string, status?: PatchNoteStatus): Promise<Result<PatchNote[], Error>> {
     try {
-      let query = this._databaseClient.from('patch_notes').select('*');
+      let query = this._databaseClient
+        .from('patch_notes')
+        .select('*')
+        .eq('app_id', appId);
 
       if (status) {
         query = query.eq('status', status);
@@ -151,12 +157,12 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
     }
   }
 
-  async findPublished(): Promise<Result<PatchNote[], Error>> {
-    return this.findAll('published');
+  async findPublished(appId: string): Promise<Result<PatchNote[], Error>> {
+    return this.findAll(appId, 'published');
   }
 
-  async findScheduled(): Promise<Result<PatchNote[], Error>> {
-    return this.findAll('scheduled');
+  async findScheduled(appId: string): Promise<Result<PatchNote[], Error>> {
+    return this.findAll(appId, 'scheduled');
   }
 
   async delete(id: PatchNoteId): Promise<Result<void, Error>> {
@@ -187,6 +193,7 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
 
     return new PatchNote(
       PatchNoteId.fromString(row.id),
+      row.app_id,
       Version.create(row.version),
       row.title,
       row.description,

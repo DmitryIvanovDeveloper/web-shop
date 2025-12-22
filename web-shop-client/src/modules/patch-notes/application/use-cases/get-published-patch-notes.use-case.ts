@@ -11,9 +11,9 @@ export class GetPublishedPatchNotesUseCase {
     private readonly _patchNoteRepository: PatchNoteRepositoryPort
   ) {}
 
-  async execute(): Promise<Result<PatchNoteOutput[], Error>> {
+  async execute(appId: string): Promise<Result<PatchNoteOutput[], Error>> {
     try {
-      const result = await this._patchNoteRepository.findPublished();
+      const result = await this._patchNoteRepository.findPublished(appId);
 
       if (!result.isSuccess) {
         return Result.fail(result.error);

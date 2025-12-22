@@ -20,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     'analytics-dashboard': '/merchant-admin/analytics/dashboard',
     'merchant-admin-products': '/products',
     'merchant-admin-offers': '/merchant-admin/offers',
+    'merchant-admin-patch-notes': '/merchant-admin/patch-notes',
   };
 
   const handleSelect = (key: string) => {

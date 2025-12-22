@@ -6,9 +6,9 @@ import type { PatchNote, PatchNoteStatus } from '../../domain/entities/patch-not
 export interface PatchNoteRepositoryPort {
   save(patchNote: PatchNote): Promise<Result<PatchNote, Error>>;
   findById(id: PatchNoteId): Promise<Result<PatchNote | null, Error>>;
-  findByVersion(version: Version): Promise<Result<PatchNote | null, Error>>;
-  findAll(status?: PatchNoteStatus): Promise<Result<PatchNote[], Error>>;
-  findPublished(): Promise<Result<PatchNote[], Error>>;
-  findScheduled(): Promise<Result<PatchNote[], Error>>;
+  findByVersion(version: Version, appId: string): Promise<Result<PatchNote | null, Error>>;
+  findAll(appId: string, status?: PatchNoteStatus): Promise<Result<PatchNote[], Error>>;
+  findPublished(appId: string): Promise<Result<PatchNote[], Error>>;
+  findScheduled(appId: string): Promise<Result<PatchNote[], Error>>;
   delete(id: PatchNoteId): Promise<Result<void, Error>>;
 }

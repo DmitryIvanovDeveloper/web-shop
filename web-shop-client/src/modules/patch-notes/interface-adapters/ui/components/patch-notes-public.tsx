@@ -6,7 +6,11 @@ import type { PatchNotesPublicViewModel } from '../../view-models/patch-notes-pu
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { PATCH_NOTES_TYPES } from '../../../infrastructure/bootstrap/types';
 
-export function PatchNotesPublic(): JSX.Element | null {
+interface PatchNotesPublicProps {
+  appId?: string;
+}
+
+export function PatchNotesPublic({ appId = 'default-app' }: PatchNotesPublicProps): JSX.Element | null {
   const [, forceUpdate] = useState({});
   const [presenter, setPresenter] = useState<PatchNotesPublicPresenter | null>(null);
 
@@ -19,9 +23,9 @@ export function PatchNotesPublic(): JSX.Element | null {
   useEffect(() => {
     if (presenter) {
       presenter.setOnViewModelChanged(() => forceUpdate({}));
-      presenter.loadPublishedNotes();
+      presenter.loadPublishedNotes(appId);
     }
-  }, [presenter]);
+  }, [presenter, appId]);
 
   // Don't render anything until presenter is initialized
   if (!presenter) {

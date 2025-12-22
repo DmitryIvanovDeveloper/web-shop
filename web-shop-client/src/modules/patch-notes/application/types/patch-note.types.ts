@@ -3,6 +3,7 @@ import type { Version } from '../../domain/value-objects/version';
 import type { ChangeItem } from '../../domain/entities/change-item';
 
 export interface CreatePatchNoteInput {
+  appId: string;
   version: string;
   title: string;
   description: string;

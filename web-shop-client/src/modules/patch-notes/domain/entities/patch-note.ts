@@ -12,6 +12,7 @@ export type PatchNoteStatus = 'draft' | 'published' | 'scheduled';
 export class PatchNote {
   private constructor(
     public readonly id: PatchNoteId,
+    public readonly appId: string,
     public readonly version: Version,
     public readonly title: string,
     public readonly description: string,
@@ -25,6 +26,7 @@ export class PatchNote {
 
   static create(
     id: PatchNoteId,
+    appId: string,
     version: Version,
     title: string,
     description: string,
@@ -45,6 +47,7 @@ export class PatchNote {
     const now = new Date();
     return new PatchNote(
       id,
+      appId,
       version,
       title.trim(),
       description.trim(),
@@ -63,6 +66,7 @@ export class PatchNote {
     const now = new Date();
     return new PatchNote(
       this.id,
+      this.appId,
       this.version,
       this.title,
       this.description,
@@ -86,6 +90,7 @@ export class PatchNote {
     const now = new Date();
     return new PatchNote(
       this.id,
+      this.appId,
       this.version,
       this.title,
       this.description,
@@ -125,6 +130,7 @@ export class PatchNote {
 
     return new PatchNote(
       this.id,
+      this.appId,
       this.version,
       newTitle.trim(),
       newDescription.trim(),

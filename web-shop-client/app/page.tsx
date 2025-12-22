@@ -26,6 +26,7 @@ export default function HomePage(): JSX.Element {
   // Check if we're in preview mode
   const [previewMode, setPreviewMode] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
+  const [currentAppId, setCurrentAppId] = useState<string>('default-app');
   const applyElementSelectionMode = useCallback((enabled: boolean) => {
     setElementSelectionMode(enabled);
 
@@ -93,11 +94,14 @@ export default function HomePage(): JSX.Element {
       try {
         // Get appId from URL (support both 'appId' and 'app' parameters)
         const url = new URL(window.location.href);
-        const appId = url.searchParams.get('appId') || url.searchParams.get('app');
-        
+        const appId = url.searchParams.get('appId') || url.searchParams.get('app') || 'default-app';
+
+        // Set current appId for patch notes
+        setCurrentAppId(appId);
+
         // Check if we're in an iframe (likely Builder preview)
         const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
-        
+
         if (appId) {
           // Try to load config from Supabase if not loaded yet
           const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
@@ -308,7 +312,7 @@ export default function HomePage(): JSX.Element {
 
       {/* Patch Notes Section */}
       <section id="patch-notes-section" className="mt-12">
-        <PatchNotesPublic />
+        <PatchNotesPublic appId={currentAppId} />
       </section>
     </main>
   );

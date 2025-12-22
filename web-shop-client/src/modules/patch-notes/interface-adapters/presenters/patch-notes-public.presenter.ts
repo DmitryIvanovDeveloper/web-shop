@@ -37,13 +37,13 @@ export class PatchNotesPublicPresenter {
     this._onViewModelChanged?.();
   }
 
-  async loadPublishedNotes(): Promise<void> {
-    this._logger.info('[PatchNotesPublicPresenter] Loading published patch notes');
+  async loadPublishedNotes(appId: string): Promise<void> {
+    this._logger.info('[PatchNotesPublicPresenter] Loading published patch notes', { appId });
 
     this.updateViewModel({ status: 'loading' });
 
     try {
-      const result = await this._getPublishedPatchNotesUseCase.execute();
+      const result = await this._getPublishedPatchNotesUseCase.execute(appId);
 
       if (!result.isSuccess) {
         this._logger.error('[PatchNotesPublicPresenter] Failed to load published notes', result.error);
