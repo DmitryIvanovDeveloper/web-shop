@@ -63,6 +63,14 @@ export default function HomePage(): JSX.Element {
         router.push(url);
       }
     },
+    navigateToPatchNotes: () => {
+      console.log('[HomePage] Navigating to patch notes section');
+      // Scroll to patch notes section or navigate to it
+      const patchNotesElement = document.getElementById('patch-notes-section');
+      if (patchNotesElement) {
+        patchNotesElement.scrollIntoView({ behavior: 'smooth' });
+      }
+    },
   };
 
   // Check previewMode from URL
@@ -299,7 +307,7 @@ export default function HomePage(): JSX.Element {
       />
 
       {/* Patch Notes Section */}
-      <section className="mt-12">
+      <section id="patch-notes-section" className="mt-12">
         <PatchNotesPublic />
       </section>
     </main>

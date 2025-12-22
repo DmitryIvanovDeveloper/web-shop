@@ -345,6 +345,28 @@
                 "textColor": "text",
                 "justifyContent": "flex-start"
               }
+            },
+            {
+              "id": "patch-notes-button",
+              "type": "Button",
+              "props": {
+                "text": "Patch Notes",
+                "icon": "📋",
+                "fullWidth": true
+              },
+              "styles": {
+                "padding": 4,
+                "backgroundColor": "surface",
+                "textColor": "text",
+                "justifyContent": "flex-start",
+                "hoverBackgroundColor": "primary"
+              },
+              "actions": {
+                "onClick": {
+                  "type": "custom",
+                  "handler": "navigateToPatchNotes"
+                }
+              }
             }
           ]
         }
