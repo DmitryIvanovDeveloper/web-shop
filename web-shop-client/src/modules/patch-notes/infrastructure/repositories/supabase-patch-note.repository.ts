@@ -142,7 +142,7 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
         return Failure.fail(new Error(`Failed to find patch notes: ${error.message}`));
       }
 
-      const patchNotes = data.map(row => this.mapRowToEntity(row));
+      const patchNotes = data?.map(row => this.mapRowToEntity(row)) || [];
       return Success.ok(patchNotes);
 
     } catch (error) {
