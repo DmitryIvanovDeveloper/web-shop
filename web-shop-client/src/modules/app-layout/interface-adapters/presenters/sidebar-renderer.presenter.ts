@@ -60,6 +60,7 @@ export class SidebarRendererPresenter {
    */
   private _getDefaultSidebarConfig(): PageConfig | null {
     try {
+      console.log('[SidebarRendererPresenter] Using default sidebar configuration');
       const defaultSidebarLayout = {
         version: "1.0",
         theme: {
