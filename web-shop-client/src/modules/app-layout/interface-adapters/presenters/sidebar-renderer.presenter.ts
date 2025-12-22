@@ -49,9 +49,88 @@ export class SidebarRendererPresenter {
    */
   public getSidebar(): PageConfig | null {
     if (!this._configs) {
-      return null;
+      // Fallback configuration for sidebar when config is not loaded
+      return this._getDefaultSidebarConfig();
     }
     return this._convertToPageConfig(this._configs.sidebar, 'sidebar');
+  }
+
+  /**
+   * Возвращает конфигурацию sidebar по умолчанию
+   */
+  private _getDefaultSidebarConfig(): PageConfig | null {
+    try {
+      const defaultSidebarLayout = {
+        version: "1.0",
+        theme: {
+          colors: {
+            primary: "#3B5AFE",
+            background: "#0D1117",
+            surface: "#161B22",
+            text: "#FFFFFF"
+          },
+          spacing: [0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80]
+        },
+        layout: {
+          id: "sidebar-container",
+          type: "Container",
+          props: {
+            vertical: true,
+            sidebar: true
+          },
+          styles: {
+            padding: 8,
+            backgroundColor: "surface",
+            minHeight: "100vh",
+            width: "100%"
+          },
+          children: [
+            {
+              id: "store-button",
+              type: "Button",
+              props: {
+                text: "Store",
+                icon: "🛒",
+                fullWidth: true
+              },
+              styles: {
+                padding: 4,
+                backgroundColor: "primary",
+                textColor: "text",
+                justifyContent: "flex-start"
+              }
+            },
+            {
+              id: "patch-notes-button",
+              type: "Button",
+              props: {
+                text: "Patch Notes",
+                icon: "📋",
+                fullWidth: true
+              },
+              styles: {
+                padding: 4,
+                backgroundColor: "surface",
+                textColor: "text",
+                justifyContent: "flex-start",
+                hoverBackgroundColor: "primary"
+              },
+              actions: {
+                onClick: {
+                  type: "custom",
+                  handler: "navigateToPatchNotes"
+                }
+              }
+            }
+          ]
+        }
+      };
+
+      return this._convertToPageConfig(defaultSidebarLayout, 'sidebar');
+    } catch (error) {
+      console.error('[SidebarRendererPresenter] Failed to create default sidebar config', error);
+      return null;
+    }
   }
 
   /**
