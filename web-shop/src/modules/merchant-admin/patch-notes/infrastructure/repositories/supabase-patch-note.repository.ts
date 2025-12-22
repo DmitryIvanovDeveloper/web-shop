@@ -149,7 +149,7 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
       }
 
       const patchNotes = data?.map(row => this.mapRowToEntity(row)) || [];
-      return Result.success(patchNotes);
+      return Success.ok(patchNotes);
 
     } catch (error) {
       this._logger.error('[SupabasePatchNoteRepository] Unexpected error finding all patch notes', { error });
@@ -174,11 +174,11 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
 
       if (error) {
         this._logger.error('[SupabasePatchNoteRepository] Failed to delete patch note', { error, id: id.value });
-        return Result.fail(new Error(`Failed to delete patch note: ${error.message}`));
+        return Failure.fail(new Error(`Failed to delete patch note: ${error.message}`));
       }
 
       this._logger.info('[SupabasePatchNoteRepository] Patch note deleted successfully', { id: id.value });
-      return Result.success(undefined);
+      return Success.ok(undefined);
 
     } catch (error) {
       this._logger.error('[SupabasePatchNoteRepository] Unexpected error deleting patch note', { error });
