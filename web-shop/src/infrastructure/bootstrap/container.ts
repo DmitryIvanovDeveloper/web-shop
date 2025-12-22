@@ -16,6 +16,7 @@ import { bindUIBuilder } from '@/modules/ui-builder/infrastructure/bootstrap/bin
 import { bindMerchantAdminOffers } from '@/modules/merchant-admin/offers/infrastructure/bootstrap/offers.container';
 import { bindMerchantAdminProducts } from '@/modules/merchant-admin/products/infrastructure/bootstrap/products.container';
 import { bindMerchantAdminPromoCodes } from '@/modules/merchant-admin/promo-codes/infrastructure/bootstrap/promo-codes.container';
+import { bindMerchantAdminPatchNotes } from '@/modules/merchant-admin/patch-notes/infrastructure/bootstrap/patch-notes.container';
 
 // Create Inversify container
 const container = new Container();
@@ -39,6 +40,7 @@ container.bind<DatabaseClientPort>(TYPES.DatabaseClient).to(SupabaseClient).inSi
 bindUIBuilder(container);
 bindMerchantAdminOffers(container);
 bindMerchantAdminProducts(container);
+bindMerchantAdminPatchNotes(container);
 // bindMerchantAdminPromoCodes(container); // Temporarily disabled due to error
 
 export { container };
