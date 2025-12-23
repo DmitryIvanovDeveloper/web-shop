@@ -7,11 +7,13 @@ import type { PatchNotesAdminViewModel } from '../view-models/patch-notes-admin.
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { MERCHANT_ADMIN_PATCH_NOTES_TYPES } from '../../infrastructure/bootstrap/types';
 
+import type { ChangeType } from '../../domain/entities/change-item';
+
 interface FormData {
   version: string;
   title: string;
   description: string;
-  changes: Array<{ type: 'feature' | 'bugfix' | 'improvement' | 'breaking-change'; description: string }>;
+  changes: Array<{ type: ChangeType; description: string }>;
 }
 
 export function PatchNotesAdmin(): JSX.Element {
@@ -27,7 +29,7 @@ export function PatchNotesAdmin(): JSX.Element {
     version: '',
     title: '',
     description: '',
-    changes: [{ type: 'feature', description: '' }]
+    changes: [{ type: 'feature' as ChangeType, description: '' }]
   });
 
   useEffect(() => {
@@ -81,7 +83,7 @@ export function PatchNotesAdmin(): JSX.Element {
         version: '',
         title: '',
         description: '',
-        changes: [{ type: 'feature', description: '' }]
+        changes: [{ type: 'feature' as ChangeType, description: '' }]
       });
       presenter.closeCreateModal();
     }
@@ -90,7 +92,7 @@ export function PatchNotesAdmin(): JSX.Element {
   const addChange = () => {
     setFormData(prev => ({
       ...prev,
-      changes: [...prev.changes, { type: 'feature', description: '' }]
+      changes: [...prev.changes, { type: 'feature' as ChangeType, description: '' }]
     }));
   };
 
