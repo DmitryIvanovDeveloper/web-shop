@@ -59,13 +59,10 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
         scheduled_for: patchNote.scheduledFor?.toISOString()
       };
 
-      // Use upsert with proper conflict resolution
+      // Simple insert since we already check for duplicates in the use case
       const { data, error } = await this._databaseClient
         .from('patch_notes')
-        .upsert(row, {
-          onConflict: 'version,app_id', // Conflict on version + app_id combination
-          ignoreDuplicates: false
-        })
+        .insert(row)
         .select()
         .single();
 
