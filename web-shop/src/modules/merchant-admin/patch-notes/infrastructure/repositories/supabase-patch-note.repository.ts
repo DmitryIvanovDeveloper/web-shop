@@ -59,43 +59,28 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
         scheduled_for: patchNote.scheduledFor?.toISOString()
       };
 
-      // First try to insert
-      const { data: insertData, error: insertError } = await this._databaseClient
+      // Use upsert with proper conflict resolution
+      const { data, error } = await this._databaseClient
         .from('patch_notes')
-        .insert(row)
+        .upsert(row, {
+          onConflict: 'version,app_id', // Conflict on version + app_id combination
+          ignoreDuplicates: false
+        })
         .select()
         .single();
 
-      if (insertError) {
-        // If insert failed due to duplicate key, try update
-        if (insertError.code === '23505') { // unique_violation
-          const { data: updateData, error: updateError } = await this._databaseClient
-            .from('patch_notes')
-            .update(row)
-            .eq('id', row.id)
-            .select()
-            .single();
-
-          if (updateError) {
-            this._logger.error('[SupabasePatchNoteRepository] Failed to update patch note', { updateError, row });
-            return Failure.fail(new Error(`Failed to update patch note: ${updateError.message}`));
-          }
-
-          if (!updateData) {
-            this._logger.error('[SupabasePatchNoteRepository] Update succeeded but no data returned');
-            return Failure.fail(new Error('Update operation failed: no data returned from database'));
-          }
-
-          this._logger.info('[SupabasePatchNoteRepository] Patch note updated successfully', { id: updateData.id });
-          return Success.ok(this.mapRowToEntity(updateData));
-        } else {
-          this._logger.error('[SupabasePatchNoteRepository] Failed to insert patch note', { insertError, row });
-          return Failure.fail(new Error(`Failed to insert patch note: ${insertError.message}`));
-        }
+      if (error) {
+        this._logger.error('[SupabasePatchNoteRepository] Failed to save patch note', { error, row });
+        return Failure.fail(new Error(`Failed to save patch note: ${error.message}`));
       }
 
-      this._logger.info('[SupabasePatchNoteRepository] Patch note inserted successfully', { id: insertData.id });
-      return Success.ok(this.mapRowToEntity(insertData));
+      if (!data) {
+        this._logger.error('[SupabasePatchNoteRepository] Save succeeded but no data returned');
+        return Failure.fail(new Error('Save operation failed: no data returned from database'));
+      }
+
+      this._logger.info('[SupabasePatchNoteRepository] Patch note saved successfully', { id: data.id });
+      return Success.ok(this.mapRowToEntity(data));
 
     } catch (error) {
       this._logger.error('[SupabasePatchNoteRepository] Unexpected error saving patch note', { error });
