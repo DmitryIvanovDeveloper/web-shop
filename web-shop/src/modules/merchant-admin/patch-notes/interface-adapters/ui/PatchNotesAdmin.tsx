@@ -6,7 +6,6 @@ import { PatchNotesAdminPresenter } from '../presenters/patch-notes-admin.presen
 import type { PatchNotesAdminViewModel } from '../view-models/patch-notes-admin.view-model';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { MERCHANT_ADMIN_PATCH_NOTES_TYPES } from '../../infrastructure/bootstrap/types';
-
 import type { ChangeType } from '../../domain/entities/change-item';
 
 interface FormData {
@@ -339,7 +338,7 @@ export function PatchNotesAdmin(): JSX.Element {
                     <div key={index} className="flex gap-3 items-start">
                       <select
                         value={change.type}
-                        onChange={(e) => updateChange(index, 'type', e.target.value)}
+                        onChange={(e) => updateChange(index, 'type', e.target.value as ChangeType)}
                         className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="feature">✨ Feature</option>
