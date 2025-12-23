@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Success, Failure, type Result } from '../../../../../shared/result/result';
+// Success, Failure, Result not used in this file
 import { TYPES } from '../../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../../application/ports/logger.port';
 import { MERCHANT_ADMIN_PATCH_NOTES_TYPES } from '../../infrastructure/bootstrap/types';
@@ -104,9 +104,9 @@ export class PatchNotesAdminPresenter {
         }
 
         this.updateViewModel({
-          status: 'loaded',
-          error: errorMessage
+          status: 'loaded'
         });
+        this.showError(errorMessage);
         return false;
       }
 
@@ -179,5 +179,9 @@ export class PatchNotesAdminPresenter {
 
   clearError(): void {
     this.updateViewModel({ error: undefined });
+  }
+
+  showError(error: string): void {
+    this.updateViewModel({ error });
   }
 }

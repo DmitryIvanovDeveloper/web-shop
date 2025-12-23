@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { PatchNotesAdminPresenter } from '../presenters/patch-notes-admin.presenter';
-import type { PatchNotesAdminViewModel } from '../view-models/patch-notes-admin.view-model';
+// PatchNotesAdminViewModel not used directly, accessed via presenter.getViewModel()
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { MERCHANT_ADMIN_PATCH_NOTES_TYPES } from '../../infrastructure/bootstrap/types';
 import type { ChangeType } from '../../domain/entities/change-item';
@@ -47,22 +47,19 @@ export function PatchNotesAdmin(): JSX.Element {
 
     // Validate form
     if (!formData.version || !formData.title || !formData.description) {
-      presenter.clearError();
-      setTimeout(() => presenter.updateViewModel({ error: 'Please fill in all required fields' }), 0);
+      presenter.showError('Please fill in all required fields');
       return;
     }
 
     // Validate version format
     const semverRegex = /^\d+\.\d+\.\d+$/;
     if (!semverRegex.test(formData.version.trim())) {
-      presenter.clearError();
-      setTimeout(() => presenter.updateViewModel({ error: 'Version must be in format x.y.z (e.g., 1.0.0, 2.5.3)' }), 0);
+      presenter.showError('Version must be in format x.y.z (e.g., 1.0.0, 2.5.3)');
       return;
     }
 
     if (formData.changes.some(change => !change.description.trim())) {
-      presenter.clearError();
-      setTimeout(() => presenter.updateViewModel({ error: 'All change descriptions must be filled' }), 0);
+      presenter.showError('All change descriptions must be filled');
       return;
     }
 
@@ -418,7 +415,7 @@ export function PatchNotesAdmin(): JSX.Element {
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Delete Patch Note</h3>
             <p className="text-red-600 mb-4">
-              Are you sure you want to delete patch note "{viewModel.selectedNote.title}" (v{viewModel.selectedNote.version})?
+              Are you sure you want to delete patch note &quot;{viewModel.selectedNote.title}&quot; (v{viewModel.selectedNote.version})?
             </p>
             <p className="text-gray-600 text-sm mb-4">
               Feature coming soon! This will allow deleting patch notes.
