@@ -31,12 +31,34 @@ export function PatchNotesAdmin(): JSX.Element {
     changes: [{ type: 'feature' as ChangeType, description: '' }]
   });
 
+  const [editFormData, setEditFormData] = useState<FormData>({
+    version: '',
+    title: '',
+    description: '',
+    changes: [{ type: 'feature' as ChangeType, description: '' }]
+  });
+
+  const viewModel = presenter.getViewModel();
+
   useEffect(() => {
     presenter.setOnViewModelChanged(() => forceUpdate({}));
     presenter.loadPatchNotes(appId);
   }, [presenter, appId]);
 
-  const viewModel = presenter.getViewModel();
+  // Initialize edit form when edit modal opens
+  useEffect(() => {
+    if (viewModel.isEditModalOpen && viewModel.selectedNote) {
+      setEditFormData({
+        version: viewModel.selectedNote.version,
+        title: viewModel.selectedNote.title,
+        description: viewModel.selectedNote.description,
+        changes: viewModel.selectedNote.changes.map(change => ({
+          type: change.type as ChangeType,
+          description: change.description
+        }))
+      });
+    }
+  }, [viewModel.isEditModalOpen, viewModel.selectedNote]);
 
   const handleCreateNew = () => {
     presenter.openCreateModal();
@@ -106,6 +128,64 @@ export function PatchNotesAdmin(): JSX.Element {
       ...prev,
       changes: prev.changes.map((change, i) =>
         i === index ? { ...change, [field]: value } : change
+      )
+    }));
+  };
+
+  // Edit form functions
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!viewModel.selectedNote) return;
+
+    // Validate form
+    if (!editFormData.title || !editFormData.description) {
+      presenter.showError('Please fill in all required fields');
+      return;
+    }
+
+    if (editFormData.changes.some(change => !change.description.trim())) {
+      presenter.showError('All change descriptions must be filled');
+      return;
+    }
+
+    const success = await presenter.updatePatchNote({
+      id: viewModel.selectedNote.id,
+      appId,
+      title: editFormData.title.trim(),
+      description: editFormData.description.trim(),
+      changes: editFormData.changes.map(change => ({
+        type: change.type,
+        description: change.description.trim()
+      }))
+    });
+
+    if (success) {
+      // Modal will be closed by presenter
+    }
+  };
+
+  const addEditChange = () => {
+    setEditFormData(prev => ({
+      ...prev,
+      changes: [...prev.changes, { type: 'feature' as ChangeType, description: '' }]
+    }));
+  };
+
+  const removeEditChange = (index: number) => {
+    if (editFormData.changes.length > 1) {
+      setEditFormData(prev => ({
+        ...prev,
+        changes: prev.changes.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
+  const updateEditChange = (index: number, field: string, value: string) => {
+    setEditFormData(prev => ({
+      ...prev,
+      changes: prev.changes.map((change, i) =>
+        i === index ? { ...change, [field]: value as ChangeType } : change
       )
     }));
   };
@@ -389,27 +469,118 @@ export function PatchNotesAdmin(): JSX.Element {
         </div>
       )}
 
-      {/* Edit Modal Placeholder */}
+      {/* Edit Modal */}
       {viewModel.isEditModalOpen && viewModel.selectedNote && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Patch Note</h3>
-            <p className="text-gray-600 mb-4">
-              Feature coming soon! This will allow editing existing patch notes.
-            </p>
-            <div className="flex justify-end">
-              <button
-                onClick={() => presenter.closeEditModal()}
-                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg"
-              >
-                Close
-              </button>
-            </div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Edit Patch Note</h3>
+
+            <form onSubmit={handleEditSubmit} className="space-y-6">
+              {/* Title */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.title}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Major Feature Release"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description *
+                </label>
+                <textarea
+                  value={editFormData.description}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Describe the main changes and improvements..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              {/* Changes */}
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Changes *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addEditChange}
+                    className="text-sm bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1 rounded-md"
+                  >
+                    + Add Change
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {editFormData.changes.map((change, index) => (
+                    <div key={index} className="flex gap-3 items-start">
+                      <select
+                        value={change.type}
+                        onChange={(e) => updateEditChange(index, 'type', e.target.value)}
+                        className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="feature">✨ Feature</option>
+                        <option value="bugfix">🐛 Bug Fix</option>
+                        <option value="improvement">⚡ Improvement</option>
+                        <option value="breaking-change">💥 Breaking Change</option>
+                      </select>
+
+                      <input
+                        type="text"
+                        value={change.description}
+                        onChange={(e) => updateEditChange(index, 'description', e.target.value)}
+                        placeholder="Describe the change..."
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        required
+                      />
+
+                      {editFormData.changes.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeEditChange(index)}
+                          className="text-red-500 hover:text-red-700 p-2"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end space-x-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => presenter.closeEditModal()}
+                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={viewModel.status === 'updating'}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors"
+                >
+                  {viewModel.status === 'updating' ? 'Updating...' : 'Update Patch Note'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
-      {/* Delete Modal Placeholder */}
+      {/* Delete Modal */}
       {viewModel.isDeleteModalOpen && viewModel.selectedNote && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
@@ -418,7 +589,7 @@ export function PatchNotesAdmin(): JSX.Element {
               Are you sure you want to delete patch note &quot;{viewModel.selectedNote.title}&quot; (v{viewModel.selectedNote.version})?
             </p>
             <p className="text-gray-600 text-sm mb-4">
-              Feature coming soon! This will allow deleting patch notes.
+              This action cannot be undone.
             </p>
             <div className="flex justify-end space-x-3">
               <button
@@ -428,10 +599,16 @@ export function PatchNotesAdmin(): JSX.Element {
                 Cancel
               </button>
               <button
-                onClick={() => presenter.closeDeleteModal()}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
+                onClick={async () => {
+                  const success = await presenter.deletePatchNote(viewModel.selectedNote!.id, appId);
+                  if (success) {
+                    // Modal will be closed by presenter
+                  }
+                }}
+                disabled={viewModel.status === 'deleting'}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg"
               >
-                Delete
+                {viewModel.status === 'deleting' ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>

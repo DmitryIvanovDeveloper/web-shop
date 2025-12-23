@@ -13,6 +13,7 @@ export interface CreatePatchNoteInput {
 
 export interface UpdatePatchNoteInput {
   id: string;
+  appId: string;
   title?: string;
   description?: string;
   changes?: Array<{
@@ -32,6 +33,7 @@ export interface SchedulePatchNoteInput {
 
 export interface DeletePatchNoteInput {
   id: string;
+  appId: string;
 }
 
 export interface GetPatchNoteInput {

@@ -3,8 +3,8 @@ import { inject, injectable } from 'inversify';
 import { TYPES } from '../../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../../application/ports/logger.port';
 import { MERCHANT_ADMIN_PATCH_NOTES_TYPES } from '../../infrastructure/bootstrap/types';
-import { CreatePatchNoteUseCase, GetPatchNotesUseCase } from '../../application';
-import type { CreatePatchNoteInput, PatchNoteOutput } from '../../application/types/patch-note.types';
+import { CreatePatchNoteUseCase, UpdatePatchNoteUseCase, DeletePatchNoteUseCase, GetPatchNotesUseCase } from '../../application';
+import type { CreatePatchNoteInput, UpdatePatchNoteInput, PatchNoteOutput } from '../../application/types/patch-note.types';
 import type { PatchNotesAdminViewModel } from '../view-models/patch-notes-admin.view-model';
 
 @injectable()
@@ -23,6 +23,10 @@ export class PatchNotesAdminPresenter {
   constructor(
     @inject(MERCHANT_ADMIN_PATCH_NOTES_TYPES.CreatePatchNoteUseCase)
     private readonly _createPatchNoteUseCase: CreatePatchNoteUseCase,
+    @inject(MERCHANT_ADMIN_PATCH_NOTES_TYPES.UpdatePatchNoteUseCase)
+    private readonly _updatePatchNoteUseCase: UpdatePatchNoteUseCase,
+    @inject(MERCHANT_ADMIN_PATCH_NOTES_TYPES.DeletePatchNoteUseCase)
+    private readonly _deletePatchNoteUseCase: DeletePatchNoteUseCase,
     @inject(MERCHANT_ADMIN_PATCH_NOTES_TYPES.GetPatchNotesUseCase)
     private readonly _getPatchNotesUseCase: GetPatchNotesUseCase,
     @inject(TYPES.Logger)
@@ -59,7 +63,7 @@ export class PatchNotesAdminPresenter {
         return;
       }
 
-      const patchNotes = result.data || [];
+      const patchNotes = result.value || [];
 
       this._logger.info('[PatchNotesAdminPresenter] Patch notes loaded successfully', {
         count: patchNotes.length
@@ -175,6 +179,61 @@ export class PatchNotesAdminPresenter {
       isDeleteModalOpen: false,
       selectedNote: null
     });
+  }
+
+  async updatePatchNote(input: UpdatePatchNoteInput): Promise<boolean> {
+    this.clearError();
+    this.updateViewModel({ status: 'updating' });
+
+    try {
+      const result = await this._updatePatchNoteUseCase.execute(input);
+
+      if (!result.isSuccess) {
+        this._logger.error('[PatchNotesAdminPresenter] Failed to update patch note', result.error);
+        this.updateViewModel({ status: 'error', error: result.error.message });
+        return false;
+      }
+
+      this._logger.info('[PatchNotesAdminPresenter] Patch note updated successfully', { patchNote: result.value });
+      this.updateViewModel({ status: 'loaded' });
+      this.closeEditModal();
+      // Reload list
+      await this.loadPatchNotes(input.appId);
+      return true;
+    } catch (error) {
+      this._logger.error('[PatchNotesAdminPresenter] Unexpected error updating patch note', error);
+      this.updateViewModel({
+        status: 'error',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      return false;
+    }
+  }
+
+  async deletePatchNote(id: string, appId: string): Promise<boolean> {
+    this.clearError();
+
+    try {
+      const result = await this._deletePatchNoteUseCase.execute({ id, appId });
+
+      if (!result.isSuccess) {
+        this._logger.error('[PatchNotesAdminPresenter] Failed to delete patch note', result.error);
+        this.updateViewModel({ error: result.error.message });
+        return false;
+    }
+
+      this._logger.info('[PatchNotesAdminPresenter] Patch note deleted successfully', { id });
+      this.closeDeleteModal();
+      // Reload list
+      await this.loadPatchNotes(appId);
+      return true;
+    } catch (error) {
+      this._logger.error('[PatchNotesAdminPresenter] Unexpected error deleting patch note', error);
+      this.updateViewModel({
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      return false;
+    }
   }
 
   clearError(): void {

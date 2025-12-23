@@ -54,22 +54,20 @@ export class CreatePatchNoteUseCase {
       // Save to repository
       const saveResult = await this._patchNoteRepository.save(patchNote);
       if (!saveResult.isSuccess) {
-        console.error('[CreatePatchNoteUseCase] Save failed:', saveResult.error);
         return Failure.fail(saveResult.error);
       }
 
-      if (!saveResult.data) {
-        console.error('[CreatePatchNoteUseCase] Save returned success but no data');
+      if (!saveResult.value) {
         return Failure.fail(new Error('Save operation failed: no data returned'));
       }
 
       // Publish domain event
       await this._eventBus.publish(
-        new PatchNoteCreatedEvent(patchNoteId, input.version, input.title)
+        new PatchNoteCreatedEvent(patchNoteId.value, input.version, input.title, input.appId)
       );
 
       // Return output
-      return Success.ok(this.mapToOutput(saveResult.data));
+      return Success.ok(this.mapToOutput(saveResult.value));
 
     } catch (error) {
       return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));

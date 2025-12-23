@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { Success, Failure, type Result } from '../../../../../shared/result/result';
 import { TYPES } from '../../../../../infrastructure/bootstrap/types';
-import type { DatabaseClientPort } from '../../../../../application/ports/database-client.port';
+import type { HttpClient, HttpResponse } from '../../../../../application/ports/http-client.port';
 import type { Logger } from '../../../../../application/ports/logger.port';
 import type { PatchNoteRepositoryPort } from '../../application/ports/patch-note-repository.port';
 import { PatchNote, type PatchNoteStatus } from '../../domain/entities/patch-note';
@@ -14,7 +14,7 @@ interface PatchNoteRow {
   app_id: string;
   version: string;
   title: string;
-  description: string;
+  description: string | null;
   changes: Array<{
     type: string;
     description: string;
@@ -22,62 +22,100 @@ interface PatchNoteRow {
   status: PatchNoteStatus;
   created_at: string;
   updated_at: string;
-  published_at?: string;
-  scheduled_for?: string;
+  published_at?: string | null;
+  scheduled_for?: string | null;
+}
+
+
+const mapRowToPatchNote = (row: any): Result<PatchNote, Error> => {
+  try {
+    // Ensure title and description are strings
+    const title = (row.title !== null && row.title !== undefined) ? String(row.title) : 'Untitled';
+    const description = (row.description !== null && row.description !== undefined) ? String(row.description) : '';
+
+    const changes = (row.changes || []).map((change: any) => {
+      try {
+        return ChangeItem.create(change.type, change.description || 'No description');
+      } catch (error) {
+        console.error('[mapRowToPatchNote] Error creating change item:', error, 'Change data:', change);
+        return ChangeItem.create('feature', 'Invalid change data');
+      }
+    });
+
+    const patchNote = PatchNote.create(
+      PatchNoteId.fromString(row.id),
+      row.app_id,
+      Version.create(row.version),
+      title,
+      description,
+      changes
+    );
+
+    return Success.ok(patchNote);
+  } catch (error) {
+    console.error('[mapRowToPatchNote] Error:', error, 'Row:', row);
+    const errorObj = error instanceof Error ? error : new Error('Unknown error mapping row to PatchNote');
+    return Failure.fail(errorObj);
+  }
+};
+
+interface PatchNoteRow {
+  id: string;
+  app_id: string;
+  version: string;
+  title: string;
+  description: string | null;
+  changes: Array<{
+    type: string;
+    description: string;
+  }>;
+  status: PatchNoteStatus;
+  created_at: string;
+  updated_at: string;
+  published_at?: string | null;
+  scheduled_for?: string | null;
 }
 
 @injectable()
 export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
   constructor(
-    @inject(TYPES.DatabaseClient)
-    private readonly _databaseClient: DatabaseClientPort,
+    @inject(TYPES.HttpClient)
+    private readonly _httpClient: HttpClient,
     @inject(TYPES.Logger)
     private readonly _logger: Logger
   ) {}
 
   async save(patchNote: PatchNote): Promise<Result<PatchNote, Error>> {
     try {
-      this._logger.info('[SupabasePatchNoteRepository] Saving patch note', {
+      this._logger.info('[SupabasePatchNoteRepository] Saving patch note via API', {
         id: patchNote.id.value,
         version: patchNote.version.value
       });
 
-      const row: PatchNoteRow = {
-        id: patchNote.id.value,
-        app_id: patchNote.appId,
+      const requestData = {
+        appId: patchNote.appId,
         version: patchNote.version.value,
         title: patchNote.title,
         description: patchNote.description,
         changes: patchNote.changes.map(change => ({
           type: change.type,
           description: change.description
-        })),
-        status: patchNote.status,
-        created_at: patchNote.createdAt.toISOString(),
-        updated_at: patchNote.updatedAt.toISOString(),
-        published_at: patchNote.publishedAt?.toISOString(),
-        scheduled_for: patchNote.scheduledFor?.toISOString()
+        }))
       };
 
-      // Simple insert since we already check for duplicates in the use case
-      const { data, error } = await this._databaseClient
-        .from('patch_notes')
-        .insert(row)
-        .select();
+      const response = await this._httpClient.post(
+        `/api/merchant-admin/patch-notes`,
+        requestData
+      );
 
-      if (error) {
-        this._logger.error('[SupabasePatchNoteRepository] Failed to save patch note', { error, row });
-        return Failure.fail(new Error(`Failed to save patch note: ${error.message}`));
+      if (response.status >= 400) {
+        this._logger.error('[SupabasePatchNoteRepository] Failed to save patch note via API', { status: response.status, data: response.data });
+        const errorData = response.data as any;
+        return Failure.fail(new Error(`Failed to save patch note: ${errorData?.error || response.statusText}`));
       }
 
-      if (!data || !Array.isArray(data) || data.length === 0) {
-        this._logger.error('[SupabasePatchNoteRepository] Save succeeded but no data returned', { data });
-        return Failure.fail(new Error('Save operation failed: no data returned from database'));
-      }
-
-      const savedData = data[0]; // Get first item from array
-      this._logger.info('[SupabasePatchNoteRepository] Patch note saved successfully', { id: savedData.id });
-      return Success.ok(this.mapRowToEntity(savedData));
+      this._logger.info('[SupabasePatchNoteRepository] Patch note saved successfully via API', { id: patchNote.id.value });
+      return Success.ok(patchNote);
 
     } catch (error) {
       this._logger.error('[SupabasePatchNoteRepository] Unexpected error saving patch note', { error });
@@ -85,25 +123,65 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
     }
   }
 
-  async findById(id: PatchNoteId): Promise<Result<PatchNote | null, Error>> {
+  async update(patchNote: PatchNote): Promise<Result<PatchNote, Error>> {
     try {
-      const { data, error } = await this._databaseClient
-        .from('patch_notes')
-        .select('*')
-        .eq('id', id.value)
-        .single();
+      this._logger.info('[SupabasePatchNoteRepository] Updating patch note via API', { patchNoteId: patchNote.id.value });
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-        this._logger.error('[SupabasePatchNoteRepository] Failed to find patch note by ID', { error, id: id.value });
-        return Failure.fail(new Error(`Failed to find patch note: ${error.message}`));
+      const requestData = {
+        title: patchNote.title,
+        description: patchNote.description,
+        changes: patchNote.changes.map(change => ({
+          type: change.type,
+          description: change.description
+        }))
+      };
+
+      const response = await this._httpClient.put(
+        `/api/merchant-admin/patch-notes?id=${patchNote.id.value}&appId=${patchNote.appId}`,
+        requestData
+      );
+
+      if (response.status >= 400) {
+        this._logger.error('[SupabasePatchNoteRepository] Failed to update patch note via API', { status: response.status, data: response.data });
+        const errorData = response.data as any;
+        return Failure.fail(new Error(`Failed to update patch note: ${errorData?.error || response.statusText}`));
       }
 
-      if (!data) {
+      this._logger.info('[SupabasePatchNoteRepository] Patch note updated successfully via API', { id: patchNote.id.value });
+      return Success.ok(patchNote);
+
+    } catch (error) {
+      this._logger.error('[SupabasePatchNoteRepository] Unexpected error updating patch note', { error });
+      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+    }
+  }
+
+  async findById(id: PatchNoteId, appId: string): Promise<Result<PatchNote | null, Error>> {
+    try {
+      this._logger.info('[SupabasePatchNoteRepository] Finding patch note by ID via API', { id: id.value, appId });
+
+      const response = await this._httpClient.get(
+        `/api/merchant-admin/patch-notes?id=${id.value}&appId=${appId}`
+      );
+
+      if (response.status >= 400) {
+        this._logger.error('[SupabasePatchNoteRepository] Failed to find patch note by ID via API', { status: response.status, data: response.data });
+        const errorData = response.data as any;
+        return Failure.fail(new Error(`Failed to find patch note: ${errorData?.error || response.statusText}`));
+      }
+
+      const data = response.data as any[];
+      if (!data || data.length === 0) {
         return Success.ok(null);
       }
 
-      const patchNote = this.mapRowToEntity(data);
-      return Success.ok(patchNote);
+      const patchNoteResult = mapRowToPatchNote(data[0]);
+      if (!patchNoteResult.isSuccess) {
+        this._logger.error('[SupabasePatchNoteRepository] Failed to map row to patch note', patchNoteResult.error);
+        return Failure.fail(patchNoteResult.error as Error);
+      }
+
+      return Success.ok(patchNoteResult.value || null);
 
     } catch (error) {
       this._logger.error('[SupabasePatchNoteRepository] Unexpected error finding patch note by ID', { error });
@@ -113,24 +191,30 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
 
   async findByVersion(version: Version, appId: string): Promise<Result<PatchNote | null, Error>> {
     try {
-      const { data, error } = await this._databaseClient
-        .from('patch_notes')
-        .select('*')
-        .eq('version', version.value)
-        .eq('app_id', appId)
-        .single();
+      this._logger.info('[SupabasePatchNoteRepository] Finding patch note by version via API', { version: version.value, appId });
 
-      if (error && error.code !== 'PGRST116') {
-        this._logger.error('[SupabasePatchNoteRepository] Failed to find patch note by version', { error, version: version.value });
-        return Failure.fail(new Error(`Failed to find patch note: ${error.message}`));
+      const response = await this._httpClient.get(
+        `/api/merchant-admin/patch-notes?version=${version.value}&appId=${appId}`
+      );
+
+      if (response.status >= 400) {
+        this._logger.error('[SupabasePatchNoteRepository] Failed to find patch note by version via API', { status: response.status, data: response.data });
+        const errorData = response.data as any;
+        return Failure.fail(new Error(`Failed to find patch note: ${errorData?.error || response.statusText}`));
       }
 
-      if (!data) {
+      const data = response.data as any[];
+      if (!data || data.length === 0) {
         return Success.ok(null);
       }
 
-      const patchNote = this.mapRowToEntity(data);
-      return Success.ok(patchNote);
+      const patchNoteResult = mapRowToPatchNote(data[0]);
+      if (!patchNoteResult.isSuccess) {
+        this._logger.error('[SupabasePatchNoteRepository] Failed to map row to patch note', patchNoteResult.error);
+        return Failure.fail(patchNoteResult.error as Error);
+      }
+
+      return Success.ok(patchNoteResult.value || null);
 
     } catch (error) {
       this._logger.error('[SupabasePatchNoteRepository] Unexpected error finding patch note by version', { error });
@@ -140,23 +224,33 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
 
   async findAll(appId: string, status?: PatchNoteStatus): Promise<Result<PatchNote[], Error>> {
     try {
-      let query = this._databaseClient
-        .from('patch_notes')
-        .select('*')
-        .eq('app_id', appId);
+      this._logger.info('[SupabasePatchNoteRepository] Finding all patch notes via API', { appId, status });
 
+      let url = `/api/merchant-admin/patch-notes?appId=${appId}`;
       if (status) {
-        query = query.eq('status', status);
+        url += `&status=${status}`;
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const response = await this._httpClient.get(url);
 
-      if (error) {
-        this._logger.error('[SupabasePatchNoteRepository] Failed to find all patch notes', { error });
-        return Failure.fail(new Error(`Failed to find patch notes: ${error.message}`));
+      if (response.status >= 400) {
+        this._logger.error('[SupabasePatchNoteRepository] Failed to find all patch notes via API', { status: response.status, data: response.data });
+        const errorData = response.data as any;
+        return Failure.fail(new Error(`Failed to find patch notes: ${errorData?.error || response.statusText}`));
       }
 
-      const patchNotes = data?.map(row => this.mapRowToEntity(row)) || [];
+      const patchNotes: PatchNote[] = [];
+      const data = response.data as any[];
+      if (data) {
+        for (const row of data) {
+          const patchNoteResult = mapRowToPatchNote(row);
+          if (!patchNoteResult.isSuccess) {
+            this._logger.error('[SupabasePatchNoteRepository] Failed to map row to patch note', patchNoteResult.error);
+            return Failure.fail(patchNoteResult.error as Error);
+          }
+          patchNotes.push(patchNoteResult.value!);
+        }
+      }
       return Success.ok(patchNotes);
 
     } catch (error) {
@@ -173,44 +267,26 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
     return this.findAll(appId, 'scheduled');
   }
 
-  async delete(id: PatchNoteId): Promise<Result<void, Error>> {
+  async delete(id: PatchNoteId, appId: string): Promise<Result<void, Error>> {
     try {
-      const { error } = await this._databaseClient
-        .from('patch_notes')
-        .delete()
-        .eq('id', id.value);
+      this._logger.info('[SupabasePatchNoteRepository] Deleting patch note via API', { id: id.value, appId });
 
-      if (error) {
-        this._logger.error('[SupabasePatchNoteRepository] Failed to delete patch note', { error, id: id.value });
-        return Failure.fail(new Error(`Failed to delete patch note: ${error.message}`));
+      const response = await this._httpClient.delete(
+        `/api/merchant-admin/patch-notes?id=${id.value}&appId=${appId}`
+      );
+
+      if (response.status >= 400) {
+        this._logger.error('[SupabasePatchNoteRepository] Failed to delete patch note via API', { status: response.status, data: response.data });
+        const errorData = response.data as any;
+        return Failure.fail(new Error(`Failed to delete patch note: ${errorData?.error || response.statusText}`));
       }
 
-      this._logger.info('[SupabasePatchNoteRepository] Patch note deleted successfully', { id: id.value });
+      this._logger.info('[SupabasePatchNoteRepository] Patch note deleted successfully via API', { id: id.value });
       return Success.ok(undefined);
 
     } catch (error) {
       this._logger.error('[SupabasePatchNoteRepository] Unexpected error deleting patch note', { error });
       return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
-  }
-
-  private mapRowToEntity(row: PatchNoteRow): PatchNote {
-    const changes = row.changes.map(change =>
-      new ChangeItem(change.type as any, change.description)
-    );
-
-    return new PatchNote(
-      PatchNoteId.fromString(row.id),
-      row.app_id,
-      Version.create(row.version),
-      row.title,
-      row.description,
-      changes,
-      row.status,
-      new Date(row.created_at),
-      new Date(row.updated_at),
-      row.published_at ? new Date(row.published_at) : undefined,
-      row.scheduled_for ? new Date(row.scheduled_for) : undefined
-    );
   }
 }

@@ -21,7 +21,7 @@ export class GetPatchNotesUseCase {
       }
 
       // Sort by created date (newest first)
-      const patchNotes = result.data || [];
+      const patchNotes = result.value || [];
       const sortedNotes = patchNotes.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
       const outputs = sortedNotes.map(note => this.mapToOutput(note));
@@ -39,7 +39,7 @@ export class GetPatchNotesUseCase {
       appId: patchNote.appId,
       version: patchNote.version.value,
       title: patchNote.title,
-      description: patchNote.description,
+      description: patchNote.description || '',
       changes: patchNote.changes.map(change => ({
         type: change.type,
         description: change.description

@@ -27,26 +27,21 @@ export class PatchNote {
     description: string,
     changes: ChangeItem[]
   ): PatchNote {
-    if (!title || title.trim().length === 0) {
-      throw new Error('Title cannot be empty');
-    }
+    // Allow empty strings but not null/undefined
+    const finalTitle = title || 'Untitled';
+    const finalDescription = description || '';
 
-    if (!description || description.trim().length === 0) {
-      throw new Error('Description cannot be empty');
-    }
-
-    if (!changes || changes.length === 0) {
-      throw new Error('Changes must contain at least one item');
-    }
+    // Allow empty changes array for existing data
+    const finalChanges = changes || [];
 
     const now = new Date();
     return new PatchNote(
       id,
       appId,
       version,
-      title.trim(),
-      description.trim(),
-      [...changes],
+      finalTitle.trim(),
+      finalDescription.trim(),
+      [...finalChanges],
       'draft',
       now,
       now
@@ -75,5 +70,25 @@ export class PatchNote {
 
   canBeEdited(): boolean {
     return this.status !== 'published';
+  }
+
+  update(updates: Partial<{ title: string; description: string; changes: ChangeItem[] }>): PatchNote {
+    if (!this.canBeEdited()) {
+      throw new Error('Cannot edit published patch note');
+    }
+
+    return new PatchNote(
+      this.id,
+      this.appId,
+      this.version,
+      updates.title ?? this.title,
+      updates.description ?? this.description,
+      updates.changes ?? this.changes,
+      this.status,
+      this.createdAt,
+      new Date(), // updatedAt
+      this.publishedAt,
+      this.scheduledFor
+    );
   }
 }

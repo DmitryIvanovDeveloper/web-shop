@@ -15,4 +15,6 @@ export type {
 
 // Use Cases
 export { CreatePatchNoteUseCase } from './use-cases/create-patch-note.use-case';
+export { UpdatePatchNoteUseCase } from './use-cases/update-patch-note.use-case';
+export { DeletePatchNoteUseCase } from './use-cases/delete-patch-note.use-case';
 export { GetPatchNotesUseCase } from './use-cases/get-patch-notes.use-case';
