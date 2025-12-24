@@ -14,7 +14,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       PATCH_NOTES_TYPES.GetPublishedPatchNotesUseCase
     );
 
+    console.log('[GET /api/patch-notes] Calling use case with appId:', appId);
     const result = await useCase.execute(appId);
+    console.log('[GET /api/patch-notes] Use case result:', result);
 
     if (result instanceof Failure) {
       console.error('[GET /api/patch-notes] Use case failed', result.error);
@@ -24,7 +26,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    return NextResponse.json((result as any).data);
+    const data = (result as any).data;
+    console.log('[GET /api/patch-notes] Returning data:', data);
+    return NextResponse.json(data);
 
   } catch (error) {
     console.error('[GET /api/patch-notes] Unexpected error', error);

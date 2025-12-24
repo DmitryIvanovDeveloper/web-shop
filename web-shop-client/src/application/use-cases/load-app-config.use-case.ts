@@ -61,12 +61,16 @@ export class LoadAppConfigUseCase {
       this._logger.info('[LoadAppConfigUseCase] App config loaded successfully (Supabase)', {
         version: config.version,
         environment: config.environment,
-				isDraft: shouldLoadDraft
+				isDraft: shouldLoadDraft,
+				hasModules: !!config.modules,
+				hasUIRenderer: !!config.modules?.uiRenderer,
+				hasSidebar: !!config.modules?.uiRenderer?.sidebar,
+				sidebarChildrenCount: config.modules?.uiRenderer?.sidebar?.layout?.children?.length || 0
       });
 
 			// Publish event for all modules to consume
       await this._eventBus.publishAsync(new AppConfigLoadedEvent(config as AppConfig));
-			
+
 			this._logger.info('[LoadAppConfigUseCase] AppConfigLoadedEvent published');
 		} catch (error) {
 			this._logger.error('[LoadAppConfigUseCase] Failed to load app config', error);

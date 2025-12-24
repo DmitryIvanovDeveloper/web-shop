@@ -133,6 +133,8 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
 
   async findAll(appId: string, status?: PatchNoteStatus): Promise<Result<PatchNote[], Error>> {
     try {
+      this._logger.info('[SupabasePatchNoteRepository] Finding all patch notes', { appId, status });
+
       let query = this._databaseClient
         .from('patch_notes')
         .select('*')
@@ -140,9 +142,17 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
 
       if (status) {
         query = query.eq('status', status);
+        this._logger.info('[SupabasePatchNoteRepository] Filtering by status', { status });
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });
+
+      this._logger.info('[SupabasePatchNoteRepository] Query result', {
+        dataCount: data?.length || 0,
+        hasError: !!error,
+        errorMessage: error?.message,
+        dataStatuses: data?.map(d => ({ id: d.id, status: d.status })) || []
+      });
 
       if (error) {
         this._logger.error('[SupabasePatchNoteRepository] Failed to find all patch notes', { error });
@@ -159,7 +169,13 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
   }
 
   async findPublished(appId: string): Promise<Result<PatchNote[], Error>> {
-    return this.findAll(appId, 'published');
+    this._logger.info('[SupabasePatchNoteRepository] Finding published patch notes', { appId });
+    const result = await this.findAll(appId, 'published');
+    this._logger.info('[SupabasePatchNoteRepository] Published patch notes result', {
+      success: result instanceof Success,
+      count: result instanceof Success ? (result as Success<PatchNote[]>).data?.length : 0
+    });
+    return result;
   }
 
   async findScheduled(appId: string): Promise<Result<PatchNote[], Error>> {
@@ -193,13 +209,18 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
       ChangeItem.create(change.type as any, change.description)
     );
 
-    return PatchNote.create(
+    return PatchNote.fromDatabase(
       PatchNoteId.fromString(row.id),
       row.app_id,
       Version.create(row.version),
       row.title,
       row.description || '',
-      changes
+      changes,
+      row.status,
+      new Date(row.created_at),
+      new Date(row.updated_at),
+      row.published_at ? new Date(row.published_at) : undefined,
+      row.scheduled_for ? new Date(row.scheduled_for) : undefined
     );
   }
 }

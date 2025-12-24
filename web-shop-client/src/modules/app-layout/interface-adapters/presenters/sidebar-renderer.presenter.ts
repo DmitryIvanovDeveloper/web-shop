@@ -48,22 +48,17 @@ export class SidebarRendererPresenter {
    * Возвращает конфигурацию для Sidebar
    */
   public getSidebar(): PageConfig | null {
-    // TEMPORARY: Always use default config to ensure patch-notes button is visible
-    console.log('[SidebarRendererPresenter] getSidebar called');
-    const result = this._getDefaultSidebarConfig();
-    console.log('[SidebarRendererPresenter] getSidebar result:', !!result);
-    return result;
+    // Always start with default config to ensure buttons are present
+    const defaultConfig = this._getDefaultSidebarConfig();
 
-    // TODO: Re-enable merge logic after testing
-    // // Always start with default config to ensure buttons are present
-    // const defaultConfig = this._getDefaultSidebarConfig();
-    //
-    // if (!this._configs || !this._configs.sidebar) {
-    //   return defaultConfig;
-    // }
-    //
-    // // Merge with Supabase config, but only override styles/themes
-    // return this._mergeSidebarConfigs(defaultConfig, this._configs.sidebar);
+    if (!this._configs || !this._configs.sidebar) {
+      console.log('[SidebarRendererPresenter] No Supabase config, using default');
+      return defaultConfig;
+    }
+
+    console.log('[SidebarRendererPresenter] Merging with Supabase config');
+    // Merge with Supabase config, but only override styles/themes
+    return this._mergeSidebarConfigs(defaultConfig, this._configs.sidebar);
   }
 
   /**
@@ -96,13 +91,40 @@ export class SidebarRendererPresenter {
         console.log('[SidebarRendererPresenter] Overrode layout styles from Supabase config');
       }
 
-      // CRITICAL: Always keep children from default config to ensure buttons are present
-      // Supabase config should NEVER override the button structure
-      console.log('[SidebarRendererPresenter] Keeping default children (buttons) to ensure they are always present');
+      // CRITICAL: Use ONLY default buttons, apply Supabase styles by ID if available
+      console.log('[SidebarRendererPresenter] Processing children merge');
 
-      // Explicitly ensure children are from default config
-      mergedLayout.layout.children = defaultConfig.layout.children;
-      console.log('[SidebarRendererPresenter] Explicitly set children from default config');
+      // Start with default children only
+      const mergedChildren = defaultConfig.layout.children.map((defaultChild: any) => {
+        // Find matching button in Supabase config by ID
+        const supabaseChild = supabaseConfig.layout?.children?.find(
+          (sc: any) => sc.id === defaultChild.id
+        );
+
+        if (supabaseChild && supabaseChild.styles) {
+          console.log(`[SidebarRendererPresenter] Applying Supabase styles to default button: ${defaultChild.id}`, {
+            defaultChildId: defaultChild.id,
+            supabaseChildId: supabaseChild.id,
+            defaultStyles: defaultChild.styles,
+            supabaseStyles: supabaseChild.styles
+          });
+          return {
+            ...defaultChild,
+            styles: { ...defaultChild.styles, ...supabaseChild.styles }
+          };
+        } else {
+          console.log(`[SidebarRendererPresenter] No Supabase styles for button: ${defaultChild.id}`, {
+            hasSupabaseChild: !!supabaseChild,
+            hasSupabaseStyles: supabaseChild?.styles
+          });
+        }
+
+        // Return default button unchanged if no Supabase styles
+        return defaultChild;
+      });
+
+      mergedLayout.layout.children = mergedChildren;
+      console.log('[SidebarRendererPresenter] Final children count:', mergedChildren.length);
 
       console.log('[SidebarRendererPresenter] Final merged layout children count:', mergedLayout.layout?.children?.length || 0);
 
@@ -156,7 +178,7 @@ export class SidebarRendererPresenter {
               id: "store-button",
               type: "Button",
               props: {
-                text: "Store TEST",
+                text: "Store",
                 icon: "🛒",
                 fullWidth: true
               },
@@ -165,6 +187,12 @@ export class SidebarRendererPresenter {
                 backgroundColor: "primary",
                 textColor: "text",
                 justifyContent: "flex-start"
+              },
+              actions: {
+                onClick: {
+                  type: "custom",
+                  handler: "navigateToStore"
+                }
               }
             },
             {

@@ -29,7 +29,22 @@ export default function PatchNotesPage(): JSX.Element {
   // Check if we're in preview mode
   const [previewMode, setPreviewMode] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
-  const [currentAppId, setCurrentAppId] = useState<string>('default-app');
+
+  // Get appId from URL initially
+  const getAppIdFromUrl = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        const url = new URL(window.location.href);
+        return url.searchParams.get('appId') || url.searchParams.get('app') || 'default-app';
+      } catch (err) {
+        console.error('[PatchNotesPage] Failed to parse URL for appId:', err);
+        return 'default-app';
+      }
+    }
+    return 'default-app';
+  };
+
+  const [currentAppId, setCurrentAppId] = useState<string>(getAppIdFromUrl);
   const applyElementSelectionMode = useCallback((enabled: boolean) => {
     setElementSelectionMode(enabled);
 
@@ -101,13 +116,19 @@ export default function PatchNotesPage(): JSX.Element {
     }
   }, []);
 
+  // Update currentAppId when searchParams change
+  useEffect(() => {
+    const appId = getAppIdFromUrl();
+    setCurrentAppId(appId);
+    console.log('[PatchNotesPage] Updated appId from URL:', appId);
+  }, [searchParams]);
+
   // Load app config on mount if appId is available (for iframe Builder preview)
   useEffect(() => {
     const loadAppConfig = async () => {
       try {
         // Get appId from URL (support both 'appId' and 'app' parameters)
-        const url = new URL(window.location.href);
-        const appId = url.searchParams.get('appId') || url.searchParams.get('app') || 'default-app';
+        const appId = getAppIdFromUrl();
 
         // Set current appId for patch notes
         setCurrentAppId(appId);

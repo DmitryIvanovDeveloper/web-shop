@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { Success, Failure } from '../../../../shared/result/result';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
-import type { Logger } from '../../../../infrastructure/ports/logger.port';
+import type { Logger } from '../../../../application/ports/logger.port';
 import { PATCH_NOTES_TYPES } from '../../infrastructure/bootstrap/types';
 import { GetPublishedPatchNotesUseCase } from '../../application/use-cases/get-published-patch-notes.use-case';
 import type { PatchNoteOutput } from '../../application/types/patch-note.types';
@@ -16,6 +16,7 @@ export class PatchNotesPublicPresenter {
   };
 
   private _onViewModelChanged?: () => void;
+  private _currentAppId?: string;
 
   constructor(
     @inject(PATCH_NOTES_TYPES.GetPublishedPatchNotesUseCase)
@@ -39,6 +40,7 @@ export class PatchNotesPublicPresenter {
 
   async loadPublishedNotes(appId: string): Promise<void> {
     this._logger.info('[PatchNotesPublicPresenter] Loading published patch notes', { appId });
+    this._currentAppId = appId;
 
     this.updateViewModel({ status: 'loading' });
 
@@ -105,6 +107,10 @@ export class PatchNotesPublicPresenter {
   }
 
   refresh(): Promise<void> {
-    return this.loadPublishedNotes();
+    if (!this._currentAppId) {
+      this._logger.warn('[PatchNotesPublicPresenter] Cannot refresh: no appId stored');
+      return Promise.resolve();
+    }
+    return this.loadPublishedNotes(this._currentAppId);
   }
 }

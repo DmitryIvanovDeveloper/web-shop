@@ -30,7 +30,13 @@ export class AppLayoutConfigLoadedHandler implements IAsyncEventHandler<AppConfi
 			}
 
 			const appLayoutConfig = event.payload.config.modules.uiRenderer;
-			
+
+			this._logger.info('[AppLayoutConfigLoadedHandler] Extracted uiRenderer config', {
+				hasConfig: !!appLayoutConfig,
+				hasSidebar: !!appLayoutConfig?.sidebar,
+				sidebarChildrenCount: appLayoutConfig?.sidebar?.layout?.children?.length || 0
+			});
+
 			if (!appLayoutConfig) {
 				this._logger.warn('[AppLayoutConfigLoadedHandler] App Layout config (uiRenderer) not found in AppConfig');
 				return;
@@ -38,7 +44,7 @@ export class AppLayoutConfigLoadedHandler implements IAsyncEventHandler<AppConfi
 
 			this._logger.info('[AppLayoutConfigLoadedHandler] Setting App Layout configs in presenter');
 			this._presenter.setConfigs(appLayoutConfig);
-			
+
 			this._logger.info('[AppLayoutConfigLoadedHandler] App Layout configs successfully applied');
 		} catch (error) {
 			this._logger.error('[AppLayoutConfigLoadedHandler] Error handling event', error);

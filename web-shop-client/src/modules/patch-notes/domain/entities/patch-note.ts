@@ -58,6 +58,34 @@ export class PatchNote {
     );
   }
 
+  static fromDatabase(
+    id: PatchNoteId,
+    appId: string,
+    version: Version,
+    title: string,
+    description: string,
+    changes: ChangeItem[],
+    status: PatchNoteStatus,
+    createdAt: Date,
+    updatedAt: Date,
+    publishedAt?: Date,
+    scheduledFor?: Date
+  ): PatchNote {
+    return new PatchNote(
+      id,
+      appId,
+      version,
+      title,
+      description,
+      changes,
+      status,
+      createdAt,
+      updatedAt,
+      publishedAt,
+      scheduledFor
+    );
+  }
+
   publish(): PatchNote {
     if (this.status !== 'draft') {
       throw new InvalidPatchNoteStatusError(this.status, 'publish');

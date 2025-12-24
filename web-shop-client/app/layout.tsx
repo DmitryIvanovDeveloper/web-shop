@@ -284,6 +284,10 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       console.log('[RootLayout] Navigating to patch notes page');
       navigateWithQuery('/patch-notes');
     },
+    navigateToStore: () => {
+      console.log('[RootLayout] Navigating to store page with query preservation');
+      navigateWithQuery('/store');
+    },
   };
 
   // Load app-config при старте приложения и подписка на real-time обновления

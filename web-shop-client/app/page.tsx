@@ -28,7 +28,7 @@ export default function HomePage(): JSX.Element {
     APP_LAYOUT_TYPES.SidebarRendererPresenter
   );
 
-    // Check if we're in preview mode
+  // Check if we're in preview mode
   const [previewMode, setPreviewMode] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
   const [currentAppId, setCurrentAppId] = useState<string>('default-app');
@@ -107,10 +107,10 @@ export default function HomePage(): JSX.Element {
 
         // Set current appId for patch notes
         setCurrentAppId(appId);
-
+        
         // Check if we're in an iframe (likely Builder preview)
         const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
-
+        
         if (appId) {
           // Try to load config from Supabase if not loaded yet
           const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);

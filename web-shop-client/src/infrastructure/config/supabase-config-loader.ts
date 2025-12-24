@@ -37,6 +37,12 @@ export class SupabaseConfigLoader {
   public async loadConfig(appId: string): Promise<AppConfig | null> {
     this._logger.info('[SupabaseConfigLoader] Loading active config', { appId });
 
+    this._logger.info('[SupabaseConfigLoader] Making query to Supabase', {
+      appId,
+      table: 'app_configs',
+      filters: { app_id: appId, is_active: true, is_draft: false }
+    });
+
     const { data, error } = await this._db
       .from('app_configs')
       .select('*')
@@ -46,8 +52,21 @@ export class SupabaseConfigLoader {
       .order('version', { ascending: false }) // Сортируем по version, а не created_at для корректного выбора последнего активного
       .limit(1);
 
+    this._logger.info('[SupabaseConfigLoader] Query result', {
+      dataFound: !!data,
+      dataLength: data?.length,
+      error: !!error,
+      errorMessage: error?.message
+    });
+
     if (error) {
       this._logger.error('[SupabaseConfigLoader] Failed to load config', error);
+      this._logger.error('[SupabaseConfigLoader] Error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
       throw error;
     }
 
