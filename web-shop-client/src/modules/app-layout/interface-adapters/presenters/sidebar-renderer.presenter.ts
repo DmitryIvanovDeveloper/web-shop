@@ -99,6 +99,12 @@ export class SidebarRendererPresenter {
                 backgroundColor: "primary",
                 textColor: "text",
                 justifyContent: "flex-start"
+              },
+              actions: {
+                onClick: {
+                  type: "custom",
+                  handler: "navigateToStore"
+                }
               }
             },
             {

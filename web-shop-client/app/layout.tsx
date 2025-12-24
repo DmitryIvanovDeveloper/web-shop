@@ -274,7 +274,27 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     },
     navigateToPatchNotes: () => {
       console.log('[RootLayout] Navigating to patch notes page');
-      router.push('/patch-notes');
+      // Preserve current query parameters
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        const searchParams = url.searchParams.toString();
+        const targetUrl = searchParams ? `/patch-notes?${searchParams}` : '/patch-notes';
+        router.push(targetUrl);
+      } else {
+        router.push('/patch-notes');
+      }
+    },
+    navigateToStore: () => {
+      console.log('[RootLayout] Navigating to store page');
+      // Preserve current query parameters
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        const searchParams = url.searchParams.toString();
+        const targetUrl = searchParams ? `/store?${searchParams}` : '/store';
+        router.push(targetUrl);
+      } else {
+        router.push('/store');
+      }
     },
   };
 
