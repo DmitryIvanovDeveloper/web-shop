@@ -44,8 +44,12 @@ export class PatchNotesPublicPresenter {
 
     try {
       const result = await this._getPublishedPatchNotesUseCase.execute(appId);
+      console.log('Patch notes result:', result);
+      console.log('Result type:', typeof result);
+      console.log('Result instanceof Success:', result instanceof Success);
+      console.log('Result instanceof Failure:', result instanceof Failure);
 
-      if (!result.isSuccess) {
+      if (result instanceof Failure) {
         this._logger.error('[PatchNotesPublicPresenter] Failed to load published notes', result.error);
         this.updateViewModel({
           status: 'error',
@@ -54,7 +58,7 @@ export class PatchNotesPublicPresenter {
         return;
       }
 
-      const patchNotes = result.data;
+      const patchNotes = (result as Success<PatchNoteOutput[]>).data;
 
       this._logger.info('[PatchNotesPublicPresenter] Published notes loaded successfully', {
         count: patchNotes.length

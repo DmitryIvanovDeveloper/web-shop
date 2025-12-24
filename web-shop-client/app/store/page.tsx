@@ -1,33 +1,28 @@
 'use client';
 
-import { container } from '../src/infrastructure/bootstrap/container';
-import { APP_LAYOUT_TYPES } from '../src/modules/app-layout/infrastructure/bootstrap/types';
-import { SidebarRendererPresenter } from '../src/modules/app-layout/interface-adapters/presenters/sidebar-renderer.presenter';
-import { SidebarRenderer } from '../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
-import type { ActionContext } from '../src/shared/ui/action-context';
+import { container } from '../../src/infrastructure/bootstrap/container';
+import { APP_LAYOUT_TYPES } from '../../src/modules/app-layout/infrastructure/bootstrap/types';
+import { SidebarRendererPresenter } from '../../src/modules/app-layout/interface-adapters/presenters/sidebar-renderer.presenter';
+import { SidebarRenderer } from '../../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
+import type { ActionContext } from '../../src/shared/ui/action-context';
 import { useCallback, useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { PAGE_RENDERER_TYPES } from '../src/modules/page-renderer/infrastructure/bootstrap/types';
-import { PageRendererPresenter } from '../src/modules/page-renderer/interface-adapters/presenters/page-renderer.presenter';
-import type { PageRendererViewModel } from '../src/modules/page-renderer/interface-adapters/view-models/page-renderer.view-model';
-import { LoadAppConfigFromMessageUseCase } from '../src/application/use-cases/load-app-config-from-message.use-case';
-import { LoadAppConfigUseCase } from '../src/application/use-cases/load-app-config.use-case';
-import { TYPES } from '../src/infrastructure/bootstrap/types';
-import { OfferCard } from '../src/shared/components/molecules/offer-card';
-import { PatchNotesPublic } from '../src/modules/patch-notes/interface-adapters/ui/components/patch-notes-public';
-import { ProductsList } from '../src/modules/products/interface-adapters/ui/components/products-list';
-import type { AppConfig } from '../src/shared/config/app-config.types';
+import { useRouter } from 'next/navigation';
+import { PAGE_RENDERER_TYPES } from '../../src/modules/page-renderer/infrastructure/bootstrap/types';
+import { PageRendererPresenter } from '../../src/modules/page-renderer/interface-adapters/presenters/page-renderer.presenter';
+import type { PageRendererViewModel } from '../../src/modules/page-renderer/interface-adapters/view-models/page-renderer.view-model';
+import { LoadAppConfigFromMessageUseCase } from '../../src/application/use-cases/load-app-config-from-message.use-case';
+import { LoadAppConfigUseCase } from '../../src/application/use-cases/load-app-config.use-case';
+import { TYPES } from '../../src/infrastructure/bootstrap/types';
+import { OfferCard } from '../../src/shared/components/molecules/offer-card';
+import { ProductsList } from '../../src/modules/products/interface-adapters/ui/components/products-list';
 
-export default function HomePage(): JSX.Element {
+export default function StorePage(): JSX.Element {
   const router = useRouter();
-  const pathname = usePathname();
-
-  console.log('HomePage rendered with pathname:', pathname);
   const sidebarPresenter = container.get<SidebarRendererPresenter>(
     APP_LAYOUT_TYPES.SidebarRendererPresenter
   );
 
-    // Check if we're in preview mode
+  // Check if we're in preview mode
   const [previewMode, setPreviewMode] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
   const [currentAppId, setCurrentAppId] = useState<string>('default-app');
@@ -64,12 +59,12 @@ export default function HomePage(): JSX.Element {
     onPopupClose: () => {},
     navigate: (url: string) => {
       if (typeof url === 'string') {
-        console.log('[HomePage] Navigating to:', url);
+        console.log('[StorePage] Navigating to:', url);
         router.push(url);
       }
     },
     navigateToPatchNotes: () => {
-      console.log('[HomePage] Navigating to patch notes page');
+      console.log('[StorePage] Navigating to patch notes');
       router.push('/patch-notes');
     },
   };
@@ -81,13 +76,12 @@ export default function HomePage(): JSX.Element {
         const url = new URL(window.location.href);
         const isPreview = url.searchParams.get('previewMode') === 'true';
         setPreviewMode(isPreview);
-        console.log('[HomePage] Preview mode:', isPreview);
+        console.log('[StorePage] Preview mode:', isPreview);
       } catch (err) {
-        console.error('[HomePage] Failed to parse URL for previewMode:', err);
+        console.error('[StorePage] Failed to parse URL for previewMode:', err);
       }
     }
   }, []);
-
 
   // Load app config on mount if appId is available (for iframe Builder preview)
   useEffect(() => {
@@ -97,7 +91,7 @@ export default function HomePage(): JSX.Element {
         const url = new URL(window.location.href);
         const appId = url.searchParams.get('appId') || url.searchParams.get('app') || 'default-app';
 
-        // Set current appId for patch notes
+        // Set current appId
         setCurrentAppId(appId);
 
         // Check if we're in an iframe (likely Builder preview)
@@ -110,15 +104,15 @@ export default function HomePage(): JSX.Element {
           if (previewMode || isInIframe) {
             // Load draft config for preview mode
             await loadAppConfigUseCase.execute(true);
-            console.log('[HomePage] Draft app config loaded from Supabase for preview mode', { appId, isInIframe });
+            console.log('[StorePage] Draft app config loaded from Supabase for preview mode', { appId, isInIframe });
           } else {
             // Load active config for regular client usage
             await loadAppConfigUseCase.execute(false);
-            console.log('[HomePage] Active app config loaded from Supabase for regular client', { appId });
+            console.log('[StorePage] Active app config loaded from Supabase for regular client', { appId });
           }
         }
       } catch (error) {
-        console.warn('[HomePage] Failed to load app config on mount, will wait for CONFIG_UPDATE message', error);
+        console.warn('[StorePage] Failed to load app config on mount, will wait for CONFIG_UPDATE message', error);
       }
     };
 
@@ -135,7 +129,7 @@ export default function HomePage(): JSX.Element {
     // Subscribe to ViewModel changes
     const unsubscribe = presenter.subscribe((newVm) => {
       setOfferCardVm(newVm);
-      console.log('[HomePage] Offer card VM updated', {
+      console.log('[StorePage] Offer card VM updated', {
         selectedOfferCardId: newVm.selectedOfferCardId,
         offerCardsCount: newVm.offerCards.length
       });
@@ -145,7 +139,7 @@ export default function HomePage(): JSX.Element {
     const handleMessage = async (event: MessageEvent) => {
       if (event.data?.type === 'CONFIG_UPDATE') {
         try {
-          console.log('[HomePage] Received CONFIG_UPDATE', {
+          console.log('[StorePage] Received CONFIG_UPDATE', {
             hasConfig: !!event.data.payload?.config,
             hasOfferCards: !!event.data.payload?.offerCards,
             offerCardsCount: event.data.payload?.offerCards?.length || 0,
@@ -154,12 +148,12 @@ export default function HomePage(): JSX.Element {
 
           // Load app-config (this will publish AppConfigLoadedEvent)
           if (event.data.payload?.config) {
-            const configPayload = event.data.payload.config as AppConfig;
+            const configPayload = event.data.payload.config as any;
             await loadAppConfigFromMessageUseCase.execute(configPayload);
             const selectionModeValue =
-              typeof (configPayload as any).elementSelectionMode === 'boolean'
-                ? (configPayload as any).elementSelectionMode
-                : Boolean((configPayload as any).elementSelectionMode);
+              typeof configPayload.elementSelectionMode === 'boolean'
+                ? configPayload.elementSelectionMode
+                : Boolean(configPayload.elementSelectionMode);
             applyElementSelectionMode(Boolean(selectionModeValue));
           } else {
             applyElementSelectionMode(false);
@@ -167,40 +161,40 @@ export default function HomePage(): JSX.Element {
 
           // Set offer cards and selected offer card ID in presenter
           if (event.data.payload?.offerCards) {
-            console.log('[HomePage] Setting offer cards', { count: event.data.payload.offerCards.length });
+            console.log('[StorePage] Setting offer cards', { count: event.data.payload.offerCards.length });
             presenter.setOfferCards(event.data.payload.offerCards);
           }
           // Only update selectedOfferCardId if explicitly provided in payload (preserve current value if not provided)
           if (event.data.payload?.selectedOfferCardId !== undefined) {
             if (event.data.payload.selectedOfferCardId !== null) {
-              console.log('[HomePage] Setting selected offer card ID', { cardId: event.data.payload.selectedOfferCardId });
+              console.log('[StorePage] Setting selected offer card ID', { cardId: event.data.payload.selectedOfferCardId });
               presenter.setSelectedOfferCardId(event.data.payload.selectedOfferCardId);
             } else {
               // Explicitly clear when null is provided
-              console.log('[HomePage] Clearing selected offer card ID (explicit null)');
+              console.log('[StorePage] Clearing selected offer card ID (explicit null)');
               presenter.setSelectedOfferCardId(null);
             }
           }
           // If selectedOfferCardId is not in payload, keep current value (don't clear it)
         } catch (error) {
-          console.error('[HomePage] Failed to process app config update from message', error);
+          console.error('[StorePage] Failed to process app config update from message', error);
         }
       } else if (event.data?.type === 'SHOW_AUTH_POPUP') {
         const visible = event.data.payload?.visible ?? false;
-        console.log('[HomePage] Received SHOW_AUTH_POPUP', { visible });
-        
+        console.log('[StorePage] Received SHOW_AUTH_POPUP', { visible });
+
         if (visible) {
           // Ensure config is loaded before showing popup
           // If config is in the message, load it first
           if (event.data.payload?.config) {
             try {
               await loadAppConfigFromMessageUseCase.execute(event.data.payload.config);
-              console.log('[HomePage] Config loaded before showing auth popup');
+              console.log('[StorePage] Config loaded before showing auth popup');
             } catch (error) {
-              console.error('[HomePage] Failed to load config before showing popup', error);
+              console.error('[StorePage] Failed to load config before showing popup', error);
             }
           }
-          
+
           // Dispatch showAuthPopup event to trigger AuthModule popup
           window.dispatchEvent(new CustomEvent('showAuthPopup'));
         } else {
@@ -226,11 +220,11 @@ export default function HomePage(): JSX.Element {
   // Debug logging for demo section
   useEffect(() => {
     if (previewMode) {
-      console.log('[HomePage] Demo section debug:', {
+      console.log('[StorePage] Demo section debug:', {
         previewMode,
         selectedOfferCardId: offerCardVm.selectedOfferCardId,
         offerCardsCount: offerCardVm.offerCards.length,
-        offerCardIds: offerCardVm.offerCards.map(c => c.id),
+        offerCardsIds: offerCardVm.offerCards.map(c => c.id),
         selectedOfferCard: selectedOfferCard ? selectedOfferCard.name : null
       });
     }
@@ -267,7 +261,7 @@ export default function HomePage(): JSX.Element {
     if (window.parent && window.parent !== window) {
       const targetOrigin = process.env.NEXT_PUBLIC_UI_BUILDER_URL || '*';
       window.parent.postMessage({ type: 'PREVIEW_READY' }, targetOrigin);
-      console.log('[HomePage] Sent PREVIEW_READY to parent');
+      console.log('[StorePage] Sent PREVIEW_READY to parent');
     }
   }, []);
 
@@ -305,14 +299,8 @@ export default function HomePage(): JSX.Element {
         </div>
       )}
 
-      {/* Store content - only show when not on patch-notes page */}
+      {/* Store content - Products list */}
       <div className="mt-12">
-        {/* Store content will be rendered here */}
-        <div className="text-center py-8">
-          <h1 className="text-3xl font-bold mb-4">Welcome to Web Shop</h1>
-          <p className="text-gray-600">Use the sidebar to navigate between sections.</p>
-        </div>
-        {/* Products list */}
         <ProductsList />
       </div>
     </main>

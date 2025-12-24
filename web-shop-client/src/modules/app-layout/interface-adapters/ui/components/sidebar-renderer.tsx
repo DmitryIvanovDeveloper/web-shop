@@ -11,10 +11,10 @@ interface SidebarRendererProps {
   readonly layoutType?: 'sidebar' | 'rightSidebar' | 'store';
 }
 
-export function SidebarRenderer({ 
-  presenter, 
+export function SidebarRenderer({
+  presenter,
   actionContext,
-  layoutType = 'sidebar' 
+  layoutType = 'sidebar'
 }: SidebarRendererProps): JSX.Element {
   const [configVersion, setConfigVersion] = useState(0);
 
@@ -39,7 +39,7 @@ export function SidebarRenderer({
   // configVersion инкрементируется при каждом subscribe callback
   const config = useMemo(() => {
     if (configVersion === 0) return null;
-    
+
     switch (layoutType) {
       case 'sidebar':
         return presenter.getSidebar();

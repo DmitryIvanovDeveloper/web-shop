@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import type { Result } from '../../../../shared/utils/result';
+import { Success, Failure, type Result } from '../../../../shared/result/result';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { EventBus } from '../../../../application/ports/event-bus.port';
 import type { PatchNoteRepositoryPort } from '../ports/patch-note-repository.port';
@@ -24,12 +24,12 @@ export class PublishPatchNoteUseCase {
       const patchNoteId = PatchNoteId.fromString(input.id);
       const findResult = await this._patchNoteRepository.findById(patchNoteId);
 
-      if (!findResult.isSuccess) {
-        return Result.fail(findResult.error);
+      if (findResult instanceof Failure) {
+        return findResult;
       }
 
       if (!findResult.data) {
-        return Result.fail(new PatchNoteNotFoundError(input.id));
+        return Failure.fail(new PatchNoteNotFoundError(input.id));
       }
 
       const patchNote = findResult.data;
@@ -40,15 +40,15 @@ export class PublishPatchNoteUseCase {
         publishedPatchNote = patchNote.publish();
       } catch (error) {
         if (error instanceof InvalidPatchNoteStatusError) {
-          return Result.fail(error);
+          return Failure.fail(error);
         }
         throw error;
       }
 
       // Save the published version
       const saveResult = await this._patchNoteRepository.save(publishedPatchNote);
-      if (!saveResult.isSuccess) {
-        return Result.fail(saveResult.error);
+      if (saveResult instanceof Failure) {
+        return saveResult;
       }
 
       // Publish domain event
@@ -61,10 +61,10 @@ export class PublishPatchNoteUseCase {
       );
 
       // Return output
-      return Result.success(this.mapToOutput(saveResult.data));
+      return Success.ok(this.mapToOutput(saveResult.data));
 
     } catch (error) {
-      return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 

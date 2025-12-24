@@ -3,6 +3,7 @@ import { container } from '../../../src/infrastructure/bootstrap/container';
 import { PATCH_NOTES_TYPES } from '../../../src/modules/patch-notes/infrastructure/bootstrap/types';
 import { CreatePatchNoteUseCase } from '../../../src/modules/patch-notes/application/use-cases/create-patch-note.use-case';
 import { GetPublishedPatchNotesUseCase } from '../../../src/modules/patch-notes/application/use-cases/get-published-patch-notes.use-case';
+import { Failure } from '../../../src/shared/result/result';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const result = await useCase.execute(appId);
 
-    if (!result.isSuccess) {
+    if (result instanceof Failure) {
       console.error('[GET /api/patch-notes] Use case failed', result.error);
       return NextResponse.json(
         { error: result.error.message },
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    return NextResponse.json(result.data);
+    return NextResponse.json((result as any).data);
 
   } catch (error) {
     console.error('[GET /api/patch-notes] Unexpected error', error);
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const result = await useCase.execute(body);
 
-    if (!result.isSuccess) {
+    if (result instanceof Failure) {
       console.error('[POST /api/patch-notes] Use case failed', result.error);
       return NextResponse.json(
         { error: result.error.message },
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    return NextResponse.json(result.data, { status: 201 });
+    return NextResponse.json((result as any).data, { status: 201 });
 
   } catch (error) {
     console.error('[POST /api/patch-notes] Unexpected error', error);

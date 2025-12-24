@@ -43,10 +43,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     ) || [];
 
 if (productsWithLimits.length > 0 && appId) {
-  try {
-    // Get purchase counts for this app
+      try {
+        // Get purchase counts for this app
     const purchaseRepository = container.get<PurchaseRepositoryPort>(PRODUCTS_TYPES.PurchaseRepository);
-    purchaseCounts = await purchaseRepository.getProductPurchaseCounts(appId);
+        purchaseCounts = await purchaseRepository.getProductPurchaseCounts(appId);
         console.log('[GET /api/products] Loaded purchase counts', {
           appId,
           productCount: purchaseCounts.size,

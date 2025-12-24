@@ -1,8 +1,9 @@
 import { inject, injectable } from 'inversify';
-import type { Result } from '../../../../shared/utils/result';
+import { Success, Failure, type Result } from '../../../../shared/result/result';
 import type { PatchNoteRepositoryPort } from '../ports/patch-note-repository.port';
 import type { PatchNoteOutput } from '../types/patch-note.types';
 import { PATCH_NOTES_TYPES } from '../../infrastructure/bootstrap/types';
+import { PatchNote } from '../../domain/entities/patch-note';
 
 @injectable()
 export class GetPublishedPatchNotesUseCase {
@@ -15,27 +16,28 @@ export class GetPublishedPatchNotesUseCase {
     try {
       const result = await this._patchNoteRepository.findPublished(appId);
 
-      if (!result.isSuccess) {
-        return Result.fail(result.error);
+      if (result instanceof Failure) {
+        return result;
       }
 
       // Sort by published date (newest first)
-      const sortedNotes = result.data.sort((a, b) => {
+      const patchNotes: PatchNote[] = (result as Success<PatchNote[]>).data || [];
+      const sortedNotes = patchNotes.sort((a: PatchNote, b: PatchNote) => {
         const dateA = a.publishedAt || new Date(0);
         const dateB = b.publishedAt || new Date(0);
         return dateB.getTime() - dateA.getTime();
       });
 
-      const outputs = sortedNotes.map(note => this.mapToOutput(note));
+      const outputs = sortedNotes.map((note: PatchNote) => this.mapToOutput(note));
 
-      return Result.success(outputs);
+      return Success.ok(outputs);
 
     } catch (error) {
-      return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
-  private mapToOutput(patchNote: any): PatchNoteOutput {
+  private mapToOutput(patchNote: PatchNote): PatchNoteOutput {
     return {
       id: patchNote.id.value,
       version: patchNote.version.value,

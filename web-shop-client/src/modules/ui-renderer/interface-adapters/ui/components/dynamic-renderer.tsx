@@ -35,8 +35,10 @@ const readSelectionModeFlag = (): boolean => {
 };
 
 export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererProps): JSX.Element | null {
-  console.log('[DynamicRenderer] Rendering with node:', node);
-  console.log('[DynamicRenderer] Node type:', node?.type);
+  console.log('[DynamicRenderer] Rendering with node:', node?.type, node?.id);
+  if (node?.id === 'sidebar-container') {
+    console.log('[DynamicRenderer] RENDERING SIDEBAR-CONTAINER:', node);
+  }
   
   if (!node) {
     console.error('[DynamicRenderer] Node is undefined or null');
@@ -334,9 +336,8 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
 
   // Для Container компонентов не добавляем flex классы - UniversalContainer сам их добавит
   // НЕ устанавливаем className здесь, он будет установлен позже после мержа с selectionModeProps
-  const containerProps = { 
-    ...(node.type === 'Container' && node.styles?.gap ? { gap: node.styles.gap, vertical: true } : {}),
-    ...(node.type === 'Container' && node.id === 'sidebar-container' ? { sidebar: true } : {})
+  const containerProps = {
+    ...(node.type === 'Container' && node.styles?.gap ? { gap: node.styles.gap, vertical: true } : {})
   };
 
   // Специальная обработка для InputText

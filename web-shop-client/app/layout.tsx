@@ -273,16 +273,8 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       }
     },
     navigateToPatchNotes: () => {
-      console.log('[RootLayout] Navigating to patch notes section');
-      // Scroll to patch notes section
-      const patchNotesElement = document.getElementById('patch-notes-section');
-      if (patchNotesElement) {
-        patchNotesElement.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        // If not on current page, navigate to home page first
-        console.log('[RootLayout] Patch notes section not found, navigating to home');
-        router.push('/?app=APP123&userId=test-user-123#patch-notes-section');
-      }
+      console.log('[RootLayout] Navigating to patch notes page');
+      router.push('/patch-notes');
     },
   };
 

@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
-import { Success, Failure } from '../../../../shared/result/result';
+import { Success, Failure, type Result } from '../../../../shared/result/result';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
-import type { DatabaseClient } from '../../../../infrastructure/ports/database-client.port';
+import type { DatabaseClientPort } from '../../../../application/ports/database-client.port';
 import type { Logger } from '../../../../application/ports/logger.port';
 import type { PatchNoteRepositoryPort } from '../../application/ports/patch-note-repository.port';
 import { PatchNote, type PatchNoteStatus } from '../../domain/entities/patch-note';
@@ -14,7 +14,7 @@ interface PatchNoteRow {
   app_id: string;
   version: string;
   title: string;
-  description: string;
+  description: string | null;
   changes: Array<{
     type: string;
     description: string;
@@ -30,7 +30,7 @@ interface PatchNoteRow {
 export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
   constructor(
     @inject(TYPES.DatabaseClient)
-    private readonly _databaseClient: DatabaseClient,
+    private readonly _databaseClient: DatabaseClientPort,
     @inject(TYPES.Logger)
     private readonly _logger: Logger
   ) {}
@@ -77,12 +77,13 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
     }
   }
 
-  async findById(id: PatchNoteId): Promise<Result<PatchNote | null, Error>> {
+  async findById(id: PatchNoteId, appId: string): Promise<Result<PatchNote | null, Error>> {
     try {
       const { data, error } = await this._databaseClient
         .from('patch_notes')
         .select('*')
         .eq('id', id.value)
+        .eq('app_id', appId)
         .single();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
@@ -148,7 +149,7 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
         return Failure.fail(new Error(`Failed to find patch notes: ${error.message}`));
       }
 
-      const patchNotes = data?.map(row => this.mapRowToEntity(row)) || [];
+      const patchNotes = data?.map((row: PatchNoteRow) => this.mapRowToEntity(row)) || [];
       return Success.ok(patchNotes);
 
     } catch (error) {
@@ -165,12 +166,13 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
     return this.findAll(appId, 'scheduled');
   }
 
-  async delete(id: PatchNoteId): Promise<Result<void, Error>> {
+  async delete(id: PatchNoteId, appId: string): Promise<Result<void, Error>> {
     try {
       const { error } = await this._databaseClient
         .from('patch_notes')
         .delete()
-        .eq('id', id.value);
+        .eq('id', id.value)
+        .eq('app_id', appId);
 
       if (error) {
         this._logger.error('[SupabasePatchNoteRepository] Failed to delete patch note', { error, id: id.value });
@@ -188,21 +190,16 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
 
   private mapRowToEntity(row: PatchNoteRow): PatchNote {
     const changes = row.changes.map(change =>
-      new ChangeItem(change.type as any, change.description)
+      ChangeItem.create(change.type as any, change.description)
     );
 
-    return new PatchNote(
+    return PatchNote.create(
       PatchNoteId.fromString(row.id),
       row.app_id,
       Version.create(row.version),
       row.title,
-      row.description,
-      changes,
-      row.status,
-      new Date(row.created_at),
-      new Date(row.updated_at),
-      row.published_at ? new Date(row.published_at) : undefined,
-      row.scheduled_for ? new Date(row.scheduled_for) : undefined
+      row.description || '',
+      changes
     );
   }
 }

@@ -18,7 +18,7 @@ import { bindPersonalOffers } from '../../modules/personal-offers/infrastructure
 import { bindProducts } from '../../modules/products/infrastructure/bootstrap/bind.products';
 import { bindPageRenderer } from '../../modules/page-renderer/infrastructure/bootstrap/bind.page-renderer';
 import { bindUserOfferContext } from '../../modules/user-offer-context/infrastructure/bootstrap/bind.user-offer-context';
-import { patchNotesModule } from '../../modules/patch-notes/infrastructure/bootstrap/bind.patch-notes';
+import { bindPatchNotes } from '../../modules/patch-notes/infrastructure/bootstrap/bind.patch-notes';
 import { UIRendererService } from '../services/ui-renderer/ui-renderer.service';
 import { UIComponentRegistry } from '../services/ui-renderer/component-registry.service';
 import { UIStyleBuilder } from '../services/ui-renderer/style-builder.service';
@@ -82,7 +82,7 @@ bindProducts(container);
 bindPageRenderer(container);
 
 // Register Patch Notes module
-container.load(patchNotesModule);
+bindPatchNotes(container);
 
 // App Config
 container.bind(TYPES.SupabaseConfigLoader).to(SupabaseConfigLoader).inSingletonScope();
