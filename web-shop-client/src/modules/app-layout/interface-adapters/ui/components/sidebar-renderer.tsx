@@ -16,6 +16,8 @@ export function SidebarRenderer({
   actionContext,
   layoutType = 'sidebar'
 }: SidebarRendererProps): JSX.Element {
+  console.log('[SidebarRenderer] Component rendered for', layoutType);
+
   const [configVersion, setConfigVersion] = useState(0);
 
   // Subscribe to config updates (for live preview updates)
@@ -38,13 +40,19 @@ export function SidebarRenderer({
   // Синхронно получаем конфигурацию из presenter
   // configVersion инкрементируется при каждом subscribe callback
   const config = useMemo(() => {
+    console.log('[SidebarRenderer] Getting config for', layoutType, 'version:', configVersion);
     if (configVersion === 0) return null;
 
+    let result = null;
     switch (layoutType) {
       case 'sidebar':
-        return presenter.getSidebar();
+        result = presenter.getSidebar();
+        console.log('[SidebarRenderer] Got sidebar config:', !!result);
+        return result;
       case 'rightSidebar':
-        return presenter.getRightSidebar();
+        result = presenter.getRightSidebar();
+        console.log('[SidebarRenderer] Got rightSidebar config:', !!result);
+        return result;
       case 'store':
         return presenter.getStore();
       default:
@@ -55,6 +63,7 @@ export function SidebarRenderer({
 
   // Если конфигурация еще не загружена
   if (!config) {
+    console.log('[SidebarRenderer] No config available for', layoutType);
     return (
       <div style={{ padding: '16px', color: '#A0A0A0' }}>
         {presenter.labels.notReady}
@@ -62,11 +71,19 @@ export function SidebarRenderer({
     );
   }
 
+  console.log('[SidebarRenderer] Rendering', layoutType, 'with layout:', config.layout?.id);
+  console.log('[SidebarRenderer] Children count:', config.layout?.children?.length || 0);
+  if (config.layout?.children) {
+    config.layout.children.forEach((child, index) => {
+      console.log(`[SidebarRenderer] Child ${index}:`, child.id, child.props?.text);
+    });
+  }
+
   return (
-    <DynamicRenderer 
-      node={config.layout} 
-      theme={config.theme} 
-      actionContext={actionContext} 
+    <DynamicRenderer
+      node={config.layout}
+      theme={config.theme}
+      actionContext={actionContext}
     />
   );
 }

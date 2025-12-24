@@ -7,7 +7,7 @@ import { AuthModule } from '../src/modules/authentication/interface-adapters/ui/
 import { PersonalOffersWidget } from '../src/modules/personal-offers/interface-adapters/ui/components/personal-offers-widget';
 import { useState, useEffect, useCallback } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { APP_LAYOUT_TYPES } from '../src/modules/app-layout/infrastructure/bootstrap/types';
 import { SidebarRendererPresenter } from '../src/modules/app-layout/interface-adapters/presenters/sidebar-renderer.presenter';
 import { SidebarRenderer } from '../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
@@ -140,6 +140,7 @@ const resolveRootStylesFromConfig = (config: PageConfig | null): { styles: CSSPr
 
 export default function RootLayout({ children }: { children: React.ReactNode}) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLeftDrawerOpen, setIsLeftDrawerOpen] = useState(false);
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -263,38 +264,25 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     };
   }, [sidebarPresenter]);
 
+  // Helper function to preserve query parameters
+  const navigateWithQuery = (path: string) => {
+    const currentSearch = searchParams.toString();
+    const newUrl = currentSearch ? `${path}?${currentSearch}` : path;
+    console.log('[RootLayout] Navigating to:', newUrl);
+    router.push(newUrl);
+  };
+
   const actionContext: ActionContext = {
     onPopupOpen: () => {},
     onPopupClose: () => {},
     navigate: (url: string) => {
       if (typeof url === 'string') {
-        console.log('[RootLayout] Navigating to:', url);
-        router.push(url);
+        navigateWithQuery(url);
       }
     },
     navigateToPatchNotes: () => {
       console.log('[RootLayout] Navigating to patch notes page');
-      // Preserve current query parameters
-      if (typeof window !== 'undefined') {
-        const url = new URL(window.location.href);
-        const searchParams = url.searchParams.toString();
-        const targetUrl = searchParams ? `/patch-notes?${searchParams}` : '/patch-notes';
-        router.push(targetUrl);
-      } else {
-        router.push('/patch-notes');
-      }
-    },
-    navigateToStore: () => {
-      console.log('[RootLayout] Navigating to store page');
-      // Preserve current query parameters
-      if (typeof window !== 'undefined') {
-        const url = new URL(window.location.href);
-        const searchParams = url.searchParams.toString();
-        const targetUrl = searchParams ? `/store?${searchParams}` : '/store';
-        router.push(targetUrl);
-      } else {
-        router.push('/store');
-      }
+      navigateWithQuery('/patch-notes');
     },
   };
 

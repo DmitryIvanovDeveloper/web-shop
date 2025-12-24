@@ -6,7 +6,7 @@ import { SidebarRendererPresenter } from '../../src/modules/app-layout/interface
 import { SidebarRenderer } from '../../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
 import type { ActionContext } from '../../src/shared/ui/action-context';
 import { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { PAGE_RENDERER_TYPES } from '../../src/modules/page-renderer/infrastructure/bootstrap/types';
 import { PageRendererPresenter } from '../../src/modules/page-renderer/interface-adapters/presenters/page-renderer.presenter';
 import { usePathname } from 'next/navigation';
@@ -21,6 +21,7 @@ import type { AppConfig } from '../../src/shared/config/app-config.types';
 export default function PatchNotesPage(): JSX.Element {
   console.log('PatchNotesPage function called');
   const router = useRouter();
+  const searchParams = useSearchParams();
   const sidebarPresenter = container.get<SidebarRendererPresenter>(
     APP_LAYOUT_TYPES.SidebarRendererPresenter
   );
@@ -57,13 +58,20 @@ export default function PatchNotesPage(): JSX.Element {
   });
 
   // ActionContext для обработки действий
+  // Helper function to preserve query parameters
+  const navigateWithQuery = (path: string) => {
+    const currentSearch = searchParams.toString();
+    const newUrl = currentSearch ? `${path}?${currentSearch}` : path;
+    console.log('[PatchNotesPage] Navigating to:', newUrl);
+    router.push(newUrl);
+  };
+
   const actionContext: ActionContext = {
     onPopupOpen: () => {},
     onPopupClose: () => {},
     navigate: (url: string) => {
       if (typeof url === 'string') {
-        console.log('[PatchNotesPage] Navigating to:', url);
-        router.push(url);
+        navigateWithQuery(url);
       }
     },
     navigateToPatchNotes: () => {
@@ -72,6 +80,9 @@ export default function PatchNotesPage(): JSX.Element {
       const patchNotesElement = document.getElementById('patch-notes-section');
       if (patchNotesElement) {
         patchNotesElement.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        // Navigate to patch notes page if element not found
+        navigateWithQuery('/patch-notes');
       }
     },
   };

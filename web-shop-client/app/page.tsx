@@ -6,7 +6,7 @@ import { SidebarRendererPresenter } from '../src/modules/app-layout/interface-ad
 import { SidebarRenderer } from '../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
 import type { ActionContext } from '../src/shared/ui/action-context';
 import { useCallback, useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { PAGE_RENDERER_TYPES } from '../src/modules/page-renderer/infrastructure/bootstrap/types';
 import { PageRendererPresenter } from '../src/modules/page-renderer/interface-adapters/presenters/page-renderer.presenter';
 import type { PageRendererViewModel } from '../src/modules/page-renderer/interface-adapters/view-models/page-renderer.view-model';
@@ -21,6 +21,7 @@ import type { AppConfig } from '../src/shared/config/app-config.types';
 export default function HomePage(): JSX.Element {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   console.log('HomePage rendered with pathname:', pathname);
   const sidebarPresenter = container.get<SidebarRendererPresenter>(
@@ -58,19 +59,26 @@ export default function HomePage(): JSX.Element {
     offerCards: []
   });
 
+  // Helper function to preserve query parameters
+  const navigateWithQuery = (path: string) => {
+    const currentSearch = searchParams.toString();
+    const newUrl = currentSearch ? `${path}?${currentSearch}` : path;
+    console.log('[HomePage] Navigating to:', newUrl);
+    router.push(newUrl);
+  };
+
   // ActionContext для обработки действий
   const actionContext: ActionContext = {
     onPopupOpen: () => {},
     onPopupClose: () => {},
     navigate: (url: string) => {
       if (typeof url === 'string') {
-        console.log('[HomePage] Navigating to:', url);
-        router.push(url);
+        navigateWithQuery(url);
       }
     },
     navigateToPatchNotes: () => {
       console.log('[HomePage] Navigating to patch notes page');
-      router.push('/patch-notes');
+      navigateWithQuery('/patch-notes');
     },
   };
 

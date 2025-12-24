@@ -6,7 +6,7 @@ import { SidebarRendererPresenter } from '../../src/modules/app-layout/interface
 import { SidebarRenderer } from '../../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
 import type { ActionContext } from '../../src/shared/ui/action-context';
 import { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { PAGE_RENDERER_TYPES } from '../../src/modules/page-renderer/infrastructure/bootstrap/types';
 import { PageRendererPresenter } from '../../src/modules/page-renderer/interface-adapters/presenters/page-renderer.presenter';
 import type { PageRendererViewModel } from '../../src/modules/page-renderer/interface-adapters/view-models/page-renderer.view-model';
@@ -18,6 +18,7 @@ import { ProductsList } from '../../src/modules/products/interface-adapters/ui/c
 
 export default function StorePage(): JSX.Element {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const sidebarPresenter = container.get<SidebarRendererPresenter>(
     APP_LAYOUT_TYPES.SidebarRendererPresenter
   );
@@ -54,18 +55,25 @@ export default function StorePage(): JSX.Element {
   });
 
   // ActionContext для обработки действий
+  // Helper function to preserve query parameters
+  const navigateWithQuery = (path: string) => {
+    const currentSearch = searchParams.toString();
+    const newUrl = currentSearch ? `${path}?${currentSearch}` : path;
+    console.log('[StorePage] Navigating to:', newUrl);
+    router.push(newUrl);
+  };
+
   const actionContext: ActionContext = {
     onPopupOpen: () => {},
     onPopupClose: () => {},
     navigate: (url: string) => {
       if (typeof url === 'string') {
-        console.log('[StorePage] Navigating to:', url);
-        router.push(url);
+        navigateWithQuery(url);
       }
     },
     navigateToPatchNotes: () => {
       console.log('[StorePage] Navigating to patch notes');
-      router.push('/patch-notes');
+      navigateWithQuery('/patch-notes');
     },
   };
 

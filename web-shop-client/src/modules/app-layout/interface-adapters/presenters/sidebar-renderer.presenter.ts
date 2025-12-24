@@ -48,11 +48,73 @@ export class SidebarRendererPresenter {
    * Возвращает конфигурацию для Sidebar
    */
   public getSidebar(): PageConfig | null {
-    if (!this._configs) {
-      // Fallback configuration for sidebar when config is not loaded
+    // TEMPORARY: Always use default config to ensure patch-notes button is visible
+    console.log('[SidebarRendererPresenter] getSidebar called');
+    const result = this._getDefaultSidebarConfig();
+    console.log('[SidebarRendererPresenter] getSidebar result:', !!result);
+    return result;
+
+    // TODO: Re-enable merge logic after testing
+    // // Always start with default config to ensure buttons are present
+    // const defaultConfig = this._getDefaultSidebarConfig();
+    //
+    // if (!this._configs || !this._configs.sidebar) {
+    //   return defaultConfig;
+    // }
+    //
+    // // Merge with Supabase config, but only override styles/themes
+    // return this._mergeSidebarConfigs(defaultConfig, this._configs.sidebar);
+  }
+
+  /**
+   * Объединяет дефолтную и Supabase конфигурации sidebar
+   */
+  private _mergeSidebarConfigs(defaultConfig: any, supabaseConfig: any): PageConfig | null {
+    try {
+      console.log('[SidebarRendererPresenter] Merging sidebar configs', {
+        hasDefault: !!defaultConfig,
+        hasSupabase: !!supabaseConfig,
+        supabaseTheme: !!supabaseConfig?.theme,
+        supabaseLayout: !!supabaseConfig?.layout
+      });
+
+      // Start with default layout structure
+      const mergedLayout = { ...defaultConfig };
+
+      // Override theme if present in Supabase config
+      if (supabaseConfig.theme) {
+        mergedLayout.theme = { ...mergedLayout.theme, ...supabaseConfig.theme };
+        console.log('[SidebarRendererPresenter] Overrode theme from Supabase config');
+      }
+
+      // Override layout styles if present in Supabase config
+      if (supabaseConfig.layout && supabaseConfig.layout.styles) {
+        mergedLayout.layout = {
+          ...mergedLayout.layout,
+          styles: { ...mergedLayout.layout.styles, ...supabaseConfig.layout.styles }
+        };
+        console.log('[SidebarRendererPresenter] Overrode layout styles from Supabase config');
+      }
+
+      // CRITICAL: Always keep children from default config to ensure buttons are present
+      // Supabase config should NEVER override the button structure
+      console.log('[SidebarRendererPresenter] Keeping default children (buttons) to ensure they are always present');
+
+      // Explicitly ensure children are from default config
+      mergedLayout.layout.children = defaultConfig.layout.children;
+      console.log('[SidebarRendererPresenter] Explicitly set children from default config');
+
+      console.log('[SidebarRendererPresenter] Final merged layout children count:', mergedLayout.layout?.children?.length || 0);
+
+      const result = this._convertToPageConfig(mergedLayout, 'sidebar');
+      console.log('[SidebarRendererPresenter] Conversion result:', !!result);
+
+      return result;
+    } catch (error) {
+      console.error('[SidebarRendererPresenter] Failed to merge sidebar configs', error);
+      // Fallback to default config
       return this._getDefaultSidebarConfig();
     }
-    return this._convertToPageConfig(this._configs.sidebar, 'sidebar');
   }
 
   /**
@@ -61,6 +123,10 @@ export class SidebarRendererPresenter {
   private _getDefaultSidebarConfig(): PageConfig | null {
     try {
       console.log('[SidebarRendererPresenter] Using default sidebar configuration');
+      console.log('[SidebarRendererPresenter] Default config children:', [
+        'store-button',
+        'patch-notes-button'
+      ]);
       const defaultSidebarLayout = {
         version: "1.0",
         theme: {
@@ -90,7 +156,7 @@ export class SidebarRendererPresenter {
               id: "store-button",
               type: "Button",
               props: {
-                text: "Store",
+                text: "Store TEST",
                 icon: "🛒",
                 fullWidth: true
               },
@@ -99,19 +165,13 @@ export class SidebarRendererPresenter {
                 backgroundColor: "primary",
                 textColor: "text",
                 justifyContent: "flex-start"
-              },
-              actions: {
-                onClick: {
-                  type: "custom",
-                  handler: "navigateToStore"
-                }
               }
             },
             {
               id: "patch-notes-button",
               type: "Button",
               props: {
-                text: "Patch Notes",
+                text: "Patch Notes TEST",
                 icon: "📋",
                 fullWidth: true
               },
