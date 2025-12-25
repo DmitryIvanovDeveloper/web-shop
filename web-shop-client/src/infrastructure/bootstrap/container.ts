@@ -19,6 +19,7 @@ import { bindProducts } from '../../modules/products/infrastructure/bootstrap/bi
 import { bindPageRenderer } from '../../modules/page-renderer/infrastructure/bootstrap/bind.page-renderer';
 import { bindUserOfferContext } from '../../modules/user-offer-context/infrastructure/bootstrap/bind.user-offer-context';
 import { bindPatchNotes } from '../../modules/patch-notes/infrastructure/bootstrap/bind.patch-notes';
+import { bindDailyRewards } from '../../modules/daily-rewards/infrastructure/bootstrap/bind.daily-rewards';
 import { UIRendererService } from '../services/ui-renderer/ui-renderer.service';
 import { UIComponentRegistry } from '../services/ui-renderer/component-registry.service';
 import { UIStyleBuilder } from '../services/ui-renderer/style-builder.service';
@@ -83,6 +84,9 @@ bindPageRenderer(container);
 
 // Register Patch Notes module
 bindPatchNotes(container);
+
+// Register Daily Rewards module
+bindDailyRewards(container);
 
 // App Config
 container.bind(TYPES.SupabaseConfigLoader).to(SupabaseConfigLoader).inSingletonScope();

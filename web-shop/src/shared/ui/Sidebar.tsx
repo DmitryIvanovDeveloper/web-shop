@@ -14,6 +14,7 @@ type SidebarProps = {
 const menuItems: Array<{ key: string; label: string; icon: string; href: string }> = [
   { key: "home", label: "Home", icon: "🏠", href: "/" },
   { key: "analytics-dashboard", label: "Analytics\nDashboard", icon: "📈", href: "/dashboard" },
+  { key: "merchant-admin-daily-rewards", label: "Daily Rewards", icon: "🎯", href: "/merchant-admin/daily-rewards?appId=APP123" },
   { key: "merchant-admin-offers", label: "Offers", icon: "🎁", href: "/merchant-admin/offers?appId=APP123" },
   { key: "merchant-admin-products", label: "Products", icon: "📦", href: "/products?appId=APP123" },
   { key: "merchant-admin-patch-notes", label: "Patch Notes", icon: "📋", href: "/merchant-admin/patch-notes?appId=APP123" },
@@ -98,6 +99,8 @@ export function Sidebar({ children, widthClassName = "w-64", title = "Navigation
                     .map((item) =>
                       item.key === "ui-builder"
                         ? { ...item, href: "/ui-builder?role=admin" }
+                        : item.key === "merchant-admin-daily-rewards"
+                        ? { ...item, href: "/merchant-admin/daily-rewards" }
                         : item.key === "merchant-admin-offers"
                         ? { ...item, href: "/merchant-admin/offers" }
                         : item.key === "merchant-admin-products"

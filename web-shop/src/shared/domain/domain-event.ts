@@ -10,3 +10,5 @@ export abstract class DomainEvent {
     this.occurredOn = new Date();
   }
 }
+
+

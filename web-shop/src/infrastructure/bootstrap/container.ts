@@ -17,6 +17,7 @@ import { bindMerchantAdminOffers } from '@/modules/merchant-admin/offers/infrast
 import { bindMerchantAdminProducts } from '@/modules/merchant-admin/products/infrastructure/bootstrap/products.container';
 import { bindMerchantAdminPromoCodes } from '@/modules/merchant-admin/promo-codes/infrastructure/bootstrap/promo-codes.container';
 import { bindMerchantAdminPatchNotes } from '@/modules/merchant-admin/patch-notes/infrastructure/bootstrap/patch-notes.container';
+import { bindDailyRewards } from '@/modules/daily-rewards/infrastructure/bootstrap/bind.daily-rewards';
 
 // Create Inversify container
 const container = new Container();
@@ -41,6 +42,7 @@ bindUIBuilder(container);
 bindMerchantAdminOffers(container);
 bindMerchantAdminProducts(container);
 bindMerchantAdminPatchNotes(container);
+bindDailyRewards(container);
 // bindMerchantAdminPromoCodes(container); // Temporarily disabled due to error
 
 export { container };

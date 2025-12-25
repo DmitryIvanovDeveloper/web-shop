@@ -34,3 +34,5 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Unexpected error while fetching patch notes' }, { status: 500 });
   }
 }
+
+

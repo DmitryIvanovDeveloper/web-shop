@@ -15,6 +15,7 @@ import { LoadAppConfigUseCase } from '../../src/application/use-cases/load-app-c
 import { TYPES } from '../../src/infrastructure/bootstrap/types';
 import { OfferCard } from '../../src/shared/components/molecules/offer-card';
 import { ProductsList } from '../../src/modules/products/interface-adapters/ui/components/products-list';
+import { DailyRewards } from '../../src/modules/daily-rewards';
 
 export default function StorePage(): JSX.Element {
   const router = useRouter();
@@ -23,10 +24,14 @@ export default function StorePage(): JSX.Element {
     APP_LAYOUT_TYPES.SidebarRendererPresenter
   );
 
+  // Get appId and userId from query parameters
+  const appId = searchParams.get('appId') || 'default-app';
+  const userId = searchParams.get('userId') || 'anonymous-user';
+
   // Check if we're in preview mode
   const [previewMode, setPreviewMode] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
-  const [currentAppId, setCurrentAppId] = useState<string>('default-app');
+  const [currentAppId, setCurrentAppId] = useState<string>(appId);
   const applyElementSelectionMode = useCallback((enabled: boolean) => {
     setElementSelectionMode(enabled);
 
@@ -95,11 +100,7 @@ export default function StorePage(): JSX.Element {
   useEffect(() => {
     const loadAppConfig = async () => {
       try {
-        // Get appId from URL (support both 'appId' and 'app' parameters)
-        const url = new URL(window.location.href);
-        const appId = url.searchParams.get('appId') || url.searchParams.get('app') || 'default-app';
-
-        // Set current appId
+        // Set current appId (already extracted from searchParams)
         setCurrentAppId(appId);
 
         // Check if we're in an iframe (likely Builder preview)
@@ -275,6 +276,11 @@ export default function StorePage(): JSX.Element {
 
   return (
     <main className="flex-1 overflow-y-auto w-full mx-auto" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>
+      {/* Daily Rewards Section */}
+      <div className="px-4 py-6">
+        <DailyRewards userId={userId} appId={appId} />
+      </div>
+
       {/* Demo section for selected offer card (only in preview mode) */}
       {previewMode && selectedOfferCard && (
         <div key="offer-card-demo-section" className="offer-card-demo-section" style={{ padding: '20px', marginBottom: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>

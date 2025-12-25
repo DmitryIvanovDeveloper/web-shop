@@ -46,3 +46,5 @@ export class PatchNoteValidationError extends PatchNoteError {
     super(`Validation failed for ${field}: ${reason}`);
   }
 }
+
+

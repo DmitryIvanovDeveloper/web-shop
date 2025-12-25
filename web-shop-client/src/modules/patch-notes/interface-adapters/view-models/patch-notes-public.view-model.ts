@@ -7,3 +7,4 @@ export interface PatchNotesPublicViewModel {
   error?: string;
 }
 
+

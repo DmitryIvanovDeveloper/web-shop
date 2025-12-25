@@ -48,3 +48,5 @@ SET config = jsonb_set(
 WHERE app_id = 'APP123'
   AND is_active = true
   AND is_draft = false;
+
+
