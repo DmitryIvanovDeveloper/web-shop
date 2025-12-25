@@ -53,3 +53,4 @@ export class PatchNoteDeletedEvent extends PatchNoteEvent {
     super(patchNoteId);
   }
 }
+

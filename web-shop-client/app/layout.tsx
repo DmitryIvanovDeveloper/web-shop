@@ -264,11 +264,26 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     };
   }, [sidebarPresenter]);
 
-  // Helper function to preserve query parameters
+  // Helper function to preserve query parameters with required appId and userId
   const navigateWithQuery = (path: string) => {
-    const currentSearch = searchParams.toString();
-    const newUrl = currentSearch ? `${path}?${currentSearch}` : path;
-    console.log('[RootLayout] Navigating to:', newUrl);
+    const url = new URL(window.location.href);
+    const currentParams = new URLSearchParams(searchParams.toString());
+
+    // Always ensure appId is present
+    const appId = currentParams.get('appId') || currentParams.get('app') || url.searchParams.get('appId') || url.searchParams.get('app');
+    if (appId) {
+      currentParams.set('appId', appId);
+    }
+
+    // Always ensure userId is present
+    const userId = currentParams.get('userId') || url.searchParams.get('userId');
+    if (userId) {
+      currentParams.set('userId', userId);
+    }
+
+    const queryString = currentParams.toString();
+    const newUrl = queryString ? `${path}?${queryString}` : path;
+    console.log('[RootLayout] Navigating to:', newUrl, { appId, userId });
     router.push(newUrl);
   };
 

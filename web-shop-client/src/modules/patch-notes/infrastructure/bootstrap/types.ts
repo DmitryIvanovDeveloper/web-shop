@@ -12,3 +12,4 @@ export const PATCH_NOTES_TYPES = {
   PatchNotesAdminPresenter: Symbol.for('PatchNotesAdminPresenter'),
   PatchNotesPublicPresenter: Symbol.for('PatchNotesPublicPresenter')
 } as const;
+

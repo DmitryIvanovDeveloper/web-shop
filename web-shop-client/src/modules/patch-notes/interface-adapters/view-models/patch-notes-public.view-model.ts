@@ -6,3 +6,4 @@ export interface PatchNotesPublicViewModel {
   selectedNoteId: string | null;
   error?: string;
 }
+

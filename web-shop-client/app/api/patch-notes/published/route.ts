@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -14,12 +16,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const searchParams = request.nextUrl.searchParams;
     const appId = searchParams.get('appId') || 'default-app';
 
-    const { data, error } = await supabase
+    // Show all patch notes by default for client testing, only published for production
+    const statusFilter = searchParams.get('status') || 'all';
+
+    let query = supabase
       .from('patch_notes')
       .select('*')
-      .eq('app_id', appId)
-      .eq('status', 'published')
-      .order('published_at', { ascending: false });
+      .eq('app_id', appId);
+
+    if (statusFilter === 'published') {
+      query = query.eq('status', 'published');
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
       console.error('[GET /api/patch-notes/published] Supabase error:', error);

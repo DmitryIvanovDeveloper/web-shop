@@ -18,3 +18,4 @@ export type {
 export { CreatePatchNoteUseCase } from './use-cases/create-patch-note.use-case';
 export { PublishPatchNoteUseCase } from './use-cases/publish-patch-note.use-case';
 export { GetPublishedPatchNotesUseCase } from './use-cases/get-published-patch-notes.use-case';
+

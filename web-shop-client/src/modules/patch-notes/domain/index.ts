@@ -11,3 +11,4 @@ export * from './errors/patch-note.error';
 
 // Events
 export * from './events/patch-note.events';
+

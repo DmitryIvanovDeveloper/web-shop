@@ -26,3 +26,4 @@ export class PatchNoteId {
     return this._value;
   }
 }
+
