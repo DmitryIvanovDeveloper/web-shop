@@ -15,7 +15,7 @@ import { createClient } from '@supabase/supabase-js';
  */
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ): Promise<Response> {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -29,7 +29,8 @@ export async function GET(
     }
 
     // Reconstruct the path from the array
-    let imagePath = params.path.join('/');
+    const resolvedParams = await params;
+    let imagePath = resolvedParams.path.join('/');
 
     // Remove 'Images' prefix if present (bucket name is already provided in .from())
     if (imagePath.startsWith('Images/')) {
@@ -46,7 +47,7 @@ export async function GET(
 
     if (error) {
       console.error('[Client Image Proxy] Failed to download image', {
-        originalPath: params.path.join('/'),
+        originalPath: resolvedParams.path.join('/'),
         imagePath,
         error: error.message,
       });

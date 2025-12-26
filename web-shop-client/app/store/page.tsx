@@ -15,7 +15,7 @@ import { LoadAppConfigUseCase } from '../../src/application/use-cases/load-app-c
 import { TYPES } from '../../src/infrastructure/bootstrap/types';
 import { OfferCard } from '../../src/shared/components/molecules/offer-card';
 import { ProductsList } from '../../src/modules/products/interface-adapters/ui/components/products-list';
-import { DailyRewards } from '../../src/modules/daily-rewards';
+import { DailyRewards, DailyRewardsPopup } from '../../src/modules/daily-rewards';
 
 export default function StorePage(): JSX.Element {
   const router = useRouter();
@@ -32,6 +32,7 @@ export default function StorePage(): JSX.Element {
   const [previewMode, setPreviewMode] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
   const [currentAppId, setCurrentAppId] = useState<string>(appId);
+  const [showDailyRewardsPopup, setShowDailyRewardsPopup] = useState(false);
   const applyElementSelectionMode = useCallback((enabled: boolean) => {
     setElementSelectionMode(enabled);
 
@@ -274,8 +275,31 @@ export default function StorePage(): JSX.Element {
     }
   }, []);
 
+  // Show Daily Rewards popup for authenticated users
+  useEffect(() => {
+    if (previewMode || userId === 'anonymous-user') {
+      return;
+    }
+
+    // Show popup after a short delay to let the page load
+    const timer = setTimeout(() => {
+      setShowDailyRewardsPopup(true);
+    }, 3000); // 3 seconds delay
+
+    return () => clearTimeout(timer);
+  }, [previewMode, userId]);
+
   return (
     <main className="flex-1 overflow-y-auto w-full mx-auto" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>
+      {/* Daily Rewards Popup */}
+      <DailyRewardsPopup
+        userId={userId}
+        appId={appId}
+        isOpen={showDailyRewardsPopup}
+        onClose={() => setShowDailyRewardsPopup(false)}
+        autoShow={false}
+      />
+
       {/* Daily Rewards Section */}
       <div className="px-4 py-6">
         <DailyRewards userId={userId} appId={appId} />

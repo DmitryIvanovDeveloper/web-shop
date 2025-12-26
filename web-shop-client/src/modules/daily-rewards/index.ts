@@ -11,4 +11,4 @@ export { DAILY_REWARDS_TYPES } from './infrastructure/daily-rewards.container';
 
 // Interface Adapters
 export { DailyRewardsPresenter, type DailyRewardsViewModel } from './interface-adapters/presenters/daily-rewards-presenter';
-export { DailyRewards } from './interface-adapters/ui';
+export { DailyRewards, DailyRewardsPopup } from './interface-adapters/ui';

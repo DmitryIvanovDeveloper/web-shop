@@ -31,17 +31,12 @@ export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort 
     try {
       this._logger.info('[SupabaseDailyRewardRepository] Finding active daily reward via API', { appId });
 
-      const url = `http://localhost:3001/api/daily-rewards/active?appId=${appId}`;
+      // Use relative URL - Next.js will proxy /api/* requests to the server
+      const url = `/api/daily-rewards/active?appId=${appId}`;
       this._logger.info('[SupabaseDailyRewardRepository] Making request to:', url);
 
-      // Use absolute URL with fetch for development
-      const fetchResponse = await fetch(url);
-      const responseData = await fetchResponse.json();
-      const response = {
-        status: fetchResponse.status,
-        statusText: fetchResponse.statusText,
-        data: responseData
-      };
+      // Use HttpClient for consistent API calls (handles base URL automatically)
+      const response = await this._httpClient.get<DailyRewardApiDto>(url);
 
       if (response.status === 404) {
         this._logger.info('[SupabaseDailyRewardRepository] No active daily reward found', { appId });

@@ -1,9 +1,9 @@
 import { inject, injectable } from 'inversify';
 import { Result, Success, Failure } from '../../../../shared/result/result';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
-import type { HttpClient, HttpResponse } from '../../../../../application/ports/http-client.port';
-import type { Logger } from '../../../../../application/ports/logger.port';
-import type { RewardClaimRepositoryPort } from '../../application/ports/reward-claim-repository.port';
+import type { HttpClient } from '../../../../application/ports/http-client.port';
+import type { Logger } from '../../../../application/ports/logger.port';
+import type { RewardClaimRepositoryPort } from '../../application/ports/reward-claim-repository-port.port';
 import { DailyRewardClaim, ClaimId, RewardId } from '../../domain';
 
 interface RewardClaimApiDto {
@@ -88,12 +88,8 @@ export class SupabaseRewardClaimRepository implements RewardClaimRepositoryPort 
         return Success.ok(null);
       }
 
-      // Sort by claimedAt descending and take the first (most recent)
-      const sortedClaims = claims.sort((a, b) =>
-        new Date(b.claimedAt).getTime() - new Date(a.claimedAt).getTime()
-      );
-
-      const claim = this.mapApiDtoToEntity(sortedClaims[0]);
+      // API already returns the most recent claim (sorted by claimed_at DESC, limit 1)
+      const claim = this.mapApiDtoToEntity(claims[0]);
       this._logger.info('[SupabaseRewardClaimRepository] Found last claim for user', {
         userId,
         claimId: claim.id.value,

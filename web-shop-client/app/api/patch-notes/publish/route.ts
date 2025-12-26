@@ -21,7 +21,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const result = await useCase.execute({ id });
 
-    if (!result.isSuccess) {
+    if (!result.success) {
       console.error('[POST /api/patch-notes/publish] Use case failed', result.error);
       return NextResponse.json(
         { error: result.error.message },
