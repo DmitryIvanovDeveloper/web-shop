@@ -663,7 +663,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
               <main
                 className="flex-1 overflow-y-auto w-full"
                 style={{
-                  padding: '32px'
+                  padding: isMobile ? '14px' : '32px'
                 }}
               >
                 {children}
