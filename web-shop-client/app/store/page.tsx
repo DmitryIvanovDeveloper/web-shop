@@ -15,7 +15,7 @@ import { LoadAppConfigUseCase } from '../../src/application/use-cases/load-app-c
 import { TYPES } from '../../src/infrastructure/bootstrap/types';
 import { OfferCard } from '../../src/shared/components/molecules/offer-card';
 import { ProductsList } from '../../src/modules/products/interface-adapters/ui/components/products-list';
-import { DailyRewards, DailyRewardsPopup } from '../../src/modules/daily-rewards';
+import { DailyRewardsPopup } from '../../src/modules/daily-rewards';
 
 export default function StorePage(): JSX.Element {
   const router = useRouter();
@@ -290,7 +290,7 @@ export default function StorePage(): JSX.Element {
   }, [previewMode, userId]);
 
   return (
-    <main className="flex-1 overflow-y-auto w-full mx-auto" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>
+    <main className="flex-1 overflow-y-auto w-full mx-auto" style={{ padding: '32px', paddingBottom: 'calc(160px + env(safe-area-inset-bottom))' }}>
       {/* Daily Rewards Popup */}
       <DailyRewardsPopup
         userId={userId}
@@ -300,10 +300,6 @@ export default function StorePage(): JSX.Element {
         autoShow={false}
       />
 
-      {/* Daily Rewards Section */}
-      <div className="px-4 py-6">
-        <DailyRewards userId={userId} appId={appId} />
-      </div>
 
       {/* Demo section for selected offer card (only in preview mode) */}
       {previewMode && selectedOfferCard && (
