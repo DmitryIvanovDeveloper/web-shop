@@ -305,7 +305,7 @@ export default function PatchNotesPage(): JSX.Element {
   }, []);
 
   return (
-    <main className="flex-1 overflow-y-auto w-full mx-auto" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>
+    <main className="flex-1 overflow-y-auto w-full mx-auto" style={{ padding: '32px', paddingBottom: 'calc(160px + env(safe-area-inset-bottom))' }}>
       {/* Demo section for selected offer card (only in preview mode) */}
       {previewMode && selectedOfferCard && (
         <div key="offer-card-demo-section" className="offer-card-demo-section" style={{ padding: '20px', marginBottom: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
