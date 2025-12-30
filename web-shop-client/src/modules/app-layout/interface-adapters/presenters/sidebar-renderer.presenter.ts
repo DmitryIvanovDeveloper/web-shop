@@ -199,7 +199,7 @@ export class SidebarRendererPresenter {
               id: "patch-notes-button",
               type: "Button",
               props: {
-                text: "Patch Notes TEST",
+                text: "Patch Notes",
                 icon: "📋",
                 fullWidth: true
               },

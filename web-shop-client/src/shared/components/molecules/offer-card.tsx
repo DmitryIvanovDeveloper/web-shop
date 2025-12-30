@@ -1,173 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import type { CSSProperties } from "react";
 import { Badge } from "../atoms/badge";
-import type { OfferCardUIConfig } from "../../config/app-config.types";
-
-const HEX_SHORT_REGEX = /^#([0-9a-f]{3})$/i;
-const HEX_LONG_REGEX = /^#([0-9a-f]{6})$/i;
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
-}
-
-function parseOpacityValue(raw?: string): number | undefined {
-  if (raw === undefined || raw === null) {
-    return undefined;
-  }
-
-  const trimmed = `${raw}`.trim();
-  if (trimmed === '') {
-    return undefined;
-  }
-
-  const parsed = Number(trimmed);
-  if (Number.isNaN(parsed)) {
-    return undefined;
-  }
-
-  return clamp(parsed, 0, 1);
-}
-
-function expandShortHex(hex: string): string {
-  if (!HEX_SHORT_REGEX.test(hex)) {
-    return hex;
-  }
-
-  const match = HEX_SHORT_REGEX.exec(hex);
-  if (!match) {
-    return hex;
-  }
-
-  const [, value] = match;
-  return `#${value
-    .split('')
-    .map((char) => `${char}${char}`)
-    .join('')}`;
-}
-
-function convertHexToRgba(hex: string, alpha: number): string {
-  const normalizedHex = expandShortHex(hex);
-  if (!HEX_LONG_REGEX.test(normalizedHex)) {
-    return hex;
-  }
-
-  const value = normalizedHex.slice(1);
-  const r = parseInt(value.slice(0, 2), 16);
-  const g = parseInt(value.slice(2, 4), 16);
-  const b = parseInt(value.slice(4, 6), 16);
-
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-function applyOpacityToColor(color: string | undefined, alpha: number | undefined): string | undefined {
-  if (!color) {
-    return color;
-  }
-
-  if (alpha === undefined) {
-    return color;
-  }
-
-  const clampedAlpha = clamp(alpha, 0, 1);
-
-  if (HEX_SHORT_REGEX.test(color) || HEX_LONG_REGEX.test(color)) {
-    return convertHexToRgba(color, clampedAlpha);
-  }
-
-  if (/^rgba\(/i.test(color)) {
-    const parts = color.replace(/rgba\(|\)/gi, '').split(',');
-    if (parts.length >= 4) {
-      const [r, g, b] = parts;
-      return `rgba(${r.trim()}, ${g.trim()}, ${b.trim()}, ${clampedAlpha})`;
-    }
-  }
-
-  if (/^rgb\(/i.test(color)) {
-    const parts = color.replace(/rgb\(|\)/gi, '').split(',');
-    if (parts.length >= 3) {
-      const [r, g, b] = parts;
-      return `rgba(${r.trim()}, ${g.trim()}, ${b.trim()}, ${clampedAlpha})`;
-    }
-  }
-
-  return color;
-}
-
-type LayoutMode = 'mobile' | 'tablet' | 'desktop';
-
-const isPlainObject = (value: unknown): value is Record<string, unknown> => {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-};
-
-const resolveResponsiveValue = <T,>(value: unknown, layout: LayoutMode): T | undefined => {
-  if (value === undefined || value === null) {
-    return undefined;
-  }
-
-  if (isPlainObject(value)) {
-    const record = value as Record<string, unknown>;
-    const layoutSpecific = record[layout];
-    if (layoutSpecific !== undefined && layoutSpecific !== null) {
-      return layoutSpecific as T;
-    }
-    if (record.desktop !== undefined && record.desktop !== null) {
-      return record.desktop as T;
-    }
-    if (record.default !== undefined && record.default !== null) {
-      return record.default as T;
-    }
-    return undefined;
-  }
-
-  return value as T;
-};
-
-const pickSpacingForLayout = (
-  value: unknown,
-  layout: LayoutMode,
-  defaults: Record<LayoutMode, string>
-): string => {
-  const resolved = resolveResponsiveValue<string>(value, layout);
-  if (resolved) {
-    return resolved;
-  }
-  return defaults[layout];
-};
-
-const detectLayoutMode = (width: number): LayoutMode => {
-  if (width < 360) {
-    return 'mobile';
-  }
-  if (width < 720) {
-    return 'tablet';
-  }
-  return 'desktop';
-};
-
-// Функция для форматирования countdown как у Pixel Gun (4D 10:36:27)
-function formatCountdown(targetDate: Date): string {
-  // Проверка на Invalid Date
-  if (!targetDate || isNaN(targetDate.getTime())) {
-    return '';
-  }
-  
-  const now = new Date();
-  const diff = targetDate.getTime() - now.getTime();
-  
-  if (diff <= 0) return 'EXPIRED';
-  
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-  
-  if (days > 0) {
-    return `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  }
-  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-}
+// import type { OfferCardUIConfig } from "../../config/app-config.types";
 
 export interface BuyButtonStyle {
   readonly backgroundColor?: string;
@@ -175,7 +11,6 @@ export interface BuyButtonStyle {
   readonly borderRadius?: string;
   readonly padding?: string;
   readonly fontWeight?: string;
-  readonly fontSize?: string;
 }
 
 export interface BuyButton {
@@ -184,587 +19,251 @@ export interface BuyButton {
   readonly style?: BuyButtonStyle;
 }
 
-export interface TitleStyle {
-  readonly fontSize?: string;
-  readonly fontWeight?: string;
-  readonly color?: string;
-}
-
 export interface OfferCardProps {
   readonly id?: string;
   readonly mainImage?: string;
   readonly mainImageAlt?: string;
   readonly sideImage?: string;
-  readonly backgroundImage?: string;
   readonly includedItems?: string[];
   readonly discount?: string;
   readonly playerLimit?: string;
-  readonly limitedOffer?: number;
-  readonly timer?: Date;
+  readonly timer?: string;
   readonly title?: string;
-  readonly description?: string;
-  readonly topLabel?: string;
-  readonly titleStyle?: TitleStyle;
   readonly rarity?: string;
   readonly originalPrice?: string;
   readonly currentPrice?: string;
   readonly rpBonus?: number;
   readonly lpBonus?: number;
-  readonly buyButton?: BuyButton;
   readonly isPurchased?: boolean;
   readonly isLoading?: boolean;
+  readonly buyButton?: BuyButton;
   readonly className?: string;
   readonly style?: CSSProperties;
   readonly onClick?: () => void;
 }
 
 export function OfferCard({
-  id,
   mainImage = "",
   mainImageAlt = "Product",
   sideImage,
-  backgroundImage,
   includedItems = [],
   discount,
   playerLimit,
-  limitedOffer,
   timer,
   title = "",
-  description,
-  topLabel,
-  titleStyle,
   rarity,
   originalPrice,
-  currentPrice = "",
+  currentPrice,
   rpBonus,
   lpBonus,
-  buyButton,
   isPurchased = false,
   isLoading = false,
+  buyButton,
   className = "",
   style,
-  onClick,
+  onClick
 }: OfferCardProps): JSX.Element {
-  // Стили из app-config.json (загружаются через AppConfigLoadedEvent)
-  // ComponentNode формат: styles содержит вложенные секции (container, image, title, etc)
-  const [uiConfigNode, setUiConfigNode] = useState<any>(null);
-  const cardRef = useRef<HTMLDivElement | null>(null);
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>('desktop');
-  
+  // State for dynamic styles from config
+  const [cardStyles, setCardStyles] = useState<any>(null);
+
+  // Load styles from window.__offerCardStyles when component mounts or config updates
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const measureAndSet = () => {
-      const width = cardRef.current?.getBoundingClientRect().width ?? window.innerWidth;
-      setLayoutMode(detectLayoutMode(width));
-    };
-
-    if (cardRef.current && typeof ResizeObserver === 'function') {
-      const observer = new ResizeObserver((entries) => {
-        const entry = entries[0];
-        const width = entry?.contentRect.width ?? entry?.target?.clientWidth ?? 0;
-        setLayoutMode(detectLayoutMode(width));
-      });
-
-      observer.observe(cardRef.current);
-      measureAndSet();
-
-      return () => {
-        observer.disconnect();
-      };
-    }
-
-    measureAndSet();
-    window.addEventListener('resize', measureAndSet);
-
-    return () => {
-      window.removeEventListener('resize', measureAndSet);
-    };
-  }, []);
-  
-  // Живой countdown - обновляется каждую секунду
-  const [countdown, setCountdown] = useState<string>('');
-  
-  // Загружаем стили из window после AppConfigLoadedEvent и обновляем при изменении
-  useEffect(() => {
-    const loadStyles = () => {
-      if (typeof window !== 'undefined' && (window as any).__offerCardStyles) {
-        const newStyles = (window as any).__offerCardStyles;
-        console.log('[OfferCard] Loading/updating styles from window.__offerCardStyles', {
-          cardId: id,
-          buyButtonBg: newStyles.styles?.buyButton?.backgroundColor,
-          hasStyles: !!newStyles.styles
-        });
-        setUiConfigNode(newStyles);
+    const updateStyles = () => {
+      if (typeof window !== 'undefined' && (window as any).__offerCardStyles?.styles) {
+        setCardStyles((window as any).__offerCardStyles.styles);
       }
     };
 
-    loadStyles();
+    // Initial load
+    updateStyles();
 
-    // Слушаем событие загрузки конфига
-    const handleConfigLoaded = () => {
-      console.log('[OfferCard] appConfigLoaded event received, reloading styles', { cardId: id });
-      loadStyles();
-    };
+    // Listen for config updates
+    window.addEventListener('appConfigLoaded', updateStyles);
+    return () => window.removeEventListener('appConfigLoaded', updateStyles);
+  }, []);
 
-    if (typeof window !== 'undefined') {
-      window.addEventListener('appConfigLoaded', handleConfigLoaded);
-      return () => window.removeEventListener('appConfigLoaded', handleConfigLoaded);
-    }
-  }, [id]);
-  
-  // Применяем стили из ComponentNode формата
-  // uiConfigNode.styles содержит вложенные секции (container, image, title, etc)
-  // Стили загружаются из window.__offerCardStyles, который устанавливается в page-renderer.tsx
-  // Все стили должны приходить из Supabase app_config через UI Builder (БД)
-  // Нет fallback значений - если стиль не указан в БД, он не применяется
-  const styles = uiConfigNode?.styles || {};
-  const responsive = <T,>(value: unknown): T | undefined =>
-    resolveResponsiveValue<T>(value, layoutMode);
-
-  const containerBg = responsive<string>(styles.container?.backgroundColor);
-  const containerOpacityValue = responsive<string | number>(styles.container?.backgroundOpacity);
-  const containerOpacity = parseOpacityValue(
-    containerOpacityValue !== undefined ? `${containerOpacityValue}` : undefined
-  );
-  const containerBackgroundColor = applyOpacityToColor(containerBg, containerOpacity);
-  const containerRadius = responsive<string>(styles.container?.borderRadius);
-  const containerBlurInput = responsive<string | number>(styles.container?.blurAmount);
-  const containerBlurValue =
-    typeof containerBlurInput === 'number'
-      ? containerBlurInput
-      : typeof containerBlurInput === 'string'
-        ? Number.parseFloat(containerBlurInput)
-        : 0;
-  const containerBackdropFilter =
-    Number.isFinite(containerBlurValue) && containerBlurValue > 0
-      ? `blur(${containerBlurValue}px)`
-      : undefined;
-  const imageBg = responsive<string>(styles.image?.backgroundColor);
-  const imageHeightRaw = responsive<string | number>(styles.image?.height);
-  const imageHeight =
-    imageHeightRaw ??
-    (layoutMode === 'mobile'
-      ? '180px'
-      : layoutMode === 'tablet'
-        ? '220px'
-        : '260px');
-
-  const bodyGapRaw = responsive<string | number>(styles.body?.gap);
-  const bodyGap =
-    bodyGapRaw ??
-    (layoutMode === 'mobile' ? '0.75rem' : layoutMode === 'tablet' ? '0.875rem' : '1rem');
-  const bodyPadding = pickSpacingForLayout(
-    styles.body?.padding ?? styles.container?.padding,
-    layoutMode,
-    { mobile: '12px', tablet: '14px', desktop: '16px' }
-  );
-
-  const topLabelBg = responsive<string>(styles.topLabel?.backgroundColor);
-  const topLabelColor = responsive<string>(styles.topLabel?.color);
-  const topLabelFontSize = responsive<string | number>(styles.topLabel?.fontSize);
-  const topLabelFontWeight = responsive<string | number>(styles.topLabel?.fontWeight);
-  const topLabelPadding = responsive<string>(styles.topLabel?.padding);
-  const topLabelRadius = responsive<string>(styles.topLabel?.borderRadius);
-
-  const discountBadgeBg = responsive<string>(styles.discountBadge?.backgroundColor);
-  const discountBadgeColor = responsive<string>(styles.discountBadge?.color);
-  const discountBadgeFontSize = responsive<string | number>(styles.discountBadge?.fontSize);
-  const discountBadgeFontWeight = responsive<string | number>(styles.discountBadge?.fontWeight);
-  const discountBadgePadding = responsive<string>(styles.discountBadge?.padding);
-  const discountBadgeRadius = responsive<string>(styles.discountBadge?.borderRadius);
-
-  const titleFontSize = responsive<string | number>(styles.title?.fontSize);
-  const titleFontWeight = responsive<string | number>(styles.title?.fontWeight);
-  const titleColor = responsive<string>(styles.title?.color);
-
-  const descriptionFontSize = responsive<string | number>(styles.description?.fontSize);
-  const descriptionFontWeight = responsive<string | number>(styles.description?.fontWeight);
-  const descriptionColor = responsive<string>(styles.description?.color);
-  const descriptionLineHeight = responsive<string | number>(styles.description?.lineHeight);
-
-
-  const originalPriceFontSize = responsive<string | number>(styles.originalPrice?.fontSize);
-  const originalPriceFontWeight = responsive<string | number>(styles.originalPrice?.fontWeight);
-  const originalPriceColor = responsive<string>(styles.originalPrice?.color);
-  const originalPriceShow = responsive<boolean>(styles.originalPrice?.show) !== false;
-
-  const currentPriceFontSize = responsive<string | number>(styles.currentPrice?.fontSize);
-  const currentPriceFontWeight = responsive<string | number>(styles.currentPrice?.fontWeight);
-  const currentPriceColor = responsive<string>(styles.currentPrice?.color);
-
-  // Simple price block styling for vertical layout
-  const priceBlockPadding = '4px 8px';
-  const priceBlockMinHeight = 'auto';
-
-  const rarityBg = responsive<string>(styles.rarity?.backgroundColor);
-  const rarityColor = responsive<string>(styles.rarity?.color);
-  const buyButtonBg = responsive<string>(styles.buyButton?.backgroundColor);
-  const buyButtonColor = responsive<string>(styles.buyButton?.color) ?? '#FFFFFF';
-  const buyButtonBorderRadius = responsive<string>(styles.buyButton?.borderRadius);
-  const buyButtonFontWeight = responsive<string | number>(styles.buyButton?.fontWeight);
-  const buyButtonFontSize = responsive<string | number>(styles.buyButton?.fontSize);
-  const buyButtonPadding = responsive<string | number>(styles.buyButton?.padding) ?? '12px 16px';
-  const buyButtonMinHeight = responsive<string | number>(styles.buyButton?.minHeight);
-    const buyButtonMaxHeight = responsive<string | number>(styles.buyButton?.maxHeight);
-  const purchasedBg = responsive<string>(styles.purchasedBadge?.backgroundColor);
-  const purchasedColor = responsive<string>(styles.purchasedBadge?.color);
-  const purchasedPadding = responsive<string | number>(styles.purchasedBadge?.padding) ?? '12px 16px';
-  const purchasedRadius = responsive<string | number>(styles.purchasedBadge?.borderRadius);
-  const purchasedMinHeight = responsive<string | number>(styles.purchasedBadge?.minHeight);
-  const rpColor = responsive<string>(styles.bonuses?.rpColor);
-  const lpColor = responsive<string>(styles.bonuses?.lpColor);
-  
-  // Parse prices for display
-  const parsePrice = (price: string | undefined): { value: string; symbol: string } => {
-    if (!price) return { value: '', symbol: '' };
-    const match = price.match(/^([^$]*)\s*\$?\s*(.*)$/);
-    if (match) {
-      return { value: match[1].trim(), symbol: match[2] || '$' };
-    }
-    return { value: price, symbol: '$' };
-  };
-  
-  const originalPriceParsed = parsePrice(originalPrice);
-  const currentPriceParsed = parsePrice(currentPrice);
-
-  const resolveBuyButtonLabel = (): string => {
-    if (buyButton?.text && buyButton.text.trim().length > 0) {
-      return buyButton.text;
-    }
-
-    // If we have both prices and original price should be shown
-    if (currentPriceParsed.value && originalPrice && originalPriceShow) {
-      return `${originalPriceParsed.value}/${currentPriceParsed.value} ${currentPriceParsed.symbol || '$'}`.trim();
-    }
-
-    if (currentPriceParsed.value) {
-      return `${currentPriceParsed.value} ${currentPriceParsed.symbol || '$'}`.trim();
-    }
-
-    if (originalPriceParsed.value && originalPriceShow) {
-      return `${originalPriceParsed.value} ${originalPriceParsed.symbol || '$'}`.trim();
-    }
-
-    return 'BUY NOW';
-  };
-  
-  const rootElementId = id ?? 'offer-card';
   return (
     <div
-      ref={cardRef}
-      className={`relative overflow-hidden w-full !flex !flex-col ${className}`}
+      className={`relative bg-gray-800 rounded-lg overflow-hidden shadow-lg w-full ${className}`}
       style={{
-        height: '100%',
+        backgroundColor: cardStyles?.container?.backgroundColor,
+        borderRadius: cardStyles?.container?.borderRadius,
+        height: '100%', // Фиксированная высота как у skeleton
+        display: 'flex',
+        flexDirection: 'column',
+        containerType: 'inline-size', // Для container queries
         ...style
       }}
-      data-element-id={rootElementId}
       onClick={onClick}
     >
-      {/* Top Label */}
-      {topLabel && (
-        <div
+      {/* Discount Badge */}
+      {discount && (
+        <Badge
+          text={discount}
+          variant="discount"
+          className="absolute top-2 left-2 z-10"
           style={{
-            backgroundColor: topLabelBg,
-            color: topLabelColor,
-            fontSize: topLabelFontSize,
-            fontWeight: topLabelFontWeight,
-            padding: topLabelPadding,
-            borderRadius: `${topLabelRadius} ${topLabelRadius} 0 0`,
-            width: '100%',
-            textAlign: 'center',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxSizing: 'border-box',
+            backgroundColor: cardStyles?.discountBadge?.backgroundColor || "#FF4500",
+            color: cardStyles?.discountBadge?.color || "white"
           }}
-        >
-          {topLabel}
-        </div>
+        />
       )}
 
-      {/* Limited Offer Banner */}
-      {limitedOffer && limitedOffer > 0 && (
-        <div
+      {/* Player Limit Badge */}
+      {playerLimit && (
+        <Badge
+          text={playerLimit}
+          variant="limit"
+          className="absolute top-2 right-2 z-10"
           style={{
-            width: '100%',
-            textAlign: 'center',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxSizing: 'border-box',
-            backgroundColor: 'rgb(255, 182, 62)',
-            color: 'rgb(255, 255, 255)',
-            fontSize: '12px',
-            fontWeight: '600',
-            padding: '8px 4px',
-            borderRadius: topLabel ? '0' : '20px 20px 0px 0px',
+            backgroundColor: cardStyles?.playerLimitBadge?.backgroundColor || "#4169E1",
+            color: cardStyles?.playerLimitBadge?.color || "white"
           }}
-        >
-          Limited Offer ({limitedOffer} left)
-        </div>
+        />
       )}
 
-      {/* Main Card Container */}
+      {/* Timer Badge */}
+      {timer && (
+        <Badge
+          text={typeof timer === 'string' ? timer : String(timer)}
+          variant="timer"
+          className="absolute bottom-2 left-2 z-10"
+          style={{
+            backgroundColor: cardStyles?.timerBadge?.backgroundColor || "#FFD700",
+            color: cardStyles?.timerBadge?.color || "black"
+          }}
+        />
+      )}
+
+      {/* Main Image Section */}
       <div
+        className="relative w-full h-48 bg-gray-700 flex items-center justify-center"
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          width: '100%',
-          backgroundColor: containerBackgroundColor,
-          borderRadius: topLabel ? (containerRadius ? `0 0 ${containerRadius} ${containerRadius}` : undefined) : containerRadius,
-          overflow: 'hidden',
-          boxSizing: 'border-box',
-          backdropFilter: containerBackdropFilter,
-          WebkitBackdropFilter: containerBackdropFilter,
+          backgroundColor: cardStyles?.image?.backgroundColor,
+          aspectRatio: cardStyles?.image?.aspectRatio
         }}
       >
-        {/* Image Container with Discount Badge */}
         {mainImage && (
-          <div
-            style={{
-              position: 'relative',
-              width: '100%',
-              height: imageHeight,
-              backgroundColor: imageBg,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-              boxSizing: 'border-box',
-            }}
-          >
-            <img
-              src={mainImage}
-              alt={mainImageAlt}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                objectPosition: '50% 50%',
-              }}
-              data-element-id={rootElementId ? `${rootElementId}-image` : undefined}
-            />
-            {/* Discount Badge */}
-            {discount && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '10px',
-                  right: '10px',
-                  backgroundColor: discountBadgeBg,
-                  color: discountBadgeColor,
-                  fontSize: discountBadgeFontSize,
-                  fontWeight: discountBadgeFontWeight,
-                  padding: discountBadgePadding,
-                  borderRadius: discountBadgeRadius,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                {discount}
-              </div>
-            )}
-          </div>
+          <img
+            src={mainImage}
+            alt={mainImageAlt}
+            className="object-cover w-full h-full"
+          />
         )}
-        
-        {/* Card Body */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: bodyGap,
-            padding: bodyPadding,
-            width: '100%',
-          }}
-        >
-          {/* Title */}
+      </div>
+
+      {/* Content Section - CSS Grid как у skeleton */}
+      <div
+        className="p-2 sm:p-3 md:p-4 grid w-full"
+        style={{
+          display: 'grid',
+          gridTemplateRows: 'auto auto 1fr auto', // Row 1: title, Row 2: rarity space, Row 3: spacer, Row 4: button
+          gap: '8px',
+          height: '100%', // Использовать всю доступную высоту
+          alignContent: 'start'
+        }}
+      >
+        {/* Row 1: Title - фиксированная высота как у skeleton */}
+        <div className="flex flex-col" style={{
+          minHeight: '44px',
+          maxHeight: '44px', // Ограничить максимальную высоту
+          overflow: 'hidden' // Скрыть переполнение
+        }}>
           {title && (
-            <div
+            <h3
+              className="text-white text-lg font-bold truncate"
               style={{
-                fontSize: titleFontSize,
-                fontWeight: titleFontWeight,
-                color: titleColor,
-                width: '100%',
+                fontSize: cardStyles?.title?.fontSize,
+                fontWeight: cardStyles?.title?.fontWeight,
+                color: cardStyles?.title?.color,
+                lineHeight: '1.2', // Фиксированная высота строки
+                display: '-webkit-box',
+                WebkitLineClamp: 2, // Максимум 2 строки
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden'
               }}
             >
               {title}
-            </div>
+            </h3>
           )}
-          
-          {/* Description */}
-          {description && (
-            <div
-              style={{
-                fontSize: descriptionFontSize,
-                fontWeight: descriptionFontWeight,
-                color: descriptionColor,
-                lineHeight: descriptionLineHeight,
-                width: '100%',
-              }}
-            >
-              {description}
-            </div>
-          )}
-          
-          {/* Rarity Badge */}
-          {rarity && (
-            <Badge text={rarity} variant="rarity" style={{ backgroundColor: rarityBg, color: rarityColor }} />
-        )}
-          
-          {/* Buy Button or Purchased Badge */}
+        </div>
+
+        {/* Row 2: Rarity space - пустое пространство как у skeleton */}
+        <div className="flex flex-col" style={{
+          minHeight: '36px' // Фиксированная высота как у skeleton
+        }}>
+          {/* Пустое пространство для будущих rarity бейджей */}
+        </div>
+
+        {/* Row 3: Spacer - растягивается автоматически */}
+        <div></div>
+
+        {/* Row 4: Buy Button или Purchased Badge - всегда внизу */}
+        <div>
           {isPurchased ? (
+            // PURCHASED Badge (использует те же стили что и кнопка, кроме backgroundColor)
             <div
+              className="w-full py-3 px-4 text-white font-bold rounded-lg text-center"
               style={{
-                width: '100%',
-                backgroundColor: purchasedBg,
-                color: purchasedColor,
-                padding: purchasedPadding,
-                borderRadius: purchasedRadius,
-                minHeight: purchasedMinHeight,
-                textAlign: 'center',
+                backgroundColor: cardStyles?.purchasedBadge?.backgroundColor || "#10B981",
+                color: cardStyles?.buyButton?.color || "#FFFFFF",
+                borderRadius: cardStyles?.buyButton?.borderRadius || "8px",
+                padding: cardStyles?.buyButton?.padding || "12px 8px",
+                fontWeight: cardStyles?.buyButton?.fontWeight || "bold",
+                fontSize: cardStyles?.buyButton?.fontSize || "clamp(12px, 4cqw, 18px)",
+                minHeight: cardStyles?.buyButton?.minHeight || "48px",
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
+                justifyContent: 'center'
               }}
-              data-element-id={rootElementId ? `${rootElementId}-purchased` : undefined}
             >
-              PURCHASED
+              {cardStyles?.purchasedBadge?.text || "PURCHASED"}
             </div>
           ) : (
-            (buyButton?.enabled !== false) && (
-            <button
-                type="button"
-                className="w-full transition-colors hover:opacity-90 cursor-pointer"
+            // BUY Button
+            buyButton && buyButton.enabled && (
+              <button
+                className="w-full py-3 px-4 text-white font-bold rounded-lg transition-colors hover:opacity-90 disabled:opacity-50"
                 style={{
-                  backgroundColor: buyButtonBg,
-                  color: buyButtonColor,
-                  borderRadius: buyButtonBorderRadius,
-                  fontWeight: buyButtonFontWeight,
-                  fontSize: buyButtonFontSize,
-                  padding: buyButtonPadding,
-                  minHeight:
-                    buyButtonMinHeight ?? (originalPrice || currentPrice ? '48px' : '44px'),
-                  maxHeight: buyButtonMaxHeight,
-                  border: 'none',
-                  outline: 'none',
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  opacity: isLoading ? 0.85 : 1,
-                  cursor: isLoading ? 'wait' : 'pointer'
+                  backgroundColor: cardStyles?.buyButton?.backgroundColor || buyButton.style?.backgroundColor || "#FF6B35",
+                  color: cardStyles?.buyButton?.color || buyButton.style?.textColor || "#FFFFFF",
+                  borderRadius: cardStyles?.buyButton?.borderRadius || buyButton.style?.borderRadius || "8px",
+                  padding: cardStyles?.buyButton?.padding || buyButton.style?.padding || "12px 24px",
+                  fontWeight: cardStyles?.buyButton?.fontWeight || buyButton.style?.fontWeight || "bold",
+                  fontSize: cardStyles?.buyButton?.fontSize,
+                  minHeight: cardStyles?.buyButton?.minHeight,
                 }}
-                data-element-id={rootElementId ? `${rootElementId}-buy-button` : undefined}
-                disabled={isLoading}
-                aria-busy={isLoading}
-                aria-live={isLoading ? 'assertive' : 'off'}
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (isLoading) {
-                    e.preventDefault();
-                    return;
-                  }
                   if (onClick) {
-                    onClick();
+                    onClick(); // Вызываем переданный onClick обработчик
                   }
                 }}
               >
                 {isLoading ? (
-                  <>
-                    <svg
-                      aria-hidden="true"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      style={{ display: 'inline-block' }}
-                    >
+                  <span className="inline-flex items-center justify-center min-h-[1.2em] animate-spin">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
                       <circle
+                        className="opacity-25"
                         cx="12"
                         cy="12"
                         r="10"
-                        stroke={buyButtonColor}
-                        strokeWidth="2"
-                        fill="none"
-                        opacity={0.35}
+                        stroke="currentColor"
+                        strokeWidth="4"
                       />
                       <path
-                        d="M22 12a10 10 0 0 0-10-10"
-                        stroke={buyButtonColor}
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        fill="none"
-                      >
-                        <animateTransform
-                          attributeName="transform"
-                          type="rotate"
-                          from="0 12 12"
-                          to="360 12 12"
-                          dur="0.8s"
-                          repeatCount="indefinite"
-                        />
-                      </path>
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
                     </svg>
-                  </>
-                ) : (originalPrice || currentPrice) ? (
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '2px',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: '100%',
-                    }}
-                  >
-                    {originalPrice && originalPriceShow && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: '4px',
-                          alignItems: 'center',
-                          fontSize: originalPriceFontSize,
-                          fontWeight: originalPriceFontWeight,
-                          color: originalPriceColor,
-                          textDecoration: 'line-through',
-                          opacity: 0.7,
-                        }}
-                      >
-                        <span>{originalPriceParsed.value}</span>
-                        <span>{originalPriceParsed.symbol}</span>
-                      </div>
-                    )}
-                    {currentPrice && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: '4px',
-                          alignItems: 'center',
-                          fontSize: currentPriceFontSize,
-                          fontWeight: currentPriceFontWeight,
-                          color: currentPriceColor,
-                        }}
-                      >
-                        <span>{currentPriceParsed.value}</span>
-                        <span>{currentPriceParsed.symbol}</span>
-                      </div>
-                    )}
-                  </div>
+                  </span>
                 ) : (
-                  resolveBuyButtonLabel()
+                  buyButton.text || "BUY NOW"
                 )}
-            </button>
+              </button>
             )
           )}
-          
-          {/* Timer */}
-          {timer && (
-            <div style={{ textAlign: 'center' }}>{countdown}</div>
-        )}
         </div>
       </div>
     </div>

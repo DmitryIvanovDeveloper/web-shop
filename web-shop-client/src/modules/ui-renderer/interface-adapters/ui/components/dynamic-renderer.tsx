@@ -226,6 +226,7 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
         }
       return;
     }
+    }
 
     // Normal mode - handle action
     console.log('[DynamicRenderer] Normal mode - handling action');

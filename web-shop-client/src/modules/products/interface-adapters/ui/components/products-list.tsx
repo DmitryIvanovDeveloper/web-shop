@@ -119,15 +119,18 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
 
   const handleBuyProduct = async (product: Product): Promise<void> => {
     const productId = product.id.value;
-    
+
+
     try {
-      // Set loading state for this product
+      // Set loading state for this product (spinner will stay active)
       setLoadingProducts(prev => new Set(prev).add(productId));
-      
+
       // Pass only product ID to presenter (convert ProductId to string)
       await presenter.onBuyProduct(productId);
+
+      // Don't clear loading state on success - spinner stays active until redirect
     } catch {
-      // Clear loading state on error
+      // Clear loading state only on error
       setLoadingProducts(prev => {
         const next = new Set(prev);
         next.delete(productId);
@@ -172,20 +175,16 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
       </div>
       <Grid>
         {Array.isArray(viewModel.products) ? viewModel.products.map((product, index) => (
-          <div key={product?.id?.value || `product-${index}`} className="@container">
+          <div key={product?.id?.value || `product-${index}`} className="@container" style={{ height: '100%' }}>
             <OfferCard
               mainImage={product.mainImage}
               mainImageAlt={product.mainImageAlt}
               sideImage={product.sideImage}
-              backgroundImage={product.backgroundImage}
               includedItems={product.includedItems}
               discount={product.discount}
               playerLimit={product.playerLimit}
-              limitedOffer={product.limitedOffer}
-              timer={product.timer}
+              timer={product.timer ? product.timer.toLocaleString() : undefined}
               title={product.title}
-              description={product.description}
-              titleStyle={product.titleStyle}
               rarity={product.rarity}
               rpBonus={product.rpBonus}
               lpBonus={product.lpBonus}
@@ -196,7 +195,7 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
                 enabled: !product.isPurchased,
                 style: product.buyButton?.style
               }}
-              onClick={() => !product.isPurchased && handleBuyProduct(product)}
+              onClick={() => handleBuyProduct(product)}
             />
           </div>
         )) : (
