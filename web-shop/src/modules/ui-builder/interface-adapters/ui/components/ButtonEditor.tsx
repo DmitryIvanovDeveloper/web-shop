@@ -57,7 +57,8 @@ export interface ButtonEditorProps {
   backgroundColor: string;
   textColor: string;
   borderColor: string;
-  onColorChange: (colorKey: 'backgroundColor' | 'textColor' | 'borderColor', value: string) => void;
+  hoverBackgroundColor?: string;
+  onColorChange: (colorKey: 'backgroundColor' | 'textColor' | 'borderColor' | 'hoverBackgroundColor', value: string) => void;
 
   // Content
   label: string;
@@ -104,6 +105,7 @@ export function ButtonEditor({
   backgroundColor,
   textColor,
   borderColor,
+  hoverBackgroundColor,
   onColorChange,
   label,
   onLabelChange,
@@ -266,6 +268,13 @@ export function ButtonEditor({
             value={borderColor}
             onChange={(newColor) => onColorChange('borderColor', newColor)}
           />
+          {hoverBackgroundColor !== undefined && (
+            <ColorInput
+              label="hoverBackgroundColor"
+              value={hoverBackgroundColor}
+              onChange={(newColor) => onColorChange('hoverBackgroundColor', newColor)}
+            />
+          )}
         </div>
       </div>
 

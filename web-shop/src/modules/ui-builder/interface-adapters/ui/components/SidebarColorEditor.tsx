@@ -295,6 +295,7 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
             backgroundColor={element.colors?.backgroundColor || '#ffc629'}
             textColor={element.colors?.textColor || '#ffffff'}
             borderColor={element.colors?.borderColor || '#ffffff'}
+            hoverBackgroundColor={element.colors?.hoverBackgroundColor}
             onColorChange={(colorKey, newColor) => {
               // ButtonEditor uses backgroundColor, but we need to save it as backgroundColor in styles
               // (readColorsFromNode expects backgroundColor, not background)
