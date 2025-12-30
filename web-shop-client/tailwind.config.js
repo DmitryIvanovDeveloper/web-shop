@@ -19,6 +19,8 @@ module.exports = {
     'mx-auto',
     'bg-black/70',
     'backdrop-blur-md',
+    'p-3.5',
+    'md:p-8',
   ],
   theme: {
     extend: {
