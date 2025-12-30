@@ -23,6 +23,13 @@ export class LoadAppConfigUseCase {
 			? isDraft
 			: this._shouldLoadDraftFromEnvironment();
 
+		// Check if we're in UI Builder iframe mode - if so, skip config loading and wait for CONFIG_UPDATE
+		const isUIBuilderMode = this._isUIBuilderMode();
+		if (isUIBuilderMode) {
+			this._logger.info('[LoadAppConfigUseCase] Skipping config loading in UI Builder iframe mode - waiting for CONFIG_UPDATE');
+			return;
+		}
+
 		this._logger.info('[LoadAppConfigUseCase] Loading app configuration', {
 			isDraft: shouldLoadDraft,
 			source: typeof isDraft === 'boolean' ? 'argument' : 'query',
@@ -99,6 +106,19 @@ export class LoadAppConfigUseCase {
 			const url = new URL(window.location.href);
 			const draftParams = ['previewMode', 'pagePreview', 'uibuilder'];
 			return draftParams.some((param) => url.searchParams.get(param) === 'true');
+		} catch {
+			return false;
+		}
+	}
+
+	private _isUIBuilderMode(): boolean {
+		if (typeof window === 'undefined') {
+			return false;
+		}
+
+		try {
+			const url = new URL(window.location.href);
+			return url.searchParams.get('uibuilder') === 'true';
 		} catch {
 			return false;
 		}
