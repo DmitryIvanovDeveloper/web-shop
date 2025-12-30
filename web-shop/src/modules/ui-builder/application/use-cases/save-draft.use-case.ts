@@ -11,6 +11,7 @@ import { ConfigVersion } from '../../domain/value-objects/config-version.vo';
 export interface SaveDraftInput {
   appId: string;
   config: Record<string, unknown>;
+  version?: number;
 }
 
 @injectable()
@@ -23,14 +24,14 @@ export class SaveDraftUseCase {
   ) {}
 
   public async execute(input: SaveDraftInput): Promise<Result<void, Error>> {
-    const { appId, config } = input;
-    this._logger.info('[SaveDraftUseCase] Saving draft config', { appId });
-    
+    const { appId, config, version } = input;
+    this._logger.info('[SaveDraftUseCase] Saving draft config', { appId, requestedVersion: version });
+
     // Create draft config entity
     const draftConfig = AppConfigFactory.create({
       appId,
       config,
-      version: ConfigVersion.initial(), // Version will be incremented in storage
+      version: version ? ConfigVersion.of(version) : ConfigVersion.initial(), // Use specified version or initial
       isActive: false,
       isDraft: true,
       createdAt: new Date(),

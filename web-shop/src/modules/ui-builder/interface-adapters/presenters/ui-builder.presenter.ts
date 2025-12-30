@@ -184,7 +184,7 @@ export class UIBuilderPresenter {
 
     this._logger.info('[UIBuilderPresenter] Template config applied to VM', {
       hasNewConfig: !!this.vm.config,
-      configKeys: Object.keys(this.vm.config)
+      configKeys: this.vm.config ? Object.keys(this.vm.config) : []
     });
 
     this.notify();
@@ -288,8 +288,8 @@ export class UIBuilderPresenter {
           selectedElement: null 
         };
         
-        // Save migrated config back to Supabase
-        await this.saveConfigToSupabase();
+        // Save migrated config back to Supabase as draft version 1
+        await this.saveConfigToSupabaseWithVersion(1);
         
         this.sendConfigToIframe();
       } else {
@@ -1273,6 +1273,29 @@ export class UIBuilderPresenter {
     this.saveDraftDebounceTimer = setTimeout(() => {
       this.saveConfigToSupabase();
     }, 500); // 500ms debounce
+  }
+
+  private async saveConfigToSupabaseAsVersion(version: number): Promise<void> {
+    if (!this.vm.appId || !this.vm.config) {
+      this._logger.warn('[UIBuilderPresenter] Cannot save config: missing appId or config');
+      return;
+    }
+
+    try {
+      const result = await this._saveDraftUseCase.execute({
+        appId: this.vm.appId,
+        config: this.vm.config,
+        version: version,
+      });
+
+      if (result.isSuccess) {
+        this._logger.info('[UIBuilderPresenter] Config saved to Supabase as version', version);
+      } else {
+        this._logger.error('[UIBuilderPresenter] Failed to save config as version', { version, error: result.error });
+      }
+    } catch (error) {
+      this._logger.error('[UIBuilderPresenter] Error saving config as version', { version, error });
+    }
   }
 
   public async loadPages(): Promise<void> {
