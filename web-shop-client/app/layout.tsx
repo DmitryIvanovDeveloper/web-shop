@@ -660,7 +660,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
               )}
 
               {/* Main Content - занимает всю ширину на < xl, иначе между sidebar'ами */}
-              <main className="flex-1 overflow-y-auto w-full">
+              <main className="flex-1 overflow-y-auto w-full p-3.5 md:p-8">
                 {children}
               </main>
 
