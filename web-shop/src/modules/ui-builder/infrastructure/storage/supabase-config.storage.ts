@@ -153,6 +153,8 @@ export class SupabaseConfigStorage implements ConfigStoragePort {
         .select('id, app_id, version, is_active, is_draft, config, created_at')
         .eq('app_id', appId)
         .eq('is_active', true)
+        .eq('is_draft', false)
+        .order('version', { ascending: false })
         .limit(1);
       
       if (error) {
