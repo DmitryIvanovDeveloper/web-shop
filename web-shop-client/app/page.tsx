@@ -117,11 +117,11 @@ export default function HomePage(): JSX.Element {
 
           if (previewMode || isInIframe) {
             // Load draft config for preview mode
-            await loadAppConfigUseCase.execute(true);
+            await loadAppConfigUseCase.execute(true, appId);
             console.log('[HomePage] Draft app config loaded from Supabase for preview mode', { appId, isInIframe });
           } else {
             // Load active config for regular client usage
-            await loadAppConfigUseCase.execute(false);
+            await loadAppConfigUseCase.execute(false, appId);
             console.log('[HomePage] Active app config loaded from Supabase for regular client', { appId });
           }
         }
