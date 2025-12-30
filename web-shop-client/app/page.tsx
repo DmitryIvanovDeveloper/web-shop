@@ -117,11 +117,11 @@ export default function HomePage(): JSX.Element {
 
           if (previewMode || isInIframe) {
             // Load draft config for preview mode
-            await loadAppConfigUseCase.execute(true, appId);
+            await loadAppConfigUseCase.execute(true);
             console.log('[HomePage] Draft app config loaded from Supabase for preview mode', { appId, isInIframe });
           } else {
             // Load active config for regular client usage
-            await loadAppConfigUseCase.execute(false, appId);
+            await loadAppConfigUseCase.execute(false);
             console.log('[HomePage] Active app config loaded from Supabase for regular client', { appId });
           }
         }
@@ -280,7 +280,7 @@ export default function HomePage(): JSX.Element {
   }, []);
 
   return (
-    <main className="flex-1 overflow-y-auto w-full mx-auto" style={{ padding: '32px', paddingBottom: 'calc(160px + env(safe-area-inset-bottom))' }}>
+    <main className="flex-1 overflow-y-auto w-full mx-auto px-4 md:px-8" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>
       {/* Demo section for selected offer card (only in preview mode) */}
       {previewMode && selectedOfferCard && (
         <div key="offer-card-demo-section" className="offer-card-demo-section" style={{ padding: '20px', marginBottom: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>

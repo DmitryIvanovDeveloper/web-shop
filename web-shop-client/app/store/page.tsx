@@ -290,7 +290,7 @@ export default function StorePage(): JSX.Element {
   }, [previewMode, userId]);
 
   return (
-    <main className="flex-1 overflow-y-auto w-full mx-auto" style={{ padding: '32px', paddingBottom: 'calc(160px + env(safe-area-inset-bottom))' }}>
+    <main className="flex-1 overflow-y-auto w-full mx-auto px-4 md:px-8" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>
       {/* Daily Rewards Popup */}
       <DailyRewardsPopup
         userId={userId}
