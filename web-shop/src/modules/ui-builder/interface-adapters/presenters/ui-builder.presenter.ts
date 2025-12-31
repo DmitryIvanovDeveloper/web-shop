@@ -289,7 +289,7 @@ export class UIBuilderPresenter {
         };
         
         // Save migrated config back to Supabase as draft version 1
-        await this.saveConfigToSupabaseWithVersion(1);
+        await this.saveConfigToSupabaseAsVersion(1);
         
         this.sendConfigToIframe();
       } else {

@@ -7,3 +7,7 @@ export class DailyRewardCreatedEvent {
     public readonly occurredAt: Date = new Date()
   ) {}
 }
+
+
+
+

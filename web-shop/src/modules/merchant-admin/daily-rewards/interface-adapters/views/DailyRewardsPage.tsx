@@ -217,3 +217,7 @@ export function DailyRewardsPage({ appId }: DailyRewardsPageProps): JSX.Element 
     </div>
   );
 }
+
+
+
+

@@ -27,3 +27,7 @@ export class RewardType {
     return this._value;
   }
 }
+
+
+
+

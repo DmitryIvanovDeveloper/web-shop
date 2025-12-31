@@ -50,3 +50,7 @@ export interface DailyRewardOutput {
   createdAt: string;
   updatedAt: string;
 }
+
+
+
+

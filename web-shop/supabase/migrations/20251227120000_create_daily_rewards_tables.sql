@@ -76,3 +76,7 @@ CREATE TRIGGER IF NOT EXISTS daily_rewards_updated_at_trigger
     BEFORE UPDATE ON daily_rewards
     FOR EACH ROW
     EXECUTE FUNCTION update_daily_rewards_updated_at();
+
+
+
+
