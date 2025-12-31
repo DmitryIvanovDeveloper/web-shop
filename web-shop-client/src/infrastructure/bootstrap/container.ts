@@ -47,7 +47,8 @@ const mode = resolveHttpClientMode();
 if (mode === HttpClientMode.Mock) {
   container.bind<HttpClient>(TYPES.HttpClient).to(HttpClientMock).inSingletonScope();
 } else {
-  container.bind<HttpClient>(TYPES.HttpClient).to(AxiosHttpClient).inSingletonScope();
+  // Use empty baseURL - Next.js handles /api/* routing automatically
+  container.bind<HttpClient>(TYPES.HttpClient).toConstantValue(new AxiosHttpClient(''));
 }
 
 container.bind<EventBusPort>(TYPES.EventBus).to(EventBus).inSingletonScope();

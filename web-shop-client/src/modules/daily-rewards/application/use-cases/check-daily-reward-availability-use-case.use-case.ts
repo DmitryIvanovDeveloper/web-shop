@@ -22,9 +22,9 @@ export class CheckDailyRewardAvailabilityUseCase {
       // Get active daily reward
       console.log('[CheckDailyRewardAvailabilityUseCase] Calling repository.findActiveReward');
       const rewardResult = await this._dailyRewardRepository.findActiveReward(input.appId);
-      console.log('[CheckDailyRewardAvailabilityUseCase] Repository result:', { isSuccess: rewardResult.isSuccess });
+      console.log('[CheckDailyRewardAvailabilityUseCase] Repository result:', { success: rewardResult.success });
 
-      if (!rewardResult.isSuccess) {
+      if (!rewardResult.success) {
         console.error('[CheckDailyRewardAvailabilityUseCase] Repository failed:', rewardResult.error);
         return Failure.fail(rewardResult.error);
       }
@@ -36,7 +36,7 @@ export class CheckDailyRewardAvailabilityUseCase {
 
       // Check if user already claimed today
       const lastClaimResult = await this._rewardClaimRepository.findLastClaimByUser(input.userId);
-      if (!lastClaimResult.isSuccess) {
+      if (!lastClaimResult.success) {
         return Failure.fail(lastClaimResult.error);
       }
 

@@ -79,7 +79,7 @@ export function OffersList({
         <Grid>
           {/* Show 3 skeleton cards while loading */}
           {Array.from({ length: 3 }, (_, index) => (
-            <div key={`skeleton-${index}`} className="@container">
+            <div key={`skeleton-${index}`} className="@container" style={{ height: '100%' }}>
               <OfferCardSkeleton />
             </div>
           ))}
@@ -146,7 +146,7 @@ export function OffersList({
         <h2 className="text-white text-xl font-bold mb-4">Offers</h2>
         <Grid className="w-full mx-auto">
           {offers.map((offer, index) => (
-            <div key={offer?.id || `offer-${index}`} className="@container">
+            <div key={offer?.id || `offer-${index}`} className="@container" style={{ height: '100%' }}>
               <OfferCard 
                 {...offer}
                 timer={offer.timer ? new Date(offer.timer) : undefined}

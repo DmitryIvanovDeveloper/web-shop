@@ -12,6 +12,8 @@ interface RewardClaimApiDto {
   rewardId: string;
   claimedAt: string;
   pointsAwarded: number;
+  created_at: string;
+  updated_at: string;
 }
 
 @injectable()
@@ -25,6 +27,12 @@ export class SupabaseRewardClaimRepository implements RewardClaimRepositoryPort 
 
   async save(claim: DailyRewardClaim): Promise<Result<DailyRewardClaim, Error>> {
     try {
+      console.log('[DEBUG] save method called with claim:', {
+        id: claim.id.value,
+        userId: claim.userId,
+        rewardId: claim.rewardId.value,
+        points: claim.pointsAwarded
+      });
       this._logger.info('[SupabaseRewardClaimRepository] Saving reward claim via API', {
         claimId: claim.id.value,
         userId: claim.userId
@@ -35,11 +43,23 @@ export class SupabaseRewardClaimRepository implements RewardClaimRepositoryPort 
         userId: claim.userId,
         rewardId: claim.rewardId.value,
         claimedAt: claim.claimedAt.toISOString(),
-        pointsAwarded: claim.pointsAwarded
+        pointsAwarded: claim.pointsAwarded,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
+      this._logger.info('[SupabaseRewardClaimRepository] Sending request data:', { requestData });
+      console.log('REQUEST DATA:', JSON.stringify(requestData, null, 2));
+
+      // Use absolute URL for browser compatibility
+      const isBrowser = typeof window !== 'undefined';
+      const url = isBrowser
+        ? `${window.location.origin}/api/daily-rewards/claim`
+        : '/api/daily-rewards/claim';
+
+      console.log('About to call httpClient.post with url:', url, 'and data:', requestData);
       const response = await this._httpClient.post<RewardClaimApiDto>(
-        '/api/daily-rewards/claim',
+        url,
         requestData
       );
 
@@ -66,8 +86,14 @@ export class SupabaseRewardClaimRepository implements RewardClaimRepositoryPort 
     try {
       this._logger.info('[SupabaseRewardClaimRepository] Finding last claim by user via API', { userId });
 
+      // Use absolute URL for browser compatibility
+      const isBrowser = typeof window !== 'undefined';
+      const url = isBrowser
+        ? `${window.location.origin}/api/daily-rewards/claims/last?userId=${userId}`
+        : `/api/daily-rewards/claims/last?userId=${userId}`;
+
       const response = await this._httpClient.get<RewardClaimApiDto[]>(
-        `/api/daily-rewards/claims/last?userId=${userId}`
+        url
       );
 
       if (response.status === 404) {
@@ -105,16 +131,34 @@ export class SupabaseRewardClaimRepository implements RewardClaimRepositoryPort 
 
   private mapApiDtoToEntity(dto: RewardClaimApiDto): DailyRewardClaim {
     try {
+      // Валидация и парсинг даты с fallback
+      // API возвращает данные в snake_case из Supabase, но интерфейс использует camelCase
+      const claimedAt = this.parseDate((dto as any).claimed_at || dto.claimedAt, 'claimed_at');
+
       return DailyRewardClaim.fromDatabase(
         ClaimId.fromString(dto.id),
-        dto.userId,
-        RewardId.fromString(dto.rewardId),
-        new Date(dto.claimedAt),
-        dto.pointsAwarded
+        (dto as any).user_id || dto.userId,
+        RewardId.fromString((dto as any).reward_id || dto.rewardId),
+        claimedAt,
+        (dto as any).points_awarded || dto.pointsAwarded
       );
     } catch (error) {
       this._logger.error('[SupabaseRewardClaimRepository] Error mapping API DTO to entity', { error, dto });
       throw error;
     }
+  }
+
+  private parseDate(dateString: string | null | undefined, fieldName: string): Date {
+    if (!dateString) {
+      this._logger.warn(`[SupabaseRewardClaimRepository] ${fieldName} is null/undefined, using current date`);
+      return new Date();
+    }
+
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      throw new Error(`Invalid ${fieldName} format: ${dateString}`);
+    }
+
+    return date;
   }
 }

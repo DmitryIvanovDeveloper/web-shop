@@ -13,7 +13,9 @@ export class AxiosHttpClient implements HttpClient {
     try {
       const url = `${this.baseURL}${request.url}`;
       console.log('[AxiosHttpClient] Making request to:', url);
-      
+      console.log('[AxiosHttpClient] Request method:', request.method);
+      console.log('[AxiosHttpClient] Request body:', request.body);
+
       // Simulate HTTP request
       const response = await fetch(url, {
         method: request.method,
@@ -53,6 +55,7 @@ export class AxiosHttpClient implements HttpClient {
   }
 
   async post<T>(url: string, body?: any, headers?: Record<string, string>): Promise<HttpResponse<T>> {
+    console.log('[AxiosHttpClient] POST request to:', url, 'with body:', body);
     return this.request<T>({ url, method: 'POST', body, headers });
   }
 

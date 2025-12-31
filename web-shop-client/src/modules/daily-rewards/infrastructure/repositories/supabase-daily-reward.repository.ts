@@ -13,9 +13,9 @@ interface DailyRewardApiDto {
   title: string;
   description: string;
   points: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 @injectable()
@@ -31,11 +31,10 @@ export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort 
     try {
       this._logger.info('[SupabaseDailyRewardRepository] Finding active daily reward via API', { appId });
 
-      // Use relative URL - Next.js will proxy /api/* requests to the server
       const url = `/api/daily-rewards/active?appId=${appId}`;
       this._logger.info('[SupabaseDailyRewardRepository] Making request to:', url);
 
-      // Use HttpClient for consistent API calls (handles base URL automatically)
+      // Use HttpClient with proper base URL handling
       const response = await this._httpClient.get<DailyRewardApiDto>(url);
 
       if (response.status === 404) {
@@ -67,19 +66,37 @@ export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort 
 
   private mapApiDtoToEntity(dto: DailyRewardApiDto): DailyReward {
     try {
+      // Валидация и парсинг дат с fallback
+      const createdAt = this.parseDate(dto.created_at, 'created_at');
+      const updatedAt = this.parseDate(dto.updated_at, 'updated_at');
+
       return DailyReward.fromDatabase(
         RewardId.fromString(dto.id),
         RewardType.create(dto.type),
         dto.title,
         dto.description,
         dto.points,
-        dto.isActive,
-        new Date(dto.createdAt),
-        new Date(dto.updatedAt)
+        dto.is_active,
+        createdAt,
+        updatedAt
       );
     } catch (error) {
       this._logger.error('[SupabaseDailyRewardRepository] Error mapping API DTO to entity', { error, dto });
       throw error;
     }
+  }
+
+  private parseDate(dateString: string | null | undefined, fieldName: string): Date {
+    if (!dateString) {
+      this._logger.warn(`[SupabaseDailyRewardRepository] ${fieldName} is null/undefined, using current date`);
+      return new Date();
+    }
+
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      throw new Error(`Invalid ${fieldName} format: ${dateString}`);
+    }
+
+    return date;
   }
 }

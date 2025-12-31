@@ -118,7 +118,7 @@ export class SelectProductForPaymentUseCase {
     );
 
     // Build payment URL through Payment Redirect Port
-      const paymentUrl = this._paymentRedirect.buildPaymentUrl({
+    const paymentUrl = this._paymentRedirect.buildPaymentUrl({
         productId: productSnapshot.id,
         userId: userContext.userId,
         appId: userContext.appId

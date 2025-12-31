@@ -19,7 +19,7 @@ export class ClaimDailyRewardUseCase {
     try {
       // Get active daily reward
       const rewardResult = await this._dailyRewardRepository.findActiveReward(input.appId);
-      if (!rewardResult.isSuccess) {
+      if (!rewardResult.success) {
         return Failure.fail(rewardResult.error);
       }
 
@@ -30,7 +30,7 @@ export class ClaimDailyRewardUseCase {
 
       // Check if user already claimed today
       const lastClaimResult = await this._rewardClaimRepository.findLastClaimByUser(input.userId);
-      if (!lastClaimResult.isSuccess) {
+      if (!lastClaimResult.success) {
         return Failure.fail(lastClaimResult.error);
       }
 
@@ -50,7 +50,7 @@ export class ClaimDailyRewardUseCase {
 
       // Save claim
       const saveResult = await this._rewardClaimRepository.save(claim);
-      if (!saveResult.isSuccess) {
+      if (!saveResult.success) {
         return Failure.fail(saveResult.error);
       }
 

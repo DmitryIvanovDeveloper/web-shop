@@ -70,9 +70,9 @@ export class DailyRewardsPresenter {
     try {
       console.log('[DailyRewardsPresenter] About to execute use case');
       const result = await this._checkAvailabilityUseCase.execute({ userId, appId });
-      console.log('[DailyRewardsPresenter] Use case result:', { isSuccess: result.isSuccess });
+      console.log('[DailyRewardsPresenter] Use case result:', { success: result.success });
 
-      if (result.isSuccess) {
+      if (result.success) {
         this.updateViewModel({
           status: 'loaded',
           canClaim: result.data.canClaim,
@@ -100,6 +100,7 @@ export class DailyRewardsPresenter {
   }
 
   async claimReward(userId: string, appId: string = 'default-app'): Promise<void> {
+    console.log('[DEBUG] claimReward called', { userId, appId, canClaim: this._viewModel.canClaim, isClaiming: this._viewModel.isClaiming });
     if (!this._viewModel.canClaim || this._viewModel.isClaiming) return;
 
     this.updateViewModel({
@@ -111,7 +112,7 @@ export class DailyRewardsPresenter {
     try {
       const result = await this._claimRewardUseCase.execute({ userId, appId });
 
-      if (result.isSuccess) {
+      if (result.success) {
         this.updateViewModel({
           status: 'claimed',
           canClaim: false,

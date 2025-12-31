@@ -42,3 +42,7 @@ export interface RewardClaimOutput {
   claimedAt: string;
   pointsAwarded: number;
 }
+
+
+
+

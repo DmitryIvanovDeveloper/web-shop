@@ -32,3 +32,7 @@ export function bindDailyRewards(container: Container): void {
     .bind(DAILY_REWARDS_TYPES.DailyRewardsPresenter)
     .to(DailyRewardsPresenter);
 }
+
+
+
+

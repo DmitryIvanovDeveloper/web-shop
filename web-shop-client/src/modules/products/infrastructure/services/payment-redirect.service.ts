@@ -24,20 +24,26 @@ export class PaymentRedirectService implements PaymentRedirectPort {
    */
   buildPaymentUrl(request: PaymentRedirectRequest): string {
     const appConfig = this._browser.getAppConfig();
+
+    // Validate paymentServiceUrl
+    if (!appConfig.paymentServiceUrl || appConfig.paymentServiceUrl.trim() === '') {
+      throw new Error(`Invalid paymentServiceUrl: "${appConfig.paymentServiceUrl}"`);
+    }
+
     const paymentUrl = new URL('/payment', appConfig.paymentServiceUrl);
-    
+
     // Only pass minimal parameters
     paymentUrl.searchParams.set('productId', request.productId);
     paymentUrl.searchParams.set('userId', request.userId);
     paymentUrl.searchParams.set('appId', request.appId);
-    
+
     this._logger.info('[PaymentRedirectService] Payment URL built', {
       productId: request.productId,
       userId: request.userId,
       appId: request.appId,
       paymentUrl: paymentUrl.toString()
     });
-    
+
     return paymentUrl.toString();
   }
 

@@ -56,10 +56,22 @@ export class BrowserService implements BrowserPort {
    * Get application configuration from environment
    */
   getAppConfig(): AppConfig {
-    return {
-      paymentServiceUrl: process.env.NEXT_PUBLIC_PAYMENT_SERVICE_URL || 'http://localhost:3002',
-      appId: process.env.NEXT_PUBLIC_APP_ID || 'web-shop-client'
+    const paymentServiceUrl = process.env.NEXT_PUBLIC_PAYMENT_SERVICE_URL || 'http://localhost:3002';
+    const appId = process.env.NEXT_PUBLIC_APP_ID || 'web-shop-client';
+
+    console.log('[BrowserService.getAppConfig] Raw env values:', {
+      NEXT_PUBLIC_PAYMENT_SERVICE_URL: process.env.NEXT_PUBLIC_PAYMENT_SERVICE_URL,
+      NEXT_PUBLIC_APP_ID: process.env.NEXT_PUBLIC_APP_ID,
+      paymentServiceUrl,
+      appId
+    });
+
+    const config = {
+      paymentServiceUrl,
+      appId
     };
+
+    return config;
   }
 
   /**
