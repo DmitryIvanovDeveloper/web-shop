@@ -12,10 +12,12 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   const routes: Record<string, string> = {
     home: '/',
     'analytics-dashboard': '/merchant-admin/analytics/dashboard',
-    'merchant-admin-products': '/products',
-    'merchant-admin-offers': '/merchant-admin/offers',
-    'merchant-admin-patch-notes': '/merchant-admin/patch-notes',
+    'merchant-admin-daily-rewards': '/merchant-admin/daily-rewards?appId=APP123',
+    'merchant-admin-offers': '/merchant-admin/offers?appId=APP123',
+    'merchant-admin-products': '/products?appId=APP123',
+    'merchant-admin-patch-notes': '/merchant-admin/patch-notes?appId=APP123',
     'merchant-admin-localization': '/merchant-admin/localization',
+    'ui-builder': '/ui-builder?appId=APP123&pageSlug=store',
   };
 
   const handleSelect = (key: string) => {

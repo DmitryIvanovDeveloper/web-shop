@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { EmptyState } from '../../../src/shared/ui/EmptyState';
 import { LoadingSkeleton } from '../../../src/shared/ui/LoadingSkeleton';
 
@@ -58,10 +58,16 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
   const [editingReward, setEditingReward] = useState<any | null>(null);
 
   useEffect(() => {
-    loadRewards();
-  }, [params.appId]);
+    // Defer data loading to avoid blocking navigation
+    // Use requestIdleCallback if available, otherwise setTimeout
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      requestIdleCallback(() => loadRewards());
+    } else {
+      setTimeout(() => loadRewards(), 0);
+    }
+  }, [params.appId, loadRewards]);
 
-  const loadRewards = async (): Promise<void> => {
+  const loadRewards = useCallback(async (): Promise<void> => {
     setIsLoading(true);
     setError(null);
 
@@ -78,7 +84,7 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [appId]);
 
   const handleCreateReward = async (formData: FormData): Promise<void> => {
     try {

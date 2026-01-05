@@ -1,7 +1,6 @@
  'use client';
 
 import React, { useMemo } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 type SidebarProps = {
@@ -112,11 +111,11 @@ export function Sidebar({ children, widthClassName = "w-64", title = "Navigation
                     )
                 : menuItems
             ).map((item) => (
-              <Link
+              <div
                 key={item.key}
-                href={item.href}
-                style={{ ...itemStyle(isActive(item.href)), transition: "background-color .15s ease" }}
-                onClick={() => {
+                style={{ ...itemStyle(isActive(item.href)), transition: "background-color .15s ease", cursor: "pointer" }}
+                onClick={(e) => {
+                  e.preventDefault();
                   onSelect?.(item.key);
                 }}
                 onMouseEnter={(e) => {
@@ -130,7 +129,7 @@ export function Sidebar({ children, widthClassName = "w-64", title = "Navigation
                   {item.icon}
                 </span>
                 <span style={{ whiteSpace: "pre-line" }}>{item.label}</span>
-              </Link>
+              </div>
             ))}
           </nav>
         </>
