@@ -31,6 +31,70 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+
+  /* RTL Support */
+  .rtl {
+    direction: rtl;
+  }
+
+  .ltr {
+    direction: ltr;
+  }
+
+  /* RTL-specific utilities */
+  .rtl .flex {
+    flex-direction: row-reverse;
+  }
+
+  .rtl .space-x-4 > :not([hidden]) ~ :not([hidden]) {
+    margin-left: 0;
+    margin-right: 1rem;
+  }
+
+  .rtl .ml-3 {
+    margin-left: 0;
+    margin-right: 0.75rem;
+  }
+
+  .rtl .mr-3 {
+    margin-right: 0;
+    margin-left: 0.75rem;
+  }
+
+  .rtl .pl-3 {
+    padding-left: 0;
+    padding-right: 0.75rem;
+  }
+
+  .rtl .pr-3 {
+    padding-right: 0;
+    padding-left: 0.75rem;
+  }
+
+  .rtl .text-left {
+    text-align: right;
+  }
+
+  .rtl .text-right {
+    text-align: left;
+  }
+
+  /* RTL table support */
+  .rtl table {
+    direction: rtl;
+  }
+
+  .rtl th,
+  .rtl td {
+    text-align: right;
+  }
+
+  /* RTL form elements */
+  .rtl input,
+  .rtl textarea,
+  .rtl select {
+    text-align: right;
+  }
 }
 
 @keyframes spin {

@@ -1,4 +1,3 @@
-"use client";
 import 'reflect-metadata';
 import '../src/env';
 import '../src/infrastructure/bootstrap/container';
@@ -8,28 +7,9 @@ import '../src/modules/merchant-admin/products/infrastructure/bootstrap/products
 import '../src/modules/merchant-admin/products/infrastructure/bootstrap/products.container';
 import "./globals.css";
 import "./output.css";
-import Sidebar from "@/shared/ui/Sidebar";
-import { useRouter } from "next/navigation";
-// import { usePathname } from "next/navigation";
-// import { useEffect } from "react";
+import ClientLayout from './client-layout';
 
 export default function RootLayout({ children }: { children: React.ReactNode}) {
-  const router = useRouter();
-  const routes: Record<string, string> = {
-    home: '/',
-    'analytics-dashboard': '/merchant-admin/analytics/dashboard',
-    'merchant-admin-products': '/products',
-    'merchant-admin-offers': '/merchant-admin/offers',
-    'merchant-admin-patch-notes': '/merchant-admin/patch-notes',
-  };
-
-  const handleSelect = (key: string) => {
-    const target = routes[key];
-    if (target) {
-      router.push(target);
-    }
-  };
-
   return (
     <html lang="en">
       <head>
@@ -37,12 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         <meta name="description" content="Web Shop Application" />
       </head>
       <body className="m-0 p-0 overflow-hidden">
-        <div className="h-screen flex">
-          <Sidebar onSelect={handleSelect} />
-          <main className="flex-1 bg-gradient-to-b from-gray-50 to-white overflow-y-auto" style={{ marginLeft: 256 }}>
-            {children}
-          </main>
-        </div>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );
