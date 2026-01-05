@@ -155,6 +155,9 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
   // Available languages for sidebar selector
   const [availableLanguages, setAvailableLanguages] = useState<SelectOption[]>([]);
 
+  // Navigation loading state
+  const [isNavigating, setIsNavigating] = useState(false);
+
   const applyElementSelectionMode = useCallback((enabled: boolean) => {
     if (typeof window !== 'undefined') {
       (window as any).__elementSelectionMode = enabled;
@@ -288,8 +291,16 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     const queryString = currentParams.toString();
     const newUrl = queryString ? `${path}?${queryString}` : path;
     console.log('[RootLayout] Navigating to:', newUrl, { appId, userId });
+
+    // Set navigation state
+    setIsNavigating(true);
     router.push(newUrl);
   };
+
+  // Reset navigation state when route changes
+  useEffect(() => {
+    setIsNavigating(false);
+  }, [searchParams]);
 
   const actionContext: ActionContext = {
     onPopupOpen: () => {},
@@ -301,10 +312,12 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     },
     navigateToPatchNotes: () => {
       console.log('[RootLayout] Navigating to patch notes page');
+      setIsNavigating(true);
       navigateWithQuery('/patch-notes');
     },
     navigateToStore: () => {
       console.log('[RootLayout] Navigating to store page with query preservation');
+      setIsNavigating(true);
       navigateWithQuery('/store');
     },
     // Localization support
@@ -578,6 +591,11 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
           }
+
+          @keyframes loading-bar {
+            0% { width: 0%; }
+            100% { width: 100%; }
+          }
         `}</style>
       </head>
       <body className="m-0 p-0 overflow-hidden">
@@ -679,7 +697,23 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                 </button>
               </header>
             )}
-        
+
+            {/* Navigation Loading Bar */}
+            {isNavigating && (
+              <div
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '3px',
+                  backgroundColor: '#3B82F6',
+                  zIndex: 1000,
+                  animation: 'loading-bar 0.3s ease-out'
+                }}
+              />
+            )}
+
             <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex relative h-screen md:h-screen" style={{ height: isMobile ? 'calc(100vh - 56px)' : '100vh' }}>
               {/* Left Sidebar - скрывается на экранах < 1280px (xl breakpoint), но всегда показывается в UI Builder */}
               {!isMobile && (
