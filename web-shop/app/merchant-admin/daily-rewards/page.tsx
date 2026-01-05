@@ -57,16 +57,6 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingReward, setEditingReward] = useState<any | null>(null);
 
-  useEffect(() => {
-    // Defer data loading to avoid blocking navigation
-    // Use requestIdleCallback if available, otherwise setTimeout
-    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-      requestIdleCallback(() => loadRewards());
-    } else {
-      setTimeout(() => loadRewards(), 0);
-    }
-  }, [params.appId, loadRewards]);
-
   const loadRewards = useCallback(async (): Promise<void> => {
     setIsLoading(true);
     setError(null);
@@ -85,6 +75,16 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
       setIsLoading(false);
     }
   }, [appId]);
+
+  useEffect(() => {
+    // Defer data loading to avoid blocking navigation
+    // Use requestIdleCallback if available, otherwise setTimeout
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      requestIdleCallback(() => loadRewards());
+    } else {
+      setTimeout(() => loadRewards(), 0);
+    }
+  }, [params.appId, loadRewards]);
 
   const handleCreateReward = async (formData: FormData): Promise<void> => {
     try {
