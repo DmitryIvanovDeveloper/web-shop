@@ -15,6 +15,12 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       <head>
         <title>Web Shop</title>
         <meta name="description" content="Web Shop Application" />
+        <style>{`
+          @keyframes loading-bar {
+            0% { width: 0%; }
+            100% { width: 100%; }
+          }
+        `}</style>
       </head>
       <body className="m-0 p-0 overflow-hidden">
         <ClientLayout>{children}</ClientLayout>
