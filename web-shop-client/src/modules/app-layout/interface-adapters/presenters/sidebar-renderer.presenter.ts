@@ -176,7 +176,9 @@ export class SidebarRendererPresenter {
             padding: 8,
             backgroundColor: "surface",
             minHeight: "100vh",
-            width: "100%"
+            width: "100%",
+            // Fallback CSS classes when Supabase data is not available
+            className: "flex min-h-full min-w-15 flex-col gap-4 px-6 py-3"
           },
           children: [
             {
@@ -192,7 +194,9 @@ export class SidebarRendererPresenter {
                 backgroundColor: "surface",
                 textColor: "text",
                 justifyContent: "flex-start",
-                hoverBackgroundColor: "primary"
+                hoverBackgroundColor: "primary",
+                // Fallback CSS classes for menu item button
+                className: "group/sidebar-button relative flex w-full cursor-pointer items-center justify-start gap-2 overflow-hidden px-3 py-2 transition-all select-none rounded-button border-0 disabled:cursor-not-allowed disabled:opacity-50 bg-sem-component-sf-component-menu-item hover:bg-sem-component-sf-component-menu-item-hover data-[active=true]:bg-sem-component-sf-component-menu-item-accent flex-row"
               },
               actions: {
                 onClick: {
@@ -213,7 +217,9 @@ export class SidebarRendererPresenter {
                 padding: 4,
                 backgroundColor: "primary",
                 textColor: "text",
-                justifyContent: "flex-start"
+                justifyContent: "flex-start",
+                // Fallback CSS classes for active menu item button
+                className: "group/sidebar-button relative flex w-full cursor-pointer items-center justify-start gap-2 overflow-hidden px-3 py-2 transition-all select-none rounded-button border-0 disabled:cursor-not-allowed disabled:opacity-50 bg-sem-component-sf-component-menu-store hover:bg-sem-component-sf-component-menu-store-hover data-[active=true]:bg-sem-component-sf-component-menu-store-accent flex-row"
               },
               actions: {
                 onClick: {
@@ -235,7 +241,9 @@ export class SidebarRendererPresenter {
                 backgroundColor: "surface",
                 textColor: "text",
                 justifyContent: "flex-start",
-                hoverBackgroundColor: "primary"
+                hoverBackgroundColor: "primary",
+                // Fallback CSS classes for menu item button
+                className: "group/sidebar-button relative flex w-full cursor-pointer items-center justify-start gap-2 overflow-hidden px-3 py-2 transition-all select-none rounded-button border-0 disabled:cursor-not-allowed disabled:opacity-50 bg-sem-component-sf-component-menu-item hover:bg-sem-component-sf-component-menu-item-hover data-[active=true]:bg-sem-component-sf-component-menu-item-accent flex-row"
               },
               actions: {
                 onClick: {
@@ -259,7 +267,9 @@ export class SidebarRendererPresenter {
                 padding: 4,
                 marginTop: "auto", // Push to bottom
                 backgroundColor: "surface",
-                textColor: "text"
+                textColor: "text",
+                // Fallback CSS classes for language selector
+                className: "group/select-trigger flex min-h-9 w-full min-w-48 cursor-pointer items-center justify-between rounded-input border border-sem-border-br-base-secondary-invert bg-sem-surface-sf-base-secondary px-3 py-2 text-left font-medium text-caption-lg text-sem-text-tx-quaternary shadow-sm transition-colors hover:cursor-pointer hover:border-sem-border-br-base-secondary-invert-hover hover:bg-sem-surface-sf-base-secondary-hover aria-expanded:border-sem-border-br-brand-b-primary aria-expanded:bg-sem-surface-sf-base-secondary-accent"
               },
               actions: {
                 onChange: {
