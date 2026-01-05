@@ -107,6 +107,7 @@ export default function HomePage(): JSX.Element {
 
 
   // Load app config on mount if appId is available (for iframe Builder preview)
+  // Make it non-blocking for navigation by deferring the async operation
   useEffect(() => {
     const loadAppConfig = async () => {
       try {
@@ -116,10 +117,10 @@ export default function HomePage(): JSX.Element {
 
         // Set current appId for patch notes
         setCurrentAppId(appId);
-        
+
         // Check if we're in an iframe (likely Builder preview)
         const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
-        
+
         if (appId) {
           // Try to load config from Supabase if not loaded yet
           const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
@@ -139,7 +140,13 @@ export default function HomePage(): JSX.Element {
       }
     };
 
-    loadAppConfig();
+    // Defer config loading to avoid blocking navigation
+    // Use requestIdleCallback if available, otherwise setTimeout
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      requestIdleCallback(() => loadAppConfig());
+    } else {
+      setTimeout(() => loadAppConfig(), 0);
+    }
   }, [previewMode]);
 
   // Subscribe to PageRendererPresenter for offer card updates (only in preview mode)

@@ -124,6 +124,7 @@ export default function PatchNotesPage(): JSX.Element {
   }, [searchParams]);
 
   // Load app config on mount if appId is available (for iframe Builder preview)
+  // Make it non-blocking for navigation by deferring the async operation
   useEffect(() => {
     const loadAppConfig = async () => {
       try {
@@ -155,7 +156,13 @@ export default function PatchNotesPage(): JSX.Element {
       }
     };
 
-    loadAppConfig();
+    // Defer config loading to avoid blocking navigation
+    // Use requestIdleCallback if available, otherwise setTimeout
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      requestIdleCallback(() => loadAppConfig());
+    } else {
+      setTimeout(() => loadAppConfig(), 0);
+    }
   }, [previewMode]);
 
   // Subscribe to PageRendererPresenter for offer card updates (only in preview mode)
