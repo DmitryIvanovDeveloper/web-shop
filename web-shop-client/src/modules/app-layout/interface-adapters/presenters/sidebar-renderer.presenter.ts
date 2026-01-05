@@ -149,6 +149,7 @@ export class SidebarRendererPresenter {
     try {
       console.log('[SidebarRendererPresenter] Using default sidebar configuration');
       console.log('[SidebarRendererPresenter] Default config children:', [
+        'home-button',
         'store-button',
         'patch-notes-button',
         'localization-button'
@@ -178,6 +179,28 @@ export class SidebarRendererPresenter {
             width: "100%"
           },
           children: [
+            {
+              id: "home-button",
+              type: "Button",
+              props: {
+                text: this.getTranslation("nav.home", "Home"),
+                icon: "🏠",
+                fullWidth: true
+              },
+              styles: {
+                padding: 4,
+                backgroundColor: "surface",
+                textColor: "text",
+                justifyContent: "flex-start",
+                hoverBackgroundColor: "primary"
+              },
+              actions: {
+                onClick: {
+                  type: "custom",
+                  handler: "navigateToHome"
+                }
+              }
+            },
             {
               id: "store-button",
               type: "Button",
@@ -378,6 +401,7 @@ export class SidebarRendererPresenter {
       direction,
       translationsCount: Object.keys(translations).length,
       availableKeys: Object.keys(translations).filter(key => key.startsWith('nav.')),
+      navHome: translations['nav.home'],
       navStore: translations['nav.store'],
       navPatchNotes: translations['nav.patchNotes']
     });

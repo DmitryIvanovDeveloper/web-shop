@@ -310,6 +310,11 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         navigateWithQuery(url);
       }
     },
+    navigateToHome: () => {
+      console.log('[RootLayout] Navigating to home page');
+      setIsNavigating(true);
+      navigateWithQuery('/');
+    },
     navigateToPatchNotes: () => {
       console.log('[RootLayout] Navigating to patch notes page');
       setIsNavigating(true);
