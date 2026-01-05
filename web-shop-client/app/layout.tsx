@@ -724,7 +724,17 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
               {!isMobile && (
                 <aside
                   data-element-id="left-sidebar"
-                  className={isUIBuilderMode ? "block w-64 border-r border-gray-700 flex-shrink-0" : "hidden xl:block w-64 border-r border-gray-700 flex-shrink-0"}
+                  className={(() => {
+                    const baseClasses = isUIBuilderMode ? "block w-64 border-r border-gray-700 flex-shrink-0" : "hidden xl:block w-64 border-r border-gray-700 flex-shrink-0";
+
+                    // Add fallback classes when Supabase data is not available (sidebarRootStyles is empty)
+                    const hasSupabaseStyles = Object.keys(sidebarRootStyles).length > 0;
+                    if (!hasSupabaseStyles) {
+                      return `${baseClasses} flex min-h-full min-w-15 flex-col gap-4 px-6 py-3`;
+                    }
+
+                    return baseClasses;
+                  })()}
                   style={(() => {
                     // Don't mix shorthand (borderLeft) and non-shorthand (borderColor, borderWidth, borderStyle) properties
                     const { borderLeft, borderColor, borderWidth, borderStyle, ...otherStyles } = sidebarRootStyles;
