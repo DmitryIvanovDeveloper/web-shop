@@ -17,13 +17,17 @@ export interface ProductsListProps {
 
 export function ProductsList({ className, style }: ProductsListProps): JSX.Element | null {
   const [, forceUpdate] = useState({});
-  
+
   // State for tracking loading status of individual products
   const [loadingProducts, setLoadingProducts] = useState<Set<string>>(new Set());
 
   // Get presenter and auth service from DI container
   const presenter = container.get<ProductsListPresenter>(PRODUCTS_TYPES.ProductsListPresenter);
   const authService = container.get<AuthServicePort>(PRODUCTS_TYPES.AuthService);
+
+  // Get translations from presenter
+  const getTranslation = (key: string, fallback?: string) => presenter.getTranslation(key, fallback);
+  const direction = presenter.getDirection();
 
   // Get appId with priority: session > query params
   const getAppId = (): string | null => {
@@ -141,8 +145,8 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
 
   if (viewModel.status === 'loading') {
     return (
-      <div className={className} style={style}>
-        <h2 className="text-white text-xl font-bold mb-4">Products</h2>
+      <div className={className} style={style} dir={direction}>
+        <h2 className="text-white text-xl font-bold mb-4">{getTranslation('products.title', 'Products')}</h2>
         <Grid>
           {/* Show 6 skeleton cards while loading */}
           {Array.from({ length: 6 }, (_, index) => (
@@ -157,8 +161,8 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
 
   if (viewModel.status === 'error') {
     return (
-      <div className={className} style={style}>
-        <h2 className="text-white text-xl font-bold mb-4">Products</h2>
+      <div className={className} style={style} dir={direction}>
+        <h2 className="text-white text-xl font-bold mb-4">{getTranslation('products.title', 'Products')}</h2>
         <div className="text-white">Error: {viewModel.message}</div>
       </div>
     );
@@ -169,9 +173,9 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
   }
 
   return (
-    <div className={`${className || ''} mt-8`} style={style}>
+    <div className={`${className || ''} mt-8`} style={style} dir={direction}>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-white text-xl font-bold">Products</h2>
+        <h2 className="text-white text-xl font-bold">{getTranslation('products.title', 'Products')}</h2>
       </div>
       <Grid>
         {Array.isArray(viewModel.products) ? viewModel.products.map((product, index) => (

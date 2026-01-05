@@ -29,6 +29,7 @@ export function SidebarRenderer({
 
     const unsubscribe = presenter.subscribe(() => {
       // Force re-render when config changes
+      console.log('[SidebarRenderer] Config update received, forcing re-render');
       setConfigVersion(prev => prev + 1);
     });
 

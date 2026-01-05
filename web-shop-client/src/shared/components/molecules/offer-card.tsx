@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import type { CSSProperties } from "react";
 import { Badge } from "../atoms/badge";
+import { useTranslation } from "../../../modules/localization";
 // import type { OfferCardUIConfig } from "../../config/app-config.types";
 
 export interface BuyButtonStyle {
@@ -29,6 +30,8 @@ export interface OfferCardProps {
   readonly playerLimit?: string;
   readonly timer?: string;
   readonly title?: string;
+  readonly description?: string;
+  readonly topLabel?: string;
   readonly rarity?: string;
   readonly originalPrice?: string;
   readonly currentPrice?: string;
@@ -51,6 +54,8 @@ export function OfferCard({
   playerLimit,
   timer,
   title = "",
+  description,
+  topLabel,
   rarity,
   originalPrice,
   currentPrice,
@@ -63,6 +68,8 @@ export function OfferCard({
   style,
   onClick
 }: OfferCardProps): JSX.Element {
+  const { t, direction } = useTranslation();
+
   // State for dynamic styles from config
   const [cardStyles, setCardStyles] = useState<any>(null);
 
@@ -85,6 +92,7 @@ export function OfferCard({
   return (
     <div
       className={`relative bg-gray-800 rounded-lg overflow-hidden shadow-lg w-full ${className}`}
+      dir={direction}
       style={{
         backgroundColor: cardStyles?.container?.backgroundColor,
         borderRadius: cardStyles?.container?.borderRadius,
@@ -169,6 +177,11 @@ export function OfferCard({
           maxHeight: '44px', // Ограничить максимальную высоту
           overflow: 'hidden' // Скрыть переполнение
         }}>
+          {topLabel && (
+            <div className="text-white text-xs font-medium mb-1 opacity-90">
+              {topLabel}
+            </div>
+          )}
           {title && (
             <h3
               className="text-white text-lg font-bold truncate"
@@ -185,6 +198,11 @@ export function OfferCard({
             >
               {title}
             </h3>
+          )}
+          {description && (
+            <p className="text-white text-sm opacity-80 mt-1 line-clamp-2">
+              {description}
+            </p>
           )}
         </div>
 
@@ -217,7 +235,7 @@ export function OfferCard({
                 justifyContent: 'center'
               }}
             >
-              {cardStyles?.purchasedBadge?.text || "PURCHASED"}
+              {cardStyles?.purchasedBadge?.text || t('products.purchasedBadge', 'PURCHASED')}
             </div>
           ) : (
             // BUY Button
@@ -259,7 +277,7 @@ export function OfferCard({
                     </svg>
                   </span>
                 ) : (
-                  buyButton.text || "BUY NOW"
+                  buyButton.text || t('products.buyButton', 'Buy Now')
                 )}
               </button>
             )

@@ -10,6 +10,9 @@ import { AppLayoutError } from '../../domain/errors/ui-renderer.error';
 export class SidebarRendererPresenter {
   private _configs: UIRendererModuleConfig | null = null;
   private _listeners: Array<() => void> = [];
+  private _translations: Record<string, string> = {};
+  private _languageCode: string = 'en';
+  private _direction: 'ltr' | 'rtl' = 'ltr';
 
   public readonly labels = {
     loading: 'Loading...',
@@ -147,7 +150,8 @@ export class SidebarRendererPresenter {
       console.log('[SidebarRendererPresenter] Using default sidebar configuration');
       console.log('[SidebarRendererPresenter] Default config children:', [
         'store-button',
-        'patch-notes-button'
+        'patch-notes-button',
+        'localization-button'
       ]);
       const defaultSidebarLayout = {
         version: "1.0",
@@ -178,7 +182,7 @@ export class SidebarRendererPresenter {
               id: "store-button",
               type: "Button",
               props: {
-                text: "Store",
+                text: this.getTranslation("nav.store", "Store"),
                 icon: "🛒",
                 fullWidth: true
               },
@@ -199,7 +203,7 @@ export class SidebarRendererPresenter {
               id: "patch-notes-button",
               type: "Button",
               props: {
-                text: "Patch Notes",
+                text: this.getTranslation("nav.patchNotes", "Patch Notes"),
                 icon: "📋",
                 fullWidth: true
               },
@@ -214,6 +218,30 @@ export class SidebarRendererPresenter {
                 onClick: {
                   type: "custom",
                   handler: "navigateToPatchNotes"
+                }
+              }
+            },
+            {
+              id: "language-selector",
+              type: "Select",
+              props: {
+                options: [
+                  { value: "en", label: "English (English)" },
+                  { value: "ar", label: "Arabic (العربية)" }
+                ],
+                placeholder: "🌐 Language",
+                value: "en"
+              },
+              styles: {
+                padding: 4,
+                marginTop: "auto", // Push to bottom
+                backgroundColor: "surface",
+                textColor: "text"
+              },
+              actions: {
+                onChange: {
+                  type: "custom",
+                  handler: "changeLanguage"
                 }
               }
             }
@@ -338,6 +366,47 @@ export class SidebarRendererPresenter {
     const firstChar = type[0]?.toUpperCase() || '';
     const rest = type.slice(1);
     return firstChar + rest;
+  }
+
+  public onTranslationsConfig(
+    translations: Record<string, string>,
+    languageCode: string,
+    direction: 'ltr' | 'rtl'
+  ): void {
+    console.log('[SidebarRendererPresenter] onTranslationsConfig called', {
+      languageCode,
+      direction,
+      translationsCount: Object.keys(translations).length,
+      availableKeys: Object.keys(translations).filter(key => key.startsWith('nav.')),
+      navStore: translations['nav.store'],
+      navPatchNotes: translations['nav.patchNotes']
+    });
+
+    // Store translations for sidebar button text updates
+    this._translations = translations;
+    this._languageCode = languageCode;
+    this._direction = direction;
+
+    console.log('[SidebarRendererPresenter] Translations config updated for sidebar', {
+      languageCode,
+      direction,
+      translationsCount: Object.keys(translations).length,
+      availableKeys: Object.keys(translations).filter(key => key.startsWith('nav.'))
+    });
+
+    // Notify listeners that translations have been updated
+    // This will trigger re-render of sidebar with new translations
+    console.log('[SidebarRendererPresenter] Notifying listeners, count:', this._listeners.length);
+    this._listeners.forEach(listener => listener());
+    console.log('[SidebarRendererPresenter] All listeners notified');
+  }
+
+  public getTranslation(key: string, fallback?: string): string {
+    return this._translations[key] || fallback || key;
+  }
+
+  public getDirection(): 'ltr' | 'rtl' {
+    return this._direction;
   }
 }
 

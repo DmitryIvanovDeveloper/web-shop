@@ -19,6 +19,9 @@ export class ProductsListPresenter {
   
   private _onViewModelChanged?: () => void;
   private _cachedProducts: Product[] | null = null;
+  private _translations: Record<string, string> = {};
+  private _languageCode: string = 'en';
+  private _direction: 'ltr' | 'rtl' = 'ltr';
 
   constructor(
     @inject(PRODUCTS_TYPES.LoadProductsUseCase)
@@ -46,6 +49,30 @@ export class ProductsListPresenter {
     if (this._onViewModelChanged) {
       this._onViewModelChanged();
     }
+  }
+
+  public onTranslationsConfig(
+    translations: Record<string, string>,
+    languageCode: string,
+    direction: 'ltr' | 'rtl'
+  ): void {
+    this._translations = translations;
+    this._languageCode = languageCode;
+    this._direction = direction;
+
+    this._logger.info('[ProductsListPresenter] Translations config updated', {
+      languageCode,
+      direction,
+      translationsCount: Object.keys(translations).length
+    });
+  }
+
+  public getTranslation(key: string, fallback?: string): string {
+    return this._translations[key] || fallback || key;
+  }
+
+  public getDirection(): 'ltr' | 'rtl' {
+    return this._direction;
   }
 
   public async refreshStyles(): Promise<void> {

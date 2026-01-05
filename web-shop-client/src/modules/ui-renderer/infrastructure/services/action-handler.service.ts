@@ -43,8 +43,8 @@ export class ActionHandler {
       // Ищем обработчик в контексте по имени
       const handler = (context as any)[action.handler];
       if (typeof handler === 'function') {
-        // Для handleAppIdChange передаем значение, для других - mock событие
-        if (action.handler === 'handleAppIdChange') {
+        // Для handleAppIdChange и changeLanguage передаем значение, для других - mock событие
+        if (action.handler === 'handleAppIdChange' || action.handler === 'changeLanguage') {
           handler(value || '');
         } else {
           const mockEvent = {

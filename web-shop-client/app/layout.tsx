@@ -11,13 +11,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { APP_LAYOUT_TYPES } from '../src/modules/app-layout/infrastructure/bootstrap/types';
 import { SidebarRendererPresenter } from '../src/modules/app-layout/interface-adapters/presenters/sidebar-renderer.presenter';
 import { SidebarRenderer } from '../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
-import type { ActionContext } from '../src/shared/ui/action-context';
+import type { ActionContext, SelectOption } from '../src/shared/ui/action-context';
 import type { PageConfig } from '../src/modules/app-layout/domain/value-objects/page-config.value-object';
 import type { StyleConfig } from '../src/shared/ui/style-config';
 import { LoadAppConfigUseCase } from '../src/application/use-cases/load-app-config.use-case';
 import { LoadAppConfigFromMessageUseCase } from '../src/application/use-cases/load-app-config-from-message.use-case';
 import { SubscribeToConfigUpdatesUseCase } from '../src/application/use-cases/subscribe-to-config-updates.use-case';
 import { TYPES } from '../src/infrastructure/bootstrap/types';
+import { LOCALIZATION_TYPES } from '../src/modules/localization/infrastructure/bootstrap/types';
 import { AppConfigLoadedEvent } from '../src/shared/events/app-config-events';
 import { IAsyncEventHandler } from '../src/infrastructure/events/events-handler.plugin';
 
@@ -150,6 +151,9 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
   
   // Viewport mode from UI Builder (mobile/tablet/desktop)
   const [viewportMode, setViewportMode] = useState<'mobile' | 'tablet' | 'desktop' | null>(null);
+
+  // Available languages for sidebar selector
+  const [availableLanguages, setAvailableLanguages] = useState<SelectOption[]>([]);
 
   const applyElementSelectionMode = useCallback((enabled: boolean) => {
     if (typeof window !== 'undefined') {
@@ -303,6 +307,30 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       console.log('[RootLayout] Navigating to store page with query preservation');
       navigateWithQuery('/store');
     },
+    // Localization support
+    availableLanguages,
+    changeLanguage: async (languageCode: string) => {
+      try {
+        console.log('[RootLayout] Changing language to:', languageCode);
+
+        // Validate language code
+        if (!languageCode || typeof languageCode !== 'string' || !/^[a-z]{2,3}$/.test(languageCode)) {
+          console.error('[RootLayout] Invalid language code:', languageCode);
+          return;
+        }
+
+        // Get localization presenter from container
+        const localizationPresenter = container.get(LOCALIZATION_TYPES.LocalizationPresenter) as any;
+
+        // Call change language
+        await localizationPresenter.changeLanguage(languageCode);
+
+        console.log('[RootLayout] Language changed successfully to:', languageCode);
+      } catch (error) {
+        console.error('[RootLayout] Failed to change language:', error);
+        // TODO: Show error toast to user
+      }
+    },
   };
 
   // Load app-config при старте приложения и подписка на real-time обновления
@@ -315,7 +343,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         const shouldLoadDraft = resolveShouldLoadDraft();
         const appId = getAppIdFromEnvironment();
         console.log('[RootLayout] Resolved appId:', appId, 'URL:', window.location.href);
-        await loadAppConfigUseCase.execute(shouldLoadDraft, appId);
+        await loadAppConfigUseCase.execute(shouldLoadDraft, appId || undefined);
         console.log('[RootLayout] App config loaded and distributed via EventBus');
         
         // 2. Subscribe to real-time config updates (only if not in UI Builder preview mode)
@@ -421,6 +449,31 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     return () => window.removeEventListener('resize', checkMobile);
   }, [isUIBuilderMode, viewportMode]);
 
+  // Load available languages
+  useEffect(() => {
+    const loadLanguages = async () => {
+      try {
+        console.log('[RootLayout] Loading available languages');
+        const response = await fetch('/api/localization/languages');
+        if (response.ok) {
+          const languages = await response.json();
+          const options: SelectOption[] = languages.map((lang: any) => ({
+            value: lang.code,
+            label: `${lang.name} (${lang.nativeName})`
+          }));
+          setAvailableLanguages(options);
+          console.log('[RootLayout] Languages loaded:', options.length);
+        } else {
+          console.error('[RootLayout] Failed to load languages:', response.status);
+        }
+      } catch (error) {
+        console.error('[RootLayout] Error loading languages:', error);
+      }
+    };
+
+    loadLanguages();
+  }, []);
+
   // Listen for config updates from UI Builder via postMessage
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -462,7 +515,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
             typeof (config as { elementSelectionMode?: unknown }).elementSelectionMode === 'boolean'
               ? (config as { elementSelectionMode?: boolean }).elementSelectionMode
               : Boolean((config as { elementSelectionMode?: unknown }).elementSelectionMode);
-          applyElementSelectionMode(selectionModeValue);
+          applyElementSelectionMode(selectionModeValue ?? false);
           
           console.log('[RootLayout] Config processed from postMessage');
         } catch (error) {

@@ -16,6 +16,7 @@ import { TYPES } from '../src/infrastructure/bootstrap/types';
 import { OfferCard } from '../src/shared/components/molecules/offer-card';
 import { PatchNotesPublic } from '../src/modules/patch-notes/interface-adapters/ui/components/patch-notes-public';
 import { ProductsList } from '../src/modules/products/interface-adapters/ui/components/products-list';
+import { useTranslation } from '../src/modules/localization';
 import type { AppConfig } from '../src/shared/config/app-config.types';
 
 export default function HomePage(): JSX.Element {
@@ -32,6 +33,10 @@ export default function HomePage(): JSX.Element {
   const [previewMode, setPreviewMode] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
   const [currentAppId, setCurrentAppId] = useState<string>('default-app');
+  const [showLocalizationModal, setShowLocalizationModal] = useState(false);
+
+  // Localization hook
+  const { t, direction } = useTranslation();
   const applyElementSelectionMode = useCallback((enabled: boolean) => {
     setElementSelectionMode(enabled);
 
@@ -79,6 +84,10 @@ export default function HomePage(): JSX.Element {
     navigateToPatchNotes: () => {
       console.log('[HomePage] Navigating to patch notes page');
       navigateWithQuery('/patch-notes');
+    },
+    openLocalizationModal: () => {
+      console.log('[HomePage] Opening localization modal');
+      setShowLocalizationModal(true);
     },
   };
 
@@ -279,6 +288,7 @@ export default function HomePage(): JSX.Element {
     }
   }, []);
 
+
   return (
     <main className="flex-1 overflow-y-auto w-full mx-auto px-4 md:px-8" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>
       {/* Demo section for selected offer card (only in preview mode) */}
@@ -297,9 +307,8 @@ export default function HomePage(): JSX.Element {
               return (
             <OfferCard
               id={selectedOfferCard.id}
-              topLabel="Limited Offer🎁"
               title="Offer #1"
-              description="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+              includedItems={["Limited Offer🎁", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."]}
               mainImage={selectedOfferCard.media?.mainImage ?? 'https://via.placeholder.com/400x274/374151/ffffff?text=Dragon+Slayer+Sword'}
               mainImageAlt={selectedOfferCard.media?.mainImageAlt ?? 'Offer card image'}
               discount="80%"
@@ -317,12 +326,87 @@ export default function HomePage(): JSX.Element {
       <div className="mt-12">
         {/* Store content will be rendered here */}
         <div className="text-center py-8">
-          <h1 className="text-3xl font-bold mb-4">Welcome to Web Shop</h1>
+          <h1 className="text-3xl font-bold mb-4">{t('auth.welcomeTitle', 'Welcome')} {t('auth.welcomeSubtitle', 'to Web Shop')}</h1>
           <p className="text-gray-600">Use the sidebar to navigate between sections.</p>
         </div>
+
         {/* Products list */}
         <ProductsList />
       </div>
+
+      {/* Localization Modal */}
+      {showLocalizationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4 text-center">Select Language</h3>
+
+            <div className="space-y-3">
+              <button
+                onClick={async () => {
+                  try {
+                    console.log('[Localization] Loading English translations');
+                    const response = await fetch('/api/localization/translations?lang=en');
+                    if (response.ok) {
+                      const data = await response.json();
+                      console.log('[Localization] English translations loaded:', data.length, 'keys');
+
+                      // Apply LTR direction
+                      document.documentElement.dir = 'ltr';
+                      document.documentElement.lang = 'en';
+
+                      setShowLocalizationModal(false);
+                      // In a real app, you would update the React state here
+                      // For demo purposes, we'll reload to show changes
+                      window.location.reload();
+                    }
+                  } catch (error) {
+                    console.error('[Localization] Failed to load English translations:', error);
+                  }
+                }}
+                className="w-full p-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors"
+              >
+                <div className="font-medium">English</div>
+                <div className="text-sm text-gray-600">Left-to-right text direction</div>
+              </button>
+
+              <button
+                onClick={async () => {
+                  try {
+                    console.log('[Localization] Loading Arabic translations');
+                    const response = await fetch('/api/localization/translations?lang=ar');
+                    if (response.ok) {
+                      const data = await response.json();
+                      console.log('[Localization] Arabic translations loaded:', data.length, 'keys');
+
+                      // Apply RTL direction
+                      document.documentElement.dir = 'rtl';
+                      document.documentElement.lang = 'ar';
+
+                      setShowLocalizationModal(false);
+                      // In a real app, you would update the React state here
+                      // For demo purposes, we'll reload to show changes
+                      window.location.reload();
+                    }
+                  } catch (error) {
+                    console.error('[Localization] Failed to load Arabic translations:', error);
+                  }
+                }}
+                className="w-full p-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors"
+              >
+                <div className="font-medium">العربية (Arabic)</div>
+                <div className="text-sm text-gray-600">Right-to-left text direction</div>
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowLocalizationModal(false)}
+              className="w-full mt-4 p-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

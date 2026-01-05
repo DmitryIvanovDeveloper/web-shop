@@ -3,6 +3,8 @@ export interface SelectionRect {
   top: number;
   width: number;
   height: number;
+  right?: number;
+  bottom?: number;
   borderRadius?: number;
 }
 
@@ -53,11 +55,13 @@ export class SelectionOverlay {
 
     // If element is not visible in the current viewport (e.g. sidebar is closed in mobile),
     // do not show the overlay at all.
+    const rectRight = rect.right ?? (rect.left + rect.width);
+    const rectBottom = rect.bottom ?? (rect.top + rect.height);
     const isOffscreen =
       rect.width <= 0 ||
       rect.height <= 0 ||
-      rect.right < 0 ||
-      rect.bottom < 0 ||
+      rectRight < 0 ||
+      rectBottom < 0 ||
       rect.left > window.innerWidth ||
       rect.top > window.innerHeight;
 

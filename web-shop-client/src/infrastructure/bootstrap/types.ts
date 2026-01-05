@@ -55,6 +55,9 @@ export const ROOT_TYPES = TYPES;
 // Export AUTH_TYPES from authentication module
 export { AUTH_TYPES } from '../../modules/authentication/infrastructure/bootstrap/types';
 
+// Export LOCALIZATION_TYPES from localization module
+export { LOCALIZATION_TYPES } from '../../modules/localization/infrastructure/bootstrap/types';
+
 // Export SHOP_TYPES from shop module
 // Http client selection mode
 export enum HttpClientMode {

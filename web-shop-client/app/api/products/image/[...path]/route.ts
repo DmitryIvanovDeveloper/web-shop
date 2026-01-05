@@ -17,6 +17,7 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ): Promise<Response> {
+  const { path } = await params;
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -88,7 +89,7 @@ export async function GET(
     });
   } catch (error) {
     console.error('[Client Image Proxy] Unexpected error', {
-      originalPath: params.path?.join('/') ?? '',
+      originalPath: path?.join('/') ?? '',
       error,
     });
     return NextResponse.json(

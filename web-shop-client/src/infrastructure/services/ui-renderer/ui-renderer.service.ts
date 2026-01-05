@@ -143,6 +143,19 @@ export class UIRendererService implements UIRendererPort {
 		// Handle onChange action for inputs
 		const handleChange = this._createChangeHandler(node, context);
 
+		// Special handling for Select component - inject options from actionContext
+		let selectProps = propsWithoutPageSlug;
+		if (node.type === 'Select' && context?.availableLanguages) {
+			selectProps = {
+				...propsWithoutPageSlug,
+				options: context.availableLanguages
+			};
+			console.log('[UIRendererService] Injected languages into Select component', {
+				nodeId: node.id,
+				languagesCount: context.availableLanguages.length
+			});
+		}
+
 		// Add hover handlers for element selection mode (preview mode)
 		const hoverHandlers = this._createHoverHandlers(node);
 
@@ -154,7 +167,7 @@ export class UIRendererService implements UIRendererPort {
 
 		// Build component props
 		const componentProps: Record<string, unknown> = {
-			...propsWithoutPageSlug,
+			...selectProps,
 			...previewProps,
 			className,
 			style,

@@ -1,6 +1,9 @@
 import { Container } from 'inversify';
 import { PRODUCTS_TYPES } from './types';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
+import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
+import { TranslationsConfigEvent } from '../../../localization/domain/events/translations-config.event';
+import { ProductsTranslationsConfigHandler } from '../../interface-adapters/handlers/translations-config.handler';
 import { ProductRepository } from '../repositories/product.repository';
 import { PurchasesHttpRepository } from '../repositories/purchases-http.repository';
 import { ProductStyleService } from '../services/product-style.service';
@@ -63,6 +66,11 @@ export function bindProducts(container: Container): void {
   container
     .bind<IAsyncEventHandler<AppConfigLoadedEvent>>(Symbol.for('IAsyncEventHandler<AppConfigLoadedEvent>'))
     .to(ProductsAppConfigLoadedHandler)
+    .inTransientScope();
+
+  container
+    .bind<IAsyncEventHandler<TranslationsConfigEvent>>(Symbol.for('IAsyncEventHandler<TranslationsConfigEvent>'))
+    .to(ProductsTranslationsConfigHandler)
     .inTransientScope();
 
   // Register UI components in shared UI renderer registry

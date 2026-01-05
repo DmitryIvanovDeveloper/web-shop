@@ -11,6 +11,7 @@ import { UniversalContainer } from '../../../shared/components/atoms/container';
 import { UniversalButton } from '../../../shared/components/atoms/button';
 import { UniversalText } from '../../../shared/components/atoms/text';
 import { Input } from '../../../shared/components/atoms/input';
+import { Select } from '../../../shared/components/atoms/select';
 import { UniversalImage } from '../../../shared/components/atoms/image';
 import { UniversalVideo } from '../../../shared/components/atoms/video';
 import { Badge } from '../../../shared/components/atoms/badge';
@@ -73,6 +74,7 @@ export class UIComponentRegistry {
 		this.registerComponent('Button', UniversalButton);
 		this.registerComponent('Text', UniversalText);
 		this.registerComponent('Input', Input);
+		this.registerComponent('Select', Select);
 		this.registerComponent('Image', UniversalImage);
 		this.registerComponent('Video', UniversalVideo);
 		this.registerComponent('Badge', Badge);
