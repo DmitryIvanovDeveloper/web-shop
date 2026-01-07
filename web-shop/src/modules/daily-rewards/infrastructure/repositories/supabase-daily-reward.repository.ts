@@ -119,7 +119,7 @@ export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort 
         return Failure.fail(new Error(`Failed to find daily rewards: ${error.message}`));
       }
 
-      const rewards = (data || []).map(row => this.mapRowToEntity(row));
+      const rewards = (data || []).map((row) => this.mapRowToEntity(row));
       this._logger.info('[SupabaseDailyRewardRepository] Found daily rewards', {
         count: rewards.length,
         appId: input.appId
@@ -223,7 +223,17 @@ export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort 
     }
   }
 
-  private mapRowToEntity(row: any): DailyReward {
+  private mapRowToEntity(row: {
+    id: string;
+    app_id: string;
+    type: string;
+    title: string;
+    description: string;
+    points: number;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+  }): DailyReward {
     try {
       return DailyReward.fromDatabase(
         RewardId.fromString(row.id),

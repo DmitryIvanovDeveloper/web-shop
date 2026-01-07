@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result, Success, Failure } from '../../../../shared/result/result';
+import { Result } from '../../../../shared/result/result';
 import { DAILY_REWARDS_TYPES } from '../../infrastructure/daily-rewards.container';
 import type { DailyRewardRepositoryPort } from '../ports/daily-reward-repository.port';
 import type { CreateDailyRewardInput, DailyRewardOutput } from '../types/daily-reward.types';
@@ -22,11 +22,12 @@ export class CreateDailyRewardUseCase {
       });
 
       if (existingRewards.isSuccess) {
-        const duplicate = existingRewards.data.find(
-          reward => reward.title.toLowerCase() === input.title.toLowerCase()
+        const data = existingRewards.value;
+        const duplicate = data?.find(
+          (reward: DailyReward) => reward.title.toLowerCase() === input.title.toLowerCase()
         );
         if (duplicate) {
-          return Failure.fail(new RewardAlreadyExistsError(duplicate.id.value, input.appId));
+          return Result.fail(new RewardAlreadyExistsError(duplicate.id.value, input.appId));
         }
       }
 
@@ -46,12 +47,12 @@ export class CreateDailyRewardUseCase {
       // Save to repository
       const saveResult = await this._dailyRewardRepository.save(dailyReward);
       if (!saveResult.isSuccess) {
-        return Failure.fail(saveResult.error);
+        return Result.fail(saveResult.error || new Error('Failed to save reward'));
       }
 
-      return Success.ok(this.mapToOutput(saveResult.data));
+      return Result.ok(this.mapToOutput(saveResult.value!));
     } catch (error) {
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
