@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/infrastructure/bootstrap/container';
 import { TYPES } from '@/infrastructure/bootstrap/types';
 import type { DatabaseClientPort } from '@/application/ports/database-client.port';
-import { CreateDailyRewardUseCase } from '@/modules/daily-rewards/application/use-cases/create-daily-reward-use-case.use-case';
-import { DAILY_REWARDS_TYPES } from '@/modules/daily-rewards/infrastructure/daily-rewards.container';
+import { CreateDailyRewardUseCase } from '@/modules/merchant-admin/daily-rewards/application/use-cases/create-daily-reward.use-case';
+import { DAILY_REWARDS_TYPES } from '@/modules/merchant-admin/daily-rewards/infrastructure/bootstrap/daily-rewards.container';
 import { z } from 'zod';
 
 // Real database only - no mock storage
@@ -11,9 +11,7 @@ let useMockStorage = false; // Always use real Supabase database
 
 const CreateDailyRewardSchema = z.object({
   appId: z.string().min(1, 'App ID is required'),
-  type: z.enum(['points', 'currency', 'item'], {
-    errorMap: () => ({ message: 'Type must be one of: points, currency, item' })
-  }),
+  type: z.enum(['points', 'currency', 'item']),
   title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters'),
   description: z.string().min(1, 'Description is required').max(500, 'Description must be less than 500 characters'),
   points: z.number().int().positive('Points must be a positive integer')
@@ -33,6 +31,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const status = searchParams.get('status') as 'active' | 'inactive' | 'all' | null;
     const limit = searchParams.get('limit');
     const offset = searchParams.get('offset');
+
+    console.log('[GET /api/merchant-admin/daily-rewards] Request params:', { appId, status, limit, offset });
 
     if (!appId) {
       return NextResponse.json({ error: 'App ID is required' }, { status: 400 });
@@ -73,11 +73,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const { data, error } = await query;
 
+    console.log('[GET /api/merchant-admin/daily-rewards] Database result:', { data: data?.length || 0, error });
+
     if (error) {
       console.error('[GET /api/merchant-admin/daily-rewards] Database error:', error);
       return NextResponse.json({ error: 'Failed to fetch daily rewards' }, { status: 500 });
     }
 
+    console.log('[GET /api/merchant-admin/daily-rewards] Returning data:', data);
     return NextResponse.json(data || []);
   } catch (error) {
     console.error('[GET /api/merchant-admin/daily-rewards] Unexpected error:', error);

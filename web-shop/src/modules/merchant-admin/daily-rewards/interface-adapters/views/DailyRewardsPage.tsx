@@ -2,10 +2,11 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { container as appContainer } from '../../../../../infrastructure/bootstrap/container';
-import { DAILY_REWARDS_TYPES } from '../../../daily-rewards/infrastructure/bootstrap/bind.daily-rewards';
-import { DailyRewardsAdminPresenter } from '../../../daily-rewards/interface-adapters/presenters/daily-rewards-admin-presenter';
 import { EmptyState } from '../../../../../shared/ui/EmptyState';
 import { LoadingSkeleton } from '../../../../../shared/ui/LoadingSkeleton';
+import { DAILY_REWARDS_TYPES } from '../../infrastructure/bootstrap/daily-rewards.container';
+import { DailyRewardsAdminPresenter, DailyRewardViewModel } from '../presenters/daily-rewards-admin-presenter';
+import type { RewardTypeValue } from '../../domain/value-objects/reward-type';
 
 export interface DailyRewardsPageProps {
   appId: string;
@@ -55,43 +56,71 @@ export function DailyRewardsPage({ appId }: DailyRewardsPageProps): JSX.Element 
     []
   );
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [rewards, setRewards] = useState<any[]>([]);
+  // Reactive state from presenter
+  const [rewards, setRewards] = useState<DailyRewardViewModel[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // UI state for modals
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingReward, setEditingReward] = useState<DailyRewardViewModel | null>(null);
+
+  // Form data with proper types
+  const [formData, setFormData] = useState<{
+    type: RewardTypeValue;
+    title: string;
+    description: string;
+    points: number;
+    isActive: boolean;
+  }>({
+    type: 'points',
+    title: '',
+    description: '',
+    points: 0,
+    isActive: true,
+  });
+
   useEffect(() => {
+    // Subscribe to presenter changes
+    const unsubscribe = presenter.subscribe(() => {
+      setRewards(presenter.rewards);
+      setIsLoading(presenter.isLoading);
+      setError(presenter.error);
+    });
+
+    // Initial load
     loadRewards();
-  }, [appId]);
+
+    // Cleanup subscription
+    return unsubscribe;
+  }, [appId, presenter]);
 
   const loadRewards = async (): Promise<void> => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await presenter.onGetDailyRewards({ appId });
-      // For now, we'll mock some data since the presenter doesn't have proper view model
-      setRewards([
-        {
-          id: '550e8400-e29b-41d4-a716-446655440001',
-          app_id: 'test-app',
-          type: 'points',
-          title: 'Test Daily Bonus',
-          description: 'Test reward for development and testing.',
-          points: 100,
-          is_active: true,
-          created_at: '2025-12-25T15:34:00.464363+00:00',
-          updated_at: '2025-12-25T15:34:00.464363+00:00'
-        }
-      ]);
-    } catch (err) {
-      setError('Failed to load daily rewards');
-    } finally {
-      setIsLoading(false);
-    }
+    await presenter.loadRewards({ appId, status: 'all' });
   };
 
   const handleRefresh = (): void => {
     loadRewards();
+  };
+
+  const handleDeleteReward = async (rewardId: string): Promise<void> => {
+    const confirmed = window.confirm('Are you sure you want to delete this reward?');
+    if (confirmed) {
+      await presenter.deleteReward({ id: rewardId });
+    }
+  };
+
+  const handleCreateReward = (): void => {
+    setShowCreateForm(true);
+  };
+
+  const handleEditReward = (reward: DailyRewardViewModel): void => {
+    setEditingReward(reward);
+  };
+
+  const handleCloseModal = (): void => {
+    setShowCreateForm(false);
+    setEditingReward(null);
   };
 
   return (
@@ -115,16 +144,17 @@ export function DailyRewardsPage({ appId }: DailyRewardsPageProps): JSX.Element 
               background: 'linear-gradient(140deg, rgba(96, 165, 250, 0.35), rgba(37, 99, 235, 0.65))',
               border: '1px solid rgba(96, 165, 250, 0.45)',
             }}
+            onClick={handleCreateReward}
           >
             ➕ Add Reward
           </button>
         </div>
       </header>
 
-      <div style={{ marginTop: '24px', flexGrow: 1, overflow: 'hidden' }}>
-        {isLoading ? (
-          <LoadingSkeleton rows={6} />
-        ) : error ? (
+           <div style={{ marginTop: '24px', flexGrow: 1, overflow: 'hidden' }}>
+             {isLoading ? (
+               <LoadingSkeleton rows={6} />
+             ) : error ? (
           <div
             style={{
               padding: '20px',
@@ -159,7 +189,7 @@ export function DailyRewardsPage({ appId }: DailyRewardsPageProps): JSX.Element 
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                         <span style={{ fontSize: '18px' }}>
-                          {reward.type === 'points' ? '💰' : reward.type === 'currency' ? '💎' : '📦'}
+                          {reward.typeIcon}
                         </span>
                         <h3 style={{ fontSize: '16px', fontWeight: 600 }}>{reward.title}</h3>
                         <span
@@ -167,11 +197,11 @@ export function DailyRewardsPage({ appId }: DailyRewardsPageProps): JSX.Element 
                             padding: '4px 8px',
                             borderRadius: '6px',
                             fontSize: '12px',
-                            background: reward.is_active ? 'rgba(34, 197, 94, 0.2)' : 'rgba(156, 163, 175, 0.2)',
-                            color: reward.is_active ? '#22C55E' : '#9CA3AF',
+                            background: reward.statusBadge.backgroundColor,
+                            color: reward.statusBadge.color,
                           }}
                         >
-                          {reward.is_active ? 'Active' : 'Inactive'}
+                          {reward.statusBadge.text}
                         </span>
                       </div>
                       <p style={{ color: '#94A3B8', fontSize: '14px', marginBottom: '8px' }}>
@@ -191,6 +221,8 @@ export function DailyRewardsPage({ appId }: DailyRewardsPageProps): JSX.Element 
                           color: '#E2E8F0',
                           cursor: 'pointer',
                         }}
+                        onClick={() => handleEditReward(reward)}
+                        title="Edit reward"
                       >
                         ✏️ Edit
                       </button>
@@ -203,6 +235,8 @@ export function DailyRewardsPage({ appId }: DailyRewardsPageProps): JSX.Element 
                           color: '#F87171',
                           cursor: 'pointer',
                         }}
+                        onClick={() => handleDeleteReward(reward.id)}
+                        title="Delete reward"
                       >
                         🗑️ Delete
                       </button>
@@ -214,9 +248,223 @@ export function DailyRewardsPage({ appId }: DailyRewardsPageProps): JSX.Element 
           </div>
         )}
       </div>
+
+      {/* Create/Edit Modal */}
+      {(showCreateForm || editingReward) && (
+        <RewardModal
+          appId={appId}
+          reward={editingReward}
+          presenter={presenter}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 }
+
+// Reward Modal Component
+interface RewardModalProps {
+  appId: string;
+  reward: DailyRewardViewModel | null;
+  presenter: DailyRewardsAdminPresenter;
+  onClose: () => void;
+}
+
+function RewardModal({ appId, reward, presenter, onClose }: RewardModalProps): JSX.Element {
+  const [formData, setFormData] = useState<{
+    type: RewardTypeValue;
+    title: string;
+    description: string;
+    points: number;
+    isActive: boolean;
+  }>({
+    type: (reward?.type as RewardTypeValue) || 'points',
+    title: reward?.title || '',
+    description: reward?.description || '',
+    points: reward?.points || 0,
+    isActive: reward?.isActive ?? true,
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const success = reward
+        ? await presenter.updateReward({
+            id: reward.id,
+            ...formData,
+          })
+        : await presenter.createReward({
+            appId,
+            ...formData,
+          });
+
+      if (success) {
+        onClose();
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const modalStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+    backdropFilter: 'blur(4px)',
+  };
+
+  const modalContentStyle: React.CSSProperties = {
+    background: 'linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9))',
+    borderRadius: '16px',
+    border: '1px solid rgba(148, 163, 184, 0.2)',
+    padding: '24px',
+    maxWidth: '500px',
+    width: '90%',
+    maxHeight: '90vh',
+    overflow: 'auto',
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '12px 16px',
+    borderRadius: '8px',
+    border: '1px solid rgba(148, 163, 184, 0.3)',
+    backgroundColor: 'rgba(15, 23, 42, 0.5)',
+    color: '#F8FAFC',
+    fontSize: '14px',
+    marginBottom: '16px',
+  };
+
+  const labelStyle: React.CSSProperties = {
+    display: 'block',
+    marginBottom: '8px',
+    fontWeight: 600,
+    color: '#E2E8F0',
+  };
+
+  const buttonStyle: React.CSSProperties = {
+    padding: '12px 24px',
+    borderRadius: '8px',
+    border: 'none',
+    fontWeight: 600,
+    cursor: 'pointer',
+    marginRight: '12px',
+  };
+
+  return (
+    <div style={modalStyle} onClick={onClose}>
+      <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
+        <h2 style={{ marginTop: 0, marginBottom: '24px', color: '#F8FAFC' }}>
+          {reward ? 'Edit Reward' : 'Create New Reward'}
+        </h2>
+
+        <form onSubmit={handleSubmit}>
+          <label style={labelStyle}>
+            Type
+            <select
+              style={inputStyle}
+              value={formData.type}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value as RewardTypeValue })}
+              required
+            >
+              <option value="points">Points 💰</option>
+              <option value="currency">Currency 💎</option>
+              <option value="item">Item 📦</option>
+            </select>
+          </label>
+
+          <label style={labelStyle}>
+            Title
+            <input
+              type="text"
+              style={inputStyle}
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              required
+              maxLength={100}
+              placeholder="Enter reward title"
+            />
+          </label>
+
+          <label style={labelStyle}>
+            Description
+            <textarea
+              style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              required
+              maxLength={500}
+              placeholder="Enter reward description"
+            />
+          </label>
+
+          <label style={labelStyle}>
+            Points
+            <input
+              type="number"
+              style={inputStyle}
+              value={formData.points}
+              onChange={(e) => setFormData({ ...formData, points: parseInt(e.target.value) || 0 })}
+              required
+              min={1}
+              placeholder="Enter points value"
+            />
+          </label>
+
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ ...labelStyle, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                type="checkbox"
+                checked={formData.isActive}
+                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+              />
+              Active
+            </label>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+            <button
+              type="button"
+              style={{
+                ...buttonStyle,
+                backgroundColor: 'rgba(156, 163, 175, 0.2)',
+                color: '#9CA3AF',
+                border: '1px solid rgba(156, 163, 175, 0.3)',
+              }}
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              style={{
+                ...buttonStyle,
+                background: 'linear-gradient(140deg, rgba(96, 165, 250, 0.35), rgba(37, 99, 235, 0.65))',
+                color: '#F8FAFC',
+                border: '1px solid rgba(96, 165, 250, 0.45)',
+              }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Saving...' : (reward ? 'Update' : 'Create')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 
 
 

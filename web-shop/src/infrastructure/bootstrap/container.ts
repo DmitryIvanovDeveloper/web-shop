@@ -17,7 +17,8 @@ import { bindMerchantAdminOffers } from '@/modules/merchant-admin/offers/infrast
 import { bindMerchantAdminProducts } from '@/modules/merchant-admin/products/infrastructure/bootstrap/products.container';
 import { bindMerchantAdminPromoCodes } from '@/modules/merchant-admin/promo-codes/infrastructure/bootstrap/promo-codes.container';
 import { bindMerchantAdminPatchNotes } from '@/modules/merchant-admin/patch-notes/infrastructure/bootstrap/patch-notes.container';
-import { bindDailyRewards } from '@/modules/daily-rewards/infrastructure/bootstrap/bind.daily-rewards';
+import { bindMerchantAdminProjects } from '@/modules/merchant-admin/projects/infrastructure/bootstrap/bind.projects';
+import { bindDailyRewards } from '@/modules/merchant-admin/daily-rewards/infrastructure/bootstrap/bind.daily-rewards';
 import { bindLocalization } from '../../modules/localization/infrastructure/bootstrap/bind.localization';
 import { bindRealtimeDashboard } from '../../modules/merchant-admin/analytics/realtime-dashboard/infrastructure/bootstrap/realtime-dashboard.container';
 
@@ -44,9 +45,22 @@ bindUIBuilder(container);
 bindMerchantAdminOffers(container);
 bindMerchantAdminProducts(container);
 bindMerchantAdminPatchNotes(container);
+bindMerchantAdminProjects(container);
 bindDailyRewards(container);
 bindLocalization(container);
 bindRealtimeDashboard(container);
 // bindMerchantAdminPromoCodes(container); // Temporarily disabled due to error
+
+// Register Project Selected Event Handler
+import { ProjectSelectedHandler } from '../handlers/project-selected.handler';
+import { IAsyncEventHandler } from '../events/events-handler.plugin';
+import { ProjectSelectedEvent } from '../../modules/merchant-admin/projects/domain';
+
+container
+  .bind<IAsyncEventHandler<ProjectSelectedEvent>>(
+    Symbol.for('IAsyncEventHandler<ProjectSelectedEvent>')
+  )
+  .to(ProjectSelectedHandler)
+  .inTransientScope();
 
 export { container };

@@ -14,9 +14,9 @@ const UpdateDailyRewardSchema = z.object({
 });
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function GET(
@@ -24,7 +24,7 @@ export async function GET(
   { params }: RouteParams
 ): Promise<NextResponse> {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json({ error: 'Reward ID is required' }, { status: 400 });
@@ -59,7 +59,7 @@ export async function PUT(
   { params }: RouteParams
 ): Promise<NextResponse> {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     if (!id) {
@@ -123,7 +123,7 @@ export async function DELETE(
   { params }: RouteParams
 ): Promise<NextResponse> {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json({ error: 'Reward ID is required' }, { status: 400 });
