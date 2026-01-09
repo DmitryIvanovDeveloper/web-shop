@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { BackgroundEditor } from '../components/BackgroundEditor';
 import { ElementTreeSelector } from '../components/ElementTreeSelector';
 import { SidebarColorEditor } from '../components/SidebarColorEditor';
+import { ColorInput } from '../components/ColorInput';
 import { AuthEditor } from '../components/AuthEditor';
 import { PageConstructor } from '../components/PageConstructor';
 import { OfferCardsManager } from '../components/OfferCardsManager';
@@ -49,8 +50,8 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
   const [activeSection, setActiveSection] = useState<
-    'background' | 'sidebar' | 'rightSidebar' | 'authButton' | 'authPopup' | 'pageConstructor' | 'offerCards' | 'templates'
-  >('sidebar');
+    'background' | 'sidebar' | 'leftSidebar' | 'rightSidebar' | 'authButton' | 'authPopup' | 'pageConstructor' | 'offerCards' | 'templates'
+  >('leftSidebar');
   const [activeTab, setActiveTab] = useState<string>('leftSidebar');
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isSlideOutSidebarOpen, setIsSlideOutSidebarOpen] = useState(false);
@@ -65,7 +66,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   useEffect(() => {
     if (activeSection === 'background') {
       setActiveTab('theme');
-    } else if (activeSection === 'sidebar') {
+    } else if (activeSection === 'sidebar' || activeSection === 'leftSidebar') {
       setActiveTab('leftSidebar');
     } else if (activeSection === 'rightSidebar') {
       setActiveTab('rightSidebar');
@@ -849,19 +850,15 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
-    
+
     // Set activeSection based on tab
     switch (tabId) {
       case 'theme':
         setActiveSection('background');
         break;
       case 'leftSidebar':
-        setActiveSection('sidebar');
-        // Select first element if available
-        const leftElements = extractSidebarElements('sidebar');
-        if (leftElements.length > 0 && leftElements[0]) {
-          handleSidebarElementSelect(leftElements[0].id, 'sidebar');
-        }
+        setActiveSection('leftSidebar');
+        // Don't auto-select first element for leftSidebar to show Button Styling section
         break;
       case 'rightSidebar':
         setActiveSection('rightSidebar');
@@ -940,28 +937,56 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
       case 'leftSidebar':
         return (
-          <div className="p-3">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] text-gray-500">Manage buttons</span>
-              <button
-                onClick={() => {
-                  presenter.addSidebarButton('New Button');
-                }}
-                className="px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600"
-                title="Add new button to Left Sidebar"
-              >
-                + Add Button
-              </button>
+          <div className="p-3 space-y-4">
+            {/* Button Styling */}
+            <div className="bg-white rounded-lg shadow p-4">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">Button Styling</h4>
+              <div className="space-y-3">
+                <ColorInput
+                  label="Button Background"
+                  value={(viewModel.config as any)?.theme?.buttonStyling?.backgroundColor || '#1d4ed8'}
+                  onChange={(color) => {
+                    presenter.updateButtonStyling({
+                      backgroundColor: color,
+                    });
+                  }}
+                />
+                <ColorInput
+                  label="Button Hover Background"
+                  value={(viewModel.config as any)?.theme?.buttonStyling?.hoverBackgroundColor || '#1e40af'}
+                  onChange={(color) => {
+                    presenter.updateButtonStyling({
+                      hoverBackgroundColor: color,
+                    });
+                  }}
+                />
+              </div>
             </div>
-            <ElementTreeSelector
-              elements={extractSidebarElements('sidebar')}
-              selectedId={viewModel.selectedElement?.area === 'sidebar' ? (viewModel.selectedElement?.id || null) : null}
-              onSelect={(elementId) => {
-                handleSidebarElementSelect(elementId, 'sidebar');
-                setActiveTab('leftSidebar');
-              }}
-              onDelete={(elementId) => presenter.removeSidebarButton(elementId)}
-            />
+
+            {/* Manage Buttons */}
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-semibold text-gray-900">Manage Buttons</span>
+                <button
+                  onClick={() => {
+                    presenter.addSidebarButton('New Button');
+                  }}
+                  className="px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600"
+                  title="Add new button to Left Sidebar"
+                >
+                  + Add Button
+                </button>
+              </div>
+              <ElementTreeSelector
+                elements={extractSidebarElements('sidebar')}
+                selectedId={viewModel.selectedElement?.area === 'sidebar' ? (viewModel.selectedElement?.id || null) : null}
+                onSelect={(elementId) => {
+                  handleSidebarElementSelect(elementId, 'sidebar');
+                  setActiveTab('leftSidebar');
+                }}
+                onDelete={(elementId) => presenter.removeSidebarButton(elementId)}
+              />
+            </div>
           </div>
         );
 
@@ -1610,6 +1635,61 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 value={backgroundSettings}
                 onChange={(updates) => presenter.updateBackground(updates)}
               />
+            )}
+
+            {/* Left Sidebar Properties */}
+            {activeSection === 'leftSidebar' && (
+              <div className="space-y-4">
+                {/* Button Styling */}
+                <div className="bg-white rounded-lg shadow p-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Button Styling</h4>
+                  <div className="space-y-3">
+                    <ColorInput
+                      label="Button Background"
+                      value={(viewModel.config as any)?.theme?.buttonStyling?.backgroundColor || '#2563eb'}
+                      onChange={(color) => {
+                        presenter.updateButtonStyling({
+                          backgroundColor: color,
+                        });
+                      }}
+                    />
+                    <ColorInput
+                      label="Button Hover Background"
+                      value={(viewModel.config as any)?.theme?.buttonStyling?.hoverBackgroundColor || '#1d4ed8'}
+                      onChange={(color) => {
+                        presenter.updateButtonStyling({
+                          hoverBackgroundColor: color,
+                        });
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Manage Buttons */}
+                <div className="bg-white rounded-lg shadow p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-semibold text-gray-900">Manage Buttons</span>
+                    <button
+                      onClick={() => {
+                        presenter.addSidebarButton('New Button');
+                      }}
+                      className="px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600"
+                      title="Add new button to Left Sidebar"
+                    >
+                      + Add Button
+                    </button>
+                  </div>
+                  <ElementTreeSelector
+                    elements={extractSidebarElements('sidebar')}
+                    selectedId={viewModel.selectedElement?.area === 'sidebar' ? (viewModel.selectedElement?.id || null) : null}
+                    onSelect={(elementId) => {
+                      handleSidebarElementSelect(elementId, 'sidebar');
+                      setActiveTab('leftSidebar');
+                    }}
+                    onDelete={(elementId) => presenter.removeSidebarButton(elementId)}
+                  />
+                </div>
+              </div>
             )}
 
             {/* Offer Card Editor */}

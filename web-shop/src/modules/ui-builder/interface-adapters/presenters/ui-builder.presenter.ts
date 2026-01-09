@@ -180,11 +180,16 @@ export class UIBuilderPresenter {
       config: appConfig as Record<string, unknown>,
       isDraft: true,
       error: null,
+      selectedElement: null, // Сброс выбора элемента при применении новой конфигурации
     };
+
+    // Сброс области выбора элемента
+    this.selectedElementArea = null;
 
     this._logger.info('[UIBuilderPresenter] Template config applied to VM', {
       hasNewConfig: !!this.vm.config,
-      configKeys: this.vm.config ? Object.keys(this.vm.config) : []
+      configKeys: this.vm.config ? Object.keys(this.vm.config) : [],
+      selectedElementReset: true
     });
 
     this.notify();
@@ -332,14 +337,7 @@ export class UIBuilderPresenter {
               type: 'Container',
               props: { text: 'Left Sidebar' },
               styles: { backgroundColor: '#f3f4f6', textColor: '#111827', borderColor: '#e5e7eb', backgroundOpacity: '1' },
-              children: [
-                {
-                  id: generateElementId('button'),
-                  type: 'Button',
-                  props: { text: 'Store' },
-                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%', maxHeight: '100%' },
-                },
-              ],
+              children: [],
             },
           },
           rightSidebar: {
@@ -413,6 +411,37 @@ export class UIBuilderPresenter {
       nextTheme.background = sanitizedBackground;
     } else if ('background' in nextTheme) {
       delete nextTheme.background;
+    }
+
+    const updatedConfig = {
+      ...(this.vm.config as Record<string, unknown>),
+      theme: nextTheme,
+    };
+
+    this.vm = {
+      ...this.vm,
+      config: updatedConfig,
+      isDraft: true,
+    };
+
+    this.notify();
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
+  }
+
+  public updateButtonStyling(buttonStyling: { backgroundColor?: string; hoverBackgroundColor?: string }): void {
+    if (!this.vm.config) {
+      return;
+    }
+
+    const theme = (this.vm.config as any).theme ?? {};
+    const nextTheme = { ...theme };
+
+    if (buttonStyling.backgroundColor || buttonStyling.hoverBackgroundColor) {
+      nextTheme.buttonStyling = {
+        ...(theme.buttonStyling || {}),
+        ...buttonStyling,
+      };
     }
 
     const updatedConfig = {
@@ -1113,6 +1142,7 @@ export class UIBuilderPresenter {
     if (styles.backgroundColor) colors.backgroundColor = styles.backgroundColor;
     if (styles.textColor) colors.textColor = styles.textColor;
     if (styles.borderColor) colors.borderColor = styles.borderColor;
+    if (styles.hoverBackgroundColor) colors.hoverBackgroundColor = styles.hoverBackgroundColor;
     return Object.keys(colors).length > 0 ? colors : null;
   }
  

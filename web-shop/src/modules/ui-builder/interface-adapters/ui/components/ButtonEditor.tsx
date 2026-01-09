@@ -268,13 +268,12 @@ export function ButtonEditor({
             value={borderColor}
             onChange={(newColor) => onColorChange('borderColor', newColor)}
           />
-          {hoverBackgroundColor !== undefined && (
-            <ColorInput
-              label="hoverBackgroundColor"
-              value={hoverBackgroundColor}
-              onChange={(newColor) => onColorChange('hoverBackgroundColor', newColor)}
-            />
-          )}
+          {/* Hover Background Color - always show for buttons */}
+          <ColorInput
+            label="Hover Background Color"
+            value={hoverBackgroundColor || '#5C6BC0'}
+            onChange={(newColor) => onColorChange('hoverBackgroundColor', newColor)}
+          />
         </div>
       </div>
 
