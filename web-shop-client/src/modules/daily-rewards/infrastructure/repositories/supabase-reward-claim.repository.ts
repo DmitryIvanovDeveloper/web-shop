@@ -3,7 +3,7 @@ import { Result, Success, Failure } from '../../../../shared/result/result';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { HttpClient } from '../../../../application/ports/http-client.port';
 import type { Logger } from '../../../../application/ports/logger.port';
-import type { RewardClaimRepositoryPort } from '../../application/ports/reward-claim-repository-port.port';
+import type { RewardClaimRepositoryPort } from '../../application/ports/reward-claim-repository.port';
 import { DailyRewardClaim, ClaimId, RewardId } from '../../domain';
 
 interface RewardClaimApiDto {

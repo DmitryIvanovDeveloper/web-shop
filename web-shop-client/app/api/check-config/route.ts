@@ -3,6 +3,13 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const appId = searchParams.get('appId');
+
+    if (!appId) {
+      return NextResponse.json({ error: 'appId query parameter is required' }, { status: 400 });
+    }
+
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -16,7 +23,7 @@ export async function GET(request: Request) {
     const { data: configs, error: configError } = await supabase
       .from('app_configs')
       .select('*')
-      .eq('app_id', 'APP123');
+      .eq('app_id', appId);
 
     if (configError) {
       return NextResponse.json({ error: 'Failed to query app_configs', details: configError }, { status: 500 });
@@ -26,7 +33,7 @@ export async function GET(request: Request) {
     const { data: patchNotes, error: patchNotesError } = await supabase
       .from('patch_notes')
       .select('*')
-      .eq('app_id', 'APP123');
+      .eq('app_id', appId);
 
     if (patchNotesError) {
       return NextResponse.json({ error: 'Failed to query patch_notes', details: patchNotesError }, { status: 500 });

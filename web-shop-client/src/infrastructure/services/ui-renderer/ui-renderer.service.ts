@@ -156,8 +156,11 @@ export class UIRendererService implements UIRendererPort {
 			});
 		}
 
-		// Add hover handlers for element selection mode (preview mode)
+		// Add hover handlers for element selection mode (preview mode) and button hover effects
 		const hoverHandlers = this._createHoverHandlers(node);
+
+		// Add button hover effects if this is a button with hover properties
+		const buttonHoverHandlers = this._createButtonHoverHandlers(node, style);
 
 		// Add data-element-id for preview mode to enable selection and hover effects
 		const previewProps = this._isPreviewMode() && node.id ? { 'data-element-id': node.id } : {};
@@ -174,7 +177,8 @@ export class UIRendererService implements UIRendererPort {
 			children,
 			onClick: handleClick,
 			onChange: handleChange,
-			...hoverHandlers
+			...hoverHandlers,
+			...buttonHoverHandlers
 		};
 
 		// Only add isLoading for Button components (not to DOM elements)
@@ -374,6 +378,62 @@ export class UIRendererService implements UIRendererPort {
 				
 				this._logger.info(`[UIRendererService] Removed preview-hover class and overlay from: ${node.id}`);
 				// Don't stop propagation - allow hover to work on other elements
+			}
+		};
+
+		return {
+			onMouseEnter: handleMouseEnter,
+			onMouseLeave: handleMouseLeave
+		};
+	}
+
+	/**
+	 * Create hover handlers for button components with hover effects
+	 */
+	private _createButtonHoverHandlers(node: any, style: React.CSSProperties): Record<string, unknown> {
+		// Only add hover handlers for buttons that have hover properties
+		const hasHoverProperties = style &&
+			(('--hover-background-color' in style) ||
+			 ('--hover-opacity' in style) ||
+			 ('--hover-shadow' in style));
+
+		if (!hasHoverProperties) {
+			return {};
+		}
+
+		const handleMouseEnter = (e: MouseEvent<HTMLElement>) => {
+			const target = e.currentTarget;
+
+			// Store original styles
+			const originalStyles = {
+				backgroundColor: target.style.backgroundColor,
+				opacity: target.style.opacity,
+				boxShadow: target.style.boxShadow
+			};
+			(target as any)._originalStyles = originalStyles;
+
+			// Apply hover styles
+			const hoverStyle = style as any;
+			if (hoverStyle['--hover-background-color']) {
+				target.style.backgroundColor = hoverStyle['--hover-background-color'] as string;
+			}
+			if (hoverStyle['--hover-opacity'] !== undefined) {
+				target.style.opacity = hoverStyle['--hover-opacity'] as string;
+			}
+			if (hoverStyle['--hover-shadow']) {
+				target.style.boxShadow = hoverStyle['--hover-shadow'] as string;
+			}
+		};
+
+		const handleMouseLeave = (e: MouseEvent<HTMLElement>) => {
+			const target = e.currentTarget;
+			const originalStyles = (target as any)._originalStyles;
+
+			// Restore original styles
+			if (originalStyles) {
+				target.style.backgroundColor = originalStyles.backgroundColor;
+				target.style.opacity = originalStyles.opacity;
+				target.style.boxShadow = originalStyles.boxShadow;
 			}
 		};
 

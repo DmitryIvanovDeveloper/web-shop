@@ -1,9 +1,9 @@
 import type { Container } from 'inversify';
-import { DAILY_REWARDS_TYPES } from '../daily-rewards.container';
+import { DAILY_REWARDS_TYPES } from './types';
 import { SupabaseDailyRewardRepository } from '../repositories/supabase-daily-reward.repository';
 import { SupabaseRewardClaimRepository } from '../repositories/supabase-reward-claim.repository';
-import { CheckDailyRewardAvailabilityUseCase } from '../../application/use-cases/check-daily-reward-availability-use-case.use-case';
-import { ClaimDailyRewardUseCase } from '../../application/use-cases/claim-daily-reward-use-case.use-case';
+import { CheckDailyRewardAvailabilityUseCase } from '../../application/use-cases/check-daily-reward-availability.use-case';
+import { ClaimDailyRewardUseCase } from '../../application/use-cases/claim-daily-reward.use-case';
 import { DailyRewardsPresenter } from '../../interface-adapters/presenters/daily-rewards-presenter';
 
 export function bindDailyRewards(container: Container): void {

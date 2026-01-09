@@ -7,7 +7,7 @@ import { AuthModule } from '../src/modules/authentication/interface-adapters/ui/
 import { PersonalOffersWidget } from '../src/modules/personal-offers/interface-adapters/ui/components/personal-offers-widget';
 import { useState, useEffect, useCallback } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { APP_LAYOUT_TYPES } from '../src/modules/app-layout/infrastructure/bootstrap/types';
 import { SidebarRendererPresenter } from '../src/modules/app-layout/interface-adapters/presenters/sidebar-renderer.presenter';
 import { SidebarRenderer } from '../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
@@ -142,6 +142,7 @@ const resolveRootStylesFromConfig = (config: PageConfig | null): { styles: CSSPr
 export default function RootLayout({ children }: { children: React.ReactNode}) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [isLeftDrawerOpen, setIsLeftDrawerOpen] = useState(false);
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -185,6 +186,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       }
     }
   }, []);
+
 
   const sidebarPresenter = container.get<SidebarRendererPresenter>(
     APP_LAYOUT_TYPES.SidebarRendererPresenter
@@ -757,7 +759,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                     return style;
                   })()}
                 >
-                  <SidebarRenderer presenter={sidebarPresenter} actionContext={actionContext} />
+                  <SidebarRenderer presenter={sidebarPresenter} actionContext={actionContext} currentPathname={pathname} />
                 </aside>
               )}
 
@@ -801,9 +803,10 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                       <AuthModule renderSidebarButton={true} renderPopupConfig={true} />
                     </div>
                 
-                    <SidebarRenderer 
-                      presenter={sidebarPresenter} 
+                    <SidebarRenderer
+                      presenter={sidebarPresenter}
                       layoutType="rightSidebar"
+                      currentPathname={pathname}
                       actionContext={actionContext}
                     />
                   </div>
@@ -845,7 +848,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                   })()}
                 >
                   <div className="w-full h-full">
-                    <SidebarRenderer presenter={sidebarPresenter} actionContext={actionContext} />
+                    <SidebarRenderer presenter={sidebarPresenter} actionContext={actionContext} currentPathname={pathname} />
                   </div>
                 </div>
               </>
@@ -916,9 +919,10 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                       <AuthModule renderSidebarButton={true} renderPopupConfig={true} />
                     </div>
                 
-                    <SidebarRenderer 
-                      presenter={sidebarPresenter} 
+                    <SidebarRenderer
+                      presenter={sidebarPresenter}
                       layoutType="rightSidebar"
+                      currentPathname={pathname}
                       actionContext={actionContext}
                     />
                   </div>

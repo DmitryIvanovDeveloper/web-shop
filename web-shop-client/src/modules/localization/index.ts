@@ -9,3 +9,4 @@ export type { LocalizationPresenter } from './interface-adapters/presenters/loca
 
 // View Models
 export type { LocalizationViewModel } from './interface-adapters/view-models/localization.view-model';
+

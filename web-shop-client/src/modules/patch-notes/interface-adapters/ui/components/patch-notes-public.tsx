@@ -7,7 +7,7 @@ import { container } from '../../../../../infrastructure/bootstrap/container';
 import { PATCH_NOTES_TYPES } from '../../../infrastructure/bootstrap/types';
 
 interface PatchNotesPublicProps {
-  appId?: string;
+  appId: string;
 }
 
 interface ChangeItem {
@@ -28,7 +28,7 @@ interface PatchNoteItem {
   scheduledFor?: string;
 }
 
-export function PatchNotesPublic({ appId = 'default-app' }: PatchNotesPublicProps): JSX.Element | null {
+export function PatchNotesPublic({ appId }: PatchNotesPublicProps): JSX.Element | null {
   console.log('PatchNotesPublic component rendered with appId:', appId);
 
   const [updateCounter, setUpdateCounter] = useState(0);

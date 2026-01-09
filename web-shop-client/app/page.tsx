@@ -32,7 +32,7 @@ export default function HomePage(): JSX.Element {
   // Check if we're in preview mode
   const [previewMode, setPreviewMode] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
-  const [currentAppId, setCurrentAppId] = useState<string>('default-app');
+  const [currentAppId, setCurrentAppId] = useState<string>('');
   const [showLocalizationModal, setShowLocalizationModal] = useState(false);
 
   // Localization hook
@@ -113,7 +113,13 @@ export default function HomePage(): JSX.Element {
       try {
         // Get appId from URL (support both 'appId' and 'app' parameters)
         const url = new URL(window.location.href);
-        const appId = url.searchParams.get('appId') || url.searchParams.get('app') || 'default-app';
+        const appId = url.searchParams.get('appId') || url.searchParams.get('app');
+
+        if (!appId) {
+          console.error('[HomePage] App ID is required. Please specify ?appId=YOUR_APP_ID in the URL.');
+          setCurrentAppId('');
+          return;
+        }
 
         // Set current appId for patch notes
         setCurrentAppId(appId);
@@ -121,19 +127,17 @@ export default function HomePage(): JSX.Element {
         // Check if we're in an iframe (likely Builder preview)
         const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
 
-        if (appId) {
-          // Try to load config from Supabase if not loaded yet
-          const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
+        // Try to load config from Supabase if not loaded yet
+        const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
 
-          if (previewMode || isInIframe) {
-            // Load draft config for preview mode
-            await loadAppConfigUseCase.execute(true);
-            console.log('[HomePage] Draft app config loaded from Supabase for preview mode', { appId, isInIframe });
-          } else {
-            // Load active config for regular client usage
-            await loadAppConfigUseCase.execute(false);
-            console.log('[HomePage] Active app config loaded from Supabase for regular client', { appId });
-          }
+        if (previewMode || isInIframe) {
+          // Load draft config for preview mode
+          await loadAppConfigUseCase.execute(true);
+          console.log('[HomePage] Draft app config loaded from Supabase for preview mode', { appId, isInIframe });
+        } else {
+          // Load active config for regular client usage
+          await loadAppConfigUseCase.execute(false);
+          console.log('[HomePage] Active app config loaded from Supabase for regular client', { appId });
         }
       } catch (error) {
         console.warn('[HomePage] Failed to load app config on mount, will wait for CONFIG_UPDATE message', error);

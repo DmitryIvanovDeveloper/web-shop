@@ -3,7 +3,7 @@ import { Result, Success, Failure } from '../../../../shared/result/result';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { HttpClient } from '../../../../application/ports/http-client.port';
 import type { Logger } from '../../../../application/ports/logger.port';
-import type { DailyRewardRepositoryPort } from '../../application/ports/daily-reward-repository-port.port';
+import type { DailyRewardRepositoryPort } from '../../application/ports/daily-reward-repository.port';
 import { DailyReward, RewardId, RewardType } from '../../domain';
 
 interface DailyRewardApiDto {

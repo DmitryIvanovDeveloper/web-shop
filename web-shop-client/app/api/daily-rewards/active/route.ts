@@ -14,7 +14,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
     const searchParams = request.nextUrl.searchParams;
-    const appId = searchParams.get('appId') || 'default-app';
+    const appId = searchParams.get('appId');
+
+    if (!appId) {
+      return NextResponse.json(
+        { error: 'App ID is required. Please specify ?appId=YOUR_APP_ID in the URL.' },
+        { status: 400 }
+      );
+    }
 
     // Get active daily rewards (take the first one)
     const { data, error } = await supabase

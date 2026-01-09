@@ -5,7 +5,7 @@ import { DailyRewards } from './daily-rewards';
 
 export interface DailyRewardsPopupProps {
   userId: string;
-  appId?: string;
+  // appId теперь получается автоматически через useAppId()
   isOpen: boolean;
   onClose: () => void;
   autoShow?: boolean;
@@ -14,7 +14,6 @@ export interface DailyRewardsPopupProps {
 
 export function DailyRewardsPopup({
   userId,
-  appId = 'default-app',
   isOpen,
   onClose,
   autoShow = false,
@@ -22,6 +21,8 @@ export function DailyRewardsPopup({
 }: DailyRewardsPopupProps): JSX.Element | null {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [hasShown, setHasShown] = useState(false);
+
+  console.log('[DailyRewardsPopup] Rendered', { userId, isOpen, internalIsOpen, actualIsOpen: isOpen || internalIsOpen });
 
   // Auto-show logic
   useEffect(() => {
@@ -112,7 +113,7 @@ export function DailyRewardsPopup({
           overflow: 'hidden',
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
         }}>
-          <DailyRewards userId={userId} appId={appId} />
+          <DailyRewards userId={userId} />
         </div>
       </div>
 

@@ -1,18 +1,20 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { DailyRewardsPresenter, type DailyRewardsViewModel } from '../../../index';
+import { DailyRewardsPresenter } from '../../../index';
 import { container } from '../../../../../infrastructure/bootstrap/container';
-import { DAILY_REWARDS_TYPES } from '../../../infrastructure/daily-rewards.container';
+import { DAILY_REWARDS_TYPES } from '../../../infrastructure/bootstrap/types';
+import { useAppId } from '../../../../../shared/hooks/use-app-context';
 
 interface DailyRewardsProps {
   userId: string;
-  appId?: string;
+  // appId теперь получается автоматически из контекста приложения
 }
 
-export function DailyRewards({ userId, appId = 'default-app' }: DailyRewardsProps): JSX.Element {
+export function DailyRewards({ userId }: DailyRewardsProps): JSX.Element {
+  // Always call ALL hooks first, in the same order, BEFORE any conditions
+  const appId = useAppId();
   const [presenter, setPresenter] = useState<DailyRewardsPresenter | null>(null);
-  console.log('[DailyRewards Component] Render called', { userId, appId, hasPresenter: !!presenter });
   const [updateCounter, setUpdateCounter] = useState(0);
   const [currentViewModel, setCurrentViewModel] = useState<any>(null);
 
@@ -20,9 +22,9 @@ export function DailyRewards({ userId, appId = 'default-app' }: DailyRewardsProp
     setUpdateCounter(prev => prev + 1);
   }, []);
 
-  // Initialize presenter from DI container
+  // Initialize presenter from DI container - this useEffect must come AFTER all other hooks
   useEffect(() => {
-    if (!presenter) {
+    if (!presenter && appId) {
       try {
         console.log('DailyRewards: Attempting to get presenter from container...');
         const presenterInstance = container.get<DailyRewardsPresenter>(DAILY_REWARDS_TYPES.DailyRewardsPresenter);
@@ -59,19 +61,34 @@ export function DailyRewards({ userId, appId = 'default-app' }: DailyRewardsProp
         });
       }
     }
-  }, [presenter]);
+  }, [presenter, appId]);
 
   // Load reward availability
   useEffect(() => {
     console.log('[DailyRewards Component] useEffect triggered', { hasPresenter: !!presenter, userId, appId });
-    if (presenter) {
+    if (presenter && appId) {
       console.log('[DailyRewards Component] Setting up presenter and loading rewards');
       presenter.setOnViewModelChanged(forceUpdate);
       presenter.loadRewardAvailability(userId, appId);
     } else {
-      console.log('[DailyRewards Component] Presenter not available yet');
+      console.log('[DailyRewards Component] Presenter or appId not available yet', { hasPresenter: !!presenter, hasAppId: !!appId });
     }
   }, [presenter, userId, appId, forceUpdate]);
+
+  console.log('[DailyRewards] Component rendered', { userId, appId, hasAppId: !!appId });
+
+  // If appId is not loaded yet, show loading state
+  if (!appId) {
+    console.log('[DailyRewards] Showing loading state - appId not available');
+    return (
+      <div className="daily-rewards-card bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-6 text-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Loading daily rewards...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!presenter) {
     return (

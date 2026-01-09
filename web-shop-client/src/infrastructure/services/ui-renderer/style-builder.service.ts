@@ -30,7 +30,7 @@ export class UIStyleBuilder {
 	public buildInlineStyles(
 		styles: StyleConfig | undefined,
 		theme: ThemeConfig
-	): React.CSSProperties {
+	): React.CSSProperties & { '--hover-background-color'?: string; '--hover-opacity'?: number; '--hover-shadow'?: string } {
 		if (!styles) return {};
 
 		console.log('[UIStyleBuilder] Building inline styles', {
@@ -219,6 +219,21 @@ export class UIStyleBuilder {
 		if (styles.backgroundPosition) inlineStyles.backgroundPosition = styles.backgroundPosition;
 		if (styles.backgroundRepeat) inlineStyles.backgroundRepeat = styles.backgroundRepeat;
 
+		// Hover properties (stored as CSS variables for hover handlers to use)
+		if (styles.hoverBackgroundColor) {
+			const hoverBgColor = this._resolveColor(styles.hoverBackgroundColor, theme);
+			(inlineStyles as any)['--hover-background-color'] = hoverBgColor;
+		}
+		if (styles.hoverOpacity !== undefined) {
+			(inlineStyles as any)['--hover-opacity'] = styles.hoverOpacity;
+		}
+		if (styles.hoverShadow) {
+			(inlineStyles as any)['--hover-shadow'] = styles.hoverShadow;
+		}
+		if (styles.transition) {
+			inlineStyles.transition = styles.transition;
+		}
+
 		console.log('[UIStyleBuilder] Built inline styles', {
 			inlineStylesKeys: Object.keys(inlineStyles),
 			backgroundColor: inlineStyles.backgroundColor,
@@ -232,7 +247,11 @@ export class UIStyleBuilder {
 			borderColor: inlineStyles.borderColor,
 			borderRadius: inlineStyles.borderRadius,
 			borderWidth: inlineStyles.borderWidth,
-			padding: inlineStyles.padding
+			padding: inlineStyles.padding,
+			hoverBackgroundColor: styles.hoverBackgroundColor,
+			hoverOpacity: styles.hoverOpacity,
+			hoverShadow: styles.hoverShadow,
+			transition: styles.transition
 		});
 
 		return inlineStyles;

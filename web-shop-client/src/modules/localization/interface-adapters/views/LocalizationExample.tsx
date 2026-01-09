@@ -64,3 +64,4 @@ export function LocalizationExample(): JSX.Element {
     </div>
   );
 }
+

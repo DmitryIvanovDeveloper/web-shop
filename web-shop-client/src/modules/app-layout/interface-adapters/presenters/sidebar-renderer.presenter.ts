@@ -13,6 +13,7 @@ export class SidebarRendererPresenter {
   private _translations: Record<string, string> = {};
   private _languageCode: string = 'en';
   private _direction: 'ltr' | 'rtl' = 'ltr';
+  private _currentPathname: string = '/';
 
   public readonly labels = {
     loading: 'Loading...',
@@ -22,11 +23,64 @@ export class SidebarRendererPresenter {
   } as const;
 
   /**
+   * Устанавливает текущий pathname для определения активной кнопки
+   */
+  public setCurrentPathname(pathname: string): void {
+    console.log('[SidebarRendererPresenter] setCurrentPathname called with:', pathname, 'old value:', this._currentPathname);
+    if (this._currentPathname === pathname) {
+      console.log('[SidebarRendererPresenter] pathname unchanged, skipping update');
+      return;
+    }
+    this._currentPathname = pathname;
+    console.log('[SidebarRendererPresenter] _currentPathname updated to:', this._currentPathname);
+    // Оповещаем подписчиков об изменении состояния
+    this._listeners.forEach(listener => listener());
+  }
+
+  /**
+   * Определяет, является ли кнопка активной на основе текущего пути
+   */
+  private _isButtonActive(buttonType: 'home' | 'store' | 'patch-notes'): boolean {
+    const isActive = (() => {
+      switch (buttonType) {
+        case 'home':
+          return this._currentPathname === '/';
+        case 'store':
+          return this._currentPathname === '/store';
+        case 'patch-notes':
+          return this._currentPathname === '/patch-notes';
+        default:
+          return false;
+      }
+    })();
+    console.log(`[SidebarRendererPresenter] _isButtonActive(${buttonType}): currentPath=${this._currentPathname}, isActive=${isActive}`);
+    return isActive;
+  }
+
+  /**
+   * Возвращает тип кнопки по её ID для определения активности
+   */
+  private _getButtonTypeFromId(buttonId: string): 'home' | 'store' | 'patch-notes' | null {
+    switch (buttonId) {
+      case 'home-button':
+        return 'home';
+      case 'store-button':
+        return 'store';
+      case 'patch-notes-button':
+        return 'patch-notes';
+      default:
+        return null;
+    }
+  }
+
+  /**
    * Устанавливает конфигурации из AppConfig (вызывается через EventHandler)
    */
   public setConfigs(configs: UIRendererModuleConfig): void {
+    console.log('[SidebarRendererPresenter] setConfigs called with configs:', !!configs, 'sidebar exists:', !!(configs as any)?.sidebar);
     this._configs = configs;
     // Оповещаем всех подписчиков о готовности конфига
+    console.log('[SidebarRendererPresenter] Notifying', this._listeners.length, 'listeners');
     this._listeners.forEach(listener => listener());
   }
 
@@ -34,15 +88,18 @@ export class SidebarRendererPresenter {
    * Подписка на изменения конфигурации
    */
   public subscribe(listener: () => void): () => void {
+    console.log('[SidebarRendererPresenter] subscribe called, adding listener');
     this._listeners.push(listener);
-    
+
     // Если конфиг уже загружен, сразу вызываем listener
     if (this._configs !== null) {
+      console.log('[SidebarRendererPresenter] Config already loaded, calling listener immediately');
       listener();
     }
-    
+
     // Возвращаем функцию для отписки
     return () => {
+      console.log('[SidebarRendererPresenter] unsubscribe called, removing listener');
       this._listeners = this._listeners.filter(l => l !== listener);
     };
   }
@@ -51,17 +108,22 @@ export class SidebarRendererPresenter {
    * Возвращает конфигурацию для Sidebar
    */
   public getSidebar(): PageConfig | null {
+    console.log('[SidebarRendererPresenter] getSidebar called, currentPathname:', this._currentPathname, '_configs exists:', !!this._configs, '_configs.sidebar exists:', !!(this._configs?.sidebar));
     // Always start with default config to ensure buttons are present
     const defaultConfig = this._getDefaultSidebarConfig();
+    console.log('[SidebarRendererPresenter] getSidebar: defaultConfig created:', !!defaultConfig);
 
     if (!this._configs || !this._configs.sidebar) {
-      console.log('[SidebarRendererPresenter] No Supabase config, using default');
+      // No Supabase config, using default
+      console.log('[SidebarRendererPresenter] getSidebar: no Supabase config, returning defaultConfig');
       return defaultConfig;
     }
 
-    console.log('[SidebarRendererPresenter] Merging with Supabase config');
     // Merge with Supabase config, but only override styles/themes
-    return this._mergeSidebarConfigs(defaultConfig, this._configs.sidebar);
+    console.log('[SidebarRendererPresenter] getSidebar: merging with Supabase config');
+    const mergedConfig = this._mergeSidebarConfigs(defaultConfig, this._configs.sidebar);
+    console.log('[SidebarRendererPresenter] getSidebar: merged config result:', !!mergedConfig);
+    return mergedConfig;
   }
 
   /**
@@ -111,9 +173,21 @@ export class SidebarRendererPresenter {
             defaultStyles: defaultChild.styles,
             supabaseStyles: supabaseChild.styles
           });
+
+          // Merge styles but override backgroundColor for inactive buttons
+          const mergedStyles = { ...defaultChild.styles, ...supabaseChild.styles };
+
+          // Determine button type from ID and check if it's active
+          const buttonType = this._getButtonTypeFromId(defaultChild.id);
+          if (buttonType && !this._isButtonActive(buttonType)) {
+            // Force transparent background for inactive buttons
+            mergedStyles.backgroundColor = undefined;
+            console.log(`[SidebarRendererPresenter] Forcing transparent background for inactive button: ${defaultChild.id}`);
+          }
+
           return {
             ...defaultChild,
-            styles: { ...defaultChild.styles, ...supabaseChild.styles }
+            styles: mergedStyles
           };
         } else {
           console.log(`[SidebarRendererPresenter] No Supabase styles for button: ${defaultChild.id}`, {
@@ -147,13 +221,15 @@ export class SidebarRendererPresenter {
    */
   private _getDefaultSidebarConfig(): PageConfig | null {
     try {
-      console.log('[SidebarRendererPresenter] Using default sidebar configuration');
+      console.log('[SidebarRendererPresenter] _getDefaultSidebarConfig called, current _currentPathname:', this._currentPathname);
+
       console.log('[SidebarRendererPresenter] Default config children:', [
         'home-button',
         'store-button',
         'patch-notes-button',
         'localization-button'
       ]);
+
       const defaultSidebarLayout = {
         version: "1.0",
         theme: {
@@ -173,12 +249,15 @@ export class SidebarRendererPresenter {
             sidebar: true
           },
           styles: {
-            padding: 8,
+            display: "flex",
+            flexDirection: "column",
+            gap: "12px",
+            padding: "16px",
             backgroundColor: "surface",
             minHeight: "100vh",
             width: "100%",
             // Fallback CSS classes when Supabase data is not available
-            className: "flex min-h-full min-w-15 flex-col gap-4 px-6 py-3"
+            className: "flex flex-col gap-3 px-4 py-4"
           },
           children: [
             {
@@ -190,13 +269,22 @@ export class SidebarRendererPresenter {
                 fullWidth: true
               },
               styles: {
-                padding: 4,
-                backgroundColor: "surface",
-                textColor: "text",
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: "8px",
+                padding: "12px 16px",
+                backgroundColor: this._isButtonActive('home') ? "primary" : undefined,
+                textColor: "#FFFFFF",
                 justifyContent: "flex-start",
-                hoverBackgroundColor: "primary",
+                hoverBackgroundColor: "#5C6BC0", // Всегда светло-синяя подсветка при hover
+                hoverOpacity: 0.95, // Легкая прозрачность
+                hoverShadow: "0 4px 12px rgba(59, 90, 254, 0.15)", // Тень при hover
+                borderRadius: "8px",
+                marginBottom: "4px",
+                transition: "all 0.2s ease-in-out", // Плавная анимация
                 // Fallback CSS classes for menu item button
-                className: "group/sidebar-button relative flex w-full cursor-pointer items-center justify-start gap-2 overflow-hidden px-3 py-2 transition-all select-none rounded-button border-0 disabled:cursor-not-allowed disabled:opacity-50 bg-sem-component-sf-component-menu-item hover:bg-sem-component-sf-component-menu-item-hover data-[active=true]:bg-sem-component-sf-component-menu-item-accent flex-row"
+                className: "group/sidebar-button relative flex w-full cursor-pointer items-center justify-start gap-2 overflow-hidden px-3 py-2 transition-all select-none rounded-button border-0 disabled:cursor-not-allowed disabled:opacity-50  data-[active=true]:bg-sem-component-sf-component-menu-item-accent"
               },
               actions: {
                 onClick: {
@@ -214,12 +302,22 @@ export class SidebarRendererPresenter {
                 fullWidth: true
               },
               styles: {
-                padding: 4,
-                backgroundColor: "primary",
-                textColor: "text",
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: "8px",
+                padding: "12px 16px",
+                backgroundColor: this._isButtonActive('store') ? "primary" : undefined,
+                textColor: "#FFFFFF",
                 justifyContent: "flex-start",
+                hoverBackgroundColor: "#5C6BC0", // Всегда светло-синяя подсветка при hover
+                hoverOpacity: 0.95, // Легкая прозрачность
+                hoverShadow: "0 4px 12px rgba(59, 90, 254, 0.15)", // Тень при hover
+                borderRadius: "8px",
+                marginBottom: "4px",
+                transition: "all 0.2s ease-in-out", // Плавная анимация
                 // Fallback CSS classes for active menu item button
-                className: "group/sidebar-button relative flex w-full cursor-pointer items-center justify-start gap-2 overflow-hidden px-3 py-2 transition-all select-none rounded-button border-0 disabled:cursor-not-allowed disabled:opacity-50 bg-sem-component-sf-component-menu-store hover:bg-sem-component-sf-component-menu-store-hover data-[active=true]:bg-sem-component-sf-component-menu-store-accent flex-row"
+                className: "group/sidebar-button relative flex w-full cursor-pointer items-center justify-start gap-2 overflow-hidden px-3 py-2 transition-all select-none rounded-button border-0 disabled:cursor-not-allowed disabled:opacity-50 bg-sem-component-sf-component-menu-store hover:bg-sem-component-sf-component-menu-store-hover data-[active=true]:bg-sem-component-sf-component-menu-store-accent"
               },
               actions: {
                 onClick: {
@@ -237,13 +335,22 @@ export class SidebarRendererPresenter {
                 fullWidth: true
               },
               styles: {
-                padding: 4,
-                backgroundColor: "surface",
-                textColor: "text",
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: "8px",
+                padding: "12px 16px",
+                backgroundColor: this._isButtonActive('patch-notes') ? "primary" : undefined,
+                textColor: "#FFFFFF",
                 justifyContent: "flex-start",
-                hoverBackgroundColor: "primary",
+                hoverBackgroundColor: "#5C6BC0", // Всегда светло-синяя подсветка при hover
+                hoverOpacity: 0.95, // Легкая прозрачность
+                hoverShadow: "0 4px 12px rgba(59, 90, 254, 0.15)", // Тень при hover
+                borderRadius: "8px",
+                marginBottom: "4px",
+                transition: "all 0.2s ease-in-out", // Плавная анимация
                 // Fallback CSS classes for menu item button
-                className: "group/sidebar-button relative flex w-full cursor-pointer items-center justify-start gap-2 overflow-hidden px-3 py-2 transition-all select-none rounded-button border-0 disabled:cursor-not-allowed disabled:opacity-50 bg-sem-component-sf-component-menu-item hover:bg-sem-component-sf-component-menu-item-hover data-[active=true]:bg-sem-component-sf-component-menu-item-accent flex-row"
+                className: "group/sidebar-button relative flex w-full cursor-pointer items-center justify-start gap-2 overflow-hidden px-3 py-2 transition-all select-none rounded-button border-0 disabled:cursor-not-allowed disabled:opacity-50  data-[active=true]:bg-sem-component-sf-component-menu-item-accent"
               },
               actions: {
                 onClick: {
@@ -264,10 +371,15 @@ export class SidebarRendererPresenter {
                 value: "en"
               },
               styles: {
-                padding: 4,
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "12px 16px",
                 marginTop: "auto", // Push to bottom
                 backgroundColor: "surface",
-                textColor: "text",
+                textColor: "#FFFFFF",
+                borderRadius: "8px",
+                marginBottom: "4px",
                 // Fallback CSS classes for language selector
                 className: "group/select-trigger flex min-h-9 w-full min-w-48 cursor-pointer items-center justify-between rounded-input border border-sem-border-br-base-secondary-invert bg-sem-surface-sf-base-secondary px-3 py-2 text-left font-medium text-caption-lg text-sem-text-tx-quaternary shadow-sm transition-colors hover:cursor-pointer hover:border-sem-border-br-base-secondary-invert-hover hover:bg-sem-surface-sf-base-secondary-hover aria-expanded:border-sem-border-br-brand-b-primary aria-expanded:bg-sem-surface-sf-base-secondary-accent"
               },
@@ -282,7 +394,16 @@ export class SidebarRendererPresenter {
         }
       };
 
-      return this._convertToPageConfig(defaultSidebarLayout, 'sidebar');
+      console.log('[SidebarRendererPresenter] About to convert defaultSidebarLayout:', {
+        hasLayout: !!defaultSidebarLayout,
+        hasTheme: !!defaultSidebarLayout.theme,
+        hasSidebarLayout: !!defaultSidebarLayout.layout,
+        layoutKeys: Object.keys(defaultSidebarLayout)
+      });
+
+      const result = this._convertToPageConfig(defaultSidebarLayout, 'sidebar');
+      console.log('[SidebarRendererPresenter] _getDefaultSidebarConfig result:', !!result);
+      return result;
     } catch (error) {
       console.error('[SidebarRendererPresenter] Failed to create default sidebar config', error);
       return null;
@@ -321,9 +442,23 @@ export class SidebarRendererPresenter {
    */
   private _convertToPageConfig(layoutConfig: any, type: string): PageConfig | null {
     try {
+      console.log('[SidebarRendererPresenter] _convertToPageConfig called for', type, 'with config:', {
+        hasConfig: !!layoutConfig,
+        hasTheme: !!layoutConfig?.theme,
+        hasLayout: !!layoutConfig?.layout,
+        configKeys: layoutConfig ? Object.keys(layoutConfig) : [],
+        themeKeys: layoutConfig?.theme ? Object.keys(layoutConfig.theme) : [],
+        layoutKeys: layoutConfig?.layout ? Object.keys(layoutConfig.layout) : []
+      });
+
       // Defensive guards: layoutConfig and its theme/layout must exist
       if (!layoutConfig || !layoutConfig.theme || !layoutConfig.layout) {
-        console.warn('[SidebarRendererPresenter] Missing layoutConfig fields for', type, layoutConfig);
+        console.warn('[SidebarRendererPresenter] Missing layoutConfig fields for', type, {
+          hasConfig: !!layoutConfig,
+          hasTheme: !!layoutConfig?.theme,
+          hasLayout: !!layoutConfig?.layout,
+          layoutConfig
+        });
         return null;
       }
 

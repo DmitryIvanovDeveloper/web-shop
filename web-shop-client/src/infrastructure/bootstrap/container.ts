@@ -38,6 +38,9 @@ import { UIConfigLoadedHandler } from '../handlers/ui-config-loaded.handler';
 import { ApplyBackgroundOnConfigHandler } from '../handlers/apply-background-on-config.handler';
 import { IAsyncEventHandler } from '../events/events-handler.plugin';
 import { AppConfigLoadedEvent } from '../../shared/events/app-config-events';
+import type { AppContextPort } from '../../application/ports/app-context.port';
+import { UrlAppContextService } from '../app-context/url-app-context.service';
+import { GetAppContextUseCase } from '../../application/use-cases/get-app-context.use-case';
 
 // Create Inversify container
 const container = new Container();
@@ -64,6 +67,10 @@ container.bind(TYPES.UIComponentRegistry).to(UIComponentRegistry).inSingletonSco
 container.bind(TYPES.UIStyleBuilder).to(UIStyleBuilder).inSingletonScope();
 container.bind(TYPES.UIActionHandler).to(UIActionHandler).inSingletonScope();
 container.bind<UIRendererPort>(TYPES.UIRenderer).to(UIRendererService).inSingletonScope();
+
+// Register App Context Service
+container.bind<AppContextPort>(TYPES.AppContext).to(UrlAppContextService).inSingletonScope();
+container.bind(TYPES.GetAppContext).to(GetAppContextUseCase).inSingletonScope();
 
 // Register Authentication module
 bindAuthentication(container);

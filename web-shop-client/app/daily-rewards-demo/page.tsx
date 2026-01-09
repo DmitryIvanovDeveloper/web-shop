@@ -16,7 +16,6 @@ export default function DailyRewardsDemoPage() {
         <div className="flex justify-center">
           <DailyRewards
             userId="demo-user-123"
-            appId="default-app"
           />
         </div>
 
@@ -33,6 +32,7 @@ export default function DailyRewardsDemoPage() {
     </div>
   );
 }
+
 
 
 

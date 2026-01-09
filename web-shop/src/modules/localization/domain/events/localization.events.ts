@@ -44,3 +44,4 @@ export class TranslationCreatedEvent extends LocalizationEvent {
     super();
   }
 }
+

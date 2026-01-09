@@ -88,3 +88,4 @@ export class Translation {
     return this.updatedAt < thirtyDaysAgo;
   }
 }
+

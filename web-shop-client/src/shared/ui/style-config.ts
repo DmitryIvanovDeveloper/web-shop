@@ -71,6 +71,12 @@ export interface StyleConfig {
 	readonly borderStyle?: 'solid' | 'dashed' | 'dotted' | 'none';
 	readonly boxShadow?: string;
 	readonly opacity?: number;
+
+	// Hover effects
+	readonly hoverBackgroundColor?: ColorKey | string;
+	readonly hoverOpacity?: number;
+	readonly hoverShadow?: string;
+	readonly transition?: string;
 	
 	// Background
 	readonly backgroundImage?: string;

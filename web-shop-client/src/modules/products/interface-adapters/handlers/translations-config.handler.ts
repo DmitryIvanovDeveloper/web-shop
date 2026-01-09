@@ -21,3 +21,4 @@ export class ProductsTranslationsConfigHandler extends TranslationsConfigHandler
     this._productsPresenter.onTranslationsConfig(translations, languageCode, direction);
   }
 }
+

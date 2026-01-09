@@ -430,3 +430,4 @@ The module uses Supabase for transaction logging. Table `transaction_log` must e
 - Fraud detection integration
 - Multi-currency support expansion
 - Payment analytics dashboard
+

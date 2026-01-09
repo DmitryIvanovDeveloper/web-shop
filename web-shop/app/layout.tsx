@@ -7,7 +7,6 @@ import '../src/modules/merchant-admin/products/infrastructure/bootstrap/products
 import '../src/modules/merchant-admin/products/infrastructure/bootstrap/products.container';
 import "./globals.css";
 import "./output.css";
-import ClientLayout from './client-layout';
 
 export default function RootLayout({ children }: { children: React.ReactNode}) {
   return (
@@ -23,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         `}</style>
       </head>
       <body className="m-0 p-0 overflow-hidden">
-        <ClientLayout>{children}</ClientLayout>
+        {children}
       </body>
     </html>
   );

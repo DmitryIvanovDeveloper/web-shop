@@ -9,3 +9,4 @@ WHERE language_code NOT IN ('ar', 'en');
 -- Delete languages except Arabic and English
 DELETE FROM public.languages
 WHERE code NOT IN ('ar', 'en');
+

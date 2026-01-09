@@ -7,3 +7,4 @@ export interface LocalizationViewModel {
   readonly translations: Record<string, string>;
   readonly direction: 'ltr' | 'rtl';
 }
+

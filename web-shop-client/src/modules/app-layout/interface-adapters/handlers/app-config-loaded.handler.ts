@@ -23,27 +23,18 @@ export class AppLayoutConfigLoadedHandler implements IAsyncEventHandler<AppConfi
 		this._logger.info('[AppLayoutConfigLoadedHandler] Processing AppConfigLoadedEvent');
 
 		try {
-			// Check if config and modules exist
-			if (!event.payload?.config?.modules) {
-				this._logger.warn('[AppLayoutConfigLoadedHandler] Config modules not found in AppConfig');
-				return;
-			}
-
-			const appLayoutConfig = event.payload.config.modules.uiRenderer;
+			// Extract uiRenderer config, defaulting to empty object if modules don't exist
+			const appLayoutConfig = event.payload?.config?.modules?.uiRenderer || {};
 
 			this._logger.info('[AppLayoutConfigLoadedHandler] Extracted uiRenderer config', {
 				hasConfig: !!appLayoutConfig,
-				hasSidebar: !!appLayoutConfig?.sidebar,
-				sidebarChildrenCount: appLayoutConfig?.sidebar?.layout?.children?.length || 0
+				hasSidebar: !!(appLayoutConfig as any)?.sidebar,
+				sidebarChildrenCount: (appLayoutConfig as any)?.sidebar?.layout?.children?.length || 0
 			});
 
-			if (!appLayoutConfig) {
-				this._logger.warn('[AppLayoutConfigLoadedHandler] App Layout config (uiRenderer) not found in AppConfig');
-				return;
-			}
-
+			// Always set configs, even if empty - this marks presenter as "ready"
 			this._logger.info('[AppLayoutConfigLoadedHandler] Setting App Layout configs in presenter');
-			this._presenter.setConfigs(appLayoutConfig);
+			this._presenter.setConfigs(appLayoutConfig as any);
 
 			this._logger.info('[AppLayoutConfigLoadedHandler] App Layout configs successfully applied');
 		} catch (error) {

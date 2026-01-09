@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { usePathname } from 'next/navigation';
 import { DynamicRenderer } from './dynamic-renderer';
 import type { SidebarRendererPresenter } from '../../presenters/sidebar-renderer.presenter';
 import type { ActionContext } from '../../../../../shared/ui/action-context';
@@ -9,28 +10,32 @@ interface SidebarRendererProps {
   readonly presenter: SidebarRendererPresenter;
   readonly actionContext?: ActionContext;
   readonly layoutType?: 'sidebar' | 'rightSidebar' | 'store';
+  readonly currentPathname?: string;
 }
 
 export function SidebarRenderer({
   presenter,
   actionContext,
-  layoutType = 'sidebar'
+  layoutType = 'sidebar',
+  currentPathname
 }: SidebarRendererProps): JSX.Element {
-  console.log('[SidebarRenderer] Component rendered for', layoutType);
+  console.log(`[SidebarRenderer] Component rendered for ${layoutType}`);
+  const [, forceUpdate] = useState(0);
+  const pathname = usePathname();
 
-  const [configVersion, setConfigVersion] = useState(0);
+  // Update current pathname in presenter when it changes
+  // Use passed pathname or fallback to hook
+  const activePathname = currentPathname || pathname;
+  console.log('[SidebarRenderer] Component rendered with activePathname:', activePathname, 'currentPathname prop:', currentPathname, 'pathname hook:', pathname);
 
-  // Subscribe to config updates (for live preview updates)
+  // Set pathname immediately when component renders
+  presenter.setCurrentPathname(activePathname); // Removed presenter from dependencies
+
+  // Subscribe to config updates
   useEffect(() => {
-    // Check if already ready and trigger initial render
-    if (presenter.isReady()) {
-      setConfigVersion(1);
-    }
-
     const unsubscribe = presenter.subscribe(() => {
       // Force re-render when config changes
-      console.log('[SidebarRenderer] Config update received, forcing re-render');
-      setConfigVersion(prev => prev + 1);
+      forceUpdate(prev => prev + 1);
     });
 
     return () => {
@@ -38,33 +43,30 @@ export function SidebarRenderer({
     };
   }, [presenter]);
 
-  // Синхронно получаем конфигурацию из presenter
-  // configVersion инкрементируется при каждом subscribe callback
-  const config = useMemo(() => {
-    console.log('[SidebarRenderer] Getting config for', layoutType, 'version:', configVersion);
-    if (configVersion === 0) return null;
+  // Always try to get config from presenter
+  let config = null;
+  switch (layoutType) {
+    case 'sidebar':
+      config = presenter.getSidebar();
+      console.log('[SidebarRenderer] Got sidebar config:', !!config);
+      break;
+    case 'rightSidebar':
+      config = presenter.getRightSidebar();
+      break;
+    case 'store':
+      config = presenter.getStore();
+      break;
+    default:
+      return (
+        <div style={{ padding: '16px', color: '#A0A0A0' }}>
+          Unknown layout type: {layoutType}
+        </div>
+      );
+  }
 
-    let result = null;
-    switch (layoutType) {
-      case 'sidebar':
-        result = presenter.getSidebar();
-        console.log('[SidebarRenderer] Got sidebar config:', !!result);
-        return result;
-      case 'rightSidebar':
-        result = presenter.getRightSidebar();
-        console.log('[SidebarRenderer] Got rightSidebar config:', !!result);
-        return result;
-      case 'store':
-        return presenter.getStore();
-      default:
-        return null;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [configVersion, layoutType]);
-
-  // Если конфигурация еще не загружена
+  // If no config available, show loading state
   if (!config) {
-    console.log('[SidebarRenderer] No config available for', layoutType);
+    console.log('[SidebarRenderer] No config available for', layoutType, 'returning notReady message');
     return (
       <div style={{ padding: '16px', color: '#A0A0A0' }}>
         {presenter.labels.notReady}
@@ -72,13 +74,7 @@ export function SidebarRenderer({
     );
   }
 
-  console.log('[SidebarRenderer] Rendering', layoutType, 'with layout:', config.layout?.id);
-  console.log('[SidebarRenderer] Children count:', config.layout?.children?.length || 0);
-  if (config.layout?.children) {
-    config.layout.children.forEach((child, index) => {
-      console.log(`[SidebarRenderer] Child ${index}:`, child.id, child.props?.text);
-    });
-  }
+  console.log('[SidebarRenderer] Config found for', layoutType, 'proceeding to render DynamicRenderer');
 
   return (
     <DynamicRenderer

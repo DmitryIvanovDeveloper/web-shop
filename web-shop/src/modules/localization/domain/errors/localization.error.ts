@@ -70,3 +70,4 @@ export class ActiveLanguageRequiredError extends LocalizationError {
     super('At least one language must be active');
   }
 }
+

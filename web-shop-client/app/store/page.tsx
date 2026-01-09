@@ -25,8 +25,19 @@ export default function StorePage(): JSX.Element {
   );
 
   // Get appId and userId from query parameters
-  const appId = searchParams.get('appId') || 'default-app';
+  const appId = searchParams.get('appId');
   const userId = searchParams.get('userId') || 'anonymous-user';
+
+  if (!appId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">App ID Required</h1>
+          <p className="text-gray-600">Please specify ?appId=YOUR_APP_ID in the URL.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Check if we're in preview mode
   const [previewMode, setPreviewMode] = useState(false);
@@ -284,12 +295,22 @@ export default function StorePage(): JSX.Element {
 
   // Show Daily Rewards popup for authenticated users
   useEffect(() => {
+    console.log('[store/page.tsx] Checking DailyRewards popup conditions:', {
+      previewMode,
+      userId,
+      shouldShow: !previewMode && userId !== 'anonymous-user'
+    });
+
     if (previewMode || userId === 'anonymous-user') {
+      console.log('[store/page.tsx] DailyRewards popup will NOT be shown');
       return;
     }
 
+    console.log('[store/page.tsx] DailyRewards popup will be shown in 3 seconds');
+
     // Show popup after a short delay to let the page load
     const timer = setTimeout(() => {
+      console.log('[store/page.tsx] Setting showDailyRewardsPopup to true');
       setShowDailyRewardsPopup(true);
     }, 3000); // 3 seconds delay
 
@@ -301,7 +322,6 @@ export default function StorePage(): JSX.Element {
       {/* Daily Rewards Popup */}
       <DailyRewardsPopup
         userId={userId}
-        appId={appId}
         isOpen={showDailyRewardsPopup}
         onClose={() => setShowDailyRewardsPopup(false)}
         autoShow={false}

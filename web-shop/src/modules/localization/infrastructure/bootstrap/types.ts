@@ -11,3 +11,4 @@ export const LOCALIZATION_TYPES = {
   // Presenters
   LocalizationPresenter: Symbol.for('LocalizationPresenter')
 } as const;
+

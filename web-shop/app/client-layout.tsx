@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter, usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useState, useEffect, useMemo } from "react";
 import Sidebar from "@/shared/ui/Sidebar";
 
 interface ClientLayoutProps {
@@ -11,17 +11,24 @@ interface ClientLayoutProps {
 export default function ClientLayout({ children }: ClientLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isNavigating, setIsNavigating] = useState(false);
-  const routes: Record<string, string> = {
+
+  // Get appId from URL search params instead of useSelectedProject
+  const appId = searchParams?.get('appId');
+
+  const routes: Record<string, string> = useMemo(() => ({
     home: '/',
     'analytics-dashboard': '/merchant-admin/analytics/dashboard',
-    'merchant-admin-daily-rewards': '/merchant-admin/daily-rewards?appId=APP123',
-    'merchant-admin-offers': '/merchant-admin/offers?appId=APP123',
-    'merchant-admin-products': '/products?appId=APP123',
-    'merchant-admin-patch-notes': '/merchant-admin/patch-notes?appId=APP123',
+    'merchant-admin-daily-rewards': appId ? `/merchant-admin/daily-rewards?appId=${appId}` : '/merchant-admin/daily-rewards',
+    'merchant-admin-offers': appId ? `/merchant-admin/offers?appId=${appId}` : '/merchant-admin/offers',
+    'merchant-admin-products': appId ? `/products?appId=${appId}` : '/products',
+    'merchant-admin-patch-notes': appId ? `/merchant-admin/patch-notes?appId=${appId}` : '/merchant-admin/patch-notes',
     'merchant-admin-localization': '/merchant-admin/localization',
-    'ui-builder': '/ui-builder?appId=APP123&pageSlug=store',
-  };
+    'ui-builder': appId ? `/ui-builder?appId=${appId}&pageSlug=store` : '/ui-builder?pageSlug=store',
+  }), [appId]);
+
+  // Individual pages handle appId validation and redirect to projects if needed
 
   const handleSelect = (key: string) => {
     const target = routes[key];

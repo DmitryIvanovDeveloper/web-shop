@@ -1,141 +1,107 @@
 import { inject, injectable } from 'inversify';
-import { DAILY_REWARDS_TYPES } from '../../infrastructure/daily-rewards.container';
-import type { CheckDailyRewardAvailabilityUseCase } from '../../application/use-cases/check-daily-reward-availability-use-case.use-case';
-import type { ClaimDailyRewardUseCase } from '../../application/use-cases/claim-daily-reward-use-case.use-case';
-import type { CheckDailyRewardAvailabilityInput, DailyRewardAvailabilityOutput, ClaimDailyRewardInput, ClaimDailyRewardOutput } from '../../application/types/daily-reward.types';
-
-export interface DailyRewardsViewModel {
-  status: 'loading' | 'loaded' | 'claiming' | 'claimed' | 'error';
-  canClaim: boolean;
-  reward: {
-    id: string;
-    type: string;
-    title: string;
-    description: string;
-    points: number;
-  } | null;
-  lastClaimDate: Date | null;
-  nextClaimDate: Date | null;
-  successMessage: string | null;
-  error: string | null;
-  isClaiming: boolean;
-}
+import { ClaimDailyRewardUseCase } from '../../application/use-cases/claim-daily-reward.use-case';
+import { CheckDailyRewardAvailabilityUseCase } from '../../application/use-cases/check-daily-reward-availability.use-case';
+import { isSuccess } from '../../../../shared/result/result';
+import type { CheckDailyRewardAvailabilityInput, ClaimDailyRewardInput } from '../../application/types/daily-reward.types';
+import { DAILY_REWARDS_TYPES } from '../../infrastructure/bootstrap/types';
 
 @injectable()
 export class DailyRewardsPresenter {
-  private _viewModel: DailyRewardsViewModel = {
-    status: 'loading',
-    canClaim: false,
-    reward: null,
-    lastClaimDate: null,
-    nextClaimDate: null,
-    successMessage: null,
-    error: null,
-    isClaiming: false
-  };
-
-  private _onViewModelChanged?: () => void;
+  public readonly labels = { add: 'Add', update: 'Update', delete: 'Delete', list: 'List' } as const;
+  public state: { loading: boolean; error: string | null; data: unknown } = { loading: false, error: null, data: null };
+  private viewModel = { status: 'idle' as 'idle' | 'loading' | 'loaded' | 'error' | 'claiming', reward: null as any, nextClaimDate: null as Date | null };
+  private onViewModelChanged?: () => void;
 
   constructor(
     @inject(DAILY_REWARDS_TYPES.CheckDailyRewardAvailabilityUseCase)
-    private readonly _checkAvailabilityUseCase: CheckDailyRewardAvailabilityUseCase,
+    private readonly checkDailyRewardAvailabilityUseCase: CheckDailyRewardAvailabilityUseCase,
     @inject(DAILY_REWARDS_TYPES.ClaimDailyRewardUseCase)
-    private readonly _claimRewardUseCase: ClaimDailyRewardUseCase
+    private readonly claimDailyRewardUseCase: ClaimDailyRewardUseCase
   ) {}
 
-  getViewModel(): DailyRewardsViewModel {
-    console.log('[DailyRewardsPresenter] getViewModel called', { status: this._viewModel.status, error: this._viewModel.error });
-    return { ...this._viewModel };
+  public setOnViewModelChanged(callback: () => void): void {
+    this.onViewModelChanged = callback;
   }
 
-  setOnViewModelChanged(callback: () => void): void {
-    this._onViewModelChanged = callback;
+  public getViewModel() {
+    return this.viewModel;
   }
 
-  private updateViewModel(update: Partial<DailyRewardsViewModel>): void {
-    console.log('[DailyRewardsPresenter] updateViewModel called', { update, currentStatus: this._viewModel.status });
-    this._viewModel = { ...this._viewModel, ...update };
-    console.log('[DailyRewardsPresenter] viewModel updated to', { newStatus: this._viewModel.status });
-    this._onViewModelChanged?.();
-  }
-
-  async loadRewardAvailability(userId: string, appId: string = 'default-app'): Promise<void> {
-    console.log('[DailyRewardsPresenter] loadRewardAvailability called', { userId, appId });
-    this.updateViewModel({
-      status: 'loading',
-      error: null,
-      successMessage: null
-    });
+  public async loadRewardAvailability(userId: string, appId: string): Promise<void> {
+    this.viewModel = { ...this.viewModel, status: 'loading' };
+    this.onViewModelChanged?.();
 
     try {
-      console.log('[DailyRewardsPresenter] About to execute use case');
-      const result = await this._checkAvailabilityUseCase.execute({ userId, appId });
-      console.log('[DailyRewardsPresenter] Use case result:', { success: result.success });
+      const result = await this.checkDailyRewardAvailabilityUseCase.execute({
+        userId,
+        appId
+      });
 
-      if (result.success) {
-        this.updateViewModel({
+      if (!isSuccess(result)) {
+        this.viewModel = {
+          ...this.viewModel,
+          status: 'error',
+          reward: null,
+          nextClaimDate: null
+        };
+      } else {
+        this.viewModel = {
+          ...this.viewModel,
           status: 'loaded',
-          canClaim: result.data.canClaim,
-          reward: result.data.reward,
-          lastClaimDate: result.data.lastClaimDate || null,
-          nextClaimDate: result.data.nextClaimDate || null,
-          error: null
-        });
-      } else {
-        this.updateViewModel({
-          status: 'error',
-          error: result.error.message,
-          canClaim: false,
-          reward: null
-        });
+          reward: result.data?.reward || null,
+          nextClaimDate: result.data?.nextClaimDate || null
+        };
       }
     } catch (error) {
-      this.updateViewModel({
+      this.viewModel = {
+        ...this.viewModel,
         status: 'error',
-        error: 'Failed to load reward availability',
-        canClaim: false,
-        reward: null
+        reward: null,
+        nextClaimDate: null
+      };
+    }
+
+    this.onViewModelChanged?.();
+  }
+
+  public async claimReward(userId: string, appId: string): Promise<void> {
+    this.viewModel = { ...this.viewModel, status: 'claiming' };
+    this.onViewModelChanged?.();
+
+    try {
+      const result = await this.claimDailyRewardUseCase.execute({
+        userId,
+        appId
       });
+
+      if (isSuccess(result)) {
+        // Reload availability after successful claim
+        await this.loadRewardAvailability(userId, appId);
+      } else {
+        this.viewModel = { ...this.viewModel, status: 'error' };
+        this.onViewModelChanged?.();
+      }
+    } catch (error) {
+      this.viewModel = { ...this.viewModel, status: 'error' };
+      this.onViewModelChanged?.();
     }
   }
 
-  async claimReward(userId: string, appId: string = 'default-app'): Promise<void> {
-    console.log('[DEBUG] claimReward called', { userId, appId, canClaim: this._viewModel.canClaim, isClaiming: this._viewModel.isClaiming });
-    if (!this._viewModel.canClaim || this._viewModel.isClaiming) return;
-
-    this.updateViewModel({
-      isClaiming: true,
-      error: null,
-      successMessage: null
-    });
-
-    try {
-      const result = await this._claimRewardUseCase.execute({ userId, appId });
-
-      if (result.success) {
-        this.updateViewModel({
-          status: 'claimed',
-          canClaim: false,
-          isClaiming: false,
-          successMessage: result.data.message,
-          lastClaimDate: new Date(),
-          error: null
-        });
-      } else {
-        this.updateViewModel({
-          status: 'error',
-          error: result.error.message,
-          isClaiming: false,
-          successMessage: null
-        });
-      }
-    } catch (error) {
-      this.updateViewModel({
-        status: 'error',
-        error: 'Failed to claim reward',
-        isClaiming: false,
-        successMessage: null
-      });
+  public async onCheckDailyRewardAvailability(input: CheckDailyRewardAvailabilityInput): Promise<void> {
+    const result = await this.checkDailyRewardAvailabilityUseCase.execute(input);
+    if (!isSuccess(result)) {
+      this.state.error = String(result.error);
+      return;
     }
+    this.state.data = result.data as any;
+  }
+
+  public async onClaimDailyReward(input: ClaimDailyRewardInput): Promise<void> {
+    const result = await this.claimDailyRewardUseCase.execute(input);
+    if (!isSuccess(result)) {
+      this.state.error = String(result.error);
+      return;
+    }
+    this.state.data = result.data as any;
   }
 }

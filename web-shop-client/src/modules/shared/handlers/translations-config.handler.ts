@@ -36,3 +36,4 @@ export abstract class TranslationsConfigHandler implements IAsyncEventHandler<Tr
     direction: 'ltr' | 'rtl'
   ): Promise<void>;
 }
+

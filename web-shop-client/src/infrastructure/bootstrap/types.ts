@@ -46,7 +46,9 @@ export const TYPES = {
 	LoadAppConfigFromMessage: Symbol.for('LoadAppConfigFromMessage'),
 	SupabaseConfigLoader: Symbol.for('SupabaseConfigLoader'),
 	ConfigSubscriptionPort: Symbol.for('ConfigSubscriptionPort'),
-	SubscribeToConfigUpdates: Symbol.for('SubscribeToConfigUpdates')
+	SubscribeToConfigUpdates: Symbol.for('SubscribeToConfigUpdates'),
+	AppContext: Symbol.for('AppContext'),
+	GetAppContext: Symbol.for('GetAppContext')
 } as const;
 
 // Export as ROOT_TYPES for consistency with documentation
@@ -57,6 +59,9 @@ export { AUTH_TYPES } from '../../modules/authentication/infrastructure/bootstra
 
 // Export LOCALIZATION_TYPES from localization module
 export { LOCALIZATION_TYPES } from '../../modules/localization/infrastructure/bootstrap/types';
+
+// Export DAILY_REWARDS_TYPES from daily-rewards module
+export { DAILY_REWARDS_TYPES } from '../../modules/daily-rewards/infrastructure/bootstrap/types';
 
 // Export SHOP_TYPES from shop module
 // Http client selection mode

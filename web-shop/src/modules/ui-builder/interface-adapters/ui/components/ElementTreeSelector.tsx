@@ -73,15 +73,33 @@ function ElementTree({ elements, selectedId, onSelect, onDelete, level = 0 }: El
                 }`}
                 style={{ paddingLeft: `${level * 10}px` }}
               >
-                <div className="flex items-center gap-1.5">
-                  <span className={`text-[10px] uppercase font-semibold ${isSelected ? 'text-blue-100' : 'text-gray-500'}`}>
-                    {element.type}
-                  </span>
-                  <span className="font-mono">{element.id}</span>
-                </div>
-                {element.label && element.label !== element.id && (
-                  <div className={`text-[10px] mt-0.5 ${isSelected ? 'text-blue-100' : 'text-gray-500'}`}>
-                    "{element.label}"
+                {element.type === 'Button' ? (
+                  // Для кнопок показываем красивый UI элемент
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-medium border transition-colors ${
+                        isSelected
+                          ? 'bg-white text-blue-600 border-blue-200'
+                          : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                      }`}
+                      style={{
+                        backgroundColor: element.colors?.backgroundColor || '#f3f4f6',
+                        color: element.colors?.textColor || '#374151',
+                        borderColor: element.colors?.borderColor || '#d1d5db',
+                        minWidth: '60px',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      {element.label || element.name || 'Button'}
+                    </div>
+                  </div>
+                ) : (
+                  // Для других элементов показываем как раньше
+                  <div className="flex items-center gap-1.5">
+                    <span className={`text-[10px] uppercase font-semibold ${isSelected ? 'text-blue-100' : 'text-gray-500'}`}>
+                      {element.type}
+                    </span>
+                    <span className="font-mono text-xs">{element.id}</span>
                   </div>
                 )}
               </button>

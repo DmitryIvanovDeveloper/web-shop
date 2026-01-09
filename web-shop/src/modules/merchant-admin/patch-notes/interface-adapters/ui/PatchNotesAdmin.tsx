@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useEffect, useLayoutEffect, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { PatchNotesAdminPresenter } from '../presenters/patch-notes-admin.presenter';
 // PatchNotesAdminViewModel not used directly, accessed via presenter.getViewModel()
 import { container } from '../../../../../infrastructure/bootstrap/container';
@@ -17,8 +17,10 @@ interface FormData {
 
 export function PatchNotesAdmin(): JSX.Element {
   const searchParams = useSearchParams();
-  const appId = searchParams.get('appId') || 'default-app';
+  const router = useRouter();
+  const appId = searchParams?.get('appId') || null;
 
+  // Always call hooks first, in the same order
   const [, forceUpdate] = useState({});
   const [presenter] = useState(() =>
     container.get<PatchNotesAdminPresenter>(MERCHANT_ADMIN_PATCH_NOTES_TYPES.PatchNotesAdminPresenter)
@@ -38,11 +40,20 @@ export function PatchNotesAdmin(): JSX.Element {
     changes: [{ type: 'feature' as ChangeType, description: '' }]
   });
 
+  // Redirect to projects page if appId is missing (useLayoutEffect runs before paint)
+  useLayoutEffect(() => {
+    if (!appId) {
+      router.push('/projects');
+    }
+  }, [appId, router]);
+
   const viewModel = presenter.getViewModel();
 
   useEffect(() => {
     presenter.setOnViewModelChanged(() => forceUpdate({}));
-    presenter.loadPatchNotes(appId);
+    if (appId) {
+      presenter.loadPatchNotes(appId);
+    }
   }, [presenter, appId]);
 
   // Initialize edit form when edit modal opens
@@ -67,6 +78,8 @@ export function PatchNotesAdmin(): JSX.Element {
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!appId) return; // Safety check
+
     // Validate form
     if (!formData.version || !formData.title || !formData.description) {
       presenter.showError('Please fill in all required fields');
@@ -86,7 +99,7 @@ export function PatchNotesAdmin(): JSX.Element {
     }
 
     const success = await presenter.createPatchNote({
-      appId,
+      appId: appId!,
       version: formData.version,
       title: formData.title,
       description: formData.description,
@@ -136,7 +149,7 @@ export function PatchNotesAdmin(): JSX.Element {
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!viewModel.selectedNote) return;
+    if (!viewModel.selectedNote || !appId) return;
 
     // Validate form
     if (!editFormData.title || !editFormData.description) {
@@ -151,7 +164,7 @@ export function PatchNotesAdmin(): JSX.Element {
 
     const success = await presenter.updatePatchNote({
       id: viewModel.selectedNote.id,
-      appId,
+      appId: appId!,
       title: editFormData.title.trim(),
       description: editFormData.description.trim(),
       changes: editFormData.changes.map(change => ({
@@ -189,6 +202,8 @@ export function PatchNotesAdmin(): JSX.Element {
       )
     }));
   };
+
+  // Show loading while redirecting if appId is missing
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -600,6 +615,7 @@ export function PatchNotesAdmin(): JSX.Element {
               </button>
               <button
                 onClick={async () => {
+                  if (!appId) return;
                   const success = await presenter.deletePatchNote(viewModel.selectedNote!.id, appId);
                   if (success) {
                     // Modal will be closed by presenter

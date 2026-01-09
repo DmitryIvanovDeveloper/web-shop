@@ -16,9 +16,9 @@ const ALLOWED_KEYS = new Set<string>([
 
 export async function GET(
   _req: Request,
-  context: { params: { key: string } }
+  context: { params: Promise<{ key: string }> }
 ): Promise<Response> {
-  const { key } = context.params;
+  const { key } = await context.params;
 
   if (!ALLOWED_KEYS.has(key)) {
     return NextResponse.json(

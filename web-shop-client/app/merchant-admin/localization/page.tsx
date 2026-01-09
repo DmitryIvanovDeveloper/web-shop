@@ -22,7 +22,22 @@ const containerStyle: React.CSSProperties = {
 
 export default async function LocalizationPage({ searchParams }: PageProps): Promise<JSX.Element> {
   const params = await searchParams;
-  const appId = params.appId || 'default-app';
+  const appId = params.appId;
+
+  if (!appId) {
+    return (
+      <div style={{ ...containerStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111827', marginBottom: '16px' }}>
+            App ID Required
+          </h1>
+          <p style={{ color: '#6B7280' }}>
+            Please specify ?appId=YOUR_APP_ID in the URL.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={containerStyle}>

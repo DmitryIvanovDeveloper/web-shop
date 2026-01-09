@@ -8,7 +8,14 @@ import { Failure } from '../../../src/shared/result/result';
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const appId = searchParams.get('appId') || 'default-app';
+    const appId = searchParams.get('appId');
+
+    if (!appId) {
+      return NextResponse.json(
+        { error: 'App ID is required. Please specify ?appId=YOUR_APP_ID in the URL.' },
+        { status: 400 }
+      );
+    }
 
     const useCase = container.get<GetPublishedPatchNotesUseCase>(
       PATCH_NOTES_TYPES.GetPublishedPatchNotesUseCase
@@ -45,7 +52,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Ensure appId is provided
     if (!body.appId) {
-      body.appId = 'default-app';
+      return NextResponse.json({ error: 'appId is required in the request body' }, { status: 400 });
     }
 
     const useCase = container.get<CreatePatchNoteUseCase>(

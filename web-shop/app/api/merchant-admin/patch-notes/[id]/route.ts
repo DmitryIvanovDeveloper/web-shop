@@ -7,10 +7,10 @@ import { PatchNoteId } from '@/modules/merchant-admin/patch-notes/domain/value-o
 // GET /api/merchant-admin/patch-notes/[id]
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
-    const { id } = params;
+    const { id } = await params;
     const searchParams = request.nextUrl.searchParams;
     const appId = searchParams.get('appId');
 
@@ -59,10 +59,10 @@ export async function GET(
 // DELETE /api/merchant-admin/patch-notes/[id]
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
-    const { id } = params;
+    const { id } = await params;
     const searchParams = request.nextUrl.searchParams;
     const appId = searchParams.get('appId');
 

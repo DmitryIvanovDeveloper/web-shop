@@ -133,6 +133,14 @@ export class TemplatesPresenter {
     return this.vm;
   }
 
+  public selectUserAppConfig(userAppConfigId: string | null): void {
+    this.vm = {
+      ...this.vm,
+      selectedUserAppConfigId: userAppConfigId,
+    };
+    this.notify();
+  }
+
   public async loadUserAppConfigs(appId: string): Promise<Result<void, Error>> {
     this.logger.info('[TemplatesPresenter] Loading user app configs', { appId });
     this.vm = {
@@ -173,7 +181,12 @@ export class TemplatesPresenter {
 
   public async applyUserAppConfig(userAppConfigId: string): Promise<Result<void, Error>> {
     if (!this.isAdmin) {
-      return await this.applyUserAppConfigUseCase.execute(userAppConfigId);
+      const result = await this.applyUserAppConfigUseCase.execute(userAppConfigId);
+      if (result.isSuccess) {
+        // Mark the config as selected for UI feedback
+        this.selectUserAppConfig(userAppConfigId);
+      }
+      return result;
     }
     return Result.error(new Error('Admins cannot apply user app configs'));
   }

@@ -35,16 +35,28 @@ export default function PatchNotesPage(): JSX.Element {
     if (typeof window !== 'undefined') {
       try {
         const url = new URL(window.location.href);
-        return url.searchParams.get('appId') || url.searchParams.get('app') || 'default-app';
+        const appId = url.searchParams.get('appId') || url.searchParams.get('app');
+        if (!appId) {
+          console.error('[PatchNotesPage] App ID is required. Please specify ?appId=YOUR_APP_ID in the URL.');
+          return '';
+        }
+        return appId;
       } catch (err) {
         console.error('[PatchNotesPage] Failed to parse URL for appId:', err);
-        return 'default-app';
+        return '';
       }
     }
-    return 'default-app';
+    return '';
   };
 
-  const [currentAppId, setCurrentAppId] = useState<string>(getAppIdFromUrl);
+  const [currentAppId, setCurrentAppId] = useState<string>('');
+
+  // Initialize appId from URL
+  useEffect(() => {
+    const appId = getAppIdFromUrl();
+    setCurrentAppId(appId);
+  }, []);
+
   const applyElementSelectionMode = useCallback((enabled: boolean) => {
     setElementSelectionMode(enabled);
 

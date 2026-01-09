@@ -10,9 +10,10 @@ import { createClient } from '@supabase/supabase-js';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
   try {
+    const { path } = await params;
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -25,7 +26,7 @@ export async function GET(
 
     // Reconstruct the path from the array
     // Path format: Images/products/filename.png -> we need products/filename.png
-    let imagePath = params.path.join('/');
+    let imagePath = path.join('/');
     
     // Remove 'Images' prefix if present (bucket name is already specified in .from())
     if (imagePath.startsWith('Images/')) {
@@ -33,7 +34,7 @@ export async function GET(
     }
     
     console.log('[Image Proxy] Downloading image', {
-      originalPath: params.path.join('/'),
+      originalPath: path.join('/'),
       imagePath,
       bucket: 'Images',
     });

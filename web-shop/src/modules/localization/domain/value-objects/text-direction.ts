@@ -27,3 +27,4 @@ export class TextDirection {
     return this._value === 'ltr';
   }
 }
+
