@@ -16,9 +16,9 @@ export class ProductPaymentService {
       throw new Error('Product is required for payment');
     }
 
-    // Extract price and currency from Value Objects
-    const price = product.currentPrice?.amount || product.originalPrice?.amount || 0;
-    const currency = product.currentPrice?.currency || product.originalPrice?.currency || 'USD';
+    // Extract price and currency from Value Object
+    const price = product.price?.amount || 0;
+    const currency = product.price?.currency || 'USD';
     
     return {
       id: product.id.value, // Convert ProductId to string
@@ -43,7 +43,7 @@ export class ProductPaymentService {
       errors.push('Product title is required');
     }
 
-    if (!product.currentPrice && !product.originalPrice) {
+    if (!product.price) {
       errors.push('Product must have a price');
     }
 

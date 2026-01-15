@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import { container as appContainer } from '../../../../../infrastructure/bootstrap/container';
 import { DAILY_REWARDS_TYPES } from '../../../infrastructure/bootstrap/types';
 import { DailyRewardsListPresenter, type DailyRewardListItemViewModel } from '../../presenters/daily-rewards-list.presenter';
-import { DailyRewardsList } from '../components/daily-rewards-list';
 import { DailyRewardsCardsGrid } from '../components/daily-rewards-cards-grid';
 import { useAppId } from '../../../../../shared/hooks/use-app-context';
 
@@ -27,7 +26,6 @@ export function DailyRewardsPage({}: DailyRewardsPageProps): JSX.Element {
   const [rewards, setRewards] = useState<DailyRewardListItemViewModel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'cards'>('cards');
 
   const cardRewards = useMemo(() => {
     return rewards.map((reward) => ({
@@ -80,65 +78,6 @@ export function DailyRewardsPage({}: DailyRewardsPageProps): JSX.Element {
     boxSizing: 'border-box',
   };
 
-  const headerStyle: React.CSSProperties = {
-    marginBottom: '32px',
-    textAlign: 'center',
-  };
-
-  const titleStyle: React.CSSProperties = {
-    fontSize: '32px',
-    fontWeight: 700,
-    marginBottom: '8px',
-    background: 'linear-gradient(135deg, #60A5FA, #A855F7)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-  };
-
-  const subtitleStyle: React.CSSProperties = {
-    color: '#94A3B8',
-    fontSize: '16px',
-    marginBottom: '24px',
-  };
-
-  const viewModeButtonStyle: React.CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    padding: '8px 16px',
-    borderRadius: '6px',
-    border: '1px solid rgba(96, 165, 250, 0.3)',
-    background: 'transparent',
-    color: '#E2E8F0',
-    fontWeight: 500,
-    fontSize: '14px',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  };
-
-  const viewModeButtonActiveStyle: React.CSSProperties = {
-    ...viewModeButtonStyle,
-    background: 'linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(168, 85, 247, 0.2))',
-    border: '1px solid rgba(96, 165, 250, 0.6)',
-  };
-
-  const refreshButtonStyle: React.CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    padding: '12px 20px',
-    borderRadius: '8px',
-    border: '1px solid rgba(96, 165, 250, 0.3)',
-    background: 'linear-gradient(135deg, rgba(96, 165, 250, 0.1), rgba(168, 85, 247, 0.1))',
-    color: '#E2E8F0',
-    fontWeight: 600,
-    fontSize: '14px',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  };
-
   const errorStyle: React.CSSProperties = {
     padding: '20px',
     borderRadius: '12px',
@@ -188,45 +127,6 @@ export function DailyRewardsPage({}: DailyRewardsPageProps): JSX.Element {
         }
       `}</style>
 
-      <header style={headerStyle}>
-        <h1 style={titleStyle}>
-          🎯 Daily Rewards
-        </h1>
-        <p style={subtitleStyle}>
-          Discover and collect amazing daily rewards to enhance your experience
-        </p>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              style={viewMode === 'cards' ? viewModeButtonActiveStyle : viewModeButtonStyle}
-              onClick={() => setViewMode('cards')}
-            >
-              📅 Cards View
-            </button>
-            <button
-              style={viewMode === 'list' ? viewModeButtonActiveStyle : viewModeButtonStyle}
-              onClick={() => setViewMode('list')}
-            >
-              📋 List View
-            </button>
-          </div>
-          <button
-            style={refreshButtonStyle}
-            onClick={loadRewards}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-1px)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(96, 165, 250, 0.3)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
-            🔄 Refresh
-          </button>
-        </div>
-      </header>
-
       {error && (
         <div style={errorStyle}>
           <div style={{ fontSize: '18px', marginBottom: '8px' }}>⚠️</div>
@@ -235,21 +135,11 @@ export function DailyRewardsPage({}: DailyRewardsPageProps): JSX.Element {
         </div>
       )}
 
-      {isLoading ? (
-        <div style={loadingStyle}>
-          <div style={spinnerStyle}></div>
-          <p style={{ color: '#94A3B8', fontSize: '16px' }}>
-            {presenter.labels.loading}
-          </p>
-        </div>
-      ) : viewMode === 'cards' ? (
-        <DailyRewardsCardsGrid rewards={cardRewards} onClaimReward={handleClaimReward} />
-      ) : (
-        <DailyRewardsList
-          rewards={rewards}
-          labels={presenter.labels}
-        />
-      )}
+      <DailyRewardsCardsGrid 
+        rewards={cardRewards} 
+        isLoading={isLoading}
+        onClaimReward={handleClaimReward} 
+      />
     </div>
   );
 }

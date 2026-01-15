@@ -32,8 +32,6 @@ export interface OfferCardProps {
   readonly description?: string;
   readonly topLabel?: string;
   readonly rarity?: string;
-  readonly originalPrice?: string;
-  readonly currentPrice?: string;
   readonly rpBonus?: number;
   readonly lpBonus?: number;
   readonly isPurchased?: boolean;
@@ -56,8 +54,6 @@ export function OfferCard({
   description,
   topLabel,
   rarity,
-  originalPrice,
-  currentPrice,
   rpBonus,
   lpBonus,
   isPurchased = false,

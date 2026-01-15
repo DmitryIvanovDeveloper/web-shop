@@ -4,14 +4,17 @@ import React from 'react';
 import type { DailyRewardListItemViewModel } from '../../presenters/daily-rewards-list.presenter';
 import type { DailyRewardsListPresenter } from '../../presenters/daily-rewards-list.presenter';
 import { DailyRewardListItem } from './daily-reward-list-item';
+import { DailyRewardCardSkeleton } from './daily-reward-card-skeleton';
 
 export interface DailyRewardsListProps {
   rewards: readonly DailyRewardListItemViewModel[];
+  isLoading?: boolean;
   labels: DailyRewardsListPresenter['labels'];
 }
 
 export function DailyRewardsList({
   rewards,
+  isLoading = false,
   labels,
 }: DailyRewardsListProps): JSX.Element {
   return (
@@ -31,7 +34,17 @@ export function DailyRewardsList({
         <h2 style={{ fontSize: '20px', fontWeight: 600 }}>Available Rewards</h2>
       </div>
 
-      {rewards.length === 0 ? (
+      {isLoading ? (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+          gap: '16px'
+        }}>
+          {Array.from({ length: 6 }, (_, index) => (
+            <DailyRewardCardSkeleton key={`skeleton-${index}`} />
+          ))}
+        </div>
+      ) : rewards.length === 0 ? (
         <div style={{
           padding: '24px',
           textAlign: 'center',

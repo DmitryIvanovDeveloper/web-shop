@@ -192,7 +192,9 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
               isPurchased={product.isPurchased}
               isLoading={loadingProducts.has(product.id.value)}
               buyButton={{
-                text: product.isPurchased ? viewModel.labels.outOfStock : viewModel.labels.buyButton,
+                text: product.isPurchased 
+                  ? viewModel.labels.outOfStock 
+                  : (product.price?.format() || viewModel.labels.buyButton),
                 enabled: !product.isPurchased,
                 style: product.buyButton?.style
               }}

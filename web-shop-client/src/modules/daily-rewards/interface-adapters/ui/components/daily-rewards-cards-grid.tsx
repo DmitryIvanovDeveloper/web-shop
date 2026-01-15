@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { DailyRewardCard } from './daily-reward-card';
+import { DailyRewardCardSkeleton } from './daily-reward-card-skeleton';
 import { Grid } from '@/shared/components/molecules/grid';
 
 export interface DailyRewardsCardsGridProps {
@@ -14,10 +15,11 @@ export interface DailyRewardsCardsGridProps {
     isActive: boolean;
     isClaimedToday?: boolean;
   }>;
+  isLoading?: boolean;
   onClaimReward?: () => void;
 }
 
-export function DailyRewardsCardsGrid({ rewards, onClaimReward }: DailyRewardsCardsGridProps): JSX.Element {
+export function DailyRewardsCardsGrid({ rewards, isLoading = false, onClaimReward }: DailyRewardsCardsGridProps): JSX.Element {
   const containerStyle: React.CSSProperties = {
     maxWidth: '1200px',
     width: '100%',
@@ -28,6 +30,25 @@ export function DailyRewardsCardsGrid({ rewards, onClaimReward }: DailyRewardsCa
   const gridStyle: React.CSSProperties = {
     justifyItems: 'start',
   };
+
+  if (isLoading) {
+    return (
+      <div style={containerStyle}>
+        <Grid
+          minItemWidth="220px"
+          maxColumns={6}
+          style={gridStyle}
+          mobileColumns={1}
+          tabletColumns={2}
+          desktopColumns={4}
+        >
+          {Array.from({ length: 6 }, (_, index) => (
+            <DailyRewardCardSkeleton key={`skeleton-${index}`} />
+          ))}
+        </Grid>
+      </div>
+    );
+  }
 
   return (
     <div style={containerStyle}>

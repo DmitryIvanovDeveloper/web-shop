@@ -90,9 +90,7 @@ export class ProductRepository implements ProductRepositoryPort {
       playerLimit: dto.playerLimit ?? undefined,
       limitedOffer: undefined, // Will be calculated later in LoadProductsUseCase
       timer: dto.timer ? new Date(dto.timer) : undefined,
-      // For backward compatibility in domain/UI, use the same price for both fields.
-      originalPrice: price,
-      currentPrice: price,
+      price: price,
       rpBonus: dto.rpBonus ?? undefined,
       lpBonus: dto.lpBonus ?? undefined,
       appid: dto.appid,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseServerClient } from '../_lib/supabase-server-client';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,17 +16,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return NextResponse.json(
-        { error: 'Supabase configuration missing' },
-        { status: 500 }
-      );
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const supabase = getSupabaseServerClient();
 
     // Check if this is a request for active reward
     if (pathname.includes('/active')) {
@@ -68,6 +58,13 @@ export async function GET(request: NextRequest) {
           { status: 500 }
         );
       }
+
+      console.log('[API /api/daily-rewards] Supabase response', {
+        appId,
+        totalRewards: (rewards || []).length,
+        activeRewards: (rewards || []).filter((r: any) => r.is_active).length,
+        rewards: (rewards || []).map((r: any) => ({ id: r.id, title: r.title, is_active: r.is_active }))
+      });
 
       return NextResponse.json({ rewards: rewards || [] });
     }

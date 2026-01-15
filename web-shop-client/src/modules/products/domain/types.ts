@@ -17,8 +17,7 @@ export interface Product {
   readonly description?: string;
   readonly titleStyle?: TitleStyle;
   readonly rarity?: string;
-  readonly originalPrice?: Price;
-  readonly currentPrice?: Price;
+  readonly price?: Price;
   readonly rpBonus?: number;
   readonly lpBonus?: number;
   readonly appid?: string;

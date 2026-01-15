@@ -12,8 +12,7 @@ import { ProductAvailabilityService } from '../services/product-availability.ser
 export class ProductEntity {
   private readonly _id: ProductId;
   private readonly _title: string;
-  private readonly _originalPrice?: Price;
-  private readonly _currentPrice?: Price;
+  private readonly _price?: Price;
   private readonly _rarity?: string;
   private readonly _playerLimit?: string;
   private readonly _timer?: string;
@@ -23,8 +22,7 @@ export class ProductEntity {
   constructor(
     id: ProductId,
     title: string,
-    originalPrice?: Price,
-    currentPrice?: Price,
+    price?: Price,
     rarity?: string,
     playerLimit?: string,
     timer?: string,
@@ -33,8 +31,7 @@ export class ProductEntity {
   ) {
     this._id = id;
     this._title = title;
-    this._originalPrice = originalPrice;
-    this._currentPrice = currentPrice;
+    this._price = price;
     this._rarity = rarity;
     this._playerLimit = playerLimit;
     this._timer = timer;
@@ -52,12 +49,8 @@ export class ProductEntity {
     return this._title;
   }
 
-  get originalPrice(): Price | undefined {
-    return this._originalPrice;
-  }
-
-  get currentPrice(): Price | undefined {
-    return this._currentPrice;
+  get price(): Price | undefined {
+    return this._price;
   }
 
   get rarity(): string | undefined {
@@ -111,50 +104,10 @@ export class ProductEntity {
   }
 
   /**
-   * Calculate savings amount
-   */
-  calculateSavings(): Price | null {
-    if (!this._originalPrice || !this._currentPrice) {
-      return null;
-    }
-
-    return ProductPricingService.calculateSavings(this._originalPrice, this._currentPrice);
-  }
-
-  /**
-   * Calculate savings percentage
-   */
-  calculateSavingsPercentage(): number | null {
-    if (!this._originalPrice || !this._currentPrice) {
-      return null;
-    }
-
-    return ProductPricingService.calculateSavingsPercentage(this._originalPrice, this._currentPrice);
-  }
-
-  /**
-   * Check if product has discount
-   */
-  hasDiscount(): boolean {
-    if (!this._originalPrice || !this._currentPrice) {
-      return false;
-    }
-
-    return this._currentPrice.amount < this._originalPrice.amount;
-  }
-
-  /**
    * Get formatted price for display
    */
   getFormattedPrice(): string {
-    return this._currentPrice?.format() || this._originalPrice?.format() || 'Price not available';
-  }
-
-  /**
-   * Get formatted original price for display
-   */
-  getFormattedOriginalPrice(): string {
-    return this._originalPrice?.format() || 'Original price not available';
+    return this._price?.format() || 'Price not available';
   }
 
   /**
@@ -199,8 +152,7 @@ export class ProductEntity {
     return new ProductEntity(
       this._id,
       this._title,
-      this._originalPrice,
-      this._currentPrice,
+      this._price,
       this._rarity,
       this._playerLimit,
       this._timer,
@@ -216,8 +168,7 @@ export class ProductEntity {
     return new ProductEntity(
       this._id,
       this._title,
-      this._originalPrice,
-      this._currentPrice,
+      this._price,
       this._rarity,
       this._playerLimit,
       this._timer,
@@ -238,16 +189,7 @@ export class ProductEntity {
       throw new Error('Product title cannot exceed 100 characters');
     }
 
-    // Validate pricing if both prices are provided
-    if (this._originalPrice && this._currentPrice) {
-      if (this._currentPrice.currency !== this._originalPrice.currency) {
-        throw new Error('Original and current prices must have the same currency');
-      }
-
-      if (this._currentPrice.amount > this._originalPrice.amount) {
-        throw new Error('Current price cannot be greater than original price');
-      }
-    }
+    // Price validation is handled by Price value object itself
   }
 
   /**
@@ -256,8 +198,7 @@ export class ProductEntity {
   toPlainObject(): {
     id: string;
     title: string;
-    originalPrice?: string;
-    currentPrice?: string;
+    price?: string;
     rarity?: string;
     playerLimit?: string;
     timer?: string;
@@ -267,8 +208,7 @@ export class ProductEntity {
     return {
       id: this._id.value,
       title: this._title,
-      originalPrice: this._originalPrice?.format(),
-      currentPrice: this._currentPrice?.format(),
+      price: this._price?.format(),
       rarity: this._rarity,
       playerLimit: this._playerLimit,
       timer: this._timer,
@@ -283,22 +223,19 @@ export class ProductEntity {
   static fromPlainObject(data: {
     id: string;
     title: string;
-    originalPrice?: string;
-    currentPrice?: string;
+    price?: string;
     rarity?: string;
     playerLimit?: string;
     timer?: string;
     isPurchased?: boolean;
     appid?: string;
   }): ProductEntity {
-    const originalPrice = data.originalPrice ? Price.fromString(data.originalPrice) : undefined;
-    const currentPrice = data.currentPrice ? Price.fromString(data.currentPrice) : undefined;
+    const price = data.price ? Price.fromString(data.price) : undefined;
 
     return new ProductEntity(
       ProductId.fromString(data.id),
       data.title,
-      originalPrice,
-      currentPrice,
+      price,
       data.rarity,
       data.playerLimit,
       data.timer,

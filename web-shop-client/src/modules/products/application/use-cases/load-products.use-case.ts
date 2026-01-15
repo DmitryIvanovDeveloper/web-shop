@@ -37,7 +37,7 @@ export class LoadProductsUseCase {
         this._cachedAllProducts = await this._productRepository.getAll();
       } else {
         const hasProductsWithoutPrice = this._cachedAllProducts.some(
-          (product) => !product.currentPrice && !product.originalPrice
+          (product) => !product.price
         );
 
         if (hasProductsWithoutPrice) {
