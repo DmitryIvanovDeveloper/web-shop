@@ -26,7 +26,7 @@ export class PersonalOffersUserAuthenticatedHandler
   }
 
   public async handleAsync(event: UserAuthenticatedEvent): Promise<void> {
-    const isNewUserFromEvent = event.payload.metadata?.isNewUser ?? false;
+    const isNewUserFromEvent = event.metadata?.isNewUser ?? false;
     
     this.logger.info('[PersonalOffersHandler] User authenticated, loading personal offers.', {
       userId: event.userId,

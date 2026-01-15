@@ -1,24 +1,29 @@
-import type { AppUser } from '../../domain/types';
-
 /**
- * Port для работы с хранилищем сессии
- * Определяет контракт для сохранения и восстановления пользовательской сессии
+ * Port для Session Storage
+ * Определяет контракт для работы с localStorage
  */
+
+import { Result } from '../../../../shared/domain/result/result';
+import { AppUser } from '../../domain/types';
+
 export interface SessionStoragePort {
   /**
-   * Получить сохраненного пользователя из хранилища
-   * @returns Пользователь или null, если сессия не найдена
+   * Сохранить пользователя в localStorage
+   * @param user - Данные пользователя для сохранения
+   * @returns Result с void или Error
    */
-  getStoredUser(): Promise<AppUser | null>;
+  save(user: AppUser): Promise<Result<void, Error>>;
 
   /**
-   * Сохранить пользователя в хранилище
-   * @param user Пользователь для сохранения
+   * Загрузить пользователя из localStorage
+   * @returns Result с AppUser или null, или Error
    */
-  saveUser(user: AppUser): Promise<void>;
+  load(): Promise<Result<AppUser | null, Error>>;
 
   /**
-   * Очистить хранилище от данных пользователя
+   * Очистить данные пользователя из localStorage
+   * @returns Result с void или Error
    */
-  clearUser(): Promise<void>;
+  clear(): Promise<Result<void, Error>>;
 }
+

@@ -40,7 +40,7 @@ export class AuthUserAuthenticatedHandler implements IAsyncEventHandler<UserAuth
       appId: event.appId
     };
     
-    this._authPresenter.setAuthenticated(user);
+    this._authPresenter.present(user);
     
     console.log('[AuthHandler] Authentication state updated in presenter', {
       isAuthenticated: this._authPresenter.isUserAuthenticated(),

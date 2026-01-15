@@ -1,14 +1,18 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
-import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
-// Import removed: presenter type is resolved at runtime from DI container
 import type { AppUser } from '../../domain/types';
-import type { UIRendererPort } from '../../../../application/ports/ui-renderer.port';
+import type { AuthPresenter } from '../presenters/auth.presenter';
+import type { SessionStoragePort } from '../../application/ports/session-storage.port';
+import type { AuthViewModel } from '../view-models/auth.view-model';
+import { AuthSkeleton } from './components/auth-skeleton';
+import { UserInfo } from './components/user-info';
+import { LoginButton } from './components/login-button';
+import { AuthPopup } from './components/auth-popup';
 
 interface AuthModuleProps {
 	children?: React.ReactNode;
@@ -20,11 +24,11 @@ type PopupState = 'idle' | 'loading' | 'success' | 'error';
 
 function AuthModuleContent({ children, renderSidebarButton = false, renderPopupConfig = false }: AuthModuleProps) {
 	const searchParams = useSearchParams();
-	const authPresenter = container.get<any>(AUTH_TYPES.AuthPresenter);
-	const uiRenderer = container.get<UIRendererPort>(ROOT_TYPES.UIRenderer);
+	const authPresenter = container.get<AuthPresenter>(AUTH_TYPES.AuthPresenter);
+	const sessionStorage = container.get<SessionStoragePort>(AUTH_TYPES.SessionStoragePort);
 	
-	const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
+	// Используем ViewModel из presenter (паттерн как в других модулях)
+	const [viewModel, setViewModel] = useState<AuthViewModel>(() => authPresenter.viewModel);
 	const [showPopup, setShowPopup] = useState(false);
 	const [popupState, setPopupState] = useState<PopupState>('idle');
 	const [appIdValue, setAppIdValue] = useState('');
@@ -32,68 +36,47 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [isConfigReady, setIsConfigReady] = useState(false);
 	
-	// Флаг для предотвращения повторной инициализации
-	const isInitializingRef = useRef(false);
-	const hasInitializedRef = useRef(false);
+	// Вычисляемые значения из ViewModel
+	const isAuthenticated = viewModel.status === 'success' && !!viewModel.user;
+	const currentUser = viewModel.user || null;
+	const isAuthenticating = viewModel.status === 'loading';
 
-	// Проверяем состояние авторизации
-	useEffect(() => {
-		const checkAuth = () => {
-			const authStatus = authPresenter.isUserAuthenticated();
-			const user = authPresenter.getCurrentUser();
-			
-			if (authStatus !== isAuthenticated) {
-				console.log('[AuthModule] Auth status changed:', { from: isAuthenticated, to: authStatus });
-				setIsAuthenticated(authStatus);
-				setCurrentUser(user);
-				
-				// Если пользователь разлогинился - сбрасываем флаги инициализации
-				if (!authStatus) {
-					hasInitializedRef.current = false;
-					isInitializingRef.current = false;
-				}
-				
-				// Если пользователь авторизовался - закрываем popup
-				if (authStatus === true && showPopup) {
-					console.log('[AuthModule] User authenticated, closing popup');
-					setShowPopup(false);
-					setPopupState('idle');
-				}
-			}
-		};
-
-		// Проверяем начальное состояние
-		checkAuth();
-
-		// Подписываемся на события авторизации
-		const eventListener = () => {
-			console.log('[AuthModule] authStateChanged event received');
-			checkAuth();
-		};
+	const handleShowAuthPopup = useCallback(() => {
+		console.log('[AuthModule] showAuthPopup event received');
 		
-		window.addEventListener('authStateChanged', eventListener);
+		// Получаем userId и appId из query для предзаполнения полей (если есть)
+		const userIdFromQuery = searchParams.get('userId');
+		const appIdFromQuery = searchParams.get('appId');
+		
+		// Показываем popup и сбрасываем состояние
+		setShowPopup(true);
+		setPopupState('idle');
+		setErrorMessage(null);
+		
+		// Предзаполняем поля если есть данные в query
+		if (userIdFromQuery) {
+			setUserIdValue(userIdFromQuery);
+		} else {
+			setUserIdValue('');
+		}
+		if (appIdFromQuery) {
+			setAppIdValue(appIdFromQuery);
+		} else {
+			setAppIdValue('');
+		}
+	}, [searchParams]);
 
-		return () => {
-			window.removeEventListener('authStateChanged', eventListener);
-		};
-	}, [isAuthenticated, showPopup, authPresenter]);
-
-	// Подписка на событие showAuthPopup (для показа popup при попытке покупки)
+	const handleCloseAuthPopup = useCallback(() => {
+		console.log('[AuthModule] closeAuthPopup event received');
+		setShowPopup(false);
+		setPopupState('idle');
+		setErrorMessage(null);
+	}, []);
+		
 	useEffect(() => {
 		if (!renderPopupConfig) {
 			return;
 		}
-
-		const handleShowAuthPopup = () => {
-			console.log('[AuthModule] showAuthPopup event received');
-			setShowPopup(true);
-			setPopupState('idle');
-		};
-
-		const handleCloseAuthPopup = () => {
-			console.log('[AuthModule] closeAuthPopup event received');
-			setShowPopup(false);
-		};
 
 		if (typeof window !== 'undefined') {
 			window.addEventListener('showAuthPopup', handleShowAuthPopup);
@@ -103,8 +86,7 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 				window.removeEventListener('closeAuthPopup', handleCloseAuthPopup);
 			};
 		}
-	}, [renderPopupConfig]);
-
+	}, [renderPopupConfig, searchParams, authPresenter, handleShowAuthPopup, handleCloseAuthPopup]);
 	// Проверка готовности конфига для рендера Login button
 	useEffect(() => {
 		// Проверяем сразу при монтировании
@@ -126,97 +108,84 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 		}
 	}, [authPresenter, isConfigReady]);
 
+	// Подписка на изменения ViewModel из presenter (паттерн как в других модулях)
+	useEffect(() => {
+		console.log('[AuthModule] Subscribing to presenter ViewModel changes');
+		
+		// Подписываемся на изменения ViewModel
+		const unsubscribe = authPresenter.subscribe((newViewModel) => {
+			console.log('[AuthModule] ViewModel updated from presenter:', {
+				status: newViewModel.status,
+				hasUser: !!newViewModel.user,
+				userId: newViewModel.user?.userId,
+				error: newViewModel.error
+			});
+			setViewModel(newViewModel);
+		});
+
+		return unsubscribe;
+	}, [authPresenter]);
+
 	// Инициализация авторизации из query params или localStorage
 	useEffect(() => {
-		// Предотвращаем повторную инициализацию, если она уже выполняется
-		if (isInitializingRef.current) {
-			console.log('[AuthModule] Initialization already in progress, skipping');
-			return;
-		}
+		// Всегда авторизируем при первом useEffect для синхронизации состояния
+		// и обновления last_active_at на сервере
+		(async () => {
+			console.log('[AuthModule] Starting authentication initialization');
+			
+			const appId = getAppIdFromQuery();
+			const userId = getUserIdFromQuery();
+			console.log('[AuthModule] Query params:', { appId, userId });
+			
+			// Если нет в query, загружаем из localStorage через порт
+			const appIdFromStorage = appId || (await getAppIdFromStorage());
+			const userIdFromStorage = userId || (await getUserIdFromStorage());
+			console.log('[AuthModule] After storage load:', { appIdFromStorage, userIdFromStorage });
 
-		const appIdFromQuery = getAppIdFromQuery();
-		const userIdFromQuery = getUserIdFromQuery();
+			if (!appIdFromStorage || !userIdFromStorage) {
+				console.log('[AuthModule] No appId/userId found, marking unauthenticated');
+				// ViewModel обновится через subscribe при вызове setUnauthenticated
+				return;
+			}
 
-		// Check if we need to re-authenticate with different appId
-		const currentUser = authPresenter.getCurrentUser();
-		const needsReauth = isAuthenticated && appIdFromQuery && currentUser && currentUser.appId !== appIdFromQuery;
+			try {
+				console.log('[AuthModule] Calling tryAuthenticate with:', { appIdFromStorage, userIdFromStorage });
+				// tryAuthenticate обновит ViewModel и уведомит подписчиков через subscribe
+				const result = await authPresenter.tryAuthenticate(appIdFromStorage, userIdFromStorage);
+				console.log('[AuthModule] tryAuthenticate completed, ViewModel will be updated via subscribe:', {
+					status: result.status,
+					hasUser: !!result.user,
+					userId: result.user?.userId,
+					username: result.user?.username,
+					appId: result.user?.appId,
+					error: result.error
+				});
+			} catch (error) {
+				console.error('[AuthModule] Authentication error:', error);
+				// ViewModel обновится через subscribe при ошибке
+			}
+		})();
 
-		// Если нужна повторная авторизация с другим appId - сбрасываем флаг
-		if (needsReauth) {
-			hasInitializedRef.current = false;
-		}
-
-		if (isAuthenticated && !needsReauth) {
-			console.log('[AuthModule] Already authenticated with correct appId, skipping initialization');
-			hasInitializedRef.current = true;
-			return;
-		}
-
-		const appId = appIdFromQuery || getAppIdFromStorage() || getAppIdFromEnv();
-		const userId = userIdFromQuery || getUserIdFromStorage();
-
-		console.log('[AuthModule] Found appId:', appId, { userId, needsReauth });
-
-		if (!appId) {
-			console.log('[AuthModule] No appId found, skipping initialization');
-			return;
-		}
-
-		// Проверяем, не была ли уже выполнена инициализация с теми же параметрами
-		if (hasInitializedRef.current && !needsReauth) {
-			console.log('[AuthModule] Already initialized, skipping');
-			return;
-		}
-
-		console.log('[AuthModule] Auto-initializing authentication', { appId, userId });
-		isInitializingRef.current = true;
-		hasInitializedRef.current = true;
-		
-		authPresenter.initializeAuthentication(appId, userId || undefined)
-			.finally(() => {
-				// Сбрасываем флаг после завершения (с небольшой задержкой для предотвращения гонок)
-				setTimeout(() => {
-					isInitializingRef.current = false;
-				}, 100);
-			});
-
-	}, [searchParams, isAuthenticated, authPresenter]);
+	}, [searchParams, authPresenter, sessionStorage]);
 
 	const getAppIdFromQuery = () => searchParams.get('appId') || searchParams.get('app');
 	const getUserIdFromQuery = () => searchParams.get('userId');
 	
-	const getAppIdFromStorage = () => {
-		if (typeof window === 'undefined') return null;
-
-		try {
-			const storedUser = localStorage.getItem('user');
-			if (!storedUser) return null;
-
-			const user = JSON.parse(storedUser);
-			return user?.appId || null;
-		} catch (error) {
-			localStorage.removeItem('user');
-			return null;
+	// Обновить функции для использования SessionStoragePort
+	const getAppIdFromStorage = async () => {
+		const result = await sessionStorage.load();
+		if (result.isSuccess() && result.data) {
+			return result.data.appId;
 		}
+		return null;
 	};
 
-	const getUserIdFromStorage = () => {
-		if (typeof window === 'undefined') return null;
-
-		try {
-			const storedUser = localStorage.getItem('user');
-			if (!storedUser) return null;
-
-			const user = JSON.parse(storedUser);
-			return user?.userId || null;
-		} catch (error) {
-			localStorage.removeItem('user');
-			return null;
+	const getUserIdFromStorage = async () => {
+		const result = await sessionStorage.load();
+		if (result.isSuccess() && result.data) {
+			return result.data.userId;
 		}
-	};
-
-	const getAppIdFromEnv = () => {
-		return process.env.NEXT_PUBLIC_APP_ID || null;
+		return null;
 	};
 
 	// Handler для клика по кнопке Login
@@ -274,7 +243,7 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 			// Небольшая задержка для демонстрации loading
 			await new Promise(resolve => setTimeout(resolve, 800));
 			
-			const result = await authPresenter.initializeAuthentication(appIdValue.trim(), userIdValue.trim());
+			const result = await authPresenter.tryAuthenticate(appIdValue.trim(), userIdValue.trim());
 
 			if (result.status === 'success') {
 				console.log('[AuthModule] Authentication successful');
@@ -310,155 +279,64 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 		setErrorMessage(null);
 	};
 
-	// Рендерим Sidebar Button через UI Renderer Service
-	const renderLoginButton = () => {
-		if (!renderSidebarButton || isAuthenticated) {
-			return null;
-		}
 
-		// Проверяем готовность конфига перед рендером
-		if (!authPresenter.isConfigReady()) {
-			console.log('[AuthModule] Config not ready yet, skipping login button render');
-			return null;
-		}
 
-		try {
-			// Создаём UIDescriptor из Presenter
-			const descriptor = authPresenter.createLoginButtonUI();
 
-			// Добавляем реальный handler в context
-			const contextWithHandlers = {
-				...descriptor.context,
-				handleLoginClick: () => {
-					handleLoginClick();
-				}
-			};
 
-			// Рендерим через UI Renderer Service
-			return uiRenderer.renderUI({
-				...descriptor,
-				context: contextWithHandlers
-			});
-		} catch (error) {
-			console.error('[AuthModule] Error rendering login button:', error);
-			// Не рендерим кнопку при ошибке
-			return null;
-		}
-	};
-
-	// Рендерим User Info
-	const renderUserInfo = () => {
-		if (!renderSidebarButton || !isAuthenticated || !currentUser) {
-			return null;
-		}
-
-	return (
-              <div className="p-4">
-                <div className="flex items-center space-x-3">
-					<div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">
-                      {currentUser.username.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">
-                      {currentUser.username}
-                    </h3>
-						<p className="text-sm text-gray-300">
-                      App ID: {currentUser.appId}
-                    </p>
-                    <p className="text-xs text-green-400 font-medium">
-                      ✓ Authorized
-                    </p>
-                  </div>
-                </div>
-              </div>
-		);
-	};
-
-	// Рендерим Auth Popup через UI Renderer Service
-	const renderAuthPopup = () => {
-		if (!showPopup || !renderPopupConfig) {
-			return null;
-		}
-
-		// Проверяем, что конфиг загружен перед рендерингом
-		if (!authPresenter.isConfigReady()) {
-			console.warn('[AuthModule] Config not ready, cannot render popup');
-			return (
-				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-					<div className="bg-gray-800 p-6 rounded-lg">
-						<p className="text-yellow-500">Loading authentication configuration...</p>
-						<button 
-							onClick={handlePopupClose}
-							className="mt-4 bg-gray-600 text-white px-4 py-2 rounded"
-						>
-							Close
-						</button>
-					</div>
-				</div>
-			);
-		}
-
-		try {
-			// Создаём UIDescriptor из Presenter
-			const descriptor = authPresenter.createAuthPopupUI(
-				popupState,
-				appIdValue,
-				userIdValue,
-				errorMessage
-			);
-
-			// Добавляем реальные handlers в context
-			const contextWithHandlers = {
-				...descriptor.context,
-				handleAppIdChange: (value: string) => {
-					handleAppIdChange(value);
-				},
-				handleUserIdChange: (value: string) => {
-					handleUserIdChange(value);
-				},
-				handleAuthSubmit: () => {
-					handleAuthSubmit();
-				},
-				onPopupClose: () => {
-					handlePopupClose();
-				}
-			};
-
-			// Рендерим через UI Renderer Service
-			return uiRenderer.renderUI({
-				...descriptor,
-				context: contextWithHandlers
-			});
-		} catch (error) {
-			console.error('[AuthModule] Error rendering popup:', error);
-			return (
-				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-					<div className="bg-gray-800 p-6 rounded-lg">
-						<p className="text-red-500">Failed to render authentication popup</p>
-						<button 
-							onClick={handlePopupClose}
-							className="mt-4 bg-gray-600 text-white px-4 py-2 rounded"
-						>
-							Close
-						</button>
-					</div>
-				</div>
-			);
-		}
-	};
+	// Логирование состояния для отладки
+	console.log('[AuthModule] Render state:', {
+		viewModelStatus: viewModel.status,
+		isAuthenticating,
+		isAuthenticated,
+		hasCurrentUser: !!currentUser,
+		currentUserId: currentUser?.userId,
+		renderSidebarButton,
+		willShowSkeleton: isAuthenticating && renderSidebarButton,
+		willShowLoginButton: !isAuthenticating && renderSidebarButton && !isAuthenticated,
+		willShowUserInfo: !isAuthenticating && renderSidebarButton && isAuthenticated
+	});
 
 	return (
 		<>
+	
 			{children}
 
+			{/* Skeleton во время авторизации */}
+			{isAuthenticating && renderSidebarButton && (
+				<AuthSkeleton />
+			)}
+
 			{/* Sidebar Login Button или User Info */}
-			{renderLoginButton()}
-			{renderUserInfo()}
+			{!isAuthenticating && (
+				<>
+					{!isAuthenticated && (
+						<LoginButton 
+							renderSidebarButton={renderSidebarButton}
+							onLoginClick={handleLoginClick}
+						/>
+					)}
+					{isAuthenticated && (
+						<UserInfo 
+							renderSidebarButton={renderSidebarButton}
+							currentUser={currentUser}
+						/>
+					)}
+				</>
+			)}
 
 			{/* Auth Popup через UI Renderer Service */}
-			{renderAuthPopup()}
+			<AuthPopup
+				showPopup={showPopup}
+				renderPopupConfig={renderPopupConfig}
+				popupState={popupState}
+				appIdValue={appIdValue}
+				userIdValue={userIdValue}
+				errorMessage={errorMessage}
+				onAppIdChange={handleAppIdChange}
+				onUserIdChange={handleUserIdChange}
+				onAuthSubmit={handleAuthSubmit}
+				onPopupClose={handlePopupClose}
+			/>
 		</>
 	);
 }

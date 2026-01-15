@@ -21,12 +21,15 @@ export class OffersUserAuthenticatedHandler implements IAsyncEventHandler<UserAu
 
   async handleAsync(event: UserAuthenticatedEvent): Promise<void> {
     this.logger.info('[OffersHandler] User authenticated, evaluating offers', {
-      userId: event.userId
+      userId: event.userId,
+      appId: event.appId
     });
 
     try {
       // Загрузка offers by rules для авторизованного пользователя
       const offers = await this.evaluateOffersUseCase.execute({
+        appId: event.appId,
+        userId: event.userId,
         contextCache: new Map()
       });
 

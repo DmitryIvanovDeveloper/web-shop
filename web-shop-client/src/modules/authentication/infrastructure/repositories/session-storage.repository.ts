@@ -1,58 +1,81 @@
 /**
- * Session Storage Repository
  * Реализация SessionStoragePort для работы с localStorage
  */
 
 import { injectable } from 'inversify';
-import type { SessionStoragePort } from '../../application/ports/session-storage.port';
-import type { AppUser } from '../../domain/types';
+import { Result } from '../../../../shared/domain/result/result';
+import { SessionStoragePort } from '../../application/ports/session-storage.port';
+import { AppUser } from '../../domain/types';
 
-const STORAGE_KEY = 'app_user_session';
+const STORAGE_KEY = 'user';
 
 @injectable()
 export class SessionStorageRepository implements SessionStoragePort {
-  public async getStoredUser(): Promise<AppUser | null> {
-    if (typeof window === 'undefined') {
-      return null;
-    }
-
+  async save(user: AppUser): Promise<Result<void, Error>> {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (!stored) {
-        return null;
+      if (typeof window === 'undefined') {
+        return Result.error(new Error('localStorage is not available (server-side)'));
       }
 
-      const user = JSON.parse(stored) as AppUser;
-      return user;
+      const userData = {
+        userId: user.userId,
+        appId: user.appId,
+        username: user.username
+      };
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
+      return Result.ok(undefined);
     } catch (error) {
-      console.error('[SessionStorageRepository] Failed to get stored user:', error);
-      return null;
+      return Result.error(error instanceof Error ? error : new Error(String(error)));
     }
   }
 
-  public async saveUser(user: AppUser): Promise<void> {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
+  async load(): Promise<Result<AppUser | null, Error>> {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+      if (typeof window === 'undefined') {
+        return Result.ok(null);
+      }
+
+      const storedUser = localStorage.getItem(STORAGE_KEY);
+      if (!storedUser) {
+        return Result.ok(null);
+      }
+
+      const user = JSON.parse(storedUser);
+      
+      // Валидация данных
+      if (!user?.userId || !user?.appId || !user?.username) {
+        // Очищаем некорректные данные
+        localStorage.removeItem(STORAGE_KEY);
+        return Result.ok(null);
+      }
+
+      const appUser: AppUser = {
+        userId: user.userId,
+        appId: user.appId,
+        username: user.username
+      };
+
+      return Result.ok(appUser);
     } catch (error) {
-      console.error('[SessionStorageRepository] Failed to save user:', error);
-      throw error;
+      // При ошибке парсинга очищаем некорректные данные
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+      return Result.error(error instanceof Error ? error : new Error(String(error)));
     }
   }
 
-  public async clearUser(): Promise<void> {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
+  async clear(): Promise<Result<void, Error>> {
     try {
+      if (typeof window === 'undefined') {
+        return Result.ok(undefined);
+      }
+
       localStorage.removeItem(STORAGE_KEY);
+      return Result.ok(undefined);
     } catch (error) {
-      console.error('[SessionStorageRepository] Failed to clear user:', error);
-      throw error;
+      return Result.error(error instanceof Error ? error : new Error(String(error)));
     }
   }
 }

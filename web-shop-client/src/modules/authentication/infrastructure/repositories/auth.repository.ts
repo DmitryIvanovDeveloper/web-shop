@@ -8,7 +8,6 @@ import { injectable, inject } from 'inversify';
 import { Result } from '../../../../shared/domain/result/result';
 import { AuthRepositoryPort } from '../../application/ports/auth-repository.port';
 import { AppUser } from '../../domain/types';
-import { UserNotFoundError } from '../../domain/errors/authentication.error';
 import type { HttpClient } from '../../../../application/ports/http-client.port';
 import type { Logger } from '../../../../application/ports/logger.port';
 import type { DatabaseClientPort } from '../../../../application/ports/database-client.port';
@@ -25,30 +24,6 @@ export class AuthRepository implements AuthRepositoryPort {
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: Logger
   ) {}
-
-  public async validateAppId(appId: string): Promise<Result<AppUser, UserNotFoundError>> {
-    try {
-      // HttpClientMock автоматически мапит:
-      // GET /api/auth/users -> /mocks/api/auth/users.json
-      const response = await this._httpClient.get<Record<string, AppUser>>('/api/auth/users');
-
-      if (response.status !== 200) {
-        return Result.error(new UserNotFoundError(appId));
-      }
-
-      const users = response.data;
-      const user = users[appId];
-
-      if (!user) {
-        return Result.error(new UserNotFoundError(appId));
-      }
-
-      return Result.ok(user);
-    } catch (error) {
-      this._logger.error('[AuthRepository] Error loading auth data:', error);
-      return Result.error(new UserNotFoundError(appId));
-    }
-  }
 
   /**
    * Проверить существует ли пользователь в Supabase, если нет - создать
@@ -75,6 +50,24 @@ export class AuthRepository implements AuthRepositoryPort {
         .eq('app_id', appId)
         .eq('user_id', userUuid)
         .single();
+
+      // Логируем результат запроса для отладки
+      this._logger.info('[AuthRepository] Supabase query result', {
+        hasData: !!existingUser,
+        hasError: !!selectError,
+        errorCode: selectError?.code,
+        errorMessage: selectError?.message,
+        userId,
+        userUuid
+      });
+      console.log('[AuthRepository] Supabase query result', {
+        hasData: !!existingUser,
+        hasError: !!selectError,
+        errorCode: selectError?.code,
+        errorMessage: selectError?.message,
+        existingUser,
+        selectError
+      });
 
       // 2. Если пользователь существует - обновляем last_active_at и возвращаем
       if (existingUser && !selectError) {
@@ -225,7 +218,21 @@ export class AuthRepository implements AuthRepositoryPort {
       });
 
     } catch (error) {
-      this._logger.error('[AuthRepository] Error in ensureUserExists', { error, appId, userId });
+      console.error('[AuthRepository] Error in ensureUserExists:', error);
+      console.error('[AuthRepository] Error details:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : typeof error,
+        error: error,
+        appId,
+        userId
+      });
+      this._logger.error('[AuthRepository] Error in ensureUserExists', { 
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        appId, 
+        userId 
+      });
       return Result.error(
         new Error(error instanceof Error ? error.message : 'Failed to ensure user exists')
       );

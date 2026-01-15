@@ -11,9 +11,7 @@ import { AppUser } from '../../domain/types';
 import { AuthenticationError } from '../../domain/errors/authentication.error';
 import { AuthViewModel } from '../view-models/auth.view-model';
 import { AuthUIViewModel } from '../view-models/auth-ui.view-model';
-import { ValidateAppLoginUseCase } from '../../application/use-cases/validate-app-login.use-case';
-import { RestoreSessionUseCase } from '../../application/use-cases/restore-session.use-case';
-import { SaveSessionUseCase } from '../../application/use-cases/save-session.use-case';
+import { TryAuthenticateUseCase } from '../../application/use-cases/try-authenticate.use-case';
 import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
 import type { UIDescriptor } from '../../../../shared/ui/ui-descriptor';
 import type { AuthenticationModuleConfig, GlobalTheme, AuthLabels, AuthSettings, LoginButtonUIConfig } from '../../../../shared/config/app-config.types';
@@ -31,6 +29,33 @@ export class AuthPresenter {
 	private _isAuthenticated: boolean = false;
 	private _currentUser: AppUser | null = null;
 	private _config: AuthModuleConfig | null = null;
+	private _viewModel: AuthViewModel = {
+		status: 'idle',
+		user: undefined,
+		error: undefined,
+		labels: {
+			loginButton: 'Login',
+			logoutButton: 'Logout',
+			appIdPlaceholder: 'Enter App ID',
+			userIdPlaceholder: 'Enter User ID',
+			submitButton: 'Submit',
+			welcomeTitle: 'WebShop HUB',
+			welcomeMessage: 'Welcome to',
+			welcomeSubtitle: 'WebShop 3D Hub',
+			enterAppId: 'Enter your App ID',
+			enterUserId: 'Enter your User ID',
+			successMessage: 'Success!',
+			loadingMessage: 'Loading...',
+			errorMessage: 'Error',
+			helpQuestion: 'Need help?',
+			helpAnswer: 'Contact support',
+			agreementText: 'I agree',
+			privacyPolicy: 'Privacy Policy',
+			termsOfService: 'Terms of Service',
+			refundPolicy: 'Refund Policy'
+		}
+	};
+	private _subscribers: Array<(vm: AuthViewModel) => void> = [];
 
 	private _labels: AuthLabels = {
 		loginButton: 'Login',
@@ -56,6 +81,44 @@ export class AuthPresenter {
 
 	public get labels(): AuthLabels {
 		return { ...this._labels };
+	}
+
+	/**
+	 * Получение текущего ViewModel (копия для иммутабельности)
+	 */
+	public get viewModel(): AuthViewModel {
+		return { ...this._viewModel };
+	}
+
+	/**
+	 * Подписка на изменения ViewModel (паттерн как в других модулях)
+	 */
+	public subscribe(callback: (vm: AuthViewModel) => void): () => void {
+		this._subscribers.push(callback);
+		// Вызываем callback сразу с текущим состоянием
+		callback(this.viewModel);
+		return () => {
+			const index = this._subscribers.indexOf(callback);
+			if (index > -1) {
+				this._subscribers.splice(index, 1);
+			}
+		};
+	}
+
+	/**
+	 * Уведомление подписчиков об изменении ViewModel
+	 */
+	private _notifySubscribers(): void {
+		const currentViewModel = this.viewModel;
+		this._subscribers.forEach(callback => callback(currentViewModel));
+	}
+
+	/**
+	 * Обновление ViewModel и уведомление подписчиков
+	 */
+	private _updateViewModel(updates: Partial<AuthViewModel>): void {
+		this._viewModel = { ...this._viewModel, ...updates };
+		this._notifySubscribers();
 	}
 
 	/**
@@ -88,12 +151,8 @@ export class AuthPresenter {
 	}
 
 	constructor(
-		@inject(AUTH_TYPES.ValidateAppLoginUseCase)
-		private readonly _validateAppLoginUseCase: ValidateAppLoginUseCase,
-		@inject(AUTH_TYPES.RestoreSessionUseCase)
-		private readonly _restoreSessionUseCase: RestoreSessionUseCase,
-		@inject(AUTH_TYPES.SaveSessionUseCase)
-		private readonly _saveSessionUseCase: SaveSessionUseCase
+		@inject(AUTH_TYPES.TryAuthenticateUseCase)
+		private readonly _tryAuthenticateUseCase: TryAuthenticateUseCase,
 	) { }
 	/**
 	 * Преобразование AppUser в ViewModel
@@ -108,7 +167,15 @@ export class AuthPresenter {
 			currentUser: this._currentUser
 		});
 		
-		// Генерируем событие для уведомления UI компонентов
+		// Обновляем ViewModel и уведомляем подписчиков
+		this._updateViewModel({
+			status: 'success',
+			user: user,
+			error: undefined,
+			labels: this.labels
+		});
+		
+		// Генерируем событие для обратной совместимости (если нужно)
 		if (typeof window !== 'undefined') {
 			const event = new CustomEvent('authStateChanged', { 
 				detail: { isAuthenticated: true, user } 
@@ -120,36 +187,33 @@ export class AuthPresenter {
 			console.log('[AuthPresenter] present - window is undefined, cannot dispatch event');
 		}
 
-		return {
-			status: 'success',
-			user: user,
-			error: undefined,
-			labels: this.labels
-		};
+		return this.viewModel;
 	}
 
 	/**
 	 * Состояние загрузки
 	 */
 	public presentLoading(): AuthViewModel {
-		return {
+		this._updateViewModel({
 			status: 'loading',
 			user: undefined,
 			error: undefined,
 			labels: this.labels
-		};
+		});
+		return this.viewModel;
 	}
 
 	/**
 	 * Начальное состояние
 	 */
 	public presentIdle(): AuthViewModel {
-		return {
+		this._updateViewModel({
 			status: 'idle',
 			user: undefined,
 			error: undefined,
 			labels: this.labels
-		};
+		});
+		return this.viewModel;
 	}
 
 	/**
@@ -187,11 +251,26 @@ export class AuthPresenter {
 			currentUser: this._currentUser
 		});
 		
-		// Генерируем событие для уведомления UI компонентов
+		// Создаем ViewModel с информацией о пользователе
+		const viewModel: AuthViewModel = {
+			status: 'success',
+			user: user,
+			error: undefined,
+			labels: this.labels
+		};
+		
+		console.log('[AuthPresenter] ViewModel created:', viewModel);
+		
+		// Генерируем событие для уведомления UI компонентов с ViewModel
 		if (typeof window !== 'undefined') {
 			window.dispatchEvent(new CustomEvent('authStateChanged', { 
-				detail: { isAuthenticated: true, user } 
+				detail: { 
+					isAuthenticated: true, 
+					user,
+					viewModel 
+				} 
 			}));
+			console.log('[AuthPresenter] authStateChanged event dispatched with ViewModel');
 		}
 	}
 
@@ -202,7 +281,15 @@ export class AuthPresenter {
 		this._isAuthenticated = false;
 		this._currentUser = null;
 		
-		// Генерируем событие для уведомления UI компонентов
+		// Обновляем ViewModel и уведомляем подписчиков
+		this._updateViewModel({
+			status: 'idle',
+			user: undefined,
+			error: undefined,
+			labels: this.labels
+		});
+		
+		// Генерируем событие для обратной совместимости
 		if (typeof window !== 'undefined') {
 			window.dispatchEvent(new CustomEvent('authStateChanged', { 
 				detail: { isAuthenticated: false, user: null } 
@@ -241,62 +328,60 @@ export class AuthPresenter {
 	}
 
 	/**
-	 * Восстановление сессии из хранилища
+	 * Упрощенная авторизация: требует appId и userId, обращается напрямую к Supabase flow
 	 */
-	public async restoreSession(): Promise<AuthViewModel> {
-		console.log('[AuthPresenter] restoreSession called');
-		const result = await this._restoreSessionUseCase.execute();
+	public async tryAuthenticate(appId: string, userId: string): Promise<AuthViewModel> {
+		console.log('[AuthPresenter] tryAuthenticate called', { appId, userId });
 		
-		console.log('[AuthPresenter] restoreSession result', result);
-		if (result.isSuccess()) {
-			console.log('[AuthPresenter] restoreSession success, calling present with user:', result.data);
-			return this.present(result.data);
-		}
+		// Устанавливаем состояние загрузки
+		this.presentLoading();
 		
-		// Если сессия не найдена - это нормально, пользователь не авторизован
-		console.log('[AuthPresenter] restoreSession failed, no session found');
-		return this.presentIdle();
-	}
+		const result = await this._tryAuthenticateUseCase.execute(appId, userId);
+		
+		console.log('[AuthPresenter] tryAuthenticate UseCase result:', {
+			isSuccess: result.isSuccess(),
+			hasData: !!result.data,
+			userId: result.data?.userId,
+			error: result.error?.message
+		});
 
-	/**
-	 * Сохранение сессии в хранилище
-	 */
-	public async saveSession(user: AppUser): Promise<void> {
-		console.log('[AuthPresenter] saveSession called', { userId: user.userId, appId: user.appId });
-		const result = await this._saveSessionUseCase.execute(user);
-		
-		if (result.isFailure()) {
-			console.error('[AuthPresenter] saveSession failed', { error: result.error });
-			// Не выбрасываем ошибку, так как это не критично для работы приложения
-		} else {
-			console.log('[AuthPresenter] saveSession success');
-		}
-	}
-
-	/**
-	 * Инициализация авторизации через UseCase
-	 */
-	public async initializeAuthentication(appId: string, userId?: string): Promise<AuthViewModel> {
-		console.log('[AuthPresenter] initializeAuthentication called', { appId, userId });
-		const result = await this._validateAppLoginUseCase.execute({ appId, userId });
-		
-		console.log('[AuthPresenter] initializeAuthentication result', result);
 		if (result.isSuccess()) {
-			console.log('[AuthPresenter] initializeAuthentication success, calling present with user:', result.data);
-			// Сессия уже сохранена в ValidateAppLoginUseCase через SaveSessionUseCase
-			return this.present(result.data);
+			console.log('[AuthPresenter] tryAuthenticate success, calling present');
+			const viewModel = this.present(result.data);
+			console.log('[AuthPresenter] tryAuthenticate present completed, ViewModel:', {
+				status: viewModel.status,
+				hasUser: !!viewModel.user,
+				userId: viewModel.user?.userId
+			});
+			return viewModel;
 		}
-		
-		// При ошибке сбрасываем состояние
-		this._isAuthenticated = false;
-		this._currentUser = null;
-		
-		return {
+
+		console.log('[AuthPresenter] tryAuthenticate failed, updating ViewModel with error');
+		// Обновляем ViewModel с ошибкой
+		this._updateViewModel({
 			status: 'error',
 			user: undefined,
 			error: result.error?.message || 'Authentication failed',
 			labels: this.labels
-		};
+		});
+		
+		this.setUnauthenticated();
+		return this.viewModel;
+	}
+
+	/**
+	 * Инициализация авторизации через UseCase (оставляем для обратной совместимости)
+	 */
+	public async initializeAuthentication(appId: string, userId?: string): Promise<AuthViewModel> {
+		if (!userId) {
+			return {
+				status: 'error',
+				user: undefined,
+				error: 'userId is required for authentication',
+				labels: this.labels
+			};
+		}
+		return this.tryAuthenticate(appId, userId);
 	}
 
 	/**
@@ -323,8 +408,48 @@ export class AuthPresenter {
 	 * Create Login Button UI Descriptor
 	 */
 	public createLoginButtonUI(): UIDescriptor {
+		// Если конфиг не готов, используем дефолтные значения
 		if (!this._config) {
-			throw new Error('Config not loaded. AppConfigLoadedEvent must be handled first.');
+			return {
+				theme: {
+					colors: {
+						primary: '#3b82f6',
+						background: '#1f2937',
+						surface: '#374151',
+						text: '#ffffff',
+						textSecondary: '#9ca3af',
+						accent: '#f59e0b',
+						border: '#4b5563',
+						success: '#10b981',
+						error: '#ef4444',
+						warning: '#f59e0b',
+					},
+					spacing: [4, 8, 12, 16, 24, 32],
+				},
+				layout: {
+					id: 'login-button',
+					type: UIComponents.Button,
+					props: {
+						text: '🔐 Login',
+					},
+					styles: {
+						backgroundColor: '#3b82f6',
+						color: '#ffffff',
+						padding: '12px 24px',
+						borderRadius: '8px',
+						cursor: 'pointer',
+						border: 'none',
+					} as Record<string, any>,
+					actions: {
+						onClick: {
+							type: 'custom',
+							handler: 'handleLoginClick',
+						},
+					},
+					children: [],
+				},
+				context: {},
+			};
 		}
 
 		const buttonConfig = this._config.loginButtonUI;

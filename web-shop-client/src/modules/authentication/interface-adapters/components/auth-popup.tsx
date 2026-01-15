@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { container } from '../../../../infrastructure/bootstrap/container';
-import { ValidateAppLoginUseCase } from '../../application/use-cases/validate-app-login.use-case';
+import { TryAuthenticateUseCase } from '../../application/use-cases/try-authenticate.use-case';
 import { AuthPresenter } from '../presenters/auth.presenter';
 import { AuthViewModel } from '../view-models/auth.view-model';
 import type { AppUser } from '../../domain/types';
@@ -27,17 +27,17 @@ export function AuthPopup({
   onAuthError,
   closeDelay = 1500
 }: AuthPopupProps) {
-  const useCase = container.get<ValidateAppLoginUseCase>(AUTH_TYPES.ValidateAppLoginUseCase);
+  const useCase = container.get<TryAuthenticateUseCase>(AUTH_TYPES.TryAuthenticateUseCase);
   const presenter = container.get<AuthPresenter>(AUTH_TYPES.AuthPresenter);
 
   const [viewModel, setViewModel] = useState<AuthViewModel>(() => presenter.presentIdle());
   const [manualAppId, setManualAppId] = useState('');
 
-  async function authenticate(appId: string) {
+  async function authenticate(appId: string, userId: string) {
     setViewModel(presenter.presentLoading());
 
     try {
-      const result = await useCase.execute({ appId });
+      const result = await useCase.execute(appId, userId);
       
       if (result.isSuccess()) {
         const viewModel = presenter.present(result.data);
@@ -76,7 +76,12 @@ export function AuthPopup({
 
   function handleManualAuth() {
     if (manualAppId.trim()) {
-      authenticate(manualAppId.trim());
+      // Без userId аутентификация невозможна, показываем ошибку
+      setViewModel({
+        status: 'error',
+        error: 'User ID is required',
+        labels: presenter.labels
+      });
     }
   }
 

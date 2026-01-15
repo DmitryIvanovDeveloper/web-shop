@@ -5,11 +5,9 @@
 import { Container } from 'inversify';
 import { AuthRepositoryPort } from '../../application/ports/auth-repository.port';
 import { AuthRepository } from '../repositories/auth.repository';
-import { ValidateAppLoginUseCase } from '../../application/use-cases/validate-app-login.use-case';
-import { RestoreSessionUseCase } from '../../application/use-cases/restore-session.use-case';
-import { SaveSessionUseCase } from '../../application/use-cases/save-session.use-case';
 import { SessionStoragePort } from '../../application/ports/session-storage.port';
 import { SessionStorageRepository } from '../repositories/session-storage.repository';
+import { TryAuthenticateUseCase } from '../../application/use-cases/try-authenticate.use-case';
 import { AuthPresenter } from '../../interface-adapters/presenters/auth.presenter';
 import { AuthUserAuthenticatedHandler } from '../../interface-adapters/handlers/user-authenticated.handler';
 import { AuthLocalizationLoadedEventHandler } from '../../interface-adapters/handlers/localization-loaded.handler';
@@ -34,22 +32,13 @@ export function bindAuthentication(container: Container): void {
 
   // Session Storage (Infrastructure)
   container
-    .bind<SessionStoragePort>(AUTH_TYPES.SessionStorage)
+    .bind<SessionStoragePort>(AUTH_TYPES.SessionStoragePort)
     .to(SessionStorageRepository)
     .inSingletonScope();
 
-  // UseCase (Application)
   container
-    .bind<ValidateAppLoginUseCase>(AUTH_TYPES.ValidateAppLoginUseCase)
-    .to(ValidateAppLoginUseCase);
-
-  container
-    .bind<RestoreSessionUseCase>(AUTH_TYPES.RestoreSessionUseCase)
-    .to(RestoreSessionUseCase);
-
-  container
-    .bind<SaveSessionUseCase>(AUTH_TYPES.SaveSessionUseCase)
-    .to(SaveSessionUseCase);
+    .bind<TryAuthenticateUseCase>(AUTH_TYPES.TryAuthenticateUseCase)
+    .to(TryAuthenticateUseCase);
 
   // Presenter (Interface Adapters) - Singleton чтобы состояние было общим
   container

@@ -9,6 +9,7 @@ import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
 import { AuthPresenter } from '../presenters/auth.presenter';
 import { AuthViewModel } from '../view-models/auth.view-model';
 import type { AppUser } from '../../domain/types';
+import type { SessionStoragePort } from '../../application/ports/session-storage.port';
 
 export interface UseAuthOptions {
   /** Интервал проверки состояния (по умолчанию 100ms) */
@@ -24,8 +25,8 @@ export interface UseAuthReturn {
   isAuthenticated: boolean;
   /** Текущий пользователь */
   currentUser: AppUser | null;
-  /** Инициализация авторизации по App ID */
-  initializeAuth: (appId: string) => Promise<AuthViewModel>;
+  /** Инициализация авторизации по App ID и User ID */
+  initializeAuth: (appId: string, userId: string) => Promise<AuthViewModel>;
   /** Сброс авторизации */
   logout: () => void;
   /** Обновление состояния вручную */
@@ -38,8 +39,9 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
     autoInitialize = false 
   } = options;
 
-  // Получаем presenter из DI контейнера
+  // Получаем presenter и sessionStorage из DI контейнера
   const authPresenter = container.get<AuthPresenter>(AUTH_TYPES.AuthPresenter);
+  const sessionStorage = container.get<SessionStoragePort>(AUTH_TYPES.SessionStoragePort);
 
   const [viewModel, setViewModel] = useState<AuthViewModel>(() => authPresenter.presentIdle());
 
@@ -76,20 +78,18 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
   }, [authPresenter, checkInterval, refresh]);
 
   // Инициализация авторизации
-  const initializeAuth = useCallback(async (appId: string): Promise<AuthViewModel> => {
-    const result = await authPresenter.initializeAuthentication(appId);
+  const initializeAuth = useCallback(async (appId: string, userId: string): Promise<AuthViewModel> => {
+    const result = await authPresenter.tryAuthenticate(appId, userId);
     refresh();
     return result;
   }, [authPresenter, refresh]);
 
   // Сброс авторизации
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     authPresenter.setUnauthenticated();
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('user');
-    }
+    await sessionStorage.clear();
     refresh();
-  }, [authPresenter, refresh]);
+  }, [authPresenter, sessionStorage, refresh]);
 
   return {
     viewModel,
