@@ -137,10 +137,13 @@ function ElementTree({ elements, selectedId, onSelect, onDelete, level = 0 }: El
 }
 
 export function ElementTreeSelector({ elements, selectedId, onSelect, onDelete }: ElementTreeSelectorProps): JSX.Element {
+  // Показываем дочерние элементы контейнера, если контейнер есть
+  const visibleElements = elements.length > 0 && elements[0].children ? elements[0].children : [];
+
   return (
     <div>
-      {elements.length > 0 ? (
-        <ElementTree elements={elements} selectedId={selectedId} onSelect={onSelect} onDelete={onDelete} />
+      {visibleElements.length > 0 ? (
+        <ElementTree elements={visibleElements} selectedId={selectedId} onSelect={onSelect} onDelete={onDelete} />
       ) : (
         <div className="text-gray-500 text-sm text-center py-4">
           No elements found
@@ -149,14 +152,3 @@ export function ElementTreeSelector({ elements, selectedId, onSelect, onDelete }
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-

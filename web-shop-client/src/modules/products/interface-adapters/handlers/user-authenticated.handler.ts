@@ -1,6 +1,6 @@
 import { injectable, inject } from 'inversify';
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
-import { UserAuthenticatedEvent } from '../../../../shared/events/auth-events';
+import { UserAuthenticatedEvent } from '../../../authentication/domain/events';
 import { PRODUCTS_TYPES } from '../../infrastructure/bootstrap/types';
 import { ProductsListPresenter } from '../presenters/products-list.presenter';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';

@@ -76,8 +76,12 @@ export function SidebarRenderer({
 
   console.log('[SidebarRenderer] Config found for', layoutType, 'proceeding to render DynamicRenderer');
 
+  // Force re-render when translations change by using language code as key
+  const languageCode = presenter.getLanguageCode();
+
   return (
     <DynamicRenderer
+      key={`${layoutType}-${languageCode}`}
       node={config.layout}
       theme={config.theme}
       actionContext={actionContext}

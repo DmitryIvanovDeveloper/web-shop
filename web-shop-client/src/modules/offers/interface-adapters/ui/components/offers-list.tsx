@@ -23,9 +23,7 @@ export function OffersList({
   showPopupOnFirstLoad = true
 }: OffersListProps): JSX.Element | null {
   console.log('[OffersList] Component rendered with props:', { className, style, showPopupOnFirstLoad });
-  const [offers, setOffers] = useState<Offer[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [viewModel, setViewModel] = useState<any>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [loadingOffers, setLoadingOffers] = useState<Set<string>>(new Set());
   const isFirstLoadRef = useRef(true);
@@ -40,22 +38,15 @@ export function OffersList({
 
         // Use the proper presenter to load offers
         const presenter = container.get<OffersListPresenter>(OFFERS_TYPES.OffersListPresenter);
-        const viewModel = await presenter.present();
-
-        if (viewModel.status === 'success') {
-          console.log('[OffersList] Offers loaded successfully:', viewModel.offers.length);
-          setOffers(viewModel.offers);
-          setError(null);
-        } else {
-          console.warn('[OffersList] Failed to load offers:', viewModel.message);
-          setError(viewModel.message || 'Failed to load offers');
-        }
-
-        setLoading(false);
+        const result = await presenter.present();
+        setViewModel(result);
       } catch (error) {
         console.error('[OffersList] Error loading offers:', error);
-        setError(error instanceof Error ? error.message : 'Failed to load offers');
-        setLoading(false);
+        setViewModel({
+          status: 'error',
+          message: error instanceof Error ? error.message : 'Failed to load offers',
+          labels: { offersTitle: 'Offers', emptyState: 'No offers available', loadingState: 'Loading...', featuredTitle: 'Featured', expiredBadge: 'Expired' }
+        });
       }
     };
 
@@ -88,13 +79,35 @@ export function OffersList({
     );
   }
 
-  if (error) {
-    console.log('[OffersList] Rendering error state:', error);
-    return <div className={className} style={style}>Error: {error}</div>;
+  if (!viewModel) {
+    return <div className={className} style={style}>Loading offers...</div>;
   }
 
-  if (offers.length === 0) {
-    console.log('[OffersList] No offers to render, returning null');
+  if (viewModel.status === 'loading') {
+    return (
+      <div className={className} style={style}>
+        <h2 className="text-white text-xl font-bold mb-4">{viewModel.labels.offersTitle}</h2>
+        <Grid>
+          {Array.from({ length: 6 }, (_, index) => (
+            <div key={`skeleton-${index}`} className="@container">
+              <OfferCardSkeleton />
+            </div>
+          ))}
+        </Grid>
+      </div>
+    );
+  }
+
+  if (viewModel.status === 'error') {
+    return (
+      <div className={className} style={style}>
+        <h2 className="text-white text-xl font-bold mb-4">{viewModel.labels.offersTitle}</h2>
+        <div className="text-white">Error: {viewModel.message}</div>
+      </div>
+    );
+  }
+
+  if (viewModel.offers.length === 0) {
     return null;
   }
 
@@ -143,9 +156,9 @@ export function OffersList({
   return (
     <>
       <div className={`${className || ''} mb-8`} style={style}>
-        <h2 className="text-white text-xl font-bold mb-4">Offers</h2>
+        <h2 className="text-white text-xl font-bold mb-4">{viewModel.labels.offersTitle}</h2>
         <Grid className="w-full mx-auto">
-          {offers.map((offer, index) => (
+          {viewModel.offers.map((offer, index) => (
             <div key={offer?.id || `offer-${index}`} className="@container" style={{ height: '100%' }}>
               <OfferCard 
                 {...offer}

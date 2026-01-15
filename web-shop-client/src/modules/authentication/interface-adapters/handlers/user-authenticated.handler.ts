@@ -1,6 +1,6 @@
 import { injectable, inject } from 'inversify';
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
-import { UserAuthenticatedEvent } from '../../../../shared/events/auth-events';
+import { UserAuthenticatedEvent } from '../../domain/events';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';

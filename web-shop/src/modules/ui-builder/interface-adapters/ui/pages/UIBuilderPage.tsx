@@ -858,7 +858,11 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         break;
       case 'leftSidebar':
         setActiveSection('leftSidebar');
-        // Don't auto-select first element for leftSidebar to show Button Styling section
+        // Auto-select container for leftSidebar to show ContainerEditor
+        const leftElements = extractSidebarElements('sidebar');
+        if (leftElements.length > 0 && leftElements[0]) {
+          handleSidebarElementSelect(leftElements[0].id, 'sidebar');
+        }
         break;
       case 'rightSidebar':
         setActiveSection('rightSidebar');
@@ -1640,55 +1644,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             {/* Left Sidebar Properties */}
             {activeSection === 'leftSidebar' && (
               <div className="space-y-4">
-                {/* Button Styling */}
-                <div className="bg-white rounded-lg shadow p-4">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Button Styling</h4>
-                  <div className="space-y-3">
-                    <ColorInput
-                      label="Button Background"
-                      value={(viewModel.config as any)?.theme?.buttonStyling?.backgroundColor || '#2563eb'}
-                      onChange={(color) => {
-                        presenter.updateButtonStyling({
-                          backgroundColor: color,
-                        });
-                      }}
-                    />
-                    <ColorInput
-                      label="Button Hover Background"
-                      value={(viewModel.config as any)?.theme?.buttonStyling?.hoverBackgroundColor || '#1d4ed8'}
-                      onChange={(color) => {
-                        presenter.updateButtonStyling({
-                          hoverBackgroundColor: color,
-                        });
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Manage Buttons */}
-                <div className="bg-white rounded-lg shadow p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-semibold text-gray-900">Manage Buttons</span>
-                    <button
-                      onClick={() => {
-                        presenter.addSidebarButton('New Button');
-                      }}
-                      className="px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600"
-                      title="Add new button to Left Sidebar"
-                    >
-                      + Add Button
-                    </button>
-                  </div>
-                  <ElementTreeSelector
-                    elements={extractSidebarElements('sidebar')}
-                    selectedId={viewModel.selectedElement?.area === 'sidebar' ? (viewModel.selectedElement?.id || null) : null}
-                    onSelect={(elementId) => {
-                      handleSidebarElementSelect(elementId, 'sidebar');
-                      setActiveTab('leftSidebar');
-                    }}
-                    onDelete={(elementId) => presenter.removeSidebarButton(elementId)}
-                  />
-                </div>
+                {/* Container properties are shown in the left sidebar */}
               </div>
             )}
 

@@ -9,6 +9,7 @@ import type { DatabaseClientPort } from '@/application/ports/database-client.por
 interface PageConfigRow {
   id: string;
   app_id: string;
+  merchant_id: string;
   page_slug: string;
   version: number;
   is_active: boolean;
@@ -63,6 +64,7 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
       const pageConfig: PageConfig = {
         id: row.id,
         appId: row.app_id,
+        merchantId: row.merchant_id,
         pageSlug: row.page_slug,
         version: row.version,
         isDraft: row.is_draft,
@@ -120,6 +122,7 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
       const pageConfig: PageConfig = {
         id: row.id,
         appId: row.app_id,
+        merchantId: row.merchant_id,
         pageSlug: row.page_slug,
         version: row.version,
         isDraft: row.is_draft,
@@ -186,6 +189,7 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
           .from('page_configs')
           .insert({
             app_id: config.appId,
+            merchant_id: config.merchantId,
             page_slug: config.pageSlug,
             version: newVersion,
             is_active: false,

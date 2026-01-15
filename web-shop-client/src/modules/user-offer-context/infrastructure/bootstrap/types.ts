@@ -26,6 +26,7 @@ export const USER_OFFER_CONTEXT_TYPES = {
   // Handlers
   UserOfferContextEventHandler: Symbol.for('UserOfferContext.EventHandler'),
   UserOfferContextAuthenticatedHandler: Symbol.for('UserOfferContext.AuthenticatedEventHandler'),
+  UserAuthenticatedEventHandler: Symbol.for('IAsyncEventHandler<UserAuthenticatedEvent>'),
 } as const;
 
 

@@ -7,8 +7,8 @@ import type { ProductRepositoryPort } from '../ports/product-repository.port';
 import type { BrowserPort } from '../ports/browser.port';
 import type { PaymentRedirectPort } from '../ports/payment-redirect.port';
 import type { AuthServicePort } from '../ports/auth-service.port';
-import { ProductSelectedForPaymentEvent } from '../../../../shared/events/product-events';
-import { AuthenticationRequiredEvent } from '../../../../shared/events/auth-events';
+import { ProductSelectedForPaymentEvent } from '../../domain/events/product-events';
+import { AuthenticationRequiredEvent } from '../../../authentication/domain/events';
 import {
   ProductPaymentService,
   type ProductPaymentSnapshot,

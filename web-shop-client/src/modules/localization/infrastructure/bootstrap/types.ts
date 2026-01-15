@@ -4,10 +4,13 @@ export const LOCALIZATION_TYPES = {
   TranslationRepository: Symbol.for('TranslationRepository'),
 
   // Use Cases
-  GetLocalizationStatusUseCase: Symbol.for('GetLocalizationStatusUseCase'),
-  ApplyLocalizationUseCase: Symbol.for('ApplyLocalizationUseCase'),
-  ChangeActiveLanguageUseCase: Symbol.for('ChangeActiveLanguageUseCase'),
+  LoadLocalizationUseCase: Symbol.for('LoadLocalizationUseCase'),
+  ChangeLocalizationUseCase: Symbol.for('ChangeLocalizationUseCase'),
 
   // Presenters
-  LocalizationPresenter: Symbol.for('LocalizationPresenter')
+  LocalizationPresenter: Symbol.for('LocalizationPresenter'),
+
+  // Event Handlers
+  LocalizationLoadedEventHandler: Symbol.for('IAsyncEventHandler<LocalizationLoadedEvent>'),
+  LocalizationChangedEventHandler: Symbol.for('IAsyncEventHandler<LocalizationChangedEvent>')
 } as const;

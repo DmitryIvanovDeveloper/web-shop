@@ -8,10 +8,13 @@ import type { PageSection } from './page-section.entity';
 export interface PageConfig {
   /** Unique identifier for this page configuration */
   id: string;
-  
+
   /** Application ID this page belongs to */
   appId: string;
-  
+
+  /** Merchant ID this page belongs to */
+  merchantId: string;
+
   /** URL slug for the page (e.g., "home", "about", "products") */
   pageSlug: string;
   

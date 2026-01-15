@@ -1,6 +1,6 @@
 import { injectable, inject } from 'inversify';
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
-import { UserAuthenticatedEvent } from '../../../../shared/events/auth-events';
+import { UserAuthenticatedEvent } from '../../../authentication/domain/events';
 import { OFFERS_TYPES } from '../../infrastructure/bootstrap/types';
 import { EvaluateOffersUseCase } from '../../application/use-cases/evaluate-offers.use-case';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';

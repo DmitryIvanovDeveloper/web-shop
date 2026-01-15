@@ -1,6 +1,6 @@
 import { inject, injectable } from 'inversify';
 import type { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
-import type { UserAuthenticatedEvent } from '../../../../shared/events/auth-events';
+import type { UserAuthenticatedEvent } from '../../../authentication/domain/events';
 import { USER_OFFER_CONTEXT_TYPES } from '../../infrastructure/bootstrap/types';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
@@ -29,13 +29,13 @@ export class UserAuthenticatedEventHandler
   }
 
   public async handleAsync(event: UserAuthenticatedEvent): Promise<void> {
-    const isNewUser = event.payload.metadata?.isNewUser ?? false;
+    const isNewUser = event.metadata?.isNewUser ?? false;
     if (isNewUser) {
       await this.userRegistered.execute(
         new UserRegisteredEvent({
           appId: event.appId,
           userId: event.userId,
-          registeredAt: event.timestamp.toISOString(),
+          registeredAt: new Date().toISOString(),
         })
       );
       return;
@@ -44,9 +44,9 @@ export class UserAuthenticatedEventHandler
     // For returning users, use lastActiveAt from event metadata (old value before update)
     // This ensures we use the real last active time, not the current timestamp
     // If not provided in metadata, fallback to current timestamp
-    const lastActiveAt = event.payload.metadata?.lastActiveAt ?? event.timestamp.toISOString();
+    const lastActiveAt = event.metadata?.lastActiveAt ?? new Date().toISOString();
     
-    if (event.payload.metadata?.lastActiveAt) {
+    if (event.metadata?.lastActiveAt) {
       this.logger.info('[UserAuthenticatedEventHandler] Using lastActiveAt from event metadata', {
         appId: event.appId,
         userId: event.userId,

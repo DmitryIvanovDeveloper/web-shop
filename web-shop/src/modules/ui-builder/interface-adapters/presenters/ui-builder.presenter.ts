@@ -15,6 +15,7 @@ import { migrateConfigIds } from '../../shared/utils/config-migrator';
 
 interface ViewModel {
   appId: string;
+  merchantId: string;
   version: number | null;
   isDraft: boolean;
   isLoading: boolean;
@@ -36,6 +37,7 @@ export class UIBuilderPresenter {
   private selectedElementArea: 'sidebar' | 'rightSidebar' | null = null;
   private vm: ViewModel = {
     appId: '',
+    merchantId: '',
     version: 1,
     isDraft: true,
     isLoading: false,
@@ -62,9 +64,51 @@ export class UIBuilderPresenter {
               styles: { backgroundColor: '#f3f4f6', textColor: '#111827', borderColor: '#e5e7eb', backgroundOpacity: '1' },
               children: [
                 {
+                  id: 'home-button',
+                  type: 'Button',
+                  props: { text: 'Home' },
+                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%' },
+                },
+                {
                   id: 'store-button',
                   type: 'Button',
                   props: { text: 'Store' },
+                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%' },
+                },
+                {
+                  id: 'patch-notes-button',
+                  type: 'Button',
+                  props: { text: 'Patch Notes' },
+                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%' },
+                },
+                {
+                  id: 'daily-rewards-button',
+                  type: 'Button',
+                  props: { text: 'Daily Rewards' },
+                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%' },
+                },
+                {
+                  id: 'loyalty-program-button',
+                  type: 'Button',
+                  props: { text: 'Loyalty Program' },
+                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%' },
+                },
+                {
+                  id: 'news-button',
+                  type: 'Button',
+                  props: { text: 'News' },
+                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%' },
+                },
+                {
+                  id: 'updates-button',
+                  type: 'Button',
+                  props: { text: 'Updates' },
+                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%' },
+                },
+                {
+                  id: 'events-button',
+                  type: 'Button',
+                  props: { text: 'Events' },
                   styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%' },
                 },
               ],
@@ -197,9 +241,9 @@ export class UIBuilderPresenter {
     this.saveConfigToSupabaseDebounced();
   }
 
-  public async initialize(appId: string, skipConfigLoad = false, templateConfig?: unknown): Promise<void> {
-    this._logger.info('[UIBuilderPresenter] Initializing with appId', { appId, hasTemplateConfig: !!templateConfig });
-    this.vm = { ...this.vm, isLoading: true, appId };
+  public async initialize(appId: string, merchantId: string, skipConfigLoad = false, templateConfig?: unknown): Promise<void> {
+    this._logger.info('[UIBuilderPresenter] Initializing with appId', { appId, merchantId, hasTemplateConfig: !!templateConfig });
+    this.vm = { ...this.vm, isLoading: true, appId, merchantId };
     this.notify();
 
     try {
@@ -337,7 +381,44 @@ export class UIBuilderPresenter {
               type: 'Container',
               props: { text: 'Left Sidebar' },
               styles: { backgroundColor: '#f3f4f6', textColor: '#111827', borderColor: '#e5e7eb', backgroundOpacity: '1' },
-              children: [],
+              children: [
+                {
+                  id: 'store-button',
+                  type: 'Button',
+                  props: { text: 'Store' },
+                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%', maxHeight: '100%' },
+                },
+                {
+                  id: 'daily-rewards-button',
+                  type: 'Button',
+                  props: { text: 'Daily Rewards' },
+                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%', maxHeight: '100%' },
+                },
+                {
+                  id: 'loyalty-program-button',
+                  type: 'Button',
+                  props: { text: 'Loyalty Program' },
+                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%', maxHeight: '100%' },
+                },
+                {
+                  id: 'news-button',
+                  type: 'Button',
+                  props: { text: 'News' },
+                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%', maxHeight: '100%' },
+                },
+                {
+                  id: 'updates-button',
+                  type: 'Button',
+                  props: { text: 'Updates' },
+                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%', maxHeight: '100%' },
+                },
+                {
+                  id: 'events-button',
+                  type: 'Button',
+                  props: { text: 'Events' },
+                  styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%', maxHeight: '100%' },
+                },
+              ],
             },
           },
           rightSidebar: {
@@ -795,6 +876,7 @@ export class UIBuilderPresenter {
         if (this.vm.config) {
           const newDraftResult = await this._saveDraftUseCase.execute({
             appId: this.vm.appId,
+            merchantId: this.vm.merchantId,
             config: this.vm.config as any,
           });
 
@@ -1172,6 +1254,36 @@ export class UIBuilderPresenter {
             props: { text: 'Store' },
             styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%', maxHeight: '100%' },
           },
+          {
+            id: 'daily-rewards-button',
+            type: 'Button',
+            props: { text: 'Daily Rewards' },
+            styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%', maxHeight: '100%' },
+          },
+          {
+            id: 'loyalty-program-button',
+            type: 'Button',
+            props: { text: 'Loyalty Program' },
+            styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%', maxHeight: '100%' },
+          },
+          {
+            id: 'news-button',
+            type: 'Button',
+            props: { text: 'News' },
+            styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%', maxHeight: '100%' },
+          },
+          {
+            id: 'updates-button',
+            type: 'Button',
+            props: { text: 'Updates' },
+            styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%', maxHeight: '100%' },
+          },
+          {
+            id: 'events-button',
+            type: 'Button',
+            props: { text: 'Events' },
+            styles: { backgroundColor: '#1d4ed8', textColor: '#ffffff', borderColor: '#1e40af', width: '100%', maxHeight: '100%' },
+          },
         ],
       };
     }
@@ -1282,6 +1394,7 @@ export class UIBuilderPresenter {
     try {
       const result = await this._saveDraftUseCase.execute({
         appId: this.vm.appId,
+        merchantId: this.vm.merchantId,
         config: this.vm.config,
       });
 
@@ -1314,6 +1427,7 @@ export class UIBuilderPresenter {
     try {
       const result = await this._saveDraftUseCase.execute({
         appId: this.vm.appId,
+        merchantId: this.vm.merchantId,
         config: this.vm.config,
         version: version,
       });

@@ -112,6 +112,10 @@ export default function PatchNotesPage(): JSX.Element {
         navigateWithQuery('/patch-notes');
       }
     },
+    navigateToDailyRewards: () => {
+      console.log('[PatchNotesPage] Navigating to daily rewards page');
+      navigateWithQuery('/daily-rewards');
+    },
   };
 
   // Check previewMode from URL

@@ -34,8 +34,8 @@ export class ProductsAppConfigLoadedHandler implements IAsyncEventHandler<AppCon
 		this._logger.info('[ProductsAppConfigLoadedHandler] Processing AppConfigLoadedEvent');
 
 		try {
-			const offerCards = Array.isArray((event.payload.config as { offerCards?: OfferCardTemplate[] })?.offerCards)
-				? ((event.payload.config as { offerCards?: OfferCardTemplate[] }).offerCards as OfferCardTemplate[])
+			const offerCards = Array.isArray((event.config as { offerCards?: OfferCardTemplate[] })?.offerCards)
+				? ((event.config as { offerCards?: OfferCardTemplate[] }).offerCards as OfferCardTemplate[])
 				: [];
 
 			const matchingCard =

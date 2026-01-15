@@ -38,14 +38,10 @@ export function useAuth(options: UseAuthOptions = {}): UseAuthReturn {
     autoInitialize = false 
   } = options;
 
-  const [viewModel, setViewModel] = useState<AuthViewModel>({
-    status: 'idle',
-    user: undefined,
-    error: undefined
-  });
-
   // Получаем presenter из DI контейнера
   const authPresenter = container.get<AuthPresenter>(AUTH_TYPES.AuthPresenter);
+
+  const [viewModel, setViewModel] = useState<AuthViewModel>(() => authPresenter.presentIdle());
 
   // Обновляем состояние из presenter
   const refresh = useCallback(() => {

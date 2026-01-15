@@ -23,7 +23,7 @@ export class UIRendererAppConfigLoadedHandler implements IAsyncEventHandler<AppC
 		this._logger.info('[UIRendererAppConfigLoadedHandler] Processing AppConfigLoadedEvent');
 
 		try {
-			const uiRendererConfig = event.payload.config.modules.uiRenderer;
+			const uiRendererConfig = event.config.modules.uiRenderer;
 			
 			if (!uiRendererConfig) {
 				this._logger.error('[UIRendererAppConfigLoadedHandler] UI Renderer config not found in AppConfig');

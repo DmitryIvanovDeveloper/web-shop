@@ -32,7 +32,7 @@ export class AuthPresenter {
 	private _currentUser: AppUser | null = null;
 	private _config: AuthModuleConfig | null = null;
 
-	public readonly labels = {
+	private _labels: AuthLabels = {
 		loginButton: 'Login',
 		logoutButton: 'Logout',
 		appIdPlaceholder: 'Enter App ID',
@@ -53,6 +53,39 @@ export class AuthPresenter {
 		termsOfService: 'Terms of Service',
 		refundPolicy: 'Refund Policy'
 	};
+
+	public get labels(): AuthLabels {
+		return { ...this._labels };
+	}
+
+	/**
+	 * Обновляет labels на основе полученных переводов
+	 */
+	public updateLabelsFromTranslations(translations: Record<string, string>): void {
+		this._labels = {
+			loginButton: translations['auth.loginButton'] || 'Login',
+			logoutButton: translations['auth.logoutButton'] || 'Logout',
+			appIdPlaceholder: translations['auth.appIdPlaceholder'] || 'Enter App ID',
+			userIdPlaceholder: translations['auth.userIdPlaceholder'] || 'Enter User ID',
+			submitButton: translations['auth.submitButton'] || 'Submit',
+			welcomeTitle: translations['auth.welcomeTitle'] || 'PG3D HUB',
+			welcomeMessage: translations['auth.welcomeMessage'] || 'Welcome to',
+			welcomeSubtitle: translations['auth.welcomeSubtitle'] || 'Pixel Gun 3D Hub',
+			enterAppId: translations['auth.enterAppId'] || 'Enter your App ID',
+			enterUserId: translations['auth.enterUserId'] || 'Enter your User ID',
+			successMessage: translations['auth.successMessage'] || 'Success!',
+			loadingMessage: translations['auth.loadingMessage'] || 'Loading...',
+			errorMessage: translations['auth.errorMessage'] || 'Error',
+			helpQuestion: translations['auth.helpQuestion'] || 'Need help?',
+			helpAnswer: translations['auth.helpAnswer'] || 'Contact support',
+			agreementText: translations['auth.agreementText'] || 'I agree',
+			privacyPolicy: translations['auth.privacyPolicy'] || 'Privacy Policy',
+			termsOfService: translations['auth.termsOfService'] || 'Terms of Service',
+			refundPolicy: translations['auth.refundPolicy'] || 'Refund Policy'
+		};
+
+		console.log('[AuthPresenter] Labels updated from translations');
+	}
 
 	constructor(
 		@inject(AUTH_TYPES.ValidateAppLoginUseCase)
@@ -90,7 +123,8 @@ export class AuthPresenter {
 		return {
 			status: 'success',
 			user: user,
-			error: undefined
+			error: undefined,
+			labels: this.labels
 		};
 	}
 
@@ -101,7 +135,8 @@ export class AuthPresenter {
 		return {
 			status: 'loading',
 			user: undefined,
-			error: undefined
+			error: undefined,
+			labels: this.labels
 		};
 	}
 
@@ -112,7 +147,8 @@ export class AuthPresenter {
 		return {
 			status: 'idle',
 			user: undefined,
-			error: undefined
+			error: undefined,
+			labels: this.labels
 		};
 	}
 
@@ -197,7 +233,8 @@ export class AuthPresenter {
 			return {
 				status: 'success',
 				user: this._currentUser,
-				error: undefined
+				error: undefined,
+				labels: this.labels
 			};
 		}
 		return this.presentIdle();
@@ -257,7 +294,8 @@ export class AuthPresenter {
 		return {
 			status: 'error',
 			user: undefined,
-			error: result.error?.message || 'Authentication failed'
+			error: result.error?.message || 'Authentication failed',
+			labels: this.labels
 		};
 	}
 

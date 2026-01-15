@@ -6,16 +6,15 @@ import { LanguageHttpRepository } from '../repositories/language-http.repository
 import { TranslationHttpRepository } from '../repositories/translation-http.repository';
 
 // Use Cases
-import { ApplyLocalizationUseCase } from '../../application/use-cases/apply-localization.use-case';
-import { ChangeActiveLanguageUseCase } from '../../application/use-cases/change-active-language.use-case';
-import { UpdateTranslationsUseCaseImpl } from '../../application/use-cases/update-translations.use-case';
-import { GetLocalizationStatusUseCaseImpl } from '../../application/use-cases/get-localization-status.use-case';
+import { LoadLocalizationUseCase, ChangeLocalizationUseCase } from '../../application/use-cases';
 
 // Presenters
 import { LocalizationPresenter } from '../../interface-adapters/presenters/localization.presenter';
-import { LanguageChangedHandler } from '../../interface-adapters/handlers/language-changed.handler';
+import { LocalizationLoadedEventHandler } from '../../interface-adapters/handlers/localization-loaded.handler';
+import { LocalizationChangedEventHandler } from '../../interface-adapters/handlers/localization-changed.handler';
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
-import { LanguageChangedEvent } from '../../domain/events/language-changed.event';
+import { LocalizationLoadedEvent } from '../../domain/events/localization-loaded.event';
+import { LocalizationChangedEvent } from '../../domain/events/localization-changed.event';
 
 export function bindLocalization(container: Container): void {
   // Repositories
@@ -31,15 +30,14 @@ export function bindLocalization(container: Container): void {
 
   // Use Cases
   container
-    .bind(LOCALIZATION_TYPES.ApplyLocalizationUseCase)
-    .to(ApplyLocalizationUseCase)
+    .bind(LOCALIZATION_TYPES.LoadLocalizationUseCase)
+    .to(LoadLocalizationUseCase)
     .inSingletonScope();
 
   container
-    .bind(LOCALIZATION_TYPES.ChangeActiveLanguageUseCase)
-    .to(ChangeActiveLanguageUseCase)
+    .bind(LOCALIZATION_TYPES.ChangeLocalizationUseCase)
+    .to(ChangeLocalizationUseCase)
     .inSingletonScope();
-
 
   // Presenters
   container
@@ -49,7 +47,12 @@ export function bindLocalization(container: Container): void {
 
   // Event Handlers - automatically discovered by EventBus
   container
-    .bind<IAsyncEventHandler<LanguageChangedEvent>>(Symbol.for('IAsyncEventHandler<LanguageChangedEvent>'))
-    .to(LanguageChangedHandler)
+    .bind<IAsyncEventHandler<LocalizationLoadedEvent>>(LOCALIZATION_TYPES.LocalizationLoadedEventHandler)
+    .to(LocalizationLoadedEventHandler)
+    .inTransientScope();
+
+  container
+    .bind<IAsyncEventHandler<LocalizationChangedEvent>>(LOCALIZATION_TYPES.LocalizationChangedEventHandler)
+    .to(LocalizationChangedEventHandler)
     .inTransientScope();
 }

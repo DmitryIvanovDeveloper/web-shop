@@ -327,6 +327,11 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       setIsNavigating(true);
       navigateWithQuery('/store');
     },
+    navigateToDailyRewards: () => {
+      console.log('[RootLayout] Navigating to daily rewards page');
+      setIsNavigating(true);
+      navigateWithQuery('/daily-rewards');
+    },
     // Localization support
     availableLanguages,
     changeLanguage: async (languageCode: string) => {
@@ -365,6 +370,11 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         console.log('[RootLayout] Resolved appId:', appId, 'URL:', window.location.href);
         await loadAppConfigUseCase.execute(shouldLoadDraft, appId || undefined);
         console.log('[RootLayout] App config loaded and distributed via EventBus');
+
+        // Load localization at app startup
+        const localizationPresenter = container.get(LOCALIZATION_TYPES.LocalizationPresenter) as any;
+        await localizationPresenter.loadLocalization();
+        console.log('[RootLayout] Localization loaded at app startup');
         
         // 2. Subscribe to real-time config updates (only if not in UI Builder preview mode)
         const isUIBuilderPreview = getIsUIBuilderFromQuery();

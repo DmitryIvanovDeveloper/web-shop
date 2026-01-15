@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { container } from '../../../../infrastructure/bootstrap/container';
@@ -31,6 +31,10 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 	const [userIdValue, setUserIdValue] = useState('');
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [isConfigReady, setIsConfigReady] = useState(false);
+	
+	// Флаг для предотвращения повторной инициализации
+	const isInitializingRef = useRef(false);
+	const hasInitializedRef = useRef(false);
 
 	// Проверяем состояние авторизации
 	useEffect(() => {
@@ -42,6 +46,12 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 				console.log('[AuthModule] Auth status changed:', { from: isAuthenticated, to: authStatus });
 				setIsAuthenticated(authStatus);
 				setCurrentUser(user);
+				
+				// Если пользователь разлогинился - сбрасываем флаги инициализации
+				if (!authStatus) {
+					hasInitializedRef.current = false;
+					isInitializingRef.current = false;
+				}
 				
 				// Если пользователь авторизовался - закрываем popup
 				if (authStatus === true && showPopup) {
@@ -118,6 +128,12 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 
 	// Инициализация авторизации из query params или localStorage
 	useEffect(() => {
+		// Предотвращаем повторную инициализацию, если она уже выполняется
+		if (isInitializingRef.current) {
+			console.log('[AuthModule] Initialization already in progress, skipping');
+			return;
+		}
+
 		const appIdFromQuery = getAppIdFromQuery();
 		const userIdFromQuery = getUserIdFromQuery();
 
@@ -125,8 +141,14 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 		const currentUser = authPresenter.getCurrentUser();
 		const needsReauth = isAuthenticated && appIdFromQuery && currentUser && currentUser.appId !== appIdFromQuery;
 
+		// Если нужна повторная авторизация с другим appId - сбрасываем флаг
+		if (needsReauth) {
+			hasInitializedRef.current = false;
+		}
+
 		if (isAuthenticated && !needsReauth) {
 			console.log('[AuthModule] Already authenticated with correct appId, skipping initialization');
+			hasInitializedRef.current = true;
 			return;
 		}
 
@@ -140,8 +162,23 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 			return;
 		}
 
+		// Проверяем, не была ли уже выполнена инициализация с теми же параметрами
+		if (hasInitializedRef.current && !needsReauth) {
+			console.log('[AuthModule] Already initialized, skipping');
+			return;
+		}
+
 		console.log('[AuthModule] Auto-initializing authentication', { appId, userId });
-		authPresenter.initializeAuthentication(appId, userId || undefined);
+		isInitializingRef.current = true;
+		hasInitializedRef.current = true;
+		
+		authPresenter.initializeAuthentication(appId, userId || undefined)
+			.finally(() => {
+				// Сбрасываем флаг после завершения (с небольшой задержкой для предотвращения гонок)
+				setTimeout(() => {
+					isInitializingRef.current = false;
+				}, 100);
+			});
 
 	}, [searchParams, isAuthenticated, authPresenter]);
 

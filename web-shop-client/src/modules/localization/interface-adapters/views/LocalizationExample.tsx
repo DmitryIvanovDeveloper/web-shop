@@ -1,12 +1,43 @@
 'use client';
 
-import React from 'react';
-import { useTranslation } from '../hooks/use-localization';
+import React, { useEffect, useState } from 'react';
+import { container } from '../../../../infrastructure/bootstrap/container';
+import { LOCALIZATION_TYPES } from '../../infrastructure/bootstrap/types';
+import type { LocalizationPresenter } from '../presenters/localization.presenter';
+import type { LocalizationViewModel } from '../view-models/localization.view-model';
 
 export function LocalizationExample(): JSX.Element {
-  const { t, currentLanguage, direction, isLoading } = useTranslation();
+  const [viewModel, setViewModel] = useState<LocalizationViewModel>({
+    isLoading: true,
+    error: null,
+    currentLanguage: null,
+    translations: {},
+    direction: 'ltr'
+  });
 
-  if (isLoading) {
+  const [presenter, setPresenter] = useState<LocalizationPresenter | null>(null);
+
+  useEffect(() => {
+    // Get presenter from DI container
+    const localizationPresenter = container.get<LocalizationPresenter>(
+      LOCALIZATION_TYPES.LocalizationPresenter
+    );
+    setPresenter(localizationPresenter);
+
+    // Subscribe to view model changes
+    const unsubscribe = localizationPresenter.subscribe(setViewModel);
+
+    // Load localization on mount
+    localizationPresenter.loadLocalization();
+
+    return unsubscribe;
+  }, []);
+
+  const t = (key: string, fallback?: string): string => {
+    return viewModel.translations[key] || fallback || key;
+  };
+
+  if (viewModel.isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -15,7 +46,7 @@ export function LocalizationExample(): JSX.Element {
   }
 
   return (
-    <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6" dir={direction}>
+    <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6" dir={viewModel.direction}>
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
           {t('auth.welcomeTitle', 'Welcome')}
@@ -54,12 +85,38 @@ export function LocalizationExample(): JSX.Element {
       </div>
 
       <div className="mt-6 text-center">
+        <div className="mb-4">
+          <p className="text-sm text-gray-500 mb-2">Change Language:</p>
+          <div className="flex justify-center space-x-2">
+            <button
+              onClick={() => presenter?.changeLocalization('en')}
+              disabled={viewModel.isLoading || viewModel.currentLanguage?.code === 'en'}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+            >
+              English
+            </button>
+            <button
+              onClick={() => presenter?.changeLocalization('ar')}
+              disabled={viewModel.isLoading || viewModel.currentLanguage?.code === 'ar'}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+            >
+              العربية
+            </button>
+          </div>
+        </div>
+
         <p className="text-sm text-gray-500">
-          Current language: {currentLanguage?.name || 'Unknown'} ({currentLanguage?.code || 'N/A'})
+          Current language: {viewModel.currentLanguage?.name || 'Unknown'} ({viewModel.currentLanguage?.code || 'N/A'})
         </p>
         <p className="text-sm text-gray-500">
-          Text direction: {direction.toUpperCase()}
+          Text direction: {viewModel.direction.toUpperCase()}
         </p>
+
+        {viewModel.error && (
+          <p className="text-sm text-red-500 mt-2">
+            Error: {viewModel.error}
+          </p>
+        )}
       </div>
     </div>
   );

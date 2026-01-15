@@ -92,6 +92,10 @@ export default function StorePage(): JSX.Element {
       console.log('[StorePage] Navigating to patch notes');
       navigateWithQuery('/patch-notes');
     },
+    navigateToDailyRewards: () => {
+      console.log('[StorePage] Navigating to daily rewards');
+      navigateWithQuery('/daily-rewards');
+    },
   };
 
   // Check previewMode from URL

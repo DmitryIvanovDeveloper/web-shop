@@ -81,7 +81,7 @@ export class SupabaseConfigStorage implements ConfigStoragePort {
           .from('app_configs')
           .insert({
             app_id: config.appId,
-            merchant_id: config.appId, // Use appId as merchant_id for now
+            merchant_id: config.merchantId, // Use actual merchantId from config
             version: newVersion,
             is_active: false,
             is_draft: true,

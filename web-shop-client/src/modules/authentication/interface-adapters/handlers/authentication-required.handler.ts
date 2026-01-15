@@ -8,9 +8,9 @@ import { injectable, inject } from 'inversify';
 import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import { AuthPresenter } from '../presenters/auth.presenter';
-import { AuthenticationRequiredEvent } from '../../../../shared/events/auth-events';
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
 import type { Logger } from '../../../../application/ports/logger.port';
+import { AuthenticationRequiredEvent } from '../../domain/events/authentication-required.event';
 
 @injectable()
 export class AuthenticationRequiredEventHandler implements IAsyncEventHandler<AuthenticationRequiredEvent> {
@@ -34,9 +34,9 @@ export class AuthenticationRequiredEventHandler implements IAsyncEventHandler<Au
    */
   public async handleAsync(event: AuthenticationRequiredEvent): Promise<void> {
     this._logger.info('[AuthenticationRequiredEventHandler] Authentication required', {
-      source: event.payload.sourceModule,
-      action: event.payload.action,
-      resourceId: event.payload.resourceId
+      source: event.sourceModule,
+      action: event.action,
+      resourceId: event.resourceId
     });
 
     // Показываем AuthPopup через Presenter

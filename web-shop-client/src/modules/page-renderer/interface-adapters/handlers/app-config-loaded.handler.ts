@@ -34,7 +34,7 @@ export class PageRendererAppConfigLoadedHandler implements IAsyncEventHandler<Ap
 		try {
 			// Extract offerCards from config.config.offerCards (AppConfigStructure)
 			// Type assertion needed because AppConfig type doesn't include offerCards
-			const appConfigStructure = (event.payload.config as any)?.config;
+			const appConfigStructure = (event.config as any)?.config;
 			const offerCards = appConfigStructure?.offerCards;
 
 			if (offerCards && Array.isArray(offerCards)) {

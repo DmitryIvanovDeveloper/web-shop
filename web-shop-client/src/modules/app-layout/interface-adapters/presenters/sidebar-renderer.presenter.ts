@@ -40,7 +40,7 @@ export class SidebarRendererPresenter {
   /**
    * Определяет, является ли кнопка активной на основе текущего пути
    */
-  private _isButtonActive(buttonType: 'home' | 'store' | 'patch-notes'): boolean {
+  private _isButtonActive(buttonType: 'home' | 'store' | 'patch-notes' | 'daily-rewards' | 'loyalty-program' | 'news' | 'updates' | 'events'): boolean {
     const isActive = (() => {
       switch (buttonType) {
         case 'home':
@@ -49,6 +49,16 @@ export class SidebarRendererPresenter {
           return this._currentPathname === '/store';
         case 'patch-notes':
           return this._currentPathname === '/patch-notes';
+        case 'daily-rewards':
+          return this._currentPathname === '/daily-rewards';
+        case 'loyalty-program':
+          return this._currentPathname === '/loyalty-program';
+        case 'news':
+          return this._currentPathname === '/news';
+        case 'updates':
+          return this._currentPathname === '/updates';
+        case 'events':
+          return this._currentPathname === '/events';
         default:
           return false;
       }
@@ -60,7 +70,7 @@ export class SidebarRendererPresenter {
   /**
    * Возвращает тип кнопки по её ID для определения активности
    */
-  private _getButtonTypeFromId(buttonId: string): 'home' | 'store' | 'patch-notes' | null {
+  private _getButtonTypeFromId(buttonId: string): 'home' | 'store' | 'patch-notes' | 'daily-rewards' | 'loyalty-program' | 'news' | 'updates' | 'events' | null {
     switch (buttonId) {
       case 'home-button':
         return 'home';
@@ -68,6 +78,16 @@ export class SidebarRendererPresenter {
         return 'store';
       case 'patch-notes-button':
         return 'patch-notes';
+      case 'daily-rewards-button':
+        return 'daily-rewards';
+      case 'loyalty-program-button':
+        return 'loyalty-program';
+      case 'news-button':
+        return 'news';
+      case 'updates-button':
+        return 'updates';
+      case 'events-button':
+        return 'events';
       default:
         return null;
     }
@@ -187,7 +207,14 @@ export class SidebarRendererPresenter {
 
           return {
             ...defaultChild,
-            styles: mergedStyles
+            styles: mergedStyles,
+            // Явно сохраняем props.text из defaultChild, чтобы Supabase не перезаписывал переводы
+            props: {
+              ...defaultChild.props,
+              ...(supabaseChild.props || {}),
+              // Принудительно используем текст из defaultChild (с переводами)
+              text: defaultChild.props?.text
+            }
           };
         } else {
           console.log(`[SidebarRendererPresenter] No Supabase styles for button: ${defaultChild.id}`, {
@@ -360,6 +387,166 @@ export class SidebarRendererPresenter {
               }
             },
             {
+              id: "daily-rewards-button",
+              type: "Button",
+              props: {
+                text: this.getTranslation("nav.dailyRewards", "Daily Rewards"),
+                icon: "🎯",
+                fullWidth: true
+              },
+              styles: {
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: "8px",
+                padding: "12px 16px",
+                backgroundColor: this._isButtonActive('daily-rewards') ? "primary" : undefined,
+                textColor: "#FFFFFF",
+                justifyContent: "flex-start",
+                hoverBackgroundColor: "#5C6BC0",
+                hoverOpacity: 0.95,
+                hoverShadow: "0 4px 12px rgba(59, 90, 254, 0.15)",
+                borderRadius: "8px",
+                marginBottom: "4px",
+                transition: "all 0.2s ease-in-out",
+                className: "group/sidebar-button relative flex w-full cursor-pointer items-center justify-start gap-2 overflow-hidden px-3 py-2 transition-all select-none rounded-button border-0 disabled:cursor-not-allowed disabled:opacity-50  data-[active=true]:bg-sem-component-sf-component-menu-item-accent"
+              },
+              actions: {
+                onClick: {
+                  type: "custom",
+                  handler: "navigateToDailyRewards"
+                }
+              }
+            },
+            {
+              id: "loyalty-program-button",
+              type: "Button",
+              props: {
+                text: this.getTranslation("nav.loyaltyProgram", "Loyalty Program"),
+                icon: "⭐",
+                fullWidth: true
+              },
+              styles: {
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: "8px",
+                padding: "12px 16px",
+                backgroundColor: this._isButtonActive('loyalty-program') ? "primary" : undefined,
+                textColor: "#FFFFFF",
+                justifyContent: "flex-start",
+                hoverBackgroundColor: "#5C6BC0",
+                hoverOpacity: 0.95,
+                hoverShadow: "0 4px 12px rgba(59, 90, 254, 0.15)",
+                borderRadius: "8px",
+                marginBottom: "4px",
+                transition: "all 0.2s ease-in-out",
+                className: "group/sidebar-button relative flex w-full cursor-pointer items-center justify-start gap-2 overflow-hidden px-3 py-2 transition-all select-none rounded-button border-0 disabled:cursor-not-allowed disabled:opacity-50  data-[active=true]:bg-sem-component-sf-component-menu-item-accent"
+              },
+              actions: {
+                onClick: {
+                  type: "custom",
+                  handler: "navigateToLoyaltyProgram"
+                }
+              }
+            },
+            {
+              id: "news-button",
+              type: "Button",
+              props: {
+                text: this.getTranslation("nav.news", "News"),
+                icon: "📰",
+                fullWidth: true
+              },
+              styles: {
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: "8px",
+                padding: "12px 16px",
+                backgroundColor: this._isButtonActive('news') ? "primary" : undefined,
+                textColor: "#FFFFFF",
+                justifyContent: "flex-start",
+                hoverBackgroundColor: "#5C6BC0",
+                hoverOpacity: 0.95,
+                hoverShadow: "0 4px 12px rgba(59, 90, 254, 0.15)",
+                borderRadius: "8px",
+                marginBottom: "4px",
+                transition: "all 0.2s ease-in-out",
+                className: "group/sidebar-button relative flex w-full cursor-pointer items-center justify-start gap-2 overflow-hidden px-3 py-2 transition-all select-none rounded-button border-0 disabled:cursor-not-allowed disabled:opacity-50  data-[active=true]:bg-sem-component-sf-component-menu-item-accent"
+              },
+              actions: {
+                onClick: {
+                  type: "custom",
+                  handler: "navigateToNews"
+                }
+              }
+            },
+            {
+              id: "updates-button",
+              type: "Button",
+              props: {
+                text: this.getTranslation("nav.updates", "Updates"),
+                icon: "🔄",
+                fullWidth: true
+              },
+              styles: {
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: "8px",
+                padding: "12px 16px",
+                backgroundColor: this._isButtonActive('updates') ? "primary" : undefined,
+                textColor: "#FFFFFF",
+                justifyContent: "flex-start",
+                hoverBackgroundColor: "#5C6BC0",
+                hoverOpacity: 0.95,
+                hoverShadow: "0 4px 12px rgba(59, 90, 254, 0.15)",
+                borderRadius: "8px",
+                marginBottom: "4px",
+                transition: "all 0.2s ease-in-out",
+                className: "group/sidebar-button relative flex w-full cursor-pointer items-center justify-start gap-2 overflow-hidden px-3 py-2 transition-all select-none rounded-button border-0 disabled:cursor-not-allowed disabled:opacity-50  data-[active=true]:bg-sem-component-sf-component-menu-item-accent"
+              },
+              actions: {
+                onClick: {
+                  type: "custom",
+                  handler: "navigateToUpdates"
+                }
+              }
+            },
+            {
+              id: "events-button",
+              type: "Button",
+              props: {
+                text: this.getTranslation("nav.events", "Events"),
+                icon: "🎉",
+                fullWidth: true
+              },
+              styles: {
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: "8px",
+                padding: "12px 16px",
+                backgroundColor: this._isButtonActive('events') ? "primary" : undefined,
+                textColor: "#FFFFFF",
+                justifyContent: "flex-start",
+                hoverBackgroundColor: "#5C6BC0",
+                hoverOpacity: 0.95,
+                hoverShadow: "0 4px 12px rgba(59, 90, 254, 0.15)",
+                borderRadius: "8px",
+                marginBottom: "4px",
+                transition: "all 0.2s ease-in-out",
+                className: "group/sidebar-button relative flex w-full cursor-pointer items-center justify-start gap-2 overflow-hidden px-3 py-2 transition-all select-none rounded-button border-0 disabled:cursor-not-allowed disabled:opacity-50  data-[active=true]:bg-sem-component-sf-component-menu-item-accent"
+              },
+              actions: {
+                onClick: {
+                  type: "custom",
+                  handler: "navigateToEvents"
+                }
+              }
+            },
+            {
               id: "language-selector",
               type: "Select",
               props: {
@@ -368,7 +555,8 @@ export class SidebarRendererPresenter {
                   { value: "ar", label: "Arabic (العربية)" }
                 ],
                 placeholder: "🌐 Language",
-                value: "en"
+                // Use current language code from presenter state instead of hardcoded value
+                value: this._languageCode
               },
               styles: {
                 display: "flex",
@@ -399,6 +587,20 @@ export class SidebarRendererPresenter {
         hasTheme: !!defaultSidebarLayout.theme,
         hasSidebarLayout: !!defaultSidebarLayout.layout,
         layoutKeys: Object.keys(defaultSidebarLayout)
+      });
+
+      // Логирование текстов всех кнопок для отладки
+      console.log('[SidebarRendererPresenter] Button texts in default config:', {
+        home: this.getTranslation("nav.home", "Home"),
+        store: this.getTranslation("nav.store", "Store"),
+        patchNotes: this.getTranslation("nav.patchNotes", "Patch Notes"),
+        dailyRewards: this.getTranslation("nav.dailyRewards", "Daily Rewards"),
+        loyaltyProgram: this.getTranslation("nav.loyaltyProgram", "Loyalty Program"),
+        news: this.getTranslation("nav.news", "News"),
+        updates: this.getTranslation("nav.updates", "Updates"),
+        events: this.getTranslation("nav.events", "Events"),
+        currentLanguage: this._languageCode,
+        translationsCount: Object.keys(this._translations).length
       });
 
       const result = this._convertToPageConfig(defaultSidebarLayout, 'sidebar');
@@ -541,14 +743,26 @@ export class SidebarRendererPresenter {
     languageCode: string,
     direction: 'ltr' | 'rtl'
   ): void {
+    const navKeys = Object.keys(translations).filter(key => key.startsWith('nav.'));
     console.log('[SidebarRendererPresenter] onTranslationsConfig called', {
       languageCode,
       direction,
       translationsCount: Object.keys(translations).length,
-      availableKeys: Object.keys(translations).filter(key => key.startsWith('nav.')),
+      availableKeys: navKeys,
+      allNavKeys: navKeys,
       navHome: translations['nav.home'],
       navStore: translations['nav.store'],
-      navPatchNotes: translations['nav.patchNotes']
+      navPatchNotes: translations['nav.patchNotes'],
+      navDailyRewards: translations['nav.dailyRewards'],
+      navLoyaltyProgram: translations['nav.loyaltyProgram'],
+      navNews: translations['nav.news'],
+      navUpdates: translations['nav.updates'],
+      navEvents: translations['nav.events'],
+      // Логируем все nav.* ключи для отладки
+      allNavTranslations: navKeys.reduce((acc, key) => {
+        acc[key] = translations[key];
+        return acc;
+      }, {} as Record<string, string>)
     });
 
     // Store translations for sidebar button text updates
@@ -576,6 +790,10 @@ export class SidebarRendererPresenter {
 
   public getDirection(): 'ltr' | 'rtl' {
     return this._direction;
+  }
+
+  public getLanguageCode(): string {
+    return this._languageCode;
   }
 }
 

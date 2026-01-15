@@ -3,4 +3,5 @@ import { DailyReward } from '../../domain/entities/daily-reward';
 
 export interface DailyRewardRepositoryPort {
   findActiveReward(appId: string): Promise<Result<DailyReward | null, Error>>;
+  findAllRewards(appId: string): Promise<Result<readonly DailyReward[], Error>>;
 }

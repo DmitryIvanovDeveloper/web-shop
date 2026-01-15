@@ -21,8 +21,6 @@ import { bindUserOfferContext } from '../../modules/user-offer-context/infrastru
 import { bindPatchNotes } from '../../modules/patch-notes/infrastructure/bootstrap/bind.patch-notes';
 import { bindDailyRewards } from '../../modules/daily-rewards/infrastructure/bootstrap/bind.daily-rewards';
 import { bindLocalization } from '../../modules/localization/infrastructure/bootstrap/bind.localization';
-// import { LanguageChangedHandler } from '../../modules/localization/interface-adapters/handlers/language-changed.handler';
-import { LanguageChangedEvent } from '../../modules/localization/domain/events/language-changed.event';
 import { UIRendererService } from '../services/ui-renderer/ui-renderer.service';
 import { UIComponentRegistry } from '../services/ui-renderer/component-registry.service';
 import { UIStyleBuilder } from '../services/ui-renderer/style-builder.service';
@@ -75,6 +73,9 @@ container.bind(TYPES.GetAppContext).to(GetAppContextUseCase).inSingletonScope();
 // Register Authentication module
 bindAuthentication(container);
 
+// Register Localization module (must be before App Layout to avoid handler conflicts)
+bindLocalization(container);
+
 // Register App Layout module
 bindAppLayout(container);
 
@@ -98,19 +99,6 @@ bindPatchNotes(container);
 
 // Register Daily Rewards module
 bindDailyRewards(container);
-
-// Register Localization module - temporarily disabled due to file deletion issues
-// import { LanguageHttpRepository } from '../../modules/localization/infrastructure/repositories/language-http.repository';
-// import { TranslationHttpRepository } from '../../modules/localization/infrastructure/repositories/translation-http.repository';
-import { LOCALIZATION_TYPES } from '../../modules/localization/infrastructure/bootstrap/types';
-// import { GetLocalizationStatusUseCase } from '../../modules/localization/application/use-cases/get-localization-status.use-case';
-// import { ApplyLocalizationUseCase } from '../../modules/localization/application/use-cases/apply-localization.use-case';
-// import { ChangeActiveLanguageUseCase } from '../../modules/localization/application/use-cases/change-active-language.use-case';
-// import { UpdateTranslationsUseCase } from '../../modules/localization/application/use-cases/update-translations.use-case';
-// import { LocalizationPresenter } from '../../modules/localization/interface-adapters/presenters/localization.presenter';
-
-// Register Localization module
-bindLocalization(container);
 
 // App Config
 container.bind(TYPES.SupabaseConfigLoader).to(SupabaseConfigLoader).inSingletonScope();
@@ -136,13 +124,6 @@ container
   .to(ApplyBackgroundOnConfigHandler)
   .inTransientScope();
 
-// Register LanguageChangedHandler for localization events
-// Register LanguageChangedHandler for localization events
-// container
-//   .bind<IAsyncEventHandler<LanguageChangedEvent>>(
-//     Symbol.for('IAsyncEventHandler<LanguageChangedEvent>')
-//   )
-//   .to(LanguageChangedHandler)
-//   .inTransientScope(); // Still has issues
+// UI Renderer handlers are registered in bind.ui-renderer.ts
 
 export { container };

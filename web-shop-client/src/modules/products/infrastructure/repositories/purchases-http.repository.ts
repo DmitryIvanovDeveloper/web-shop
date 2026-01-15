@@ -49,6 +49,46 @@ export class PurchasesHttpRepository implements PurchaseRepositoryPort {
 
     return productIds;
   }
+
+  public async getProductPurchaseCounts(appId: string): Promise<Map<string, number>> {
+    if (!appId) {
+      this._logger.info('[PurchasesHttpRepository] Empty appId, returning empty map', {
+        appId,
+      });
+      return new Map();
+    }
+
+    const url = `/api/purchases/counts?${new URLSearchParams({
+      appId,
+    }).toString()}`;
+
+    this._logger.info('[PurchasesHttpRepository] Loading purchase counts via HTTP', { url });
+
+    const response = await this._httpClient.get<{ counts: Record<string, number> }>(url);
+
+    if (response.status !== 200) {
+      this._logger.error('[PurchasesHttpRepository] Failed to load purchase counts', {
+        status: response.status,
+        statusText: response.statusText,
+      });
+      throw new Error(response.statusText || 'Failed to load purchase counts');
+    }
+
+    const data = response.data;
+    const counts = data?.counts || {};
+
+    // Convert Record<string, number> to Map<string, number>
+    const purchaseCounts = new Map<string, number>();
+    Object.entries(counts).forEach(([productId, count]) => {
+      purchaseCounts.set(productId, count);
+    });
+
+    this._logger.info('[PurchasesHttpRepository] Purchase counts loaded from HTTP', {
+      count: purchaseCounts.size,
+    });
+
+    return purchaseCounts;
+  }
 }
 
 

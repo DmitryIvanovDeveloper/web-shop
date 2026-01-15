@@ -1,6 +1,6 @@
 'use client';
 
-import { createElement, useState, useEffect } from 'react';
+import { createElement, useState, useEffect, useCallback } from 'react';
 import type { ComponentNode } from '../../../domain/value-objects/component-node.value-object';
 import type { ThemeConfig } from '../../../domain/value-objects/theme-config.value-object';
 import type { ComponentRegistry } from '../../../infrastructure/services/component-registry.service';
@@ -10,6 +10,8 @@ import type { ActionContext } from '../../../domain/types';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { UI_RENDERER_TYPES } from '../../../infrastructure/bootstrap/types';
 import { OfferCard } from '../../../../../../src/shared/components/molecules/offer-card';
+import { LocalizationPresenter } from '@/modules/localization/interface-adapters/presenters/localization.presenter';
+import { LOCALIZATION_TYPES } from '@/infrastructure/bootstrap/types';
 
 interface DynamicRendererProps {
   readonly node: ComponentNode;
@@ -35,11 +37,26 @@ const readSelectionModeFlag = (): boolean => {
 };
 
 export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererProps): JSX.Element | null {
-  console.log('[DynamicRenderer] Rendering with node:', node?.type, node?.id);
+  // Simple translation helper
+  const getTranslation = (): { t: (key: string, fallback?: string) => string, currentLanguage: any } => {
+    try {
+      const presenter = container.get<LocalizationPresenter>(LOCALIZATION_TYPES.LocalizationPresenter);
+      const vm = presenter.viewModel;
+      const t = (key: string, fallback?: string): string => {
+        return vm.translations[key] || fallback || key;
+      };
+      return { t, currentLanguage: vm.currentLanguage };
+    } catch {
+      const t = (key: string, fallback?: string): string => fallback || key;
+      return { t, currentLanguage: null };
+    }
+  };
+
+  const { t, currentLanguage } = getTranslation();
   if (node?.id === 'sidebar-container') {
     console.log('[DynamicRenderer] RENDERING SIDEBAR-CONTAINER:', node);
   }
-  
+
   if (!node) {
     console.error('[DynamicRenderer] Node is undefined or null');
     return null;
@@ -372,6 +389,30 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
       }
     : {};
 
+  // Специальная обработка для Select
+  const selectProps = node.type === 'Select' 
+    ? { 
+        onChange: (value: string | number) => {
+          console.log('[DynamicRenderer] Select value changed:', value, 'nodeId:', node.id);
+          // Если есть onChange action, вызываем его через ActionHandler
+          if (node.actions?.onChange && actionContext) {
+            console.log('[DynamicRenderer] Calling actionHandler for Select onChange', {
+              nodeId: node.id,
+              action: node.actions.onChange,
+              value
+            });
+            actionHandler.handleAction(node.actions.onChange, actionContext, value);
+          } else {
+            console.warn('[DynamicRenderer] Select onChange action not found or actionContext missing', {
+              nodeId: node.id,
+              hasOnChangeAction: !!node.actions?.onChange,
+              hasActionContext: !!actionContext
+            });
+          }
+        }
+      }
+    : {};
+
   // Специальная обработка для OffersList (больше не нужен presenter)
   const offersListProps = {};
 
@@ -395,14 +436,31 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     });
   }
 
-  // Специальная обработка для Button - text уже в node.props, но убеждаемся что он передаётся
+  // Обработка локализации в props
+  const processLocalizedProps = useCallback((props: any) => {
+    if (!props) return props;
+
+    const processedProps = { ...props };
+
+    // Обрабатываем text prop
+    if (typeof processedProps.text === 'string' && processedProps.text.startsWith('i18n:')) {
+      const key = processedProps.text.replace('i18n:', '');
+      processedProps.text = t(key);
+    }
+
+    return processedProps;
+  }, [t, currentLanguage]);
+
+  const processedProps = processLocalizedProps(node.props);
+
+  // Специальная обработка для Button - text уже в processedProps, но убеждаемся что он передаётся
   const buttonProps = node.type === 'Button'
-    ? { text: node.props?.text || node.props?.children }
+    ? { text: processedProps?.text || processedProps?.children }
     : {};
 
   // Типобезопасные props - TypeScript знает структуру
   // Exclude pageSlug from props passed to DOM (it's only used for action creation)
-  const { pageSlug, ...propsWithoutPageSlug } = node.props || {};
+  const { pageSlug, ...propsWithoutPageSlug } = processedProps || {};
   
   // Add hover class and handlers for element selection mode
   // isSelectionModeActive already declared above (line 99)
@@ -441,6 +499,7 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     ...inputTextProps,
     ...universalInputProps,
     ...inputProps,
+    ...selectProps,
     ...offersListProps,
     ...buttonProps,
     ...previewProps,
@@ -467,7 +526,9 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
   }
 
   try {
-    return createElement(Component, componentProps);
+    // Force re-render when language changes by adding key
+    const componentKey = `${node.id}-${currentLanguage?.code || 'default'}`;
+    return createElement(Component, { ...componentProps, key: componentKey });
   } catch (error) {
     console.error(`[DynamicRenderer] Error rendering ${node.type}:`, error);
     return <div className="error-fallback">Error rendering {node.type}</div>;

@@ -2,7 +2,7 @@ import { inject, injectable } from 'inversify';
 import { LoadProductsUseCase } from '../../application/use-cases/load-products.use-case';
 import { SelectProductForPaymentUseCase } from '../../application/use-cases/select-product-for-payment.use-case';
 import { GetPurchasedProductsUseCase } from '../../application/use-cases/get-purchased-products.use-case';
-import { ProductsListViewModel } from '../view-models/products-list.view-model';
+import { ProductsListViewModel, ProductsLabels } from '../view-models/products-list.view-model';
 import { PRODUCTS_TYPES } from '../../infrastructure/bootstrap/types';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
@@ -11,10 +11,20 @@ import type { Product } from '../../domain/types';
 
 @injectable()
 export class ProductsListPresenter {
+  private _labels: ProductsLabels = {
+    buyButton: 'Buy Now',
+    addToCart: 'Add to Cart',
+    outOfStock: 'Out of Stock',
+    loadingProducts: 'Loading products...',
+    errorLoadingProducts: 'Error loading products',
+    productsTitle: 'Products'
+  };
+
   private _viewModel: ProductsListViewModel = {
     status: 'loading',
     products: [],
-    message: 'Loading products...'
+    message: 'Loading products...',
+    labels: this._labels
   };
   
   private _onViewModelChanged?: () => void;
@@ -35,6 +45,28 @@ export class ProductsListPresenter {
     @inject(ROOT_TYPES.Logger)
     private readonly _logger: Logger
   ) {}
+
+  /**
+   * Обновляет labels на основе полученных переводов
+   */
+  public updateLabelsFromTranslations(translations: Record<string, string>): void {
+    this._labels = {
+      buyButton: translations['products.buyButton'] || 'Buy Now',
+      addToCart: translations['products.addToCart'] || 'Add to Cart',
+      outOfStock: translations['products.outOfStock'] || 'Out of Stock',
+      loadingProducts: translations['products.loadingProducts'] || 'Loading products...',
+      errorLoadingProducts: translations['products.errorLoadingProducts'] || 'Error loading products',
+      productsTitle: translations['products.productsTitle'] || 'Products'
+    };
+
+    // Обновляем viewModel с новыми labels
+    this.updateViewModel({
+      ...this._viewModel,
+      labels: this._labels
+    });
+
+    this._logger.info('[ProductsListPresenter] Labels updated from translations');
+  }
 
   public setOnViewModelChanged(callback: () => void): void {
     this._onViewModelChanged = callback;
@@ -135,7 +167,8 @@ export class ProductsListPresenter {
         this.updateViewModel({
           status: 'loading',
           products: [],
-          message: 'Loading products...'
+          message: 'Loading products...',
+          labels: this._labels
         });
         products = await this.loadProductsUseCase.execute({ appId });
         const productsEnd = typeof performance !== 'undefined' ? performance.now() : Date.now();
@@ -197,7 +230,8 @@ export class ProductsListPresenter {
       const successViewModel: ProductsListViewModel = {
         status: 'success',
         products: enrichedProducts,
-        message: `Loaded ${enrichedProducts.length} products`
+        message: `Loaded ${enrichedProducts.length} products`,
+        labels: this._labels
       };
       
       this.updateViewModel(successViewModel);
@@ -214,7 +248,8 @@ export class ProductsListPresenter {
       const errorViewModel: ProductsListViewModel = {
         status: 'error',
         products: [],
-        message: error instanceof Error ? error.message : 'Failed to load products'
+        message: error instanceof Error ? error.message : 'Failed to load products',
+        labels: this._labels
       };
       
       this.updateViewModel(errorViewModel);

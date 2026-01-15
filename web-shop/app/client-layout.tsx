@@ -14,8 +14,9 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   const searchParams = useSearchParams();
   const [isNavigating, setIsNavigating] = useState(false);
 
-  // Get appId from URL search params instead of useSelectedProject
+  // Get appId and merchantId from URL search params
   const appId = searchParams?.get('appId');
+  const merchantId = searchParams?.get('merchantId');
 
   const routes: Record<string, string> = useMemo(() => ({
     home: '/',
@@ -25,8 +26,8 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
     'merchant-admin-products': appId ? `/products?appId=${appId}` : '/products',
     'merchant-admin-patch-notes': appId ? `/merchant-admin/patch-notes?appId=${appId}` : '/merchant-admin/patch-notes',
     'merchant-admin-localization': '/merchant-admin/localization',
-    'ui-builder': appId ? `/ui-builder?appId=${appId}&pageSlug=store` : '/ui-builder?pageSlug=store',
-  }), [appId]);
+    'ui-builder': appId ? `/ui-builder?appId=${appId}&pageSlug=store${merchantId ? `&merchantId=${merchantId}` : ''}` : `/ui-builder?pageSlug=store${merchantId ? `&merchantId=${merchantId}` : ''}`,
+  }), [appId, merchantId]);
 
   // Individual pages handle appId validation and redirect to projects if needed
 

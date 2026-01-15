@@ -8,9 +8,13 @@ import { SelectOffersInteractor } from '../../application/use-cases/select-offer
 import { OffersListPresenter } from '../../interface-adapters/presenters/offers-list.presenter';
 import { OffersUserAuthenticatedHandler } from '../../interface-adapters/handlers/user-authenticated.handler';
 import { OffersAppConfigLoadedHandler } from '../../interface-adapters/handlers/app-config-loaded.handler';
+import { OffersLocalizationLoadedEventHandler } from '../../interface-adapters/handlers/localization-loaded.handler';
+import { OffersLocalizationChangedEventHandler } from '../../interface-adapters/handlers/localization-changed.handler';
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
-import { UserAuthenticatedEvent } from '../../../../shared/events/auth-events';
+import { UserAuthenticatedEvent } from '../../../authentication/domain/events';
 import { AppConfigLoadedEvent } from '../../../../shared/events/app-config-events';
+import { LocalizationLoadedEvent } from '../../../localization/domain/events/localization-loaded.event';
+import { LocalizationChangedEvent } from '../../../localization/domain/events/localization-changed.event';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { UIComponentRegistry } from '../../../../infrastructure/services/ui-renderer/component-registry.service';
 import { OffersList } from '../../interface-adapters/ui/components/offers-list';
@@ -32,6 +36,16 @@ export function bindOffers(container: Container): void {
   container
     .bind<IAsyncEventHandler<UserAuthenticatedEvent>>(OFFERS_TYPES.UserAuthenticatedHandler)
     .to(OffersUserAuthenticatedHandler)
+    .inTransientScope();
+
+  container
+    .bind<IAsyncEventHandler<LocalizationLoadedEvent>>(OFFERS_TYPES.LocalizationLoadedEventHandler)
+    .to(OffersLocalizationLoadedEventHandler)
+    .inTransientScope();
+
+  container
+    .bind<IAsyncEventHandler<LocalizationChangedEvent>>(OFFERS_TYPES.LocalizationChangedEventHandler)
+    .to(OffersLocalizationChangedEventHandler)
     .inTransientScope();
 
   // Register UI components in shared UI renderer registry

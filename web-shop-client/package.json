@@ -28,7 +28,8 @@
     "reflect-metadata": "^0.2.2",
     "stripe": "^19.1.0",
     "uuid": "^13.0.0",
-    "uuidv4": "^6.2.13"
+    "uuidv4": "^6.2.13",
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1",

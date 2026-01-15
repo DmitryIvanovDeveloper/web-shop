@@ -27,7 +27,7 @@ export class ApplyBackgroundOnConfigHandler implements IAsyncEventHandler<AppCon
     }
 
     try {
-      const config = event.payload.config as AppConfig;
+      const config = event.config as AppConfig;
       const background = config?.theme?.background;
       const bodyStyle = document.body.style;
 

@@ -40,12 +40,22 @@ export class ActionHandler {
     }
     
     if (action.type === 'custom' && action.handler) {
+      console.log('[ActionHandler] Handling custom action', {
+        handler: action.handler,
+        value: value,
+        hasContext: !!context,
+        contextKeys: context ? Object.keys(context) : []
+      });
+      
       // Ищем обработчик в контексте по имени
       const handler = (context as any)[action.handler];
       if (typeof handler === 'function') {
+        console.log('[ActionHandler] Handler found, calling with value:', value);
         // Для handleAppIdChange и changeLanguage передаем значение, для других - mock событие
         if (action.handler === 'handleAppIdChange' || action.handler === 'changeLanguage') {
+          console.log('[ActionHandler] Calling', action.handler, 'with value:', value);
           handler(value || '');
+          console.log('[ActionHandler]', action.handler, 'call completed');
         } else {
           const mockEvent = {
             preventDefault: () => {},

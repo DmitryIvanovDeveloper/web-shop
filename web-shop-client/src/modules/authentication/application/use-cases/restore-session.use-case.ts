@@ -14,7 +14,7 @@ import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
 import type { IEventBus } from '../../../../infrastructure/events/event-bus.plugin';
-import { UserAuthenticatedEvent } from '../../../../shared/events/auth-events';
+import { UserAuthenticatedEvent } from '../../domain/events';
 
 @injectable()
 export class RestoreSessionUseCase {

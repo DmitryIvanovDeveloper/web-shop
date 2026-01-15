@@ -37,7 +37,7 @@ import {
 } from '../../domain/events/user-offer-context.events';
 import type { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
 import type { UserOfferContextDomainEvent } from '../../domain/events/user-offer-context.events';
-import { UserAuthenticatedEvent } from '../../../../shared/events/auth-events';
+import { UserAuthenticatedEvent } from '../../../authentication/domain/events';
 
 export function bindUserOfferContext(container: Container): void {
   // Repository bindings
@@ -146,7 +146,7 @@ export function bindUserOfferContext(container: Container): void {
   }
 
   container
-    .bind<IAsyncEventHandler<UserAuthenticatedEvent>>(Symbol.for('IAsyncEventHandler<UserAuthenticatedEvent>'))
+    .bind<IAsyncEventHandler<UserAuthenticatedEvent>>(USER_OFFER_CONTEXT_TYPES.UserAuthenticatedEventHandler)
     .toService(USER_OFFER_CONTEXT_TYPES.UserOfferContextAuthenticatedHandler);
 }
 

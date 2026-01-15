@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AuthUserAuthenticatedHandler } from '../user-authenticated.handler';
-import { UserAuthenticatedEvent } from '../../../../../shared/events/auth-events';
+import { UserAuthenticatedEvent } from '../../../../domain/events';
 import type { Logger } from '../../../../../application/ports/logger.port';
 import { AuthPresenter } from '../../presenters/auth.presenter';
 

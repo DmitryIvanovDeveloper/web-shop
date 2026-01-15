@@ -24,7 +24,7 @@ export class OffersAppConfigLoadedHandler implements IAsyncEventHandler<AppConfi
 		this._logger.info('[OffersAppConfigLoadedHandler] Processing AppConfigLoadedEvent');
 
 		try {
-			const sharedConfig = event.payload.config.shared;
+			const sharedConfig = event.config.shared;
 			
 			if (!sharedConfig?.offerCardUI) {
 				this._logger.warn('[OffersAppConfigLoadedHandler] OfferCard UI config not found in shared config');

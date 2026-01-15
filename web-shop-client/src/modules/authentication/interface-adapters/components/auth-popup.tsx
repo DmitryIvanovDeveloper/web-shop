@@ -27,11 +27,11 @@ export function AuthPopup({
   onAuthError,
   closeDelay = 1500
 }: AuthPopupProps) {
-  const [viewModel, setViewModel] = useState<AuthViewModel>({ status: 'idle' });
-  const [manualAppId, setManualAppId] = useState('');
-
   const useCase = container.get<ValidateAppLoginUseCase>(AUTH_TYPES.ValidateAppLoginUseCase);
   const presenter = container.get<AuthPresenter>(AUTH_TYPES.AuthPresenter);
+
+  const [viewModel, setViewModel] = useState<AuthViewModel>(() => presenter.presentIdle());
+  const [manualAppId, setManualAppId] = useState('');
 
   async function authenticate(appId: string) {
     setViewModel(presenter.presentLoading());
@@ -58,7 +58,8 @@ export function AuthPopup({
         // При ошибке
         setViewModel({
           status: 'error',
-          error: result.error?.message || 'Authentication failed'
+          error: result.error?.message || 'Authentication failed',
+          labels: presenter.labels
         });
         onAuthError?.(result.error?.message || 'Authentication failed');
       }
@@ -66,7 +67,8 @@ export function AuthPopup({
       const errorMessage = 'Произошла ошибка при авторизации';
       setViewModel({
         status: 'error',
-        error: errorMessage
+        error: errorMessage,
+        labels: presenter.labels
       });
       onAuthError?.(errorMessage);
     }
@@ -102,15 +104,15 @@ export function AuthPopup({
               <div className="text-xs">HUB</div>
             </div>
           </div>
-          <p className="text-gray-900 dark:text-white text-xs mb-0.5">Добро пожаловать в</p>
-          <h1 className="text-gray-900 dark:text-white text-xs font-bold">Web Shop 3D: Online Shooter Hub</h1>
+          <p className="text-gray-900 dark:text-white text-xs mb-0.5">{viewModel.labels.welcomeMessage}</p>
+          <h1 className="text-gray-900 dark:text-white text-xs font-bold">{viewModel.labels.welcomeSubtitle}</h1>
         </div>
 
         {/* Loading State */}
         {viewModel.status === 'loading' && (
           <div className="text-center mb-3">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-400 mx-auto"></div>
-            <p className="mt-1.5 text-gray-900 dark:text-white text-xs">Validating App ID...</p>
+            <p className="mt-1.5 text-gray-900 dark:text-white text-xs">{viewModel.labels.loadingMessage}</p>
           </div>
         )}
 
@@ -118,7 +120,7 @@ export function AuthPopup({
         {viewModel.status === 'success' && (
           <div className="text-center mb-3">
             <div className="text-green-400 text-3xl mb-1.5">✓</div>
-            <h3 className="text-xs font-medium text-gray-900 dark:text-white mb-1">Login Successful!</h3>
+            <h3 className="text-xs font-medium text-gray-900 dark:text-white mb-1">{viewModel.labels.successMessage}</h3>
             <p className="text-gray-300 dark:text-gray-200 text-xs">Welcome, {viewModel.user?.username}!</p>
             <p className="text-xs text-gray-400 dark:text-gray-300 mt-0.5">Redirecting to dashboard...</p>
           </div>
@@ -128,7 +130,7 @@ export function AuthPopup({
         {viewModel.status === 'error' && (
           <div className="text-center mb-3">
             <div className="text-red-400 text-3xl mb-1.5">✗</div>
-            <h3 className="text-xs font-medium text-gray-900 dark:text-white mb-1">Authentication Failed</h3>
+            <h3 className="text-xs font-medium text-gray-900 dark:text-white mb-1">{viewModel.labels.errorMessage}</h3>
             <p className="text-gray-300 dark:text-gray-200 text-xs mb-1.5">{viewModel.error}</p>
           </div>
         )}
@@ -147,7 +149,7 @@ export function AuthPopup({
                 type="text"
                 value={manualAppId}
                 onChange={(e) => setManualAppId(e.target.value)}
-                placeholder="App ID"
+                placeholder={viewModel.labels.appIdPlaceholder}
                 className="w-full px-2 py-1.5 bg-gray-700 dark:bg-gray-600 border-2 border-yellow-400 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-yellow-300 text-center font-mono text-xs"
                 onKeyPress={(e) => e.key === 'Enter' && handleManualAuth()}
                 autoFocus

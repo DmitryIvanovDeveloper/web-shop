@@ -18,6 +18,10 @@ interface DailyRewardApiDto {
   updated_at: string;
 }
 
+interface DailyRewardsListApiResponseDto {
+  rewards: DailyRewardApiDto[];
+}
+
 @injectable()
 export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort {
   constructor(
@@ -26,6 +30,40 @@ export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort 
     @inject(TYPES.Logger)
     private readonly _logger: Logger
   ) {}
+
+  async findAllRewards(appId: string): Promise<Result<readonly DailyReward[], Error>> {
+    try {
+      this._logger.info('[SupabaseDailyRewardRepository] Finding all rewards via API', { appId });
+
+      const url = `/api/daily-rewards?appId=${appId}`;
+      this._logger.info('[SupabaseDailyRewardRepository] Making request to:', url);
+
+      // Use HttpClient with proper base URL handling
+      const response = await this._httpClient.get<DailyRewardsListApiResponseDto | DailyRewardApiDto[]>(url);
+
+      if (response.status >= 400) {
+        this._logger.error('[SupabaseDailyRewardRepository] Failed to find rewards via API', {
+          status: response.status,
+          statusText: response.statusText,
+          appId
+        });
+        return Failure.fail(new Error(`Failed to find rewards: ${response.status} ${response.statusText}`));
+      }
+
+      const raw = response.data as DailyRewardsListApiResponseDto | DailyRewardApiDto[];
+      const dtos: DailyRewardApiDto[] = Array.isArray(raw) ? raw : raw.rewards;
+      const rewards = dtos.map(dto => this.mapApiDtoToEntity(dto));
+      this._logger.info('[SupabaseDailyRewardRepository] Found rewards', {
+        appId,
+        count: rewards.length
+      });
+
+      return Success.ok(rewards);
+    } catch (error) {
+      this._logger.error('[SupabaseDailyRewardRepository] Unexpected error finding rewards', { error, appId });
+      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+    }
+  }
 
   async findActiveReward(appId: string): Promise<Result<DailyReward | null, Error>> {
     try {

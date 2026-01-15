@@ -25,9 +25,8 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
   const presenter = container.get<ProductsListPresenter>(PRODUCTS_TYPES.ProductsListPresenter);
   const authService = container.get<AuthServicePort>(PRODUCTS_TYPES.AuthService);
 
-  // Get translations from presenter
-  const getTranslation = (key: string, fallback?: string) => presenter.getTranslation(key, fallback);
-  const direction = presenter.getDirection();
+  // Get view model with labels
+  const viewModel = presenter.getViewModel();
 
   // Get appId with priority: session > query params
   const getAppId = (): string | null => {
@@ -119,8 +118,6 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
     };
   }, [presenter, authService]);
 
-  const viewModel = presenter.getViewModel();
-
   const handleBuyProduct = async (product: Product): Promise<void> => {
     const productId = product.id.value;
 
@@ -145,8 +142,8 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
 
   if (viewModel.status === 'loading') {
     return (
-      <div className={className} style={style} dir={direction}>
-        <h2 className="text-white text-xl font-bold mb-4">{getTranslation('products.title', 'Products')}</h2>
+      <div className={className} style={style} dir="ltr">
+        <h2 className="text-white text-xl font-bold mb-4">{viewModel.labels.productsTitle}</h2>
         <Grid>
           {/* Show 6 skeleton cards while loading */}
           {Array.from({ length: 6 }, (_, index) => (
@@ -161,8 +158,8 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
 
   if (viewModel.status === 'error') {
     return (
-      <div className={className} style={style} dir={direction}>
-        <h2 className="text-white text-xl font-bold mb-4">{getTranslation('products.title', 'Products')}</h2>
+      <div className={className} style={style} dir="ltr">
+        <h2 className="text-white text-xl font-bold mb-4">{viewModel.labels.productsTitle}</h2>
         <div className="text-white">Error: {viewModel.message}</div>
       </div>
     );
@@ -173,9 +170,9 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
   }
 
   return (
-    <div className={`${className || ''} mt-8`} style={style} dir={direction}>
+    <div className={`${className || ''} mt-8`} style={style} dir="ltr">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-white text-xl font-bold">{getTranslation('products.title', 'Products')}</h2>
+        <h2 className="text-white text-xl font-bold">{viewModel.labels.productsTitle}</h2>
       </div>
       <Grid>
         {Array.isArray(viewModel.products) ? viewModel.products.map((product, index) => (
@@ -195,7 +192,7 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
               isPurchased={product.isPurchased}
               isLoading={loadingProducts.has(product.id.value)}
               buyButton={{
-                text: product.currentPrice?.format() || product.originalPrice?.format() || 'BUY NOW',
+                text: product.isPurchased ? viewModel.labels.outOfStock : viewModel.labels.buyButton,
                 enabled: !product.isPurchased,
                 style: product.buyButton?.style
               }}

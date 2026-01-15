@@ -292,7 +292,7 @@ function ProtectedComponent() {
 ### Handling Authentication Events
 
 ```typescript
-import { UserAuthenticatedEvent } from '@/shared/events/auth-events';
+import { UserAuthenticatedEvent } from '@/modules/authentication/domain/events/auth-events';
 
 // In event handler
 function handleUserAuthenticated(event: UserAuthenticatedEvent) {

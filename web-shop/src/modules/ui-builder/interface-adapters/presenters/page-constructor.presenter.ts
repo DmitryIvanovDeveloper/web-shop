@@ -17,6 +17,7 @@ import { migratePageConfigIds } from '../../shared/utils/config-migrator';
 
 interface PageConstructorViewModel {
   appId: string;
+  merchantId: string;
   pageSlug: string;
   sections: PageSection[];
   selectedSection: PageSection | null;
@@ -50,6 +51,7 @@ export class PageConstructorPresenter {
   
   private vm: PageConstructorViewModel = {
     appId: '',
+    merchantId: '',
     pageSlug: 'home',
     sections: [],
     selectedSection: null,
@@ -490,6 +492,7 @@ export class PageConstructorPresenter {
       const config: PageConfig = {
         id: '', // Will be set by database
         appId: this.vm.appId,
+        merchantId: this.vm.merchantId,
         pageSlug: this.vm.pageSlug,
         version: 1, // Will be incremented by storage layer
         isDraft: true,
@@ -656,7 +659,7 @@ export class PageConstructorPresenter {
    * Apply page configuration snapshot from a Template into the current page.
    * Expects pageConfig to contain { sections, pageStyles? } structure.
    */
-  public applyTemplatePageConfig(input: { appId: string; pageSlug: string; pageConfig: unknown }): void {
+  public applyTemplatePageConfig(input: { appId: string; merchantId: string; pageSlug: string; pageConfig: unknown }): void {
     this._logger.info('[PageConstructorPresenter] Applying template page config', {
       appId: input.appId,
       pageSlug: input.pageSlug,
@@ -681,6 +684,7 @@ export class PageConstructorPresenter {
     this.vm = {
       ...this.vm,
       appId: input.appId,
+      merchantId: input.merchantId,
       pageSlug: input.pageSlug,
       sections: snapshot.sections,
       selectedSection: null,

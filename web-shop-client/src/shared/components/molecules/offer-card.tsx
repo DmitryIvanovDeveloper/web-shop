@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import type { CSSProperties } from "react";
 import { Badge } from "../atoms/badge";
-import { useTranslation } from "../../../modules/localization";
 // import type { OfferCardUIConfig } from "../../config/app-config.types";
 
 export interface BuyButtonStyle {
@@ -68,7 +67,6 @@ export function OfferCard({
   style,
   onClick
 }: OfferCardProps): JSX.Element {
-  const { t, direction } = useTranslation();
 
   // State for dynamic styles from config
   const [cardStyles, setCardStyles] = useState<any>(null);
@@ -92,7 +90,7 @@ export function OfferCard({
   return (
     <div
       className={`relative bg-gray-800 rounded-lg overflow-hidden shadow-lg w-full ${className}`}
-      dir={direction}
+      dir="ltr"
       style={{
         backgroundColor: cardStyles?.container?.backgroundColor,
         borderRadius: cardStyles?.container?.borderRadius,
@@ -235,7 +233,7 @@ export function OfferCard({
                 justifyContent: 'center'
               }}
             >
-              {cardStyles?.purchasedBadge?.text || t('products.purchasedBadge', 'PURCHASED')}
+              {cardStyles?.purchasedBadge?.text || 'PURCHASED'}
             </div>
           ) : (
             // BUY Button
@@ -277,7 +275,7 @@ export function OfferCard({
                     </svg>
                   </span>
                 ) : (
-                  buyButton.text || t('products.buyButton', 'Buy Now')
+                  buyButton.text || 'Buy Now'
                 )}
               </button>
             )

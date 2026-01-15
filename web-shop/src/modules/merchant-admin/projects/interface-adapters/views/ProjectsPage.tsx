@@ -43,7 +43,7 @@ export default function ProjectsPage({ merchantId }: ProjectsPageProps) {
       if (selectedProject) {
         // Перенаправить в Analytics с appId в query
         // Не сбрасываем loading - компонент размонтируется при навигации
-        router.push(`/merchant-admin/analytics/dashboard?appId=${selectedProject.appId.value}`);
+        router.push(`/merchant-admin/analytics/dashboard?appId=${selectedProject.appId.value}&merchantId=${merchantId}`);
       } else {
         // Если проект не найден, сбросить loading
         setIsSelectingProject(false);

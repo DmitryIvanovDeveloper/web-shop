@@ -4,5 +4,7 @@ export const PAGE_RENDERER_TYPES = {
   LoadPageConfigFromMessageUseCase: Symbol.for('PageRenderer.LoadPageConfigFromMessageUseCase'),
   PageRendererPresenter: Symbol.for('PageRenderer.PageRendererPresenter'),
   PageConfigLoadedHandler: Symbol.for('PageRenderer.PageConfigLoadedHandler'),
+  PageConfigLoadedEventHandler: Symbol.for('IAsyncEventHandler<PageConfigLoadedEvent>'),
+  AppConfigLoadedEventHandler: Symbol.for('IAsyncEventHandler<AppConfigLoadedEvent>'),
 };
 

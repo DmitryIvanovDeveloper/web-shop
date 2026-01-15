@@ -42,6 +42,7 @@ export class TemplatesPresenter {
 
   private isAdmin: boolean = false;
   private currentAppId: string | null = null;
+  private currentMerchantId: string | null = null;
 
   private vm: TemplatesViewModel = {
     templates: [],
@@ -114,6 +115,11 @@ export class TemplatesPresenter {
     if (!this.isAdmin) {
       await this.loadUserAppConfigs(appId);
     }
+  }
+
+  public setMerchantId(merchantId: string): void {
+    this.logger.info('[TemplatesPresenter] Merchant ID updated', { merchantId });
+    this.currentMerchantId = merchantId;
   }
 
   public subscribe(cb: (vm: TemplatesViewModel) => void): () => void {
@@ -852,8 +858,11 @@ export class TemplatesPresenter {
       template.pages.find((p) => p.pageSlug === currentSlug) ?? template.pages[0] ?? null;
 
     if (matchingPage) {
+      const merchantId = this.uiBuilderPresenter.getViewModel().merchantId || '550e8400-e29b-41d4-a716-446655440000';
+
       this.pageConstructorPresenter.applyTemplatePageConfig({
         appId,
+        merchantId,
         pageSlug: matchingPage.pageSlug,
         pageConfig: matchingPage.pageConfig,
       });

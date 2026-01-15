@@ -10,6 +10,7 @@ import { ConfigVersion } from '../../domain/value-objects/config-version.vo';
 
 export interface SaveDraftInput {
   appId: string;
+  merchantId: string;
   config: Record<string, unknown>;
   version?: number;
 }
@@ -24,12 +25,13 @@ export class SaveDraftUseCase {
   ) {}
 
   public async execute(input: SaveDraftInput): Promise<Result<void, Error>> {
-    const { appId, config, version } = input;
-    this._logger.info('[SaveDraftUseCase] Saving draft config', { appId, requestedVersion: version });
+    const { appId, merchantId, config, version } = input;
+    this._logger.info('[SaveDraftUseCase] Saving draft config', { appId, merchantId, requestedVersion: version });
 
     // Create draft config entity
     const draftConfig = AppConfigFactory.create({
       appId,
+      merchantId,
       config,
       version: version ? ConfigVersion.of(version) : ConfigVersion.initial(), // Use specified version or initial
       isActive: false,

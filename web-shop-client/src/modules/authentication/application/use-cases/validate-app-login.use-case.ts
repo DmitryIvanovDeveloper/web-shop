@@ -16,11 +16,11 @@ import {
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { IEventBus } from '../../../../infrastructure/events/event-bus.plugin';
 import type { Logger } from '../../../../application/ports/logger.port';
-import { UserAuthenticatedEvent } from '../../../../shared/events/auth-events';
 import { SaveSessionUseCase } from './save-session.use-case';
 
 // Импорт AUTH_TYPES из bootstrap
 import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
+import { UserAuthenticatedEvent } from '../../domain/events';
 
 @injectable()
 export class ValidateAppLoginUseCase {

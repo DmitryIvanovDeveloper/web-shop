@@ -1,21 +1,17 @@
-export interface Event {
-  id: string;
+export interface IEvent {
   type: string;
-  payload: any;
-  timestamp: Date;
-  source: string;
 }
 
 export interface EventBus {
   // Синхронная публикация (для критических операций)
-  publish(event: Event): void;
-  
+  publish(event: IEvent): void;
+
   // Асинхронная публикация (для фоновых операций)
-  publishAsync(event: Event): Promise<void>;
-  
+  publishAsync(event: IEvent): Promise<void>;
+
   // Подписка на события
-  subscribe<TEvent extends Event>(handler: any): void;
-  
+  subscribe<TEvent extends IEvent>(handler: any): void;
+
   // Отписка от событий
-  unsubscribe<TEvent extends Event>(handler: any): void;
+  unsubscribe<TEvent extends IEvent>(handler: any): void;
 }

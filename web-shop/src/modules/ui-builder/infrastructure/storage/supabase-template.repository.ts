@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { Result } from '@/shared/result/result';
 import type { Logger } from '@/application/ports/logger.port';
-import type { DatabaseClientPort } from '@/application/ports/database-client.port';
+import type { HttpClientPort } from '@/application/ports/http-client.port';
 import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import type { Template, TemplatePageSnapshot, TemplateMetadata } from '../../domain/entities/template.entity';
 import type {
@@ -31,6 +31,11 @@ export class SupabaseTemplateRepository implements TemplateRepositoryPort {
     @inject(ROOT_TYPES.DatabaseClient)
     private readonly db: DatabaseClientPort
   ) {}
+
+  // For client-side usage - check if we're in browser
+  private get isClient(): boolean {
+    return typeof window !== 'undefined';
+  }
 
   public async create(template: Template): Promise<Result<Template, Error>> {
     this.logger.info('[SupabaseTemplateRepository] Creating template', {
@@ -227,47 +232,90 @@ export class SupabaseTemplateRepository implements TemplateRepositoryPort {
     this.logger.info('[SupabaseTemplateRepository] Listing templates', {
       query: filter?.query,
       pagination,
+      isClient: this.isClient,
     });
 
     try {
-      let query = this.db
-        .from('templates')
-        .select('id, name, metadata, updated_at')
-        .order('updated_at', { ascending: false });
+      // Use HTTP API in browser, direct Supabase on server
+      if (this.isClient) {
+        this.logger.info('[SupabaseTemplateRepository] Using HTTP API for client-side request');
 
-      if (filter?.query) {
-        const q = `%${filter.query.trim()}%`;
-        query = query.ilike('name', q);
+        const params = new URLSearchParams();
+        if (filter?.query) {
+          params.set('query', filter.query);
+        }
+
+        const response = await fetch(`/api/templates?${params.toString()}`);
+        if (!response.ok) {
+          const errorText = await response.text();
+          this.logger.error('[SupabaseTemplateRepository] HTTP API error', {
+            status: response.status,
+            error: errorText
+          });
+          return Result.error(new Error(`Failed to fetch templates: ${response.status} ${errorText}`));
+        }
+
+        const data = await response.json();
+        const templates = data.templates || [];
+
+        const summaries: TemplateSummary[] = templates.map((template: any) => ({
+          id: template.id,
+          name: template.name,
+          description: template.metadata?.description,
+          thumbnailUrl: template.metadata?.previewImageUrl,
+          updatedAt: template.updated_at ? new Date(template.updated_at) : new Date(template.created_at),
+        }));
+
+        this.logger.info('[SupabaseTemplateRepository] Templates fetched via HTTP API', {
+          count: summaries.length,
+        });
+
+        return Result.ok(summaries);
+      } else {
+        // Server-side: use direct Supabase
+        let query = this.db
+          .from('templates')
+          .select('id, name, metadata, updated_at')
+          .order('updated_at', { ascending: false });
+
+        if (filter?.query) {
+          const q = `%${filter.query.trim()}%`;
+          query = query.ilike('name', q);
+        }
+
+        if (pagination) {
+          const from = (pagination.page - 1) * pagination.pageSize;
+          const to = from + pagination.pageSize - 1;
+          query = query.range(from, to);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+          this.logger.error('[SupabaseTemplateRepository] Failed to list templates', { error });
+          return Result.error(new Error(`Failed to list templates: ${error.message}`));
+        }
+
+        const rows = (data as TemplateRow[] | null) ?? [];
+        const summaries: TemplateSummary[] = rows.map(row => {
+          const metadata = (row.metadata ?? {}) as TemplateMetadata;
+          return {
+            id: row.id,
+            name: row.name,
+            description: metadata.description,
+            thumbnailUrl: metadata.previewImageUrl,
+            updatedAt: row.updated_at ? new Date(row.updated_at) : undefined,
+          };
+        });
+
+        this.logger.info('[SupabaseTemplateRepository] Templates listed successfully', {
+          count: summaries.length,
+        });
+
+        return Result.ok(summaries);
       }
-
-      if (pagination) {
-        const from = (pagination.page - 1) * pagination.pageSize;
-        const to = from + pagination.pageSize - 1;
-        query = query.range(from, to);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        this.logger.error('[SupabaseTemplateRepository] Failed to list templates', { error });
-        return Result.error(new Error(`Failed to list templates: ${error.message}`));
-      }
-
-      const rows = (data as TemplateRow[] | null) ?? [];
-      const summaries: TemplateSummary[] = rows.map(row => {
-        const metadata = (row.metadata ?? {}) as TemplateMetadata;
-        return {
-          id: row.id,
-          name: row.name,
-          description: metadata.description,
-          thumbnailUrl: metadata.previewImageUrl,
-          updatedAt: row.updated_at ? new Date(row.updated_at) : undefined,
-        };
-      });
-
-      return Result.ok<TemplateSummary[], Error>(summaries);
     } catch (error) {
-      this.logger.error('[SupabaseTemplateRepository] Unexpected error on list', { error });
+      this.logger.error('[SupabaseTemplateRepository] Unexpected error', { error });
       return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }

@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { getSupabaseServerClient } from '../../_lib/supabase-server-client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,6 +12,8 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const supabase = getSupabaseServerClient();
 
     const { data, error } = await supabase
       .from('translations')
@@ -31,6 +28,25 @@ export async function GET(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Детальное логирование для отладки
+    const allKeys = (data || []).map((t: any) => t.key);
+    const navKeys = (data || []).filter((t: any) => t.key && t.key.startsWith('nav.')).map((t: any) => t.key);
+    const allNavTranslations = (data || []).filter((t: any) => t.key && t.key.startsWith('nav.')).map((t: any) => ({ key: t.key, value: t.value }));
+    const expectedNavKeys = ['nav.home', 'nav.store', 'nav.patchNotes', 'nav.dailyRewards', 'nav.loyaltyProgram', 'nav.news', 'nav.updates', 'nav.events'];
+    const missingNavKeys = expectedNavKeys.filter(key => !navKeys.includes(key));
+    
+    console.log('[API /api/localization/translations] Supabase response details', {
+      languageCode,
+      totalTranslations: (data || []).length,
+      allKeys: allKeys.slice(0, 20), // первые 20 ключей для примера
+      navKeys: navKeys,
+      navKeysCount: navKeys.length,
+      allNavTranslations: allNavTranslations,
+      expectedNavKeys: expectedNavKeys,
+      missingNavKeys: missingNavKeys,
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL
+    });
 
     const translations = data.map(translation => ({
       key: translation.key,
@@ -66,6 +82,8 @@ export async function POST(request: NextRequest) {
 
     for (const update of updates) {
       const { key, languageCode, value } = update;
+
+      const supabase = getSupabaseServerClient();
 
       // Check if translation exists
       const { data: existing } = await supabase

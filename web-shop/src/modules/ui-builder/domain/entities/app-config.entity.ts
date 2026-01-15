@@ -116,6 +116,7 @@ export interface AppConfigStructure {
 export interface AppConfig {
   id?: string;
   appId: string;
+  merchantId: string;
   version: import('../value-objects/config-version.vo').ConfigVersion;
   isDraft?: boolean;
   isActive?: boolean;
@@ -127,7 +128,7 @@ export interface AppConfig {
 export class AppConfigFactory {
   public static create(input: {
     appId: string;
-    merchantId?: string;
+    merchantId: string;
     config: unknown;
     version: import('../value-objects/config-version.vo').ConfigVersion;
     isActive: boolean;
@@ -137,6 +138,7 @@ export class AppConfigFactory {
   }): AppConfig {
     return {
       appId: input.appId,
+      merchantId: input.merchantId,
       config: input.config,
       version: input.version,
       isActive: input.isActive,

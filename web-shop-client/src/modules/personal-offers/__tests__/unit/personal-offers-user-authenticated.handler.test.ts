@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { PersonalOffersUserAuthenticatedHandler } from '../../interface-adapters/handlers/user-authenticated-event.handler';
 import { PersonalOffersPresenter } from '../../interface-adapters/presenters/personal-offers.presenter';
-import { UserAuthenticatedEvent } from '../../../../shared/events/auth-events';
+import { UserAuthenticatedEvent } from '../../../authentication/domain/events';
 import type { UserOfferContextReaderPort } from '../../../../modules/user-offer-context/application/ports/user-offer-context-reader.port';
 
 describe('PersonalOffersUserAuthenticatedHandler', () => {

@@ -24,7 +24,7 @@ export class AppLayoutConfigLoadedHandler implements IAsyncEventHandler<AppConfi
 
 		try {
 			// Extract uiRenderer config, defaulting to empty object if modules don't exist
-			const appLayoutConfig = event.payload?.config?.modules?.uiRenderer || {};
+			const appLayoutConfig = event.config?.modules?.uiRenderer || {};
 
 			this._logger.info('[AppLayoutConfigLoadedHandler] Extracted uiRenderer config', {
 				hasConfig: !!appLayoutConfig,

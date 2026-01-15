@@ -1,4 +1,4 @@
-export const PRODUCTS_TYPES = {
+export const  PRODUCTS_TYPES = {
   // Ports
   ProductRepository: Symbol.for('Products.ProductRepository'),
   ProductStorage: Symbol.for('Products.ProductStorage'),
@@ -13,8 +13,12 @@ export const PRODUCTS_TYPES = {
   AuthService: Symbol.for('AuthService'), // Shared с Authentication модулем
   // Presenters
   ProductsListPresenter: Symbol.for('Products.ProductsListPresenter'),
-  // Handlers - use generic EventBus symbol for auto-discovery
+  // Event Handlers
+  AppConfigLoadedEventHandler: Symbol.for('IAsyncEventHandler<AppConfigLoadedEvent>'),
+  TranslationsConfigEventHandler: Symbol.for('IAsyncEventHandler<TranslationsConfigEvent>'),
   ProductsUserAuthenticatedHandler: Symbol.for('IAsyncEventHandler<UserAuthenticatedEvent>'),
+  LocalizationLoadedEventHandler: Symbol.for('IAsyncEventHandler<LocalizationLoadedEvent>'),
+  LocalizationChangedEventHandler: Symbol.for('IAsyncEventHandler<LocalizationChangedEvent>'),
 };
 
 

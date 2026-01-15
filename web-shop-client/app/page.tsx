@@ -16,7 +16,8 @@ import { TYPES } from '../src/infrastructure/bootstrap/types';
 import { OfferCard } from '../src/shared/components/molecules/offer-card';
 import { PatchNotesPublic } from '../src/modules/patch-notes/interface-adapters/ui/components/patch-notes-public';
 import { ProductsList } from '../src/modules/products/interface-adapters/ui/components/products-list';
-import { useTranslation } from '../src/modules/localization';
+import { LOCALIZATION_TYPES } from '../src/modules/localization';
+import type { LocalizationPresenter } from '../src/modules/localization';
 import type { AppConfig } from '../src/shared/config/app-config.types';
 
 export default function HomePage(): JSX.Element {
@@ -35,8 +36,22 @@ export default function HomePage(): JSX.Element {
   const [currentAppId, setCurrentAppId] = useState<string>('');
   const [showLocalizationModal, setShowLocalizationModal] = useState(false);
 
-  // Localization hook
-  const { t, direction } = useTranslation();
+  // Simple translation helper
+  const getTranslation = () => {
+    try {
+      const presenter = container.get<LocalizationPresenter>(LOCALIZATION_TYPES.LocalizationPresenter);
+      const vm = presenter.viewModel;
+      const t = (key: string, fallback?: string): string => {
+        return vm.translations[key] || fallback || key;
+      };
+      return { t, direction: vm.direction };
+    } catch {
+      const t = (key: string, fallback?: string): string => fallback || key;
+      return { t, direction: 'ltr' };
+    }
+  };
+
+  const { t, direction } = getTranslation();
   const applyElementSelectionMode = useCallback((enabled: boolean) => {
     setElementSelectionMode(enabled);
 
@@ -84,6 +99,10 @@ export default function HomePage(): JSX.Element {
     navigateToPatchNotes: () => {
       console.log('[HomePage] Navigating to patch notes page');
       navigateWithQuery('/patch-notes');
+    },
+    navigateToDailyRewards: () => {
+      console.log('[HomePage] Navigating to daily rewards page');
+      navigateWithQuery('/daily-rewards');
     },
     openLocalizationModal: () => {
       console.log('[HomePage] Opening localization modal');

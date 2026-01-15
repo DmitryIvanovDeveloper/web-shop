@@ -16,7 +16,7 @@ export abstract class TranslationsConfigHandler implements IAsyncEventHandler<Tr
   ) {}
 
   public canHandle(event: TranslationsConfigEvent): boolean {
-    return event.type === 'localization.translations.config';
+    return event.type === 'TranslationsConfigEvent';
   }
 
   public async handleAsync(event: TranslationsConfigEvent): Promise<void> {

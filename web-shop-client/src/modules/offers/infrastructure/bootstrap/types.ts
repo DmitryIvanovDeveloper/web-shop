@@ -9,5 +9,7 @@ export const OFFERS_TYPES = {
   // Presenters
   OffersListPresenter: Symbol.for('Offers.OffersListPresenter'),
   // Handlers
-  UserAuthenticatedHandler: Symbol.for('IAsyncEventHandler<UserAuthenticatedEvent>')
+  UserAuthenticatedHandler: Symbol.for('IAsyncEventHandler<UserAuthenticatedEvent>'),
+  LocalizationLoadedEventHandler: Symbol.for('IAsyncEventHandler<LocalizationLoadedEvent>'),
+  LocalizationChangedEventHandler: Symbol.for('IAsyncEventHandler<LocalizationChangedEvent>')
 };

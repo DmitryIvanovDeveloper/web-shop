@@ -335,7 +335,7 @@
               "id": "store-button",
               "type": "Button",
               "props": {
-                "text": "Store",
+                "text": "i18n:nav.store",
                 "icon": "🛒",
                 "fullWidth": true
               },
@@ -365,6 +365,28 @@
                 "onClick": {
                   "type": "custom",
                   "handler": "navigateToPatchNotes"
+                }
+              }
+            },
+            {
+              "id": "daily-rewards-button",
+              "type": "Button",
+              "props": {
+                "text": "Daily Rewards",
+                "icon": "🎯",
+                "fullWidth": true
+              },
+              "styles": {
+                "padding": 4,
+                "backgroundColor": "surface",
+                "textColor": "text",
+                "justifyContent": "flex-start",
+                "hoverBackgroundColor": "primary"
+              },
+              "actions": {
+                "onClick": {
+                  "type": "custom",
+                  "handler": "navigateToDailyRewards"
                 }
               }
             }

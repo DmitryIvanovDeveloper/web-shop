@@ -10,6 +10,11 @@ export interface ClaimDailyRewardInput {
   appId: string;
 }
 
+export interface LoadDailyRewardsInput {
+  appId: string;
+  userId?: string;
+}
+
 export interface DailyRewardAvailabilityOutput {
   canClaim: boolean;
   reward: DailyRewardOutput | null;
@@ -24,6 +29,10 @@ export interface ClaimDailyRewardOutput {
   message: string;
 }
 
+export interface LoadDailyRewardsOutput {
+  rewards: DailyRewardOutput[];
+}
+
 export interface DailyRewardOutput {
   id: string;
   type: RewardTypeValue;
@@ -31,6 +40,7 @@ export interface DailyRewardOutput {
   description: string;
   points: number;
   isActive: boolean;
+  isClaimedToday?: boolean;
   createdAt: string;
   updatedAt: string;
 }

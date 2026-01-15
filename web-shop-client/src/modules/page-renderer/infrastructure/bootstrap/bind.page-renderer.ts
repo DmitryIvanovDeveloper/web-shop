@@ -35,7 +35,7 @@ export function bindPageRenderer(container: Container): void {
   // Event Handlers
   container
     .bind<IAsyncEventHandler<PageConfigLoadedEvent>>(
-      Symbol.for('IAsyncEventHandler<PageConfigLoadedEvent>')
+      PAGE_RENDERER_TYPES.PageConfigLoadedEventHandler
     )
     .to(PageConfigLoadedHandler)
     .inTransientScope();
@@ -43,7 +43,7 @@ export function bindPageRenderer(container: Container): void {
   // Handler for AppConfigLoadedEvent (updates offerCards from config)
   container
     .bind<IAsyncEventHandler<AppConfigLoadedEvent>>(
-      Symbol.for('IAsyncEventHandler<AppConfigLoadedEvent>')
+      PAGE_RENDERER_TYPES.AppConfigLoadedEventHandler
     )
     .to(PageRendererAppConfigLoadedHandler)
     .inTransientScope();

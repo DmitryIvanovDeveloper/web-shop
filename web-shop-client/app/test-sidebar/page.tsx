@@ -4,10 +4,26 @@ import { container } from '../../src/infrastructure/bootstrap/container';
 import { APP_LAYOUT_TYPES } from '../../src/modules/app-layout/infrastructure/bootstrap/types';
 import { SidebarRendererPresenter } from '../../src/modules/app-layout/interface-adapters/presenters/sidebar-renderer.presenter';
 import { SidebarRenderer } from '../../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
-import { useTranslation } from '../../src/modules/localization';
+import { LOCALIZATION_TYPES } from '../../src/modules/localization';
+import type { LocalizationPresenter } from '../../src/modules/localization';
 
 export default function TestSidebarPage() {
-  const { t, direction } = useTranslation();
+  // Simple translation helper
+  const getTranslation = () => {
+    try {
+      const presenter = container.get<LocalizationPresenter>(LOCALIZATION_TYPES.LocalizationPresenter);
+      const vm = presenter.viewModel;
+      const t = (key: string, fallback?: string): string => {
+        return vm.translations[key] || fallback || key;
+      };
+      return { t, direction: vm.direction };
+    } catch {
+      const t = (key: string, fallback?: string): string => fallback || key;
+      return { t, direction: 'ltr' };
+    }
+  };
+
+  const { t, direction } = getTranslation();
 
   const sidebarPresenter = container.get<SidebarRendererPresenter>(
     APP_LAYOUT_TYPES.SidebarRendererPresenter
