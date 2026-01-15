@@ -3,6 +3,7 @@
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 import Sidebar from "@/shared/ui/Sidebar";
+import { useSelectedProject } from "@/shared/hooks/useSelectedProject";
 
 interface ClientLayoutProps {
   children: React.ReactNode;
@@ -15,19 +16,44 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   const [isNavigating, setIsNavigating] = useState(false);
 
   // Get appId and merchantId from URL search params
-  const appId = searchParams?.get('appId');
-  const merchantId = searchParams?.get('merchantId');
+  const appIdFromUrl = searchParams?.get('appId');
+  const merchantIdFromUrl = searchParams?.get('merchantId');
+  
+  // Get selected project data (includes merchantId and appId)
+  const { selectedProject } = useSelectedProject();
+  
+  // Priority: URL params first, then selected project
+  const appId = appIdFromUrl || selectedProject?.appId || null;
+  const merchantId = merchantIdFromUrl || selectedProject?.merchantId || null;
 
-  const routes: Record<string, string> = useMemo(() => ({
-    home: '/',
-    'analytics-dashboard': '/merchant-admin/analytics/dashboard',
-    'merchant-admin-daily-rewards': appId ? `/merchant-admin/daily-rewards?appId=${appId}` : '/merchant-admin/daily-rewards',
-    'merchant-admin-offers': appId ? `/merchant-admin/offers?appId=${appId}` : '/merchant-admin/offers',
-    'merchant-admin-products': appId ? `/products?appId=${appId}` : '/products',
-    'merchant-admin-patch-notes': appId ? `/merchant-admin/patch-notes?appId=${appId}` : '/merchant-admin/patch-notes',
-    'merchant-admin-localization': '/merchant-admin/localization',
-    'ui-builder': appId ? `/ui-builder?appId=${appId}&pageSlug=store${merchantId ? `&merchantId=${merchantId}` : ''}` : `/ui-builder?pageSlug=store${merchantId ? `&merchantId=${merchantId}` : ''}`,
-  }), [appId, merchantId]);
+  const routes: Record<string, string> = useMemo(() => {
+    const buildQuery = (includeAppId: boolean = true, includeMerchantId: boolean = true) => {
+      const params = new URLSearchParams();
+      if (includeAppId && appId) {
+        params.set('appId', appId);
+      }
+      if (includeMerchantId && merchantId) {
+        params.set('merchantId', merchantId);
+      }
+      const queryString = params.toString();
+      return queryString ? `?${queryString}` : '';
+    };
+
+    return {
+      home: '/',
+      'analytics-dashboard': `/merchant-admin/analytics/dashboard${buildQuery()}`,
+      'merchant-admin-daily-rewards': `/merchant-admin/daily-rewards${buildQuery()}`,
+      'merchant-admin-offers': `/merchant-admin/offers${buildQuery()}`,
+      'merchant-admin-products': `/products${buildQuery()}`,
+      'merchant-admin-patch-notes': `/merchant-admin/patch-notes${buildQuery()}`,
+      'merchant-admin-localization': `/merchant-admin/localization${buildQuery(false, true)}`,
+      'ui-builder': (() => {
+        const query = buildQuery();
+        const separator = query ? '&' : '?';
+        return `/ui-builder${query}${separator}pageSlug=store`;
+      })(),
+    };
+  }, [appId, merchantId]);
 
   // Individual pages handle appId validation and redirect to projects if needed
 
