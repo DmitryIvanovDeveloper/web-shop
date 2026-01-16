@@ -306,13 +306,25 @@ export class PaymentPresenter {
         intentId: this._viewModel.paymentIntent.intentId
       });
 
-      // Redirect to Main Client after successful payment
+      // Redirect to Main Client after successful payment with userId and appId
       const clientUrl = process.env.NEXT_PUBLIC_CLIENT_URL || 'https://web-shop-client-ashy.vercel.app';
+      const redirectUrl = new URL(clientUrl);
+      
+      // Add userId and appId as query parameters
+      if (this._userId) {
+        redirectUrl.searchParams.set('userId', this._userId);
+      }
+      if (this._appId) {
+        redirectUrl.searchParams.set('appId', this._appId);
+      }
+      
       setTimeout(() => {
         this._logger.info('[PaymentPresenter] Redirecting to Main Client', {
-          redirectUrl: clientUrl
+          redirectUrl: redirectUrl.toString(),
+          userId: this._userId,
+          appId: this._appId
         });
-        window.location.href = clientUrl;
+        window.location.href = redirectUrl.toString();
       }, 2000); // 2 second delay to show success message
     } catch (error) {
       this._viewModel.status = 'error';

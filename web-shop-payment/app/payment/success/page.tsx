@@ -14,7 +14,21 @@ function PaymentSuccessContent() {
 
   const handleBackToProducts = () => {
     const clientUrl = process.env.NEXT_PUBLIC_CLIENT_URL || 'http://localhost:3000';
-    window.location.href = clientUrl;
+    const redirectUrl = new URL(clientUrl);
+    
+    // Get userId and appId from query parameters
+    const userId = searchParams.get('userId');
+    const appId = searchParams.get('appId');
+    
+    // Add userId and appId as query parameters if they exist
+    if (userId) {
+      redirectUrl.searchParams.set('userId', userId);
+    }
+    if (appId) {
+      redirectUrl.searchParams.set('appId', appId);
+    }
+    
+    window.location.href = redirectUrl.toString();
   };
 
   return (
