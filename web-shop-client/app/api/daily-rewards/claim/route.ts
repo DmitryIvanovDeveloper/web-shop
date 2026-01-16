@@ -46,16 +46,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }, { status: 409 });
     }
 
-    // Verify reward exists and is active
+    // Verify reward exists
+    // Note: We don't check is_active here because activity is determined dynamically
+    // based on day_number and user's claim history, not by the is_active field in DB
     const { data: reward, error: rewardError } = await supabase
       .from('daily_rewards')
       .select('*')
       .eq('id', rewardId)
-      .eq('is_active', true)
       .single();
 
     if (rewardError || !reward) {
-      return NextResponse.json({ error: 'Reward not found or not active' }, { status: 404 });
+      return NextResponse.json({ error: 'Reward not found' }, { status: 404 });
     }
 
     // Create claim record
@@ -78,7 +79,47 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Failed to save daily reward claim' }, { status: 500 });
     }
 
-    return NextResponse.json(data, { status: 201 });
+    // Calculate next reward and next claim date
+    let nextRewardId: string | null = null;
+    let nextClaimDate: Date | null = null;
+
+    // Get all rewards for the app to find next one
+    const { data: allRewards, error: rewardsError } = await supabase
+      .from('daily_rewards')
+      .select('*')
+      .eq('app_id', reward.app_id || '')
+      .order('day_number', { ascending: true, nullsLast: true });
+
+    if (!rewardsError && allRewards && allRewards.length > 0) {
+      // Find claimed reward's day_number
+      const claimedReward = allRewards.find(r => r.id === rewardId);
+      if (claimedReward) {
+        if (claimedReward.day_number !== null) {
+          // Find next reward by day_number
+          const nextReward = allRewards.find(r => r.day_number === claimedReward.day_number + 1);
+          if (nextReward) {
+            nextRewardId = nextReward.id;
+          }
+        } else if (allRewards.length > 0) {
+          // If no day_number, return first reward
+          nextRewardId = allRewards[0].id;
+        }
+      }
+
+      // Calculate next claim date (tomorrow at midnight)
+      if (nextRewardId) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+        nextClaimDate = tomorrow;
+      }
+    }
+
+    return NextResponse.json({
+      ...data,
+      nextRewardId,
+      nextClaimDate: nextClaimDate?.toISOString() || null
+    }, { status: 201 });
   } catch (error) {
     console.error('[POST /api/daily-rewards/claim] Unexpected error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

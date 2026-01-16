@@ -37,3 +37,4 @@ export class AppLayoutLocalizationLoadedEventHandler implements IAsyncEventHandl
   }
 }
 
+

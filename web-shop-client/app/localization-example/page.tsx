@@ -5,3 +5,4 @@ import { LocalizationExample } from '../../src/modules/localization/interface-ad
 export default function LocalizationExamplePage() {
   return <LocalizationExample />;
 }
+

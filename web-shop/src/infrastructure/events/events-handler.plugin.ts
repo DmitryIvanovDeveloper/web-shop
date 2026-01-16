@@ -10,3 +10,4 @@ export interface IAsyncEventHandler<TEvent extends Event> {
   handleAsync(event: TEvent): Promise<void>;
 }
 
+

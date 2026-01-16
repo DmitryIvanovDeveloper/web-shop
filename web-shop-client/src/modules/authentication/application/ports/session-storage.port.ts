@@ -27,3 +27,4 @@ export interface SessionStoragePort {
   clear(): Promise<Result<void, Error>>;
 }
 
+

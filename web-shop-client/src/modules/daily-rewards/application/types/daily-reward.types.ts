@@ -8,6 +8,7 @@ export interface CheckDailyRewardAvailabilityInput {
 export interface ClaimDailyRewardInput {
   userId: string;
   appId: string;
+  rewardId?: string;
 }
 
 export interface LoadDailyRewardsInput {
@@ -20,6 +21,7 @@ export interface DailyRewardAvailabilityOutput {
   reward: DailyRewardOutput | null;
   nextClaimDate?: Date;
   lastClaimDate?: Date;
+  lastClaimRewardId?: string | null;
 }
 
 export interface ClaimDailyRewardOutput {
@@ -27,6 +29,8 @@ export interface ClaimDailyRewardOutput {
   pointsAwarded: number;
   claimId: string;
   message: string;
+  nextRewardId?: string | null; // ID следующей награды
+  nextClaimDate?: Date | null; // Дата следующего claim'а (завтра в полночь)
 }
 
 export interface LoadDailyRewardsOutput {
@@ -40,6 +44,7 @@ export interface DailyRewardOutput {
   description: string;
   points: number;
   isActive: boolean;
+  dayNumber: number | null;
   isClaimedToday?: boolean;
   createdAt: string;
   updatedAt: string;

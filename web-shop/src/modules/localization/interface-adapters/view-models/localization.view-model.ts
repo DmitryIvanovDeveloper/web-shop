@@ -19,3 +19,4 @@ export interface LocalizationViewModel {
   readonly incompleteLanguages: LocalizationStatusResponse['incompleteLanguages'];
 }
 
+

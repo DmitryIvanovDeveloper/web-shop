@@ -32,3 +32,4 @@ export class AuthLocalizationLoadedEventHandler implements IAsyncEventHandler<Lo
     this._logger.debug('[AuthLocalizationLoadedEventHandler] Auth presenter labels updated');
   }
 }
+

@@ -19,9 +19,9 @@ export function UserInfo({ renderSidebarButton, currentUser }: UserInfoProps) {
 	return (
 		<div className="relative w-full p-4" style={{ display: 'block' }}>
 			{/* Основной контейнер с информацией о пользователе - строго вертикально */}
-			<div 
+					<div
 				className="flex flex-col items-center space-y-3"
-				style={{ 
+						style={{
 					display: 'flex', 
 					flexDirection: 'column',
 					alignItems: 'center',
@@ -38,18 +38,18 @@ export function UserInfo({ renderSidebarButton, currentUser }: UserInfoProps) {
 					/>
 
 					{/* Кнопка меню */}
-					<button
-						onClick={() => setIsMenuOpen(!isMenuOpen)}
+						<button
+							onClick={() => setIsMenuOpen(!isMenuOpen)}
 						className="absolute bottom-0 right-0 w-6 h-6 rounded bg-gray-600 hover:bg-gray-500 flex items-center justify-center transition-colors"
-						aria-label="Menu"
-					>
+							aria-label="Menu"
+						>
 						<div className="flex flex-col space-y-0.5">
 							<div className="w-2.5 h-0.5 bg-white rounded"></div>
 							<div className="w-2.5 h-0.5 bg-white rounded"></div>
 							<div className="w-2.5 h-0.5 bg-white rounded"></div>
-						</div>
-					</button>
-				</div>
+							</div>
+						</button>
+					</div>
 
 				{/* Имя пользователя - строго под аватаром */}
 				<div 

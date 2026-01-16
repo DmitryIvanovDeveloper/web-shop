@@ -12,5 +12,4 @@ export { DAILY_REWARDS_TYPES } from './infrastructure/bootstrap/types';
 
 // Interface Adapters
 export { DailyRewardsPresenter } from './interface-adapters/presenters/daily-rewards-presenter';
-export { DailyRewardsListPresenter } from './interface-adapters/presenters/daily-rewards-list.presenter';
 export { DailyRewards, DailyRewardsPopup, DailyRewardsPage, DailyRewardCard, DailyRewardsCardsGrid } from './interface-adapters/ui';

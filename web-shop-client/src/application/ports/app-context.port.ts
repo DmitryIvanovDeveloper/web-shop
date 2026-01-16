@@ -14,3 +14,4 @@ export interface AppContextPort {
    */
   getMerchantId(): string | null;
 }
+

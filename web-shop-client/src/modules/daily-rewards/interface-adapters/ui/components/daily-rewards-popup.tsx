@@ -39,6 +39,7 @@ export function DailyRewardsPopup({
     isClaimedToday?: boolean;
   }>>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Initialize presenter
@@ -84,6 +85,7 @@ export function DailyRewardsPopup({
       
       setRewards(availableRewards);
       setIsLoading(presenter.isLoading);
+      setIsClaiming(presenter.isClaiming);
       setError(presenter.error);
     });
 
@@ -111,9 +113,11 @@ export function DailyRewardsPopup({
   };
 
   const handleClaimReward = async () => {
-    if (!presenter || !appId || !userId) {
+    if (!presenter || !appId || !userId || isClaiming) {
       return;
     }
+    
+    // presenter сам управляет isClaiming через ViewModel
     await presenter.claimReward({ userId, appId });
   };
 
@@ -189,6 +193,7 @@ export function DailyRewardsPopup({
                     isClaimedToday={reward.isClaimedToday}
                     onClaim={reward.isActive && !reward.isClaimedToday ? handleClaimReward : undefined}
                     day={index + 1}
+                    isLoading={isClaiming}
                   />
                 </div>
               ))}

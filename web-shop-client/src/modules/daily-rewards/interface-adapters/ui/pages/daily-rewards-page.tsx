@@ -4,9 +4,10 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { container as appContainer } from '../../../../../infrastructure/bootstrap/container';
 import { DAILY_REWARDS_TYPES } from '../../../infrastructure/bootstrap/types';
-import { DailyRewardsListPresenter, type DailyRewardListItemViewModel } from '../../presenters/daily-rewards-list.presenter';
+import type { DailyRewardViewModel } from '../../view-models/daily-reward.view-model';
 import { DailyRewardsCardsGrid } from '../components/daily-rewards-cards-grid';
 import { useAppId } from '../../../../../shared/hooks/use-app-context';
+import { DailyRewardsPresenter } from '../../presenters/daily-rewards-presenter';
 
 export interface DailyRewardsPageProps {
   // appId будет получен автоматически через useAppId()
@@ -18,26 +19,14 @@ export function DailyRewardsPage({}: DailyRewardsPageProps): JSX.Element {
   const userId = searchParams.get('userId') || 'anonymous-user';
 
   const presenter = useMemo(
-    () => appContainer.get<DailyRewardsListPresenter>(DAILY_REWARDS_TYPES.DailyRewardsListPresenter),
+    () => appContainer.get<DailyRewardsPresenter>(DAILY_REWARDS_TYPES.DailyRewardsPresenter),
     []
   );
 
   // Reactive state from presenter
-  const [rewards, setRewards] = useState<DailyRewardListItemViewModel[]>([]);
+  const [rewards, setRewards] = useState<DailyRewardViewModel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const cardRewards = useMemo(() => {
-    return rewards.map((reward) => ({
-      id: reward.id,
-      title: reward.title,
-      description: reward.description,
-      points: reward.points,
-      type: reward.type as 'points' | 'currency' | 'item',
-      isActive: reward.isActive,
-      isClaimedToday: reward.isClaimedToday,
-    }));
-  }, [rewards]);
 
   useEffect(() => {
     // Set userId in presenter
@@ -66,9 +55,11 @@ export function DailyRewardsPage({}: DailyRewardsPageProps): JSX.Element {
     await presenter.loadRewards({ appId, userId });
   };
 
-  const handleClaimReward = async (): Promise<void> => {
+  const handleClaimReward = async (rewardId: string): Promise<void> => {
     if (!appId) return;
-    await presenter.claimReward({ userId, appId });
+    
+    // presenter сам управляет isClaiming через ViewModel
+    await presenter.claimReward({ userId, appId, rewardId });
   };
 
   const containerStyle: React.CSSProperties = {
@@ -136,7 +127,7 @@ export function DailyRewardsPage({}: DailyRewardsPageProps): JSX.Element {
       )}
 
       <DailyRewardsCardsGrid 
-        rewards={cardRewards} 
+        rewards={rewards} 
         isLoading={isLoading}
         onClaimReward={handleClaimReward} 
       />

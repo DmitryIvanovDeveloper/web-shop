@@ -10,3 +10,4 @@ WHERE language_code NOT IN ('ar', 'en');
 DELETE FROM public.languages
 WHERE code NOT IN ('ar', 'en');
 
+

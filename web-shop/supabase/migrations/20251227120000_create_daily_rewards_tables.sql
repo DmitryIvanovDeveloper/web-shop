@@ -81,3 +81,4 @@ CREATE TRIGGER IF NOT EXISTS daily_rewards_updated_at_trigger
 
 
 
+

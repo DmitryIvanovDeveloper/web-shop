@@ -36,3 +36,4 @@ UPDATE daily_rewards
 SET day_number = 1 
 WHERE id = '550e8400-e29b-41d4-a716-446655440000' AND day_number IS NULL;
 
+

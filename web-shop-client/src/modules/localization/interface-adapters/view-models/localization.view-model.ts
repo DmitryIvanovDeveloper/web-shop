@@ -8,3 +8,4 @@ export interface LocalizationViewModel {
   readonly direction: 'ltr' | 'rtl';
 }
 
+

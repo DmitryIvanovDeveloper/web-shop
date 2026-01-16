@@ -16,6 +16,7 @@ const menuItems: Array<{ key: string; label: string; icon: string; href: string 
   { key: "merchant-admin-daily-rewards", label: "Daily Rewards", icon: "🎯", href: "/merchant-admin/daily-rewards" },
   { key: "merchant-admin-offers", label: "Offers", icon: "🎁", href: "/merchant-admin/offers" },
   { key: "merchant-admin-products", label: "Products", icon: "📦", href: "/products" },
+  { key: "merchant-admin-promo-codes", label: "Promo Codes", icon: "🎫", href: "/merchant-admin/promo-codes" },
   { key: "merchant-admin-patch-notes", label: "Patch Notes", icon: "📋", href: "/merchant-admin/patch-notes" },
   { key: "merchant-admin-localization", label: "Localization", icon: "🌐", href: "/merchant-admin/localization" },
   { key: "ui-builder", label: "Builder", icon: "🛠️", href: "/ui-builder?pageSlug=store" },

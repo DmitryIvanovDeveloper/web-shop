@@ -22,3 +22,4 @@ export class ProductsTranslationsConfigHandler extends TranslationsConfigHandler
   }
 }
 
+

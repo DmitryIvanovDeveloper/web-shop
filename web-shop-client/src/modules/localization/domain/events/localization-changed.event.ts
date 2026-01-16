@@ -17,3 +17,4 @@ export class LocalizationChangedEvent implements IEvent {
     public readonly direction: 'ltr' | 'rtl'
   ) {}
 }
+

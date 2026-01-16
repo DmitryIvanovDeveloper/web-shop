@@ -1,107 +1,390 @@
 import { inject, injectable } from 'inversify';
-import { ClaimDailyRewardUseCase } from '../../application/use-cases/claim-daily-reward.use-case';
-import { CheckDailyRewardAvailabilityUseCase } from '../../application/use-cases/check-daily-reward-availability.use-case';
-import { isSuccess } from '../../../../shared/result/result';
-import type { CheckDailyRewardAvailabilityInput, ClaimDailyRewardInput } from '../../application/types/daily-reward.types';
+import { Result, Success, Failure, isFailure } from '../../../../shared/result/result';
 import { DAILY_REWARDS_TYPES } from '../../infrastructure/bootstrap/types';
+import type { LoadDailyRewardsUseCase } from '../../application/use-cases/load-daily-rewards.use-case';
+import type { ClaimDailyRewardUseCase } from '../../application/use-cases/claim-daily-reward.use-case';
+import type { CheckDailyRewardAvailabilityUseCase } from '../../application/use-cases/check-daily-reward-availability.use-case';
+import type { LoadDailyRewardsInput, DailyRewardOutput, ClaimDailyRewardInput } from '../../application/types/daily-reward.types';
+import type { Logger } from '../../../../application/ports/logger.port';
+import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
+import { DailyRewardCardViewModelImpl, type DailyRewardViewModel } from '../view-models/daily-reward.view-model';
+
+type ViewModelUpdateCallback = () => void;
+
+interface DailyRewardsInternalState {
+  readonly isLoading: boolean;
+  readonly errorMessage: string | null;
+  readonly rewards: readonly DailyRewardViewModel[];
+  readonly userId?: string;
+}
 
 @injectable()
 export class DailyRewardsPresenter {
-  public readonly labels = { add: 'Add', update: 'Update', delete: 'Delete', list: 'List' } as const;
-  public state: { loading: boolean; error: string | null; data: unknown } = { loading: false, error: null, data: null };
-  private viewModel = { status: 'idle' as 'idle' | 'loading' | 'loaded' | 'error' | 'claiming', reward: null as any, nextClaimDate: null as Date | null };
-  private onViewModelChanged?: () => void;
+  private _viewModel: DailyRewardsInternalState = {
+    isLoading: false,
+    errorMessage: null,
+    rewards: [],
+    userId: undefined
+  };
+  private _subscribers: Set<ViewModelUpdateCallback> = new Set();
+
+  public readonly labels = {
+    pageTitle: 'Daily Rewards',
+    loading: 'Loading daily rewards...',
+    error: 'Error loading daily rewards',
+    noRewards: 'No daily rewards available',
+    points: 'points'
+  };
+
+  public readonly state: { loading: boolean; error: string | null; data: unknown } = { loading: false, error: null, data: null };
 
   constructor(
-    @inject(DAILY_REWARDS_TYPES.CheckDailyRewardAvailabilityUseCase)
-    private readonly checkDailyRewardAvailabilityUseCase: CheckDailyRewardAvailabilityUseCase,
+    @inject(DAILY_REWARDS_TYPES.LoadDailyRewardsUseCase)
+    private readonly _loadDailyRewardsUseCase: LoadDailyRewardsUseCase,
     @inject(DAILY_REWARDS_TYPES.ClaimDailyRewardUseCase)
-    private readonly claimDailyRewardUseCase: ClaimDailyRewardUseCase
+    private readonly _claimDailyRewardUseCase: ClaimDailyRewardUseCase,
+    @inject(DAILY_REWARDS_TYPES.CheckDailyRewardAvailabilityUseCase)
+    private readonly _checkDailyRewardAvailabilityUseCase: CheckDailyRewardAvailabilityUseCase,
+    @inject(ROOT_TYPES.Logger)
+    private readonly _logger: Logger
   ) {}
 
+  public subscribe(callback: ViewModelUpdateCallback): () => void {
+    this._subscribers.add(callback);
+    return () => {
+      this._subscribers.delete(callback);
+    };
+  }
+
+  private _notifySubscribers(): void {
+    this._subscribers.forEach((callback) => callback());
+  }
+
+  public get rewards(): DailyRewardViewModel[] {
+    return [...this._viewModel.rewards];
+  }
+
+  public get isLoading(): boolean {
+    return this._viewModel.isLoading;
+  }
+
+  public get error(): string | null {
+    return this._viewModel.errorMessage;
+  }
+
+  public get hasRewards(): boolean {
+    return this._viewModel.rewards.length > 0;
+  }
+
+  public setUserId(userId: string): void {
+    this._viewModel = {
+      ...this._viewModel,
+      userId
+    };
+  }
+
+  public async loadRewards(input: LoadDailyRewardsInput): Promise<void> {
+    this._logger.info('[DailyRewardsPresenter] Loading rewards', { appId: input.appId, userId: input.userId });
+
+    this._viewModel = {
+      ...this._viewModel,
+      isLoading: true,
+      errorMessage: null,
+    };
+    this._notifySubscribers();
+
+    const loadInput = {
+      appId: input.appId,
+      userId: input.userId
+    };
+    const result = await this._loadDailyRewardsUseCase.execute(loadInput);
+
+    if (isFailure(result)) {
+      this._logger.error('[DailyRewardsPresenter] Failed to load rewards', { error: result.error });
+      this._viewModel = {
+        ...this._viewModel,
+        isLoading: false,
+        errorMessage: result.error?.message ?? 'Failed to load daily rewards',
+      };
+      this._notifySubscribers();
+      return;
+    }
+
+    let rewards = result.data?.rewards ?? [];
+
+    // Check claim status for the active reward if userId is provided
+    if (input.userId) {
+      rewards = await this.enrichRewardsWithClaimStatus(rewards, input.userId, input.appId);
+    }
+
+    // Создаем ViewModel из DailyRewardOutput
+    const viewModels = rewards.map(reward => {
+      const viewModel = DailyRewardCardViewModelImpl.create({
+        id: reward.id,
+        type: reward.type as 'points' | 'currency' | 'item',
+        title: reward.title,
+        description: reward.description,
+        points: reward.points,
+        dayNumber: reward.dayNumber ?? null,
+        createdAt: reward.createdAt,
+        updatedAt: reward.updatedAt,
+        isActive: reward.isActive,
+        isClaimedToday: reward.isClaimedToday || false,
+        isClaiming: false
+      });
+      // Устанавливаем callback для обновления UI при изменении countdown
+      viewModel.setOnCountdownUpdate(() => {
+        this._notifySubscribers();
+      });
+      return viewModel;
+    });
+
+    this._viewModel = {
+      ...this._viewModel,
+      isLoading: false,
+      rewards: viewModels,
+      errorMessage: null,
+    };
+    this._notifySubscribers();
+
+    this._logger.info('[DailyRewardsPresenter] Successfully loaded rewards', {
+      appId: input.appId,
+      count: rewards.length
+    });
+  }
+
+  private async enrichRewardsWithClaimStatus(rewards: DailyRewardOutput[], userId: string, appId: string): Promise<DailyRewardOutput[]> {
+    try {
+      const availabilityResult = await this._checkDailyRewardAvailabilityUseCase.execute({
+        userId,
+        appId
+      });
+
+      if (!isFailure(availabilityResult)) {
+        const availability = availabilityResult.data;
+        const nextReward = availability.reward;
+
+        this._logger.info('[DailyRewardsPresenter] Availability check result', {
+          hasNextReward: !!nextReward,
+          nextRewardId: nextReward?.id,
+          canClaim: availability.canClaim,
+          rewardsCount: rewards.length
+        });
+
+        const lastClaimRewardId = availability.lastClaimRewardId;
+        const lastClaimDate = availability.lastClaimDate;
+        const isLastClaimToday = lastClaimDate && new Date(lastClaimDate).toDateString() === new Date().toDateString();
+
+        if (nextReward) {
+          return rewards.map(reward => {
+            const isNextReward = reward.id === nextReward.id;
+            const isLastClaimedReward = lastClaimRewardId && reward.id === lastClaimRewardId;
+            
+            return {
+              ...reward,
+              isActive: isNextReward,
+              isClaimedToday: isLastClaimedReward && isLastClaimToday ? true : false
+            };
+          });
+        } else {
+          this._logger.warn('[DailyRewardsPresenter] No next reward found in availability result', {
+            lastClaimRewardId,
+            lastClaimDate,
+            isLastClaimToday
+          });
+          
+          return rewards.map(reward => {
+            const isLastClaimedReward = lastClaimRewardId && reward.id === lastClaimRewardId;
+            return {
+              ...reward,
+              isActive: false,
+              isClaimedToday: isLastClaimedReward && isLastClaimToday ? true : false
+            };
+          });
+        }
+      } else {
+        this._logger.warn('[DailyRewardsPresenter] Availability check failed', {
+          error: availabilityResult.error?.message
+        });
+      }
+    } catch (error) {
+      this._logger.warn('[DailyRewardsPresenter] Failed to check claim status', { error });
+    }
+
+    return rewards.map(reward => ({
+      ...reward,
+      isActive: false,
+      isClaimedToday: false
+    }));
+  }
+
+  public async claimReward(input: ClaimDailyRewardInput): Promise<void> {
+    this._logger.info('[DailyRewardsPresenter] Claiming reward', { 
+      userId: input.userId, 
+      appId: input.appId,
+      rewardId: input.rewardId 
+    });
+
+    // Если rewardId не передан, определяем его через availability check
+    let rewardId = input.rewardId;
+    if (!rewardId) {
+      try {
+        const availabilityResult = await this._checkDailyRewardAvailabilityUseCase.execute({
+          userId: input.userId,
+          appId: input.appId
+        });
+        if (!isFailure(availabilityResult) && availabilityResult.data.reward) {
+          rewardId = availabilityResult.data.reward.id;
+          this._logger.info('[DailyRewardsPresenter] Will claim reward', { rewardId });
+        }
+      } catch (error) {
+        this._logger.warn('[DailyRewardsPresenter] Failed to determine claiming reward ID', { error });
+      }
+    }
+
+    // Находим ViewModel и обновляем его состояние
+    if (rewardId) {
+      const rewardViewModel = this._viewModel.rewards.find(r => r.id === rewardId);
+      if (rewardViewModel && rewardViewModel instanceof DailyRewardCardViewModelImpl) {
+        rewardViewModel.setIsClaiming(true);
+        this._notifySubscribers();
+      }
+    }
+
+    this._viewModel = {
+      ...this._viewModel,
+      isLoading: true,
+      errorMessage: null,
+    };
+    this._notifySubscribers();
+
+    try {
+      const result = await this._claimDailyRewardUseCase.execute(input);
+
+      if (isFailure(result)) {
+        console.error('[DailyRewardsPresenter] Claim failed:', {
+          error: result.error.message,
+          errorName: result.error.name,
+          userId: input.userId,
+          appId: input.appId
+        });
+        this._logger.error('[DailyRewardsPresenter] Failed to claim reward', { 
+          error: result.error,
+          userId: input.userId,
+          appId: input.appId
+        });
+
+        const isAlreadyClaimedError = result.error.message.includes('already claimed') ||
+                                     result.error.message.includes('has already claimed') ||
+                                     result.error.name === 'RewardAlreadyClaimedTodayError';
+
+        // Сбрасываем isClaiming для всех наград
+        this._viewModel.rewards.forEach(reward => {
+          if (reward instanceof DailyRewardCardViewModelImpl) {
+            reward.setIsClaiming(false);
+          }
+        });
+
+        if (isAlreadyClaimedError) {
+          this._logger.info('[DailyRewardsPresenter] User already claimed reward today, reloading rewards');
+          this._viewModel = {
+            ...this._viewModel,
+            errorMessage: 'You have already claimed your daily reward today. Please come back tomorrow!',
+          };
+          this._notifySubscribers();
+          await this.loadRewards({ appId: input.appId, userId: input.userId });
+          this._viewModel = {
+            ...this._viewModel,
+            errorMessage: null,
+          };
+        } else {
+          this._viewModel = {
+            ...this._viewModel,
+            isLoading: false,
+            errorMessage: result.error.message || 'Failed to claim reward. Please try again.',
+          };
+          this._notifySubscribers();
+        }
+      } else {
+        console.log('[DailyRewardsPresenter] Claim successful:', {
+          pointsAwarded: result.data.pointsAwarded,
+          claimId: result.data.claimId,
+          message: result.data.message,
+          nextRewardId: result.data.nextRewardId,
+          nextClaimDate: result.data.nextClaimDate
+        });
+        this._logger.info('[DailyRewardsPresenter] Successfully claimed reward', result.data);
+        
+        // Сбрасываем isClaiming перед перезагрузкой
+        this._viewModel.rewards.forEach(reward => {
+          if (reward instanceof DailyRewardCardViewModelImpl) {
+            reward.setIsClaiming(false);
+          }
+        });
+        
+        // Обновляем nextClaimDate для следующей награды
+        if (result.data.nextRewardId && result.data.nextClaimDate) {
+          const nextRewardViewModel = this._viewModel.rewards.find(r => r.id === result.data.nextRewardId);
+          if (nextRewardViewModel && nextRewardViewModel instanceof DailyRewardCardViewModelImpl) {
+            const nextClaimDate = new Date(result.data.nextClaimDate);
+            nextRewardViewModel.setNextClaimDate(nextClaimDate);
+            // Устанавливаем callback для обновления UI при изменении countdown
+            nextRewardViewModel.setOnCountdownUpdate(() => {
+              this._notifySubscribers();
+            });
+            this._notifySubscribers();
+          }
+        }
+        
+        this._viewModel = {
+          ...this._viewModel,
+          errorMessage: null,
+        };
+        await this.loadRewards({ appId: input.appId, userId: input.userId });
+      }
+    } catch (error) {
+      // Сбрасываем isClaiming при ошибке
+      this._viewModel.rewards.forEach(reward => {
+        if (reward instanceof DailyRewardCardViewModelImpl) {
+          reward.setIsClaiming(false);
+        }
+      });
+      
+      this._viewModel = {
+        ...this._viewModel,
+        isLoading: false,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error occurred',
+      };
+      this._logger.error('[DailyRewardsPresenter] Unexpected error claiming reward', { error });
+      this._notifySubscribers();
+    }
+  }
+
+  // Legacy methods for backward compatibility
   public setOnViewModelChanged(callback: () => void): void {
-    this.onViewModelChanged = callback;
+    this.subscribe(callback);
   }
 
   public getViewModel() {
-    return this.viewModel;
+    const hasClaiming = this._viewModel.rewards.some(r => r.isClaiming);
+    return {
+      status: this._viewModel.isLoading ? 'loading' : 
+             hasClaiming ? 'claiming' :
+             this._viewModel.errorMessage ? 'error' : 'loaded',
+      reward: this._viewModel.rewards[0] || null,
+      nextClaimDate: null as Date | null
+    };
   }
 
   public async loadRewardAvailability(userId: string, appId: string): Promise<void> {
-    this.viewModel = { ...this.viewModel, status: 'loading' };
-    this.onViewModelChanged?.();
-
-    try {
-      const result = await this.checkDailyRewardAvailabilityUseCase.execute({
-        userId,
-        appId
-      });
-
-      if (!isSuccess(result)) {
-        this.viewModel = {
-          ...this.viewModel,
-          status: 'error',
-          reward: null,
-          nextClaimDate: null
-        };
-      } else {
-        this.viewModel = {
-          ...this.viewModel,
-          status: 'loaded',
-          reward: result.data?.reward || null,
-          nextClaimDate: result.data?.nextClaimDate || null
-        };
-      }
-    } catch (error) {
-      this.viewModel = {
-        ...this.viewModel,
-        status: 'error',
-        reward: null,
-        nextClaimDate: null
-      };
-    }
-
-    this.onViewModelChanged?.();
+    await this.loadRewards({ appId, userId });
   }
 
-  public async claimReward(userId: string, appId: string): Promise<void> {
-    this.viewModel = { ...this.viewModel, status: 'claiming' };
-    this.onViewModelChanged?.();
-
-    try {
-      const result = await this.claimDailyRewardUseCase.execute({
-        userId,
-        appId
-      });
-
-      if (isSuccess(result)) {
-        // Reload availability after successful claim
-        await this.loadRewardAvailability(userId, appId);
-      } else {
-        this.viewModel = { ...this.viewModel, status: 'error' };
-        this.onViewModelChanged?.();
-      }
-    } catch (error) {
-      this.viewModel = { ...this.viewModel, status: 'error' };
-      this.onViewModelChanged?.();
-    }
-  }
-
-  public async onCheckDailyRewardAvailability(input: CheckDailyRewardAvailabilityInput): Promise<void> {
-    const result = await this.checkDailyRewardAvailabilityUseCase.execute(input);
-    if (!isSuccess(result)) {
-      this.state.error = String(result.error);
-      return;
-    }
-    this.state.data = result.data as any;
+  public async onCheckDailyRewardAvailability(input: { userId: string; appId: string }): Promise<void> {
+    await this.loadRewards({ appId: input.appId, userId: input.userId });
   }
 
   public async onClaimDailyReward(input: ClaimDailyRewardInput): Promise<void> {
-    const result = await this.claimDailyRewardUseCase.execute(input);
-    if (!isSuccess(result)) {
-      this.state.error = String(result.error);
-      return;
-    }
-    this.state.data = result.data as any;
+    await this.claimReward(input);
   }
 }

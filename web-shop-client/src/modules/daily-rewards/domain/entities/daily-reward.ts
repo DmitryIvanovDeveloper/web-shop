@@ -9,6 +9,7 @@ export class DailyReward {
     public readonly description: string,
     public readonly points: number,
     public readonly isActive: boolean,
+    public readonly dayNumber: number | null,
     public readonly createdAt: Date,
     public readonly updatedAt: Date
   ) {}
@@ -20,10 +21,11 @@ export class DailyReward {
     description: string,
     points: number,
     isActive: boolean,
+    dayNumber: number | null,
     createdAt: Date,
     updatedAt: Date
   ): DailyReward {
-    return new DailyReward(id, type, title, description, points, isActive, createdAt, updatedAt);
+    return new DailyReward(id, type, title, description, points, isActive, dayNumber, createdAt, updatedAt);
   }
 
   canBeClaimedBy(userId: string, lastClaimDate?: Date): boolean {

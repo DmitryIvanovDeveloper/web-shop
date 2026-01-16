@@ -38,6 +38,20 @@ export interface PromoCodesPageViewModel {
   };
 }
 
+export interface PromoCodesLabels {
+  readonly pageTitle: string;
+  readonly loading: string;
+  readonly empty: string;
+  readonly newPromoCode: string;
+  readonly formTitle: string;
+  readonly fieldCode: string;
+  readonly fieldName: string;
+  readonly fieldDiscountType: string;
+  readonly fieldDiscountValue: string;
+  readonly buttonCreate: string;
+  readonly buttonCancel: string;
+}
+
 type Subscriber = () => void;
 
 @injectable()
@@ -156,7 +170,7 @@ export class PromoCodesPresenter {
     };
   }
 
-  public get labels(): Record<string, string> {
+  public get labels(): PromoCodesLabels {
     return {
       pageTitle: 'Promo Codes',
       loading: 'Loading promo codes...',

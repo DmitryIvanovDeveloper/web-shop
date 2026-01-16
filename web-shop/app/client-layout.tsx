@@ -45,6 +45,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
       'merchant-admin-daily-rewards': `/merchant-admin/daily-rewards${buildQuery()}`,
       'merchant-admin-offers': `/merchant-admin/offers${buildQuery()}`,
       'merchant-admin-products': `/products${buildQuery()}`,
+      'merchant-admin-promo-codes': `/merchant-admin/promo-codes${buildQuery()}`,
       'merchant-admin-patch-notes': `/merchant-admin/patch-notes${buildQuery()}`,
       'merchant-admin-localization': `/merchant-admin/localization${buildQuery(false, true)}`,
       'ui-builder': (() => {

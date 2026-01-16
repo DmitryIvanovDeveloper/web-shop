@@ -37,3 +37,4 @@ export class AppLayoutLocalizationChangedEventHandler implements IAsyncEventHand
   }
 }
 
+

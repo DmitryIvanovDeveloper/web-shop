@@ -38,19 +38,3 @@ export interface PromoCodeRepositoryPort {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

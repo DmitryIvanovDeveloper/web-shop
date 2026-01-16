@@ -1,12 +1,12 @@
 import React from 'react';
-import type { PromoCodesListItemViewModel } from '../../presenters/promo-codes.presenter';
+import type {
+  PromoCodesListItemViewModel,
+  PromoCodesLabels,
+} from '../../presenters/promo-codes.presenter';
 
 export interface PromoCodesListProps {
   readonly items: readonly PromoCodesListItemViewModel[];
-  readonly labels: {
-    readonly empty: string;
-    readonly newPromoCode: string;
-  };
+  readonly labels: PromoCodesLabels;
   readonly onAddPromoCode: () => void;
   readonly onEditPromoCode: (item: PromoCodesListItemViewModel) => void;
   readonly onToggleStatus: (item: PromoCodesListItemViewModel) => void;

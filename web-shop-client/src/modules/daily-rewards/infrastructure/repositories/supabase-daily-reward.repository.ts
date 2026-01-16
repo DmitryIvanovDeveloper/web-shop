@@ -14,6 +14,7 @@ interface DailyRewardApiDto {
   description: string;
   points: number;
   is_active: boolean;
+  day_number: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -115,6 +116,7 @@ export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort 
         dto.description,
         dto.points,
         dto.is_active,
+        dto.day_number ?? null,
         createdAt,
         updatedAt
       );

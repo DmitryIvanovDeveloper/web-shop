@@ -42,3 +42,4 @@ export function mapProjectToViewModel(project: Project): ProjectListItemViewMode
   };
 }
 
+

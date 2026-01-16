@@ -6,7 +6,6 @@ import { CheckDailyRewardAvailabilityUseCase } from '../../application/use-cases
 import { ClaimDailyRewardUseCase } from '../../application/use-cases/claim-daily-reward.use-case';
 import { LoadDailyRewardsUseCase } from '../../application/use-cases/load-daily-rewards.use-case';
 import { DailyRewardsPresenter } from '../../interface-adapters/presenters/daily-rewards-presenter';
-import { DailyRewardsListPresenter } from '../../interface-adapters/presenters/daily-rewards-list.presenter';
 
 export function bindDailyRewards(container: Container): void {
   // Repositories
@@ -37,10 +36,6 @@ export function bindDailyRewards(container: Container): void {
   container
     .bind(DAILY_REWARDS_TYPES.DailyRewardsPresenter)
     .to(DailyRewardsPresenter);
-
-  container
-    .bind(DAILY_REWARDS_TYPES.DailyRewardsListPresenter)
-    .to(DailyRewardsListPresenter);
 }
 
 

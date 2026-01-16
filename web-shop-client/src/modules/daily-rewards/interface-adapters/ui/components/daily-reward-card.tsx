@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { ClipLoader } from 'react-spinners';
 
 export interface DailyRewardCardProps {
   title: string;
@@ -9,8 +10,11 @@ export interface DailyRewardCardProps {
   type: 'points' | 'currency' | 'item';
   isActive: boolean;
   isClaimedToday?: boolean;
+  shouldShowPadlock?: boolean; // Показывать ли замок для неактивных наград
   onClaim?: () => void;
   day?: number; // Номер дня (1, 2, 3, ...)
+  isLoading?: boolean; // Состояние загрузки при claim
+  timeUntilNextClaim?: string | null; // Время до следующего claim'а (формат "HH:MM:SS")
 }
 
 function getTypeBadge(type: DailyRewardCardProps['type']): { label: string; color: string } {
@@ -31,8 +35,11 @@ export function DailyRewardCard({
   type,
   isActive,
   isClaimedToday = false,
+  shouldShowPadlock = false,
   onClaim,
   day,
+  isLoading = false,
+  timeUntilNextClaim = null,
 }: DailyRewardCardProps): JSX.Element {
   const cardStyle: React.CSSProperties = {
     width: '220px',
@@ -98,7 +105,7 @@ export function DailyRewardCard({
   const dayLabelStyle: React.CSSProperties = {
     position: 'absolute',
     top: '14px',
-    left: '14px',
+    right: '14px',
     fontSize: '14px',
     fontWeight: 900,
     color: '#FBBF24',
@@ -121,13 +128,18 @@ export function DailyRewardCard({
     padding: '10px 16px',
     borderRadius: '8px',
     border: 'none',
-    backgroundColor: isActive ? '#60A5FA' : '#64748B',
+    backgroundColor: isActive ? '#60A5FA' : '#1E293B',
     color: '#FFFFFF',
     fontSize: '14px',
     fontWeight: 700,
-    cursor: isActive && onClaim ? 'pointer' : 'not-allowed',
+    cursor: isActive && onClaim && !isLoading ? 'pointer' : 'not-allowed',
     transition: 'all 0.2s ease',
-    opacity: isActive ? 1 : 0.6,
+    opacity: isActive && !isLoading ? 1 : 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    minHeight: '44px',
   };
 
   return (
@@ -146,36 +158,89 @@ export function DailyRewardCard({
         <div style={activePillStyle}>{isActive ? 'Active' : 'Inactive'}</div>
       </div>
 
-      {onClaim && !isClaimedToday && (
+      {!isClaimedToday && (isActive || shouldShowPadlock) && (
         <button
+          type="button"
           style={claimButtonStyle}
-          onClick={onClaim}
-          disabled={!isActive}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (isActive && !isLoading && onClaim) {
+              onClaim();
+            }
+          }}
+          disabled={!isActive || isLoading || !onClaim}
           onMouseEnter={(e) => {
-            if (isActive) {
+            if (isActive && !isLoading) {
               e.currentTarget.style.backgroundColor = '#3B82F6';
               e.currentTarget.style.transform = 'translateY(-1px)';
             }
           }}
           onMouseLeave={(e) => {
-            if (isActive) {
+            if (isActive && !isLoading) {
               e.currentTarget.style.backgroundColor = '#60A5FA';
               e.currentTarget.style.transform = 'translateY(0)';
             }
           }}
         >
-          {isActive ? '🎁 Claim Reward' : 'Not Available'}
+          {isLoading ? (
+            <>
+              <ClipLoader size={14} color="#FFFFFF" loading={true} />
+              <span>Claiming...</span>
+            </>
+          ) : isActive ? (
+            <>
+              <span>🎁</span>
+              <span>Claim Reward</span>
+            </>
+          ) : shouldShowPadlock ? (
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{ opacity: 0.7 }}
+            >
+              <path
+                d="M19 11H5C3.89543 11 3 11.8954 3 13V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V13C21 11.8954 20.1046 11 19 11Z"
+                stroke="#94A3B8"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M7 11V7C7 4.23858 9.23858 2 12 2C14.7614 2 17 4.23858 17 7V11"
+                stroke="#94A3B8"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          ) : null}
         </button>
       )}
 
       {isClaimedToday && (
         <div style={{
           ...claimButtonStyle,
-          backgroundColor: '#10B981',
+          backgroundColor: '#363949',
+          color: '#8C8C8C',
           cursor: 'default',
-          opacity: 1
+          opacity: 1,
+          fontWeight: 700,
         }}>
-          ✅ Already claimed today
+          <div>Claimed</div>
+          {timeUntilNextClaim && (
+            <div style={{ 
+              fontSize: '12px', 
+              marginTop: '4px', 
+              opacity: 0.8,
+              fontWeight: 400,
+            }}>
+              Next: {timeUntilNextClaim}
+            </div>
+          )}
         </div>
       )}
     </div>

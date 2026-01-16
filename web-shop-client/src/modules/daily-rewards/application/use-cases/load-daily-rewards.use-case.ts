@@ -44,6 +44,7 @@ export class LoadDailyRewardsUseCase {
       description: reward.description,
       points: reward.points,
       isActive: reward.isActive,
+      dayNumber: reward.dayNumber ?? null,
       createdAt: reward.createdAt.toISOString(),
       updatedAt: reward.updatedAt.toISOString()
     };

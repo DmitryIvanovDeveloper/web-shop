@@ -49,7 +49,7 @@ bindMerchantAdminProjects(container);
 bindDailyRewards(container);
 bindLocalization(container);
 bindRealtimeDashboard(container);
-// bindMerchantAdminPromoCodes(container); // Temporarily disabled due to error
+bindMerchantAdminPromoCodes(container);
 
 // Register Project Selected Event Handler
 import { ProjectSelectedHandler } from '../handlers/project-selected.handler';

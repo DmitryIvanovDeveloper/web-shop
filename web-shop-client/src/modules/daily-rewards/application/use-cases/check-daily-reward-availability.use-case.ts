@@ -17,36 +17,83 @@ export class CheckDailyRewardAvailabilityUseCase {
 
   async execute(input: CheckDailyRewardAvailabilityInput): Promise<Result<DailyRewardAvailabilityOutput, Error>> {
     try {
-      console.log('[CheckDailyRewardAvailabilityUseCase] Executing', { appId: input.appId });
+      console.log('[CheckDailyRewardAvailabilityUseCase] Executing', { appId: input.appId, userId: input.userId });
 
-      // Get active daily reward
-      console.log('[CheckDailyRewardAvailabilityUseCase] Calling repository.findActiveReward');
-      const rewardResult = await this._dailyRewardRepository.findActiveReward(input.appId);
-      console.log('[CheckDailyRewardAvailabilityUseCase] Repository result:', { success: rewardResult.success });
-
-      if (isFailure(rewardResult)) {
-        console.error('[CheckDailyRewardAvailabilityUseCase] Repository failed:', rewardResult.error);
-        return Failure.fail(rewardResult.error);
+      // Get all rewards to find the next one based on day_number
+      const allRewardsResult = await this._dailyRewardRepository.findAllRewards(input.appId);
+      if (isFailure(allRewardsResult)) {
+        console.error('[CheckDailyRewardAvailabilityUseCase] Failed to get all rewards:', allRewardsResult.error);
+        return Failure.fail(allRewardsResult.error);
       }
 
-      const reward = rewardResult.data;
-      if (!reward) {
+      const allRewards = allRewardsResult.data;
+      if (!allRewards || allRewards.length === 0) {
         return Failure.fail(new RewardNotAvailableError());
       }
 
-      // Check if user already claimed today
+      // Get last claim by user to determine next reward
       const lastClaimResult = await this._rewardClaimRepository.findLastClaimByUser(input.userId);
       if (isFailure(lastClaimResult)) {
         return Failure.fail(lastClaimResult.error);
       }
 
       const lastClaim = lastClaimResult.data;
-      const canClaim = reward.canBeClaimedBy(input.userId, lastClaim?.claimedAt);
+      
+      // Determine next day_number
+      let nextDayNumber: number;
+      if (!lastClaim) {
+        // No claims yet, start with DAY 1
+        nextDayNumber = 1;
+        console.log('[CheckDailyRewardAvailabilityUseCase] No last claim, starting with day_number:', nextDayNumber);
+      } else {
+        // Find the reward that was claimed
+        const lastClaimedReward = allRewards.find(r => r.id.value === lastClaim.rewardId.value);
+        console.log('[CheckDailyRewardAvailabilityUseCase] Last claim found', {
+          lastClaimRewardId: lastClaim.rewardId.value,
+          lastClaimedReward: lastClaimedReward ? {
+            id: lastClaimedReward.id.value,
+            dayNumber: lastClaimedReward.dayNumber
+          } : null
+        });
+        
+        if (!lastClaimedReward || lastClaimedReward.dayNumber === null) {
+          // If last claimed reward doesn't have day_number, start from DAY 1
+          nextDayNumber = 1;
+          console.log('[CheckDailyRewardAvailabilityUseCase] Last claimed reward has no day_number, starting from DAY 1');
+        } else {
+          // Next reward is the day after the last claimed one
+          nextDayNumber = lastClaimedReward.dayNumber + 1;
+          console.log('[CheckDailyRewardAvailabilityUseCase] Next day_number calculated:', nextDayNumber);
+        }
+      }
+
+      // Find the reward with the next day_number
+      const nextReward = allRewards.find(r => r.dayNumber === nextDayNumber);
+      console.log('[CheckDailyRewardAvailabilityUseCase] Looking for reward with day_number:', nextDayNumber, {
+        found: !!nextReward,
+        rewardId: nextReward?.id.value,
+        allRewardsDayNumbers: allRewards.map(r => ({ id: r.id.value, dayNumber: r.dayNumber })).slice(0, 10)
+      });
+      
+      if (!nextReward) {
+        // No reward found for next day - return success with null reward
+        console.warn('[CheckDailyRewardAvailabilityUseCase] No reward found for day_number:', nextDayNumber);
+        return Success.ok({
+          canClaim: false,
+          reward: null,
+          lastClaimDate: lastClaim?.claimedAt,
+          lastClaimRewardId: lastClaim?.rewardId.value ?? null
+        });
+      }
+
+      // Check if user already claimed today
+      const canClaim = nextReward.canBeClaimedBy(input.userId, lastClaim?.claimedAt);
 
       const output: DailyRewardAvailabilityOutput = {
         canClaim,
-        reward: this.mapRewardToOutput(reward),
-        lastClaimDate: lastClaim?.claimedAt
+        reward: this.mapRewardToOutput(nextReward),
+        lastClaimDate: lastClaim?.claimedAt,
+        lastClaimRewardId: lastClaim?.rewardId.value ?? null
       };
 
       if (!canClaim && lastClaim) {
@@ -71,6 +118,7 @@ export class CheckDailyRewardAvailabilityUseCase {
       description: reward.description,
       points: reward.points,
       isActive: reward.isActive,
+      dayNumber: reward.dayNumber ?? null,
       createdAt: reward.createdAt.toISOString(),
       updatedAt: reward.updatedAt.toISOString()
     };

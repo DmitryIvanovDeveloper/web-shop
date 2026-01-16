@@ -173,7 +173,7 @@ export function DailyRewards({ userId }: DailyRewardsProps): JSX.Element {
 
               {viewModel.canClaim ? (
                 <button
-                  onClick={() => presenter.claimReward(userId, appId)}
+                  onClick={() => presenter.claimReward({ userId, appId })}
                   disabled={viewModel.isClaiming}
                   className="bg-white text-blue-600 font-semibold py-2 px-6 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
