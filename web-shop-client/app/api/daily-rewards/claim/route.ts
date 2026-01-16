@@ -88,7 +88,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .from('daily_rewards')
       .select('*')
       .eq('app_id', reward.app_id || '')
-      .order('day_number', { ascending: true, nullsLast: true });
+      .order('day_number', { ascending: true, nullsFirst: false });
 
     if (!rewardsError && allRewards && allRewards.length > 0) {
       // Find claimed reward's day_number

@@ -37,8 +37,10 @@ export interface DailyRewardViewModel {
   shouldShowPadlock(): boolean;
   shouldShowClaimed(): boolean;
   shouldShowClaimButton(): boolean;
+  hasTimer(): boolean;
   getTimeUntilNextClaim(): string | null;
   setNextClaimDate(date: Date | null): void;
+  setOnCountdownUpdate(callback: () => void): void;
 }
 
 export class DailyRewardCardViewModelImpl implements DailyRewardViewModel {
@@ -116,10 +118,17 @@ export class DailyRewardCardViewModelImpl implements DailyRewardViewModel {
     this.isActive = data.isActive;
     this.isClaimedToday = data.isClaimedToday;
     this._isClaiming = data.isClaiming;
-    
+
+    console.log(`[DailyRewardViewModel] Creating ViewModel for ${this.title} (Day ${this.dayNumber}):`, {
+      id: this.id,
+      isActive: this.isActive,
+      isClaimedToday: this.isClaimedToday,
+      dayNumber: this.dayNumber
+    });
+
     // Определяем статус на основе состояния
     this._status = this.determineStatus();
-    
+
     // UI свойства
     this.typeIcon = this.getTypeIcon();
     this._statusBadge = this.getStatusBadge();
@@ -224,10 +233,17 @@ export class DailyRewardCardViewModelImpl implements DailyRewardViewModel {
   }
 
   /**
-   * Нужно ли показывать замок (награда не активна, но еще не получена)
+   * Нужно ли показывать замок (награда не активна, не имеет таймера, но еще не получена)
    */
   shouldShowPadlock(): boolean {
-    return !this.isActive && !this.isClaimedToday && !this._isClaiming;
+    return !this.isActive && !this.isClaimedToday && !this._isClaiming && !this.hasTimer();
+  }
+
+  /**
+   * Есть ли у награды таймер обратного отсчета
+   */
+  hasTimer(): boolean {
+    return !!this._nextClaimDate;
   }
 
   /**

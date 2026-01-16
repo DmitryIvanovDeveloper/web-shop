@@ -114,7 +114,13 @@ export class DailyRewardsPresenter {
 
     // Check claim status for the active reward if userId is provided
     if (input.userId) {
-      rewards = await this.enrichRewardsWithClaimStatus(rewards, input.userId, input.appId);
+      try {
+        rewards = await this.enrichRewardsWithClaimStatus(rewards, input.userId, input.appId);
+      } catch (error) {
+        this._logger.warn('[DailyRewardsPresenter] Failed to enrich rewards with claim status, using defaults', { error });
+        // Если не удалось обогатить статусом, используем награды как есть (все неактивные)
+        rewards = rewards.map(r => ({ ...r, isActive: false, isClaimedToday: false }));
+      }
     }
 
     // Создаем ViewModel из DailyRewardOutput
@@ -139,6 +145,34 @@ export class DailyRewardsPresenter {
       return viewModel;
     });
 
+    // Устанавливаем nextClaimDate для неактивных наград, у которых должен быть таймер
+    if (input.userId) {
+      try {
+        const availabilityResult = await this._checkDailyRewardAvailabilityUseCase.execute({
+          userId: input.userId,
+          appId: input.appId
+        });
+
+        if (!isFailure(availabilityResult)) {
+          const availability = availabilityResult.data;
+          if (availability.nextClaimDate && !availability.canClaim && availability.reward) {
+            // Находим ViewModel следующей награды и устанавливаем таймер
+            const nextRewardViewModel = viewModels.find(vm => vm.id === availability.reward?.id);
+            if (nextRewardViewModel && nextRewardViewModel instanceof DailyRewardCardViewModelImpl) {
+              this._logger.info('[DailyRewardsPresenter] Setting nextClaimDate during load:', {
+                rewardId: availability.reward.id,
+                nextClaimDate: availability.nextClaimDate
+              });
+              nextRewardViewModel.setNextClaimDate(new Date(availability.nextClaimDate));
+            }
+          }
+        }
+      } catch (error) {
+        this._logger.warn('[DailyRewardsPresenter] Failed to set nextClaimDate during load:', error);
+      }
+    }
+
+    // Всегда устанавливаем isLoading в false после завершения загрузки
     this._viewModel = {
       ...this._viewModel,
       isLoading: false,
@@ -176,16 +210,46 @@ export class DailyRewardsPresenter {
         const isLastClaimToday = lastClaimDate && new Date(lastClaimDate).toDateString() === new Date().toDateString();
 
         if (nextReward) {
-          return rewards.map(reward => {
+          this._logger.info('[DailyRewardsPresenter] Processing nextReward', {
+            nextRewardId: nextReward.id,
+            nextRewardTitle: nextReward.title,
+            canClaim: availability.canClaim,
+            totalRewards: rewards.length,
+            rewardIds: rewards.map(r => r.id).slice(0, 5)
+          });
+
+          const enrichedRewards = rewards.map(reward => {
             const isNextReward = reward.id === nextReward.id;
             const isLastClaimedReward = lastClaimRewardId && reward.id === lastClaimRewardId;
-            
+
+            // Награда активна только если она следующая И ее можно получить прямо сейчас
+            const isActive = isNextReward && availability.canClaim;
+
+            const isClaimedToday = isLastClaimedReward && isLastClaimToday ? true : false;
+
+            if (isNextReward) {
+              this._logger.info(`[DailyRewardsPresenter] Found nextReward match: ${reward.id}`, {
+                isActive,
+                canClaim: availability.canClaim,
+                isClaimedToday
+              });
+            }
+
             return {
               ...reward,
-              isActive: isNextReward,
-              isClaimedToday: isLastClaimedReward && isLastClaimToday ? true : false
+              isActive: isActive,
+              isClaimedToday: isClaimedToday
             };
           });
+
+          const activeRewards = enrichedRewards.filter(r => r.isActive);
+          this._logger.info('[DailyRewardsPresenter] Enriched rewards result', {
+            totalRewards: enrichedRewards.length,
+            activeRewards: activeRewards.length,
+            activeRewardIds: activeRewards.map(r => r.id)
+          });
+
+          return enrichedRewards;
         } else {
           this._logger.warn('[DailyRewardsPresenter] No next reward found in availability result', {
             lastClaimRewardId,
@@ -193,11 +257,20 @@ export class DailyRewardsPresenter {
             isLastClaimToday
           });
           
+          // Если нет следующей награды, но есть награды, делаем первую активной для новых пользователей
+          const hasNoClaims = !lastClaimRewardId && !lastClaimDate;
+          const firstReward = rewards.find(r => r.dayNumber === 1);
+          
           return rewards.map(reward => {
             const isLastClaimedReward = lastClaimRewardId && reward.id === lastClaimRewardId;
+            const isFirstReward = firstReward && reward.id === firstReward.id;
+            
+            // Для новых пользователей делаем первую награду активной
+            const isActive = !!(hasNoClaims && isFirstReward && availability.canClaim);
+            
             return {
               ...reward,
-              isActive: false,
+              isActive: isActive,
               isClaimedToday: isLastClaimedReward && isLastClaimToday ? true : false
             };
           });
@@ -209,8 +282,16 @@ export class DailyRewardsPresenter {
       }
     } catch (error) {
       this._logger.warn('[DailyRewardsPresenter] Failed to check claim status', { error });
+
+      // Fallback: if availability check fails, make Day 1 active for new users
+      return rewards.map(reward => ({
+        ...reward,
+        isActive: reward.dayNumber === 1, // Day 1 is always active for new users
+        isClaimedToday: false
+      }));
     }
 
+    // Fallback: если ничего не вернулось, возвращаем награды как неактивные
     return rewards.map(reward => ({
       ...reward,
       isActive: false,
@@ -324,15 +405,28 @@ export class DailyRewardsPresenter {
         
         // Обновляем nextClaimDate для следующей награды
         if (result.data.nextRewardId && result.data.nextClaimDate) {
+          console.log('[DailyRewardsPresenter] Setting nextClaimDate', {
+            nextRewardId: result.data.nextRewardId,
+            nextClaimDate: result.data.nextClaimDate
+          });
+
           const nextRewardViewModel = this._viewModel.rewards.find(r => r.id === result.data.nextRewardId);
           if (nextRewardViewModel && nextRewardViewModel instanceof DailyRewardCardViewModelImpl) {
             const nextClaimDate = new Date(result.data.nextClaimDate);
             nextRewardViewModel.setNextClaimDate(nextClaimDate);
+
+            console.log('[DailyRewardsPresenter] nextClaimDate set for reward:', result.data.nextRewardId);
+
             // Устанавливаем callback для обновления UI при изменении countdown
             nextRewardViewModel.setOnCountdownUpdate(() => {
+              console.log('[DailyRewardsPresenter] Countdown update triggered');
               this._notifySubscribers();
             });
+
+            // Немедленно уведомляем подписчиков
             this._notifySubscribers();
+          } else {
+            console.log('[DailyRewardsPresenter] Next reward ViewModel not found or not correct type');
           }
         }
         

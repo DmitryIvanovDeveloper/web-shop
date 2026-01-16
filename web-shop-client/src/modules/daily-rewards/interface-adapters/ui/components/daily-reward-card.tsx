@@ -42,7 +42,7 @@ export function DailyRewardCard({
   timeUntilNextClaim = null,
 }: DailyRewardCardProps): JSX.Element {
   const cardStyle: React.CSSProperties = {
-    width: '220px',
+    width: '100%',
     minHeight: '160px',
     backgroundColor: '#0B1220',
     borderRadius: '12px',
@@ -55,7 +55,8 @@ export function DailyRewardCard({
     padding: '14px',
     textAlign: 'left',
     position: 'relative',
-    opacity: isActive ? 1 : 0.75,
+    opacity: 1,
+    boxSizing: 'border-box',
   };
 
   const badge = getTypeBadge(type);
@@ -128,13 +129,13 @@ export function DailyRewardCard({
     padding: '10px 16px',
     borderRadius: '8px',
     border: 'none',
-    backgroundColor: isActive ? '#60A5FA' : '#1E293B',
+    backgroundColor: isActive ? '#60A5FA' : timeUntilNextClaim ? '#374151' : '#1E293B',
     color: '#FFFFFF',
     fontSize: '14px',
     fontWeight: 700,
     cursor: isActive && onClaim && !isLoading ? 'pointer' : 'not-allowed',
     transition: 'all 0.2s ease',
-    opacity: isActive && !isLoading ? 1 : 1,
+    opacity: isActive && !isLoading ? 1 : 0.8,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -158,7 +159,7 @@ export function DailyRewardCard({
         <div style={activePillStyle}>{isActive ? 'Active' : 'Inactive'}</div>
       </div>
 
-      {!isClaimedToday && (isActive || shouldShowPadlock) && (
+      {!isClaimedToday && (isActive || shouldShowPadlock || timeUntilNextClaim) && (
         <button
           type="button"
           style={claimButtonStyle}
@@ -193,6 +194,18 @@ export function DailyRewardCard({
               <span>🎁</span>
               <span>Claim Reward</span>
             </>
+          ) : timeUntilNextClaim ? (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              color: '#94A3B8',
+              fontSize: '14px',
+              fontWeight: 600
+            }}>
+              <span>⏰</span>
+              <span>{timeUntilNextClaim}</span>
+            </div>
           ) : shouldShowPadlock ? (
             <svg
               width="20"

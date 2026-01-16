@@ -39,12 +39,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .order('day_number', { ascending: true, nullsFirst: false });
 
     if (rewardsError) {
-      console.error('[GET /api/daily-rewards/active] Failed to get all rewards:', rewardsError);
+      console.error('[GET /api/daily-rewards/next] Failed to get all rewards:', rewardsError);
       return NextResponse.json({ error: 'Failed to fetch rewards' }, { status: 500 });
     }
 
     if (!allRewards || allRewards.length === 0) {
-      return NextResponse.json({ error: 'No rewards found for this app' }, { status: 404 });
+      return NextResponse.json({
+        reward: null,
+        canClaim: false,
+        nextClaimDate: null,
+        lastClaimDate: null,
+        lastClaimRewardId: null
+      });
     }
 
     // Get last claim by user
@@ -56,7 +62,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .limit(1);
 
     if (claimError) {
-      console.error('[GET /api/daily-rewards/active] Failed to get last claim:', claimError);
+      console.error('[GET /api/daily-rewards/next] Failed to get last claim:', claimError);
       return NextResponse.json({ error: 'Failed to check claim history' }, { status: 500 });
     }
 
@@ -84,7 +90,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     if (!nextReward) {
       // No more rewards available
-      return NextResponse.json({ error: 'No more daily rewards available' }, { status: 404 });
+      return NextResponse.json({
+        reward: null,
+        canClaim: false,
+        nextClaimDate: null,
+        lastClaimDate: lastClaim?.[0]?.claimed_at || null,
+        lastClaimRewardId: lastClaim?.[0]?.reward_id || null
+      });
     }
 
     // Check if user already claimed today
@@ -100,21 +112,32 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .lt('claimed_at', endOfDay.toISOString());
 
     if (todayClaimsError) {
-      console.error('[GET /api/daily-rewards/active] Failed to check today claims:', todayClaimsError);
+      console.error('[GET /api/daily-rewards/next] Failed to check today claims:', todayClaimsError);
       return NextResponse.json({ error: 'Failed to check claim status' }, { status: 500 });
     }
 
-    // If user already claimed today, they can't claim again
-    if (todayClaims && todayClaims.length > 0) {
-      return NextResponse.json({
-        error: 'Daily reward already claimed today',
-        nextClaimDate: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString()
-      }, { status: 409 });
+    // Determine if user can claim now
+    const canClaim = !todayClaims || todayClaims.length === 0;
+
+    // Calculate next claim date if cannot claim
+    let nextClaimDate = null;
+    if (!canClaim && lastClaim && lastClaim.length > 0) {
+      const lastClaimDate = new Date(lastClaim[0].claimed_at);
+      nextClaimDate = new Date(lastClaimDate);
+      nextClaimDate.setDate(nextClaimDate.getDate() + 1);
+      nextClaimDate.setHours(0, 0, 0, 0);
     }
 
-    return NextResponse.json(nextReward);
+    return NextResponse.json({
+      reward: nextReward,
+      canClaim: canClaim,
+      nextClaimDate: nextClaimDate?.toISOString() || null,
+      lastClaimDate: lastClaim?.[0]?.claimed_at || null,
+      lastClaimRewardId: lastClaim?.[0]?.reward_id || null
+    });
+
   } catch (error) {
-    console.error('[GET /api/daily-rewards/active] Unexpected error:', error);
+    console.error('[GET /api/daily-rewards/next] Unexpected error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

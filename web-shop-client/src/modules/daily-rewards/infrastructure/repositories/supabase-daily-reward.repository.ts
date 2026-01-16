@@ -3,7 +3,7 @@ import { Result, Success, Failure } from '../../../../shared/result/result';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { HttpClient } from '../../../../application/ports/http-client.port';
 import type { Logger } from '../../../../application/ports/logger.port';
-import type { DailyRewardRepositoryPort } from '../../application/ports/daily-reward-repository.port';
+import type { DailyRewardRepositoryPort, NextRewardResult } from '../../application/ports/daily-reward-repository.port';
 import { DailyReward, RewardId, RewardType } from '../../domain';
 
 interface DailyRewardApiDto {
@@ -21,6 +21,14 @@ interface DailyRewardApiDto {
 
 interface DailyRewardsListApiResponseDto {
   rewards: DailyRewardApiDto[];
+}
+
+interface NextRewardApiResponseDto {
+  reward: DailyRewardApiDto | null;
+  canClaim: boolean;
+  nextClaimDate: string | null;
+  lastClaimDate: string | null;
+  lastClaimRewardId: string | null;
 }
 
 @injectable()
@@ -138,5 +146,50 @@ export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort 
     }
 
     return date;
+  }
+
+  async findNextRewardAvailability(appId: string, userId: string): Promise<Result<NextRewardResult, Error>> {
+    try {
+      this._logger.info('[SupabaseDailyRewardRepository] Finding next reward availability', { appId, userId });
+
+      const url = `/api/daily-rewards/next?appId=${appId}&userId=${userId}`;
+      this._logger.info('[SupabaseDailyRewardRepository] Making request to:', url);
+
+      const response = await this._httpClient.get<NextRewardApiResponseDto>(url);
+
+      if (response.status >= 400) {
+        this._logger.error('[SupabaseDailyRewardRepository] Failed to find next reward availability', {
+          status: response.status,
+          statusText: response.statusText,
+          appId,
+          userId
+        });
+        return Failure.fail(new Error(`Failed to find next reward availability: ${response.status} ${response.statusText}`));
+      }
+
+      const data = response.data;
+      const reward = data.reward ? this.mapApiDtoToEntity(data.reward) : null;
+
+      const result: NextRewardResult = {
+        reward: reward,
+        canClaim: data.canClaim,
+        nextClaimDate: data.nextClaimDate ? new Date(data.nextClaimDate) : null,
+        lastClaimDate: data.lastClaimDate ? new Date(data.lastClaimDate) : null,
+        lastClaimRewardId: data.lastClaimRewardId
+      };
+
+      this._logger.info('[SupabaseDailyRewardRepository] Found next reward availability', {
+        appId,
+        userId,
+        hasReward: !!reward,
+        canClaim: data.canClaim,
+        hasNextClaimDate: !!data.nextClaimDate
+      });
+
+      return Success.ok(result);
+    } catch (error) {
+      this._logger.error('[SupabaseDailyRewardRepository] Unexpected error finding next reward availability', { error, appId, userId });
+      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+    }
   }
 }
