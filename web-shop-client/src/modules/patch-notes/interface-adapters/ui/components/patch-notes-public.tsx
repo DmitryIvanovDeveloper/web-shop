@@ -1,31 +1,14 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { PatchNotesPublicPresenter } from '../../presenters/patch-notes-public.presenter';
 import type { PatchNotesPublicViewModel } from '../../view-models/patch-notes-public.view-model';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { PATCH_NOTES_TYPES } from '../../../infrastructure/bootstrap/types';
+import { PatchNotesCardsGrid, type PatchNoteItem } from './patch-notes-cards-grid';
 
 interface PatchNotesPublicProps {
   appId: string;
-}
-
-interface ChangeItem {
-  type: string;
-  description: string;
-}
-
-interface PatchNoteItem {
-  id: string;
-  version: string;
-  title: string;
-  description: string;
-  changes: ChangeItem[];
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt?: string;
-  scheduledFor?: string;
 }
 
 export function PatchNotesPublic({ appId }: PatchNotesPublicProps): JSX.Element | null {
@@ -86,106 +69,59 @@ export function PatchNotesPublic({ appId }: PatchNotesPublicProps): JSX.Element 
 
   const viewModel = presenter.getViewModel();
 
+  const containerStyle: React.CSSProperties = {
+    maxWidth: '1200px',
+    width: '100%',
+    margin: '0 auto',
+    padding: '2rem 1rem',
+  };
+
+  const titleStyle: React.CSSProperties = {
+    fontSize: '2rem',
+    fontWeight: 800,
+    color: '#F8FAFC',
+    textAlign: 'center',
+    marginBottom: '2rem',
+  };
+
   if (viewModel.status === 'loading') {
     return (
-      <div className="text-center py-8">
-        <h1 className="text-3xl font-bold mb-4">Changelog</h1>
-        <p className="text-gray-600">Loading updates...</p>
+      <div style={containerStyle}>
+        <h1 style={titleStyle}>Changelog</h1>
+        <PatchNotesCardsGrid patchNotes={[]} isLoading={true} />
       </div>
     );
   }
 
   if (viewModel.status === 'error') {
     return (
-      <div className="text-center py-8">
-        <h1 className="text-3xl font-bold mb-4">Changelog</h1>
-        <p className="text-red-600">Loading error: {viewModel.error}</p>
+      <div style={containerStyle}>
+        <h1 style={titleStyle}>Changelog</h1>
+        <div style={{ textAlign: 'center', color: '#EF4444', padding: '2rem' }}>
+          Loading error: {viewModel.error}
+        </div>
       </div>
     );
   }
 
   if (viewModel.status === 'empty') {
     return (
-      <div className="text-center py-8">
-        <h1 className="text-3xl font-bold mb-4">Changelog</h1>
-        <p className="text-gray-600">No updates available.</p>
+      <div style={containerStyle}>
+        <h1 style={titleStyle}>Changelog</h1>
+        <div style={{ textAlign: 'center', color: '#94A3B8', padding: '2rem' }}>
+          No updates available.
+        </div>
       </div>
     );
   }
 
-  const getChangeTypeLabel = (type: string): string => {
-    switch (type) {
-      case 'feature':
-        return '✨ New Features';
-      case 'bugfix':
-        return '🐛 Bug Fixes';
-      case 'improvement':
-        return '⚡ Improvements';
-      case 'breaking-change':
-        return '⚠️ Breaking Changes';
-      default:
-        return type;
-    }
-  };
-
-  const getChangeTypeColor = (type: string): string => {
-    switch (type) {
-      case 'feature':
-        return 'text-green-700 bg-green-50 border-green-200';
-      case 'bugfix':
-        return 'text-red-700 bg-red-50 border-red-200';
-      case 'improvement':
-        return 'text-blue-700 bg-blue-50 border-blue-200';
-      case 'breaking-change':
-        return 'text-orange-700 bg-orange-50 border-orange-200';
-      default:
-        return 'text-gray-700 bg-gray-50 border-gray-200';
-    }
-  };
-
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8 text-center">Changelog</h1>
-
-      <div className="space-y-6">
-        {viewModel.patchNotes.map((note: PatchNoteItem) => (
-          <div key={note.id} className="border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
-            <div className="mb-4">
-              <h2 className="text-xl font-semibold mb-2 text-gray-900">{note.title}</h2>
-              <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
-                <span className="font-medium">Version {note.version}</span>
-                {note.publishedAt && (
-                  <span>Published: {new Date(note.publishedAt).toLocaleDateString('en-US')}</span>
-                )}
-              </div>
-              {note.description && (
-                <p className="text-gray-700 mb-4 leading-relaxed">{note.description}</p>
-              )}
-            </div>
-
-            {note.changes && note.changes.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="text-lg font-medium text-gray-900 mb-3">Changes:</h3>
-                <div className="space-y-2">
-                  {note.changes.map((change: ChangeItem, index: number) => (
-                    <div
-                      key={index}
-                      className={`p-3 rounded-md border ${getChangeTypeColor(change.type)}`}
-                    >
-                      <div className="flex items-start gap-2">
-                        <span className="text-sm font-medium min-w-fit">
-                          {getChangeTypeLabel(change.type)}:
-                        </span>
-                        <span className="text-sm leading-relaxed">{change.description}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+    <div style={containerStyle}>
+      <h1 style={titleStyle}>Changelog</h1>
+      <PatchNotesCardsGrid 
+        patchNotes={viewModel.patchNotes as PatchNoteItem[]} 
+        isLoading={false} 
+      />
     </div>
   );
 }
