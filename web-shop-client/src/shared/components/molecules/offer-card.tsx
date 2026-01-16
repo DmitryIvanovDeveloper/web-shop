@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import type { CSSProperties } from "react";
 import { Badge } from "../atoms/badge";
+import { ClipLoader } from "react-spinners";
 // import type { OfferCardUIConfig } from "../../config/app-config.types";
 
 export interface BuyButtonStyle {
@@ -66,6 +67,8 @@ export function OfferCard({
 
   // State for dynamic styles from config
   const [cardStyles, setCardStyles] = useState<any>(null);
+  // State for image error handling
+  const [imageError, setImageError] = useState(false);
 
   // Load styles from window.__offerCardStyles when component mounts or config updates
   useEffect(() => {
@@ -82,6 +85,11 @@ export function OfferCard({
     window.addEventListener('appConfigLoaded', updateStyles);
     return () => window.removeEventListener('appConfigLoaded', updateStyles);
   }, []);
+
+  // Reset image error when mainImage changes
+  useEffect(() => {
+    setImageError(false);
+  }, [mainImage]);
 
   return (
     <div
@@ -145,13 +153,36 @@ export function OfferCard({
           aspectRatio: cardStyles?.image?.aspectRatio
         }}
       >
-        {mainImage && (
+        {mainImage && !imageError ? (
           <img
             src={mainImage}
             alt={mainImageAlt}
             className="object-cover w-full h-full"
+            onLoad={() => {
+              console.log('[OfferCard] Image loaded successfully:', mainImage);
+            }}
+            onError={() => {
+              console.error('[OfferCard] Failed to load image:', mainImage);
+              setImageError(true);
+            }}
           />
-        )}
+        ) : mainImage && imageError ? (
+          <div className="flex items-center justify-center w-full h-full text-gray-400">
+            <svg
+              className="w-16 h-16"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+          </div>
+        ) : null}
       </div>
 
       {/* Content Section - CSS Grid как у skeleton */}
@@ -253,23 +284,11 @@ export function OfferCard({
                 }}
               >
                 {isLoading ? (
-                  <span className="inline-flex items-center justify-center min-h-[1.2em] animate-spin">
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                  </span>
+                  <ClipLoader
+                    size={16}
+                    color={cardStyles?.buyButton?.color || buyButton.style?.textColor || "#FFFFFF"}
+                    loading={true}
+                  />
                 ) : (
                   buyButton.text || 'Buy Now'
                 )}

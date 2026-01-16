@@ -98,7 +98,7 @@ export class AuthRepository implements AuthRepositoryPort {
           user: {
             userId: userId, // Возвращаем оригинальный userId (строку)
             appId: existingUser.app_id,
-            username: `User-${userId.substring(0, 8)}`
+            username: userId // Используем полный userId как username
           },
           isNew: false,
           lastActiveAt, // Return old last_active_at before update
@@ -202,7 +202,7 @@ export class AuthRepository implements AuthRepositoryPort {
             user: {
               userId: userId,
               appId: existingUserAfterError.app_id,
-              username: `User-${userId.substring(0, 8)}`
+              username: userId // Используем полный userId как username
             },
             isNew: false, // User already exists, not new
             lastActiveAt, // Return old last_active_at before update
@@ -235,7 +235,7 @@ export class AuthRepository implements AuthRepositoryPort {
         user: {
           userId: userId, // Возвращаем оригинальный userId (строку), не UUID
           appId: newUser.app_id,
-          username: `User-${userId.substring(0, 8)}`
+          username: userId // Используем полный userId как username
         },
         isNew: true,
         lastActiveAt: undefined, // New users don't have old last_active_at

@@ -60,22 +60,22 @@ export class TryAuthenticateUseCase {
         isNew
       });
 
-      // Сохраняем пользователя в localStorage через SessionStoragePort
-      console.log('[TryAuthenticateUseCase] Saving user to session storage');
-      const saveResult = await this._sessionStorage.save(user);
-      if (saveResult.isFailure()) {
-        this._logger.warn('[TryAuthenticateUseCase] Failed to save user to session storage', {
-          error: saveResult.error?.message
-        });
-        console.warn('[TryAuthenticateUseCase] Failed to save user to session storage:', saveResult.error?.message);
-        // Не прерываем процесс авторизации, если сохранение не удалось
-      } else {
-        this._logger.info('[TryAuthenticateUseCase] User saved to session storage', {
-          userId: user.userId,
-          appId: user.appId
-        });
-        console.log('[TryAuthenticateUseCase] User saved to session storage successfully');
-      }
+      // Закомментировано: Сохранение пользователя в localStorage через SessionStoragePort
+      // console.log('[TryAuthenticateUseCase] Saving user to session storage');
+      // const saveResult = await this._sessionStorage.save(user);
+      // if (saveResult.isFailure()) {
+      //   this._logger.warn('[TryAuthenticateUseCase] Failed to save user to session storage', {
+      //     error: saveResult.error?.message
+      //   });
+      //   console.warn('[TryAuthenticateUseCase] Failed to save user to session storage:', saveResult.error?.message);
+      //   // Не прерываем процесс авторизации, если сохранение не удалось
+      // } else {
+      //   this._logger.info('[TryAuthenticateUseCase] User saved to session storage', {
+      //     userId: user.userId,
+      //     appId: user.appId
+      //   });
+      //   console.log('[TryAuthenticateUseCase] User saved to session storage successfully');
+      // }
 
       console.log('[TryAuthenticateUseCase] Publishing UserAuthenticatedEvent');
       try {
@@ -88,7 +88,7 @@ export class TryAuthenticateUseCase {
         console.log('[TryAuthenticateUseCase] UserAuthenticatedEvent published');
       } catch (eventError) {
         // Ошибки в обработчиках событий не должны прерывать авторизацию
-        // Пользователь уже создан/найден в Supabase и сохранен в localStorage
+        // Пользователь уже создан/найден в Supabase
         this._logger.warn('[TryAuthenticateUseCase] Error in event handlers, but authentication succeeded', {
           error: eventError instanceof Error ? eventError.message : String(eventError)
         });
