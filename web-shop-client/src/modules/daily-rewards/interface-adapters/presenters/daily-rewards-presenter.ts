@@ -115,7 +115,7 @@ export class DailyRewardsPresenter {
     // Check claim status for the active reward if userId is provided
     if (input.userId) {
       try {
-        rewards = await this.enrichRewardsWithClaimStatus(rewards, input.userId, input.appId);
+      rewards = await this.enrichRewardsWithClaimStatus(rewards, input.userId, input.appId);
       } catch (error) {
         this._logger.warn('[DailyRewardsPresenter] Failed to enrich rewards with claim status, using defaults', { error });
         // Если не удалось обогатить статусом, используем награды как есть (все неактивные)
@@ -234,7 +234,7 @@ export class DailyRewardsPresenter {
                 isClaimedToday
               });
             }
-
+            
             return {
               ...reward,
               isActive: isActive,

@@ -5,7 +5,15 @@ import type { HttpClient } from '../../../../application/ports/http-client.port'
 import type { Logger } from '../../../../application/ports/logger.port';
 import type { TranslationRepositoryPort } from '../../application/ports/translation-repository.port';
 import { Translation, TranslationKey, LanguageCode } from '../../domain';
-import { TranslationNotFoundError } from '../../domain/errors/localization.error';
+
+interface LanguageApiResponse {
+  key: string;
+  languageCode: string;
+  value: string | null;
+  isTranslated: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 @injectable()
 export class TranslationRepository implements TranslationRepositoryPort {
@@ -67,63 +75,22 @@ export class TranslationRepository implements TranslationRepositoryPort {
     value: string
   ): Promise<Result<{ translation: Translation; wasCreated: boolean }, Error>> {
     try {
-      this._logger.info('[TranslationRepository] Upserting translation', { key, languageCode });
+      this._logger.info('[TranslationRepository] Upserting translation via API', { key, languageCode });
 
-      const translationKey = TranslationKey.fromString(key);
-      const langCode = LanguageCode.fromString(languageCode);
-      const translation = Translation.create(translationKey, langCode, value);
+      const response = await this._httpClient.post<any>('/api/localization/translations/upsert', {
+        key,
+        languageCode,
+        value
+      });
 
-      // Try to update first
-      const { data: updateData, error: updateError } = await this._databaseClient
-        .from('translations')
-        .update({
-          value: translation.value,
-          is_translated: translation.isTranslated,
-          updated_at: new Date().toISOString()
-        })
-        .eq('key', key)
-        .eq('language_code', languageCode)
-        .select()
-        .single();
-
-      if (updateError && updateError.code !== 'PGRST116') {
-        // If update failed for reasons other than "not found", try insert
-        this._logger.info('[TranslationRepository] Update failed, trying insert', { key, languageCode });
-
-        const translationData = {
-          key: translation.key.value,
-          language_code: translation.languageCode.value,
-          value: translation.value,
-          is_translated: translation.isTranslated,
-          created_at: translation.createdAt.toISOString(),
-          updated_at: translation.updatedAt.toISOString()
-        };
-
-        const { data: insertData, error: insertError } = await this._databaseClient
-          .from('translations')
-          .insert(translationData)
-          .select()
-          .single();
-
-        if (insertError) {
-          this._logger.error('[TranslationRepository] Failed to insert translation', { insertError, key, languageCode });
-          return Failure.fail(new Error(`Failed to upsert translation: ${insertError.message}`));
-        }
-
-        const createdTranslation = this._mapRowToEntity(insertData);
-        this._logger.info('[TranslationRepository] Translation created', { key, languageCode });
-        return Success.ok({ translation: createdTranslation, wasCreated: true });
+      if (response.status !== 200) {
+        this._logger.error('[TranslationRepository] Failed to upsert translation', { status: response.status, key, languageCode });
+        return Failure.fail(new Error(`Failed to upsert translation: ${response.statusText}`));
       }
 
-      if (updateData) {
-        const updatedTranslation = this._mapRowToEntity(updateData);
-        this._logger.info('[TranslationRepository] Translation updated', { key, languageCode });
-        return Success.ok({ translation: updatedTranslation, wasCreated: false });
-      }
-
-      // This shouldn't happen, but handle gracefully
-      this._logger.error('[TranslationRepository] Unexpected state in upsert', { key, languageCode });
-      return Failure.fail(new Error('Unexpected error during translation upsert'));
+      const translation = this._mapApiResponseToEntity(response.data.translation);
+      this._logger.info('[TranslationRepository] Translation upserted', { key, languageCode, wasCreated: response.data.wasCreated });
+      return Success.ok({ translation, wasCreated: response.data.wasCreated });
     } catch (error) {
       this._logger.error('[TranslationRepository] Unexpected error upserting translation', { error, key, languageCode });
       return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
@@ -134,14 +101,23 @@ export class TranslationRepository implements TranslationRepositoryPort {
     try {
       this._logger.info('[TranslationRepository] Getting translations by language via HTTP', { languageCode });
 
-      const response = await this._httpClient.get<any[]>(`/api/localization/translations?lang=${languageCode}`);
+      // Use the /all endpoint and filter by language on client side
+      const response = await this._httpClient.get<LanguageApiResponse[]>('/api/localization/translations/all');
 
       if (response.status !== 200) {
         this._logger.error('[TranslationRepository] Failed to get translations', { status: response.status, languageCode });
         return Failure.fail(new Error(`Failed to get translations: ${response.statusText}`));
       }
 
-      const translations = (response.data || []).map(item => this._mapApiResponseToEntity(item));
+      // Filter translations by language code
+      const languageTranslations = (response.data || []).filter(
+        (item: LanguageApiResponse) => item.languageCode === languageCode
+      );
+
+      const translations: Translation[] = languageTranslations.map(
+        (item: LanguageApiResponse) => this._mapApiResponseToEntity(item)
+      );
+
       this._logger.info('[TranslationRepository] Translations retrieved', {
         languageCode,
         count: translations.length

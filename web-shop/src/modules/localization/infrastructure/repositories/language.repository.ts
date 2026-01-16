@@ -1,11 +1,37 @@
 import { inject, injectable } from 'inversify';
 import { Result, Success, Failure } from '../../../../shared/result/result';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
-import type { DatabaseClientPort } from '../../../../application/ports/database-client.port';
+import type { HttpClient } from '../../../../application/ports/http-client.port';
 import type { Logger } from '../../../../application/ports/logger.port';
 import type { LanguageRepositoryPort } from '../../application/ports/language-repository.port';
 import { Language, LanguageCode, TextDirection } from '../../domain';
 import { LanguageNotFoundError, LanguageAlreadyExistsError } from '../../domain/errors/localization.error';
+
+interface LanguageApiResponse {
+  id: string;
+  code: string;
+  name: string;
+  nativeName: string;
+  direction: string;
+  isActive: boolean;
+  fallbackCode?: string;
+  flag?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface LanguageDatabaseRow {
+  id: string;
+  code: string;
+  name: string;
+  native_name: string;
+  direction: string;
+  is_active: boolean;
+  fallback_code?: string;
+  flag?: string;
+  created_at: string;
+  updated_at: string;
+}
 
 @injectable()
 export class LanguageRepository implements LanguageRepositoryPort {
@@ -20,27 +46,27 @@ export class LanguageRepository implements LanguageRepositoryPort {
     try {
       this._logger.info('[LanguageRepository] Getting language by code via HTTP', { code });
 
-      const response = await this._httpClient.get<any>(`/api/localization/languages?code=${code}`);
+      const response = await this._httpClient.get<LanguageApiResponse | LanguageApiResponse[]>(`/api/localization/languages?code=${code}`);
 
       if (response.status !== 200) {
         this._logger.error('[LanguageRepository] Failed to get language', { status: response.status, code });
         return Failure.fail(new Error(`Failed to get language: ${response.statusText}`));
       }
 
-      const data = response.data;
+      const data: LanguageApiResponse | LanguageApiResponse[] | null = response.data;
       if (!data) {
         this._logger.info('[LanguageRepository] Language not found', { code });
         return Failure.fail(new LanguageNotFoundError(code));
       }
 
       // API returns array, so take first element
-      const languageData = Array.isArray(data) ? data[0] : data;
+      const languageData: LanguageApiResponse = Array.isArray(data) ? data[0] : data;
       if (!languageData) {
         this._logger.info('[LanguageRepository] Language not found in response', { code });
         return Failure.fail(new LanguageNotFoundError(code));
       }
 
-      const language = this._mapApiResponseToEntity(languageData);
+      const language: Language = this._mapApiResponseToEntity(languageData);
       this._logger.info('[LanguageRepository] Language found', { code, name: language.name });
       return Success.ok(language);
     } catch (error) {
@@ -53,20 +79,20 @@ export class LanguageRepository implements LanguageRepositoryPort {
     try {
       this._logger.info('[LanguageRepository] Getting active language via HTTP');
 
-      const response = await this._httpClient.get<any>('/api/localization/active-language');
+      const response = await this._httpClient.get<LanguageApiResponse>('/api/localization/active-language');
 
       if (response.status !== 200) {
         this._logger.error('[LanguageRepository] Failed to get active language', { status: response.status });
         return Failure.fail(new Error(`Failed to get active language: ${response.statusText}`));
       }
 
-      const data = response.data;
+      const data: LanguageApiResponse | null = response.data;
       if (!data) {
         this._logger.warn('[LanguageRepository] No active language found');
         return Failure.fail(new Error('No active language found'));
       }
 
-      const language = this._mapApiResponseToEntity(data);
+      const language: Language = this._mapApiResponseToEntity(data);
       this._logger.info('[LanguageRepository] Active language found', { code: language.code.value, name: language.name });
       return Success.ok(language);
     } catch (error) {
@@ -79,7 +105,7 @@ export class LanguageRepository implements LanguageRepositoryPort {
     try {
       this._logger.info('[LanguageRepository] Activating language via HTTP', { code });
 
-      const response = await this._httpClient.post<any>(`/api/localization/activate-language`, {
+      const response = await this._httpClient.post<{ success: boolean; message: string }>(`/api/localization/activate-language`, {
         languageCode: code
       });
 
@@ -98,16 +124,15 @@ export class LanguageRepository implements LanguageRepositoryPort {
 
   async deactivateLanguage(code: string): Promise<Result<void, Error>> {
     try {
-      this._logger.info('[LanguageRepository] Deactivating language', { code });
+      this._logger.info('[LanguageRepository] Deactivating language via HTTP', { code });
 
-      const { error } = await this._databaseClient
-        .from('languages')
-        .update({ is_active: false, updated_at: new Date().toISOString() })
-        .eq('code', code);
+      const response = await this._httpClient.post<{ success: boolean; message: string }>(`/api/localization/deactivate-language`, {
+        languageCode: code
+      });
 
-      if (error) {
-        this._logger.error('[LanguageRepository] Failed to deactivate language', { error, code });
-        return Failure.fail(new Error(`Failed to deactivate language: ${error.message}`));
+      if (response.status !== 200) {
+        this._logger.error('[LanguageRepository] Failed to deactivate language', { status: response.status, code });
+        return Failure.fail(new Error(`Failed to deactivate language: ${response.statusText}`));
       }
 
       this._logger.info('[LanguageRepository] Language deactivated successfully', { code });
@@ -122,14 +147,15 @@ export class LanguageRepository implements LanguageRepositoryPort {
     try {
       this._logger.info('[LanguageRepository] Getting all languages via HTTP');
 
-      const response = await this._httpClient.get<any[]>('/api/localization/languages');
+      const response = await this._httpClient.get<LanguageApiResponse[]>('/api/localization/languages');
 
       if (response.status !== 200) {
         this._logger.error('[LanguageRepository] Failed to get languages', { status: response.status });
         return Failure.fail(new Error(`Failed to get languages: ${response.statusText}`));
       }
 
-      const languages = (response.data || []).map(item => this._mapApiResponseToEntity(item));
+      const data: LanguageApiResponse[] = response.data || [];
+      const languages: Language[] = data.map((item: LanguageApiResponse) => this._mapApiResponseToEntity(item));
       this._logger.info('[LanguageRepository] Languages retrieved', { count: languages.length });
       return Success.ok(languages);
     } catch (error) {
@@ -140,37 +166,28 @@ export class LanguageRepository implements LanguageRepositoryPort {
 
   async createLanguage(language: Language): Promise<Result<Language, Error>> {
     try {
-      this._logger.info('[LanguageRepository] Creating language', {
+      this._logger.info('[LanguageRepository] Creating language via HTTP', {
         code: language.code.value,
         name: language.name
       });
 
-      const languageData = {
+      const requestData = {
         code: language.code.value,
         name: language.name,
-        native_name: language.nativeName,
+        nativeName: language.nativeName,
         direction: language.direction.value,
-        is_active: language.isActive,
-        fallback_code: language.fallbackCode?.value,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        isActive: language.isActive,
+        fallbackCode: language.fallbackCode?.value
       };
 
-      const { data, error } = await this._databaseClient
-        .from('languages')
-        .insert(languageData)
-        .select()
-        .single();
+      const response = await this._httpClient.post<LanguageApiResponse>('/api/localization/languages', requestData);
 
-      if (error) {
-        this._logger.error('[LanguageRepository] Failed to create language', { error });
-        if (error.code === '23505') { // Unique constraint violation
-          return Failure.fail(new LanguageAlreadyExistsError(language.code.value));
-        }
-        return Failure.fail(new Error(`Failed to create language: ${error.message}`));
+      if (response.status !== 201) {
+        this._logger.error('[LanguageRepository] Failed to create language', { status: response.status });
+        return Failure.fail(new Error(`Failed to create language: ${response.statusText}`));
       }
 
-      const createdLanguage = this._mapRowToEntity(data);
+      const createdLanguage: Language = this._mapApiResponseToEntity(response.data);
       this._logger.info('[LanguageRepository] Language created successfully', {
         code: createdLanguage.code.value
       });
@@ -186,29 +203,26 @@ export class LanguageRepository implements LanguageRepositoryPort {
     updates: Partial<{ name: string; nativeName: string; fallbackCode: string }>
   ): Promise<Result<Language, Error>> {
     try {
-      this._logger.info('[LanguageRepository] Updating language', { code, updates });
+      this._logger.info('[LanguageRepository] Updating language via HTTP', { code, updates });
 
-      const updateData: any = {
-        updated_at: new Date().toISOString()
-      };
+      const requestData: Partial<{
+        name: string;
+        nativeName: string;
+        fallbackCode: string;
+      }> = {};
 
-      if (updates.name !== undefined) updateData.name = updates.name;
-      if (updates.nativeName !== undefined) updateData.native_name = updates.nativeName;
-      if (updates.fallbackCode !== undefined) updateData.fallback_code = updates.fallbackCode;
+      if (updates.name !== undefined) requestData.name = updates.name;
+      if (updates.nativeName !== undefined) requestData.nativeName = updates.nativeName;
+      if (updates.fallbackCode !== undefined) requestData.fallbackCode = updates.fallbackCode;
 
-      const { data, error } = await this._databaseClient
-        .from('languages')
-        .update(updateData)
-        .eq('code', code)
-        .select()
-        .single();
+      const response = await this._httpClient.put<LanguageApiResponse>(`/api/localization/languages/${code}`, requestData);
 
-      if (error) {
-        this._logger.error('[LanguageRepository] Failed to update language', { error, code });
-        return Failure.fail(new Error(`Failed to update language: ${error.message}`));
+      if (response.status !== 200) {
+        this._logger.error('[LanguageRepository] Failed to update language', { status: response.status, code });
+        return Failure.fail(new Error(`Failed to update language: ${response.statusText}`));
       }
 
-      const updatedLanguage = this._mapRowToEntity(data);
+      const updatedLanguage: Language = this._mapApiResponseToEntity(response.data);
       this._logger.info('[LanguageRepository] Language updated successfully', { code });
       return Success.ok(updatedLanguage);
     } catch (error) {
@@ -217,7 +231,7 @@ export class LanguageRepository implements LanguageRepositoryPort {
     }
   }
 
-  private _mapApiResponseToEntity(response: any): Language {
+  private _mapApiResponseToEntity(response: LanguageApiResponse): Language {
     try {
       return Language.fromDatabase(
         LanguageCode.fromString(response.code),
@@ -233,7 +247,7 @@ export class LanguageRepository implements LanguageRepositoryPort {
     }
   }
 
-  private _mapRowToEntity(row: any): Language {
+  private _mapRowToEntity(row: LanguageDatabaseRow): Language {
     try {
       return Language.fromDatabase(
         LanguageCode.fromString(row.code),
