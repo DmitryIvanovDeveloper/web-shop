@@ -18,20 +18,16 @@ export class TranslationRepository implements TranslationRepositoryPort {
 
   async findAll(): Promise<Result<Translation[], Error>> {
     try {
-      this._logger.info('[TranslationRepository] Getting all translations');
+      this._logger.info('[TranslationRepository] Getting all translations via API');
 
-      const { data, error } = await this._databaseClient
-        .from('translations')
-        .select('*')
-        .order('key', { ascending: true })
-        .order('language_code', { ascending: true });
+      const response = await this._httpClient.get<any[]>('/api/localization/translations/all');
 
-      if (error) {
-        this._logger.error('[TranslationRepository] Failed to get all translations', { error });
-        return Failure.fail(new Error(`Failed to get all translations: ${error.message}`));
+      if (response.status !== 200) {
+        this._logger.error('[TranslationRepository] Failed to get all translations', { status: response.status });
+        return Failure.fail(new Error(`Failed to get all translations: ${response.statusText}`));
       }
 
-      const translations = (data || []).map(row => this._mapRowToEntity(row));
+      const translations = (response.data || []).map(item => this._mapApiResponseToEntity(item));
       this._logger.info('[TranslationRepository] Found translations', { count: translations.length });
       return Success.ok(translations);
     } catch (error) {
@@ -42,26 +38,21 @@ export class TranslationRepository implements TranslationRepositoryPort {
 
   async getTranslation(key: string, languageCode: string): Promise<Result<Translation | null, Error>> {
     try {
-      this._logger.info('[TranslationRepository] Getting translation', { key, languageCode });
+      this._logger.info('[TranslationRepository] Getting translation via API', { key, languageCode });
 
-      const { data, error } = await this._databaseClient
-        .from('translations')
-        .select('*')
-        .eq('key', key)
-        .eq('language_code', languageCode)
-        .single();
+      const response = await this._httpClient.get<any>(`/api/localization/translations/${key}?languageCode=${languageCode}`);
 
-      if (error && error.code !== 'PGRST116') {
-        this._logger.error('[TranslationRepository] Failed to get translation', { error, key, languageCode });
-        return Failure.fail(new Error(`Failed to get translation: ${error.message}`));
-      }
-
-      if (!data) {
+      if (response.status === 404) {
         this._logger.info('[TranslationRepository] Translation not found', { key, languageCode });
         return Success.ok(null);
       }
 
-      const translation = this._mapRowToEntity(data);
+      if (response.status !== 200) {
+        this._logger.error('[TranslationRepository] Failed to get translation', { status: response.status, key, languageCode });
+        return Failure.fail(new Error(`Failed to get translation: ${response.statusText}`));
+      }
+
+      const translation = this._mapApiResponseToEntity(response.data);
       this._logger.info('[TranslationRepository] Translation found', { key, languageCode });
       return Success.ok(translation);
     } catch (error) {
@@ -168,47 +159,25 @@ export class TranslationRepository implements TranslationRepositoryPort {
     coveragePercentage: number;
   }, Error>> {
     try {
-      this._logger.info('[TranslationRepository] Calculating translation coverage', { languageCode });
+      this._logger.info('[TranslationRepository] Calculating translation coverage via API', { languageCode });
 
-      // Get total keys for this language
-      const { data: totalData, error: totalError } = await this._databaseClient
-        .from('translations')
-        .select('key', { count: 'exact' })
-        .eq('language_code', languageCode);
+      const response = await this._httpClient.get<{
+        totalKeys: number;
+        translatedKeys: number;
+        coveragePercentage: number;
+      }>(`/api/localization/translations/coverage?languageCode=${languageCode}`);
 
-      if (totalError) {
-        this._logger.error('[TranslationRepository] Failed to get total keys', { totalError, languageCode });
-        return Failure.fail(new Error(`Failed to calculate coverage: ${totalError.message}`));
+      if (response.status !== 200) {
+        this._logger.error('[TranslationRepository] Failed to calculate coverage', { status: response.status, languageCode });
+        return Failure.fail(new Error(`Failed to calculate coverage: ${response.statusText}`));
       }
-
-      // Get translated keys for this language
-      const { data: translatedData, error: translatedError } = await this._databaseClient
-        .from('translations')
-        .select('key', { count: 'exact' })
-        .eq('language_code', languageCode)
-        .eq('is_translated', true);
-
-      if (translatedError) {
-        this._logger.error('[TranslationRepository] Failed to get translated keys', { translatedError, languageCode });
-        return Failure.fail(new Error(`Failed to calculate coverage: ${translatedError.message}`));
-      }
-
-      const totalKeys = totalData?.length || 0;
-      const translatedKeys = translatedData?.length || 0;
-      const coveragePercentage = totalKeys > 0 ? Math.round((translatedKeys / totalKeys) * 100) : 0;
 
       this._logger.info('[TranslationRepository] Translation coverage calculated', {
         languageCode,
-        totalKeys,
-        translatedKeys,
-        coveragePercentage
+        ...response.data
       });
 
-      return Success.ok({
-        totalKeys,
-        translatedKeys,
-        coveragePercentage
-      });
+      return Success.ok(response.data);
     } catch (error) {
       this._logger.error('[TranslationRepository] Unexpected error calculating coverage', { error, languageCode });
       return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
@@ -217,32 +186,23 @@ export class TranslationRepository implements TranslationRepositoryPort {
 
   async createTranslation(translation: Translation): Promise<Result<Translation, Error>> {
     try {
-      this._logger.info('[TranslationRepository] Creating translation', {
+      this._logger.info('[TranslationRepository] Creating translation via API', {
         key: translation.key.value,
         languageCode: translation.languageCode.value
       });
 
-      const translationData = {
+      const response = await this._httpClient.post<any>('/api/localization/translations/create', {
         key: translation.key.value,
-        language_code: translation.languageCode.value,
-        value: translation.value,
-        is_translated: translation.isTranslated,
-        created_at: translation.createdAt.toISOString(),
-        updated_at: translation.updatedAt.toISOString()
-      };
+        languageCode: translation.languageCode.value,
+        value: translation.value
+      });
 
-      const { data, error } = await this._databaseClient
-        .from('translations')
-        .insert(translationData)
-        .select()
-        .single();
-
-      if (error) {
-        this._logger.error('[TranslationRepository] Failed to create translation', { error });
-        return Failure.fail(new Error(`Failed to create translation: ${error.message}`));
+      if (response.status !== 200) {
+        this._logger.error('[TranslationRepository] Failed to create translation', { status: response.status });
+        return Failure.fail(new Error(`Failed to create translation: ${response.statusText}`));
       }
 
-      const createdTranslation = this._mapRowToEntity(data);
+      const createdTranslation = this._mapApiResponseToEntity(response.data);
       this._logger.info('[TranslationRepository] Translation created successfully', {
         key: translation.key.value,
         languageCode: translation.languageCode.value
@@ -256,26 +216,19 @@ export class TranslationRepository implements TranslationRepositoryPort {
 
   async updateTranslation(key: string, languageCode: string, value: string): Promise<Result<Translation, Error>> {
     try {
-      this._logger.info('[TranslationRepository] Updating translation', { key, languageCode });
+      this._logger.info('[TranslationRepository] Updating translation via API', { key, languageCode });
 
-      const { data, error } = await this._databaseClient
-        .from('translations')
-        .update({
-          value,
-          is_translated: true,
-          updated_at: new Date().toISOString()
-        })
-        .eq('key', key)
-        .eq('language_code', languageCode)
-        .select()
-        .single();
+      const response = await this._httpClient.put<any>(`/api/localization/translations/${key}`, {
+        languageCode,
+        value
+      });
 
-      if (error) {
-        this._logger.error('[TranslationRepository] Failed to update translation', { error, key, languageCode });
-        return Failure.fail(new Error(`Failed to update translation: ${error.message}`));
+      if (response.status !== 200) {
+        this._logger.error('[TranslationRepository] Failed to update translation', { status: response.status, key, languageCode });
+        return Failure.fail(new Error(`Failed to update translation: ${response.statusText}`));
       }
 
-      const updatedTranslation = this._mapRowToEntity(data);
+      const updatedTranslation = this._mapApiResponseToEntity(response.data);
       this._logger.info('[TranslationRepository] Translation updated successfully', { key, languageCode });
       return Success.ok(updatedTranslation);
     } catch (error) {
@@ -290,27 +243,22 @@ export class TranslationRepository implements TranslationRepositoryPort {
     value: string;
   }>): Promise<Result<void, Error>> {
     try {
-      this._logger.info('[TranslationRepository] Bulk updating translations', { count: updates.length });
+      this._logger.info('[TranslationRepository] Bulk updating translations via API', { count: updates.length });
 
-      // Process in batches to avoid overwhelming the database
-      const batchSize = 10;
-      for (let i = 0; i < updates.length; i += batchSize) {
-        const batch = updates.slice(i, i + batchSize);
+      const response = await this._httpClient.post<any>('/api/localization/translations/bulk-update', {
+        updates
+      });
 
-        for (const update of batch) {
-          const result = await this.upsertTranslation(update.key, update.languageCode, update.value);
-          if (result.isFailure) {
-            this._logger.error('[TranslationRepository] Failed to update translation in batch', {
-              key: update.key,
-              languageCode: update.languageCode,
-              error: result.error
-            });
-            return Failure.fail(result.error);
-          }
-        }
+      if (response.status !== 200) {
+        this._logger.error('[TranslationRepository] Failed to bulk update translations', { status: response.status });
+        return Failure.fail(new Error(`Failed to bulk update translations: ${response.statusText}`));
       }
 
-      this._logger.info('[TranslationRepository] Bulk update completed successfully', { count: updates.length });
+      this._logger.info('[TranslationRepository] Bulk update completed successfully', {
+        count: updates.length,
+        updated: response.data.updatedCount,
+        created: response.data.createdCount
+      });
       return Success.ok(void 0);
     } catch (error) {
       this._logger.error('[TranslationRepository] Unexpected error in bulk update', { error });
@@ -350,3 +298,4 @@ export class TranslationRepository implements TranslationRepositoryPort {
     }
   }
 }
+
