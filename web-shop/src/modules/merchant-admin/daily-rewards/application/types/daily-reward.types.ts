@@ -6,6 +6,7 @@ export interface CreateDailyRewardInput {
   title: string;
   description: string;
   points: number;
+  dayNumber?: number | null;
 }
 
 export interface UpdateDailyRewardInput {
@@ -14,6 +15,7 @@ export interface UpdateDailyRewardInput {
   description?: string;
   points?: number;
   isActive?: boolean;
+  dayNumber?: number | null;
 }
 
 export interface DeleteDailyRewardInput {
@@ -25,6 +27,7 @@ export interface GetDailyRewardsInput {
   status?: 'active' | 'inactive' | 'all';
   limit?: number;
   offset?: number;
+  dayNumber?: number | null;
 }
 
 export interface GetDailyRewardByIdInput {
@@ -47,6 +50,7 @@ export interface DailyRewardOutput {
   description: string;
   points: number;
   isActive: boolean;
+  dayNumber: number | null;
   createdAt: string;
   updatedAt: string;
 }

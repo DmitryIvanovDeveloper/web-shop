@@ -15,6 +15,7 @@ interface DailyRewardDto {
   description: string;
   points: number;
   is_active: boolean;
+  day_number: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -33,6 +34,7 @@ interface CreateDailyRewardRequest {
   title: string;
   description: string;
   points: number;
+  dayNumber?: number | null;
 }
 
 interface UpdateDailyRewardRequest {
@@ -41,6 +43,7 @@ interface UpdateDailyRewardRequest {
   description?: string;
   points?: number;
   isActive?: boolean;
+  dayNumber?: number | null;
 }
 
 const mapDtoToDomain = (dto: DailyRewardDto): Result<DailyReward, Error> => {
@@ -53,6 +56,7 @@ const mapDtoToDomain = (dto: DailyRewardDto): Result<DailyReward, Error> => {
       dto.description,
       dto.points,
       dto.is_active,
+      dto.day_number ?? null,
       new Date(dto.created_at),
       new Date(dto.updated_at)
     ));
@@ -69,6 +73,7 @@ const mapDomainToDto = (reward: DailyReward): DailyRewardDto => ({
   description: reward.description,
   points: reward.points,
   is_active: reward.isActive,
+  day_number: reward.dayNumber,
   created_at: reward.createdAt.toISOString(),
   updated_at: reward.updatedAt.toISOString(),
 });
@@ -95,6 +100,7 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
         title: dailyReward.title,
         description: dailyReward.description,
         points: dailyReward.points,
+        dayNumber: dailyReward.dayNumber,
       };
 
       const response = await this.httpClient.post<DailyRewardApiResponse>(
@@ -177,6 +183,7 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
         ...(input.status && { status: input.status }),
         ...(input.limit && { limit: input.limit.toString() }),
         ...(input.offset && { offset: input.offset.toString() }),
+        ...(input.dayNumber !== undefined && input.dayNumber !== null && { dayNumber: input.dayNumber.toString() }),
       });
 
       const url = `/api/merchant-admin/daily-rewards?${params.toString()}`;
@@ -230,6 +237,7 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
         description: dailyReward.description,
         points: dailyReward.points,
         isActive: dailyReward.isActive,
+        dayNumber: dailyReward.dayNumber,
       };
 
       const response = await this.httpClient.put<DailyRewardApiResponse>(

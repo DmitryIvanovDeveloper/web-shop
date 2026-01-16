@@ -405,6 +405,170 @@ export class AuthPresenter {
 	}
 
 	/**
+	 * Load popup layout from ui-config.json
+	 */
+	private async _loadPopupLayoutFromUIConfig(): Promise<any | null> {
+		try {
+			if (typeof window === 'undefined') {
+				return null;
+			}
+
+			const response = await fetch('/mocks/api/authentication/ui-config.json');
+			if (!response.ok) {
+				console.warn('[AuthPresenter] Failed to load ui-config.json');
+				return null;
+			}
+
+			const uiConfig = await response.json();
+			const popupLayout = uiConfig.loginPopup?.layout;
+
+			if (!popupLayout) {
+				console.warn('[AuthPresenter] No loginPopup layout in ui-config.json');
+				return null;
+			}
+
+			console.log('[AuthPresenter] Popup layout loaded from ui-config.json');
+			return popupLayout;
+		} catch (error) {
+			console.error('[AuthPresenter] Error loading ui-config.json:', error);
+			return null;
+		}
+	}
+
+	/**
+	 * Load fallback config from JSON file
+	 */
+	private async _loadFallbackConfig(): Promise<AuthModuleConfig | null> {
+		try {
+			if (typeof window === 'undefined') {
+				return null;
+			}
+
+			const response = await fetch('/mocks/api/app-config.json');
+			if (!response.ok) {
+				console.warn('[AuthPresenter] Failed to load fallback config from JSON');
+				return null;
+			}
+
+			const appConfig = await response.json();
+			const authConfig = appConfig.modules?.authentication;
+
+			if (!authConfig) {
+				console.warn('[AuthPresenter] No authentication config in fallback JSON');
+				return null;
+			}
+
+			// Transform JSON config to AuthModuleConfig format
+			const fallbackConfig: AuthModuleConfig = {
+				labels: authConfig.labels || this._labels,
+				settings: authConfig.settings || {
+					closeDelay: 1500,
+					showHelpSection: true,
+					showAgreement: true,
+					rememberUser: true
+				},
+				loginButtonUI: authConfig.loginButtonUI || {
+					type: 'Button',
+					id: 'login-button',
+					props: {
+						text: 'Login',
+						icon: '',
+						fullWidth: true
+					},
+					styles: {
+						backgroundColor: '#FBBF24',
+						color: '#000000',
+						fontWeight: 'bold',
+						fontSize: '16px',
+						height: '48px',
+						borderRadius: '8px',
+						padding: '12px 16px',
+						width: '100%',
+						border: 'none',
+						cursor: 'pointer',
+						transition: 'all 0.2s ease'
+					},
+					actions: {
+						onClick: {
+							type: 'custom',
+							handler: 'handleLoginClick'
+						}
+					},
+					children: []
+				},
+				theme: appConfig.theme || {
+					colors: {
+						primary: '#3B5AFE',
+						secondary: '#FBBF24',
+						accent: '#FF6B35',
+						background: '#0D1117',
+						surface: '#161B22',
+						text: '#FFFFFF',
+						textSecondary: '#A0A0A0',
+						success: '#10B981',
+						error: '#EF4444',
+						warning: '#FFA500',
+						border: '#374151'
+					},
+					spacing: [0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80],
+					borderRadius: {
+						small: 4,
+						medium: 8,
+						large: 12,
+						full: 9999
+					},
+					typography: {
+						fontFamily: 'system-ui, -apple-system, sans-serif',
+						fontSize: {
+							xs: '12px',
+							sm: '14px',
+							base: '16px',
+							lg: '18px',
+							xl: '20px',
+							'2xl': '24px',
+							'3xl': '30px',
+							'4xl': '36px'
+						},
+						fontWeight: {
+							normal: 400,
+							medium: 500,
+							semibold: 600,
+							bold: 700,
+							extrabold: 800
+						}
+					}
+				}
+			};
+
+			console.log('[AuthPresenter] Fallback config loaded from JSON');
+			return fallbackConfig;
+		} catch (error) {
+			console.error('[AuthPresenter] Error loading fallback config:', error);
+			return null;
+		}
+	}
+
+	/**
+	 * Get config (from Supabase or fallback)
+	 */
+	private async _getConfig(): Promise<AuthModuleConfig | null> {
+		if (this._config) {
+			return this._config;
+		}
+
+		// Try to load fallback config
+		const fallbackConfig = await this._loadFallbackConfig();
+		if (fallbackConfig) {
+			// Cache fallback config
+			this._config = fallbackConfig;
+			Object.assign(this._labels, fallbackConfig.labels);
+			return fallbackConfig;
+		}
+
+		return null;
+	}
+
+	/**
 	 * Create Login Button UI Descriptor
 	 */
 	public createLoginButtonUI(): UIDescriptor {
@@ -439,6 +603,7 @@ export class AuthPresenter {
 						borderRadius: '8px',
 						cursor: 'pointer',
 						border: 'none',
+						width: '100%',
 					} as Record<string, any>,
 					actions: {
 						onClick: {
@@ -473,7 +638,10 @@ export class AuthPresenter {
 				props: {
 					text: `${buttonConfig.icon} ${labels.loginButton}`,
 				},
-				styles: buttonConfig.styles as Record<string, any>,
+				styles: {
+					...buttonConfig.styles,
+					width: '100%',
+				} as Record<string, any>,
 				actions: {
 					onClick: {
 						type: 'custom',
@@ -489,34 +657,285 @@ export class AuthPresenter {
 	/**
 	 * Create Auth Popup UI Descriptor
 	 */
-	public createAuthPopupUI(
+	public async createAuthPopupUI(
+		state: 'idle' | 'loading' | 'success' | 'error',
+		appIdValue: string,
+		userIdValue: string,
+		errorMessage: string | null
+	): Promise<UIDescriptor> {
+		// Try to get config (from Supabase or fallback JSON)
+		const config = await this._getConfig();
+		if (!config) {
+			// If no config available at all, use minimal fallback
+			return this._createMinimalFallbackPopup(state, appIdValue, userIdValue, errorMessage);
+		}
+
+		// Temporarily set config for private methods
+		const originalConfig = this._config;
+		this._config = config;
+
+		try {
+			if (state === 'loading') {
+				return this._createLoadingPopup();
+			}
+
+			if (state === 'success') {
+				return this._createSuccessPopup();
+			}
+
+			if (state === 'error') {
+				return this._createErrorPopup(errorMessage);
+			}
+
+			return await this._createIdlePopup(appIdValue, userIdValue);
+		} finally {
+			// Restore original config
+			this._config = originalConfig;
+		}
+	}
+
+	/**
+	 * Transform popup layout from ui-config.json to UIDescriptor format
+	 */
+	private _transformPopupLayoutToUIDescriptor(
+		popupLayout: any,
+		labels: AuthLabels,
+		theme: GlobalTheme,
+		appIdValue: string,
+		userIdValue: string
+	): UIDescriptor {
+		// Helper function to map component types
+		const mapComponentType = (type: string): string => {
+			const typeMap: Record<string, string> = {
+				'Popup': UIComponents.Popup,
+				'Container': UIComponents.Container,
+				'Text': UIComponents.Text,
+				'Input': UIComponents.Input,
+				'Button': UIComponents.Button
+			};
+			return typeMap[type] || UIComponents.Container;
+		};
+
+		// Helper function to transform children recursively
+		const transformChildren = (children: any[]): any[] => {
+			return children.map((child: any) => {
+				const transformed: any = {
+					id: child.id,
+					type: mapComponentType(child.type),
+					props: { ...child.props },
+					styles: { ...child.styles },
+					actions: child.actions || {}
+				};
+
+				// Replace placeholder values with actual values
+				if (transformed.id === 'input-text' && child.props?.placeholder === 'App ID') {
+					transformed.props.value = appIdValue;
+					transformed.props.placeholder = labels.appIdPlaceholder;
+					if (transformed.actions.onChange) {
+						transformed.actions.onChange.handler = 'handleAppIdChange';
+					}
+				} else if (transformed.id === 'input-text' && child.props?.placeholder === 'User ID') {
+					transformed.props.value = userIdValue;
+					transformed.props.placeholder = labels.userIdPlaceholder;
+					if (transformed.actions.onChange) {
+						transformed.actions.onChange.handler = 'handleUserIdChange';
+					}
+				} else if (transformed.id === 'login-button' || transformed.id === 'submit-button') {
+					transformed.props.text = labels.submitButton;
+					if (transformed.actions.onClick) {
+						transformed.actions.onClick.handler = 'handleAuthSubmit';
+					}
+				}
+
+				// Replace text placeholders with labels
+				if (transformed.props.text) {
+					if (transformed.props.text === 'Welcome to ') {
+						transformed.props.text = labels.welcomeMessage;
+					} else if (transformed.props.text === 'Game: Online Shooter Hub') {
+						transformed.props.text = labels.welcomeSubtitle;
+					} else if (transformed.props.text === 'Enter your App ID to continue') {
+						transformed.props.text = labels.enterAppId;
+					} else if (transformed.props.text === 'Where do I find my App ID?') {
+						transformed.props.text = labels.helpQuestion;
+					} else if (transformed.props.text === 'App ID is provided by WebShop Game app. Try: game-123 or app-456') {
+						transformed.props.text = labels.helpAnswer;
+					}
+				}
+
+				// Recursively transform children
+				if (child.children && Array.isArray(child.children)) {
+					transformed.children = transformChildren(child.children);
+				} else {
+					transformed.children = [];
+				}
+
+				return transformed;
+			});
+		};
+
+		return {
+			theme: {
+				colors: theme.colors,
+				spacing: theme.spacing
+			},
+			layout: {
+				id: popupLayout.id || 'auth-popup-root',
+				type: mapComponentType(popupLayout.type),
+				props: {
+					...popupLayout.props,
+					isOpen: true
+				},
+				styles: popupLayout.styles || {},
+				actions: popupLayout.actions || {},
+				children: popupLayout.children ? transformChildren(popupLayout.children) : []
+			},
+			context: {}
+		};
+	}
+
+	/**
+	 * Create minimal fallback popup when no config is available
+	 */
+	private _createMinimalFallbackPopup(
 		state: 'idle' | 'loading' | 'success' | 'error',
 		appIdValue: string,
 		userIdValue: string,
 		errorMessage: string | null
 	): UIDescriptor {
-		if (!this._config) {
-			throw new Error('Config not loaded. AppConfigLoadedEvent must be handled first.');
-		}
+		const defaultTheme = {
+			colors: {
+				primary: '#3B5AFE',
+				secondary: '#FBBF24',
+				accent: '#FF6B35',
+				background: '#0D1117',
+				surface: '#161B22',
+				text: '#FFFFFF',
+				textSecondary: '#A0A0A0',
+				success: '#10B981',
+				error: '#EF4444',
+				warning: '#FFA500',
+				border: '#374151'
+			},
+			spacing: [0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80]
+		};
 
 		if (state === 'loading') {
-			return this._createLoadingPopup();
+			return {
+				layout: {
+					id: 'auth-popup-loading',
+					type: UIComponents.Popup,
+					props: { isOpen: true, showCloseButton: false },
+					styles: {
+						backgroundColor: '#161B22',
+						padding: '32px',
+						borderRadius: '12px',
+						width: '400px',
+						textAlign: 'center'
+					},
+					children: [
+						{
+							id: 'loading-text',
+							type: UIComponents.Text,
+							props: { text: 'Loading...' },
+							styles: { fontSize: '16px', color: '#FFFFFF' }
+						}
+					]
+				},
+				theme: defaultTheme,
+				context: {}
+			};
 		}
 
-		if (state === 'success') {
-			return this._createSuccessPopup();
-		}
-
-		if (state === 'error') {
-			return this._createErrorPopup(errorMessage);
-		}
-
-		return this._createIdlePopup(appIdValue, userIdValue);
+		// Default idle popup
+		return {
+			layout: {
+				id: 'auth-popup-root',
+				type: UIComponents.Popup,
+				props: { isOpen: true, showCloseButton: true },
+				styles: {
+					backgroundColor: '#161B22',
+					padding: '32px',
+					borderRadius: '12px',
+					width: '480px',
+					maxWidth: '90vw'
+				},
+				children: [
+					{
+						id: 'title',
+						type: UIComponents.Text,
+						props: { text: 'Authentication Required' },
+						styles: { fontSize: '24px', fontWeight: 'bold', color: '#FFFFFF', marginBottom: 16 }
+					},
+					{
+						id: 'appid-input',
+						type: UIComponents.Input,
+						props: { placeholder: 'Enter App ID', value: appIdValue, type: 'text' },
+						styles: {
+							width: '100%',
+							padding: 12,
+							backgroundColor: '#3B3D4F',
+							border: '2px solid #FBBF24',
+							borderRadius: 8,
+							color: '#FFFFFF',
+							marginBottom: 12
+						},
+						actions: {
+							onChange: { type: 'custom', handler: 'handleAppIdChange' }
+						}
+					},
+					{
+						id: 'userid-input',
+						type: UIComponents.Input,
+						props: { placeholder: 'Enter User ID', value: userIdValue, type: 'text' },
+					styles: {
+						width: '100%',
+						padding: 12,
+						backgroundColor: '#3B3D4F',
+						border: '2px solid #FBBF24',
+						borderRadius: 8,
+						color: '#FFFFFF',
+						marginBottom: 12
+					},
+					actions: {
+						onChange: { type: 'custom', handler: 'handleUserIdChange' }
+					}
+				},
+				{
+					id: 'submit-button',
+					type: UIComponents.Button,
+					props: { text: 'Submit', fullWidth: true },
+					styles: {
+						backgroundColor: '#FBBF24',
+						color: '#000000',
+						padding: 12,
+						borderRadius: 8,
+						fontWeight: 'bold',
+						fontSize: '16px',
+						height: 48
+					},
+						actions: {
+							onClick: { type: 'custom', handler: 'handleAuthSubmit' }
+						}
+					}
+				]
+			},
+			theme: defaultTheme,
+			context: {}
+		};
 	}
 
-	private _createIdlePopup(appIdValue: string, userIdValue: string): UIDescriptor {
+	private async _createIdlePopup(appIdValue: string, userIdValue: string): Promise<UIDescriptor> {
 		const { labels } = this._config!;
 		const theme = this._config!.theme;
+
+		// Try to load popup layout from ui-config.json
+		const popupLayout = await this._loadPopupLayoutFromUIConfig();
+		if (popupLayout) {
+			// Transform ui-config.json layout to UIDescriptor format
+			return this._transformPopupLayoutToUIDescriptor(popupLayout, labels, theme, appIdValue, userIdValue);
+		}
+
+		// Fallback to default structure
 
 		return {
 			layout: {

@@ -10,6 +10,7 @@ export interface DailyRewardCardProps {
   isActive: boolean;
   isClaimedToday?: boolean;
   onClaim?: () => void;
+  day?: number; // Номер дня (1, 2, 3, ...)
 }
 
 function getTypeBadge(type: DailyRewardCardProps['type']): { label: string; color: string } {
@@ -31,6 +32,7 @@ export function DailyRewardCard({
   isActive,
   isClaimedToday = false,
   onClaim,
+  day,
 }: DailyRewardCardProps): JSX.Element {
   const cardStyle: React.CSSProperties = {
     width: '220px',
@@ -93,6 +95,17 @@ export function DailyRewardCard({
     color: badge.color,
   };
 
+  const dayLabelStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: '14px',
+    left: '14px',
+    fontSize: '14px',
+    fontWeight: 900,
+    color: '#FBBF24',
+    textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+    letterSpacing: '0.5px',
+  };
+
   const activePillStyle: React.CSSProperties = {
     padding: '6px 10px',
     borderRadius: '999px',
@@ -119,6 +132,9 @@ export function DailyRewardCard({
 
   return (
     <div style={cardStyle}>
+      {day !== undefined && (
+        <div style={dayLabelStyle}>DAY {day}</div>
+      )}
       <div>
         <span style={badgeStyle}>{badge.label}</span>
         <div style={titleStyle}>{title}</div>

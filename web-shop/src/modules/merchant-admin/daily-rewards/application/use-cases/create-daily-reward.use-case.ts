@@ -15,17 +15,33 @@ export class CreateDailyRewardUseCase {
 
   async execute(input: CreateDailyRewardInput): Promise<Result<DailyRewardOutput, Error>> {
     try {
-      // Check if reward with this title already exists for this app
+      // Check for duplicates:
+      // - If dayNumber is provided: check for duplicate app_id + day_number
+      // - If dayNumber is null: check for duplicate app_id + title
       const existingRewards = await this._dailyRewardRepository.findAll({
         appId: input.appId,
-        status: 'all'
+        status: 'all',
+        dayNumber: input.dayNumber ?? undefined
       });
 
       if (existingRewards.isSuccess) {
         const data = existingRewards.value;
-        const duplicate = data?.find(
-          (reward: DailyReward) => reward.title.toLowerCase() === input.title.toLowerCase()
-        );
+        let duplicate: DailyReward | undefined;
+        
+        if (input.dayNumber !== undefined && input.dayNumber !== null) {
+          // Check for duplicate day_number
+          duplicate = data?.find(
+            (reward: DailyReward) => reward.dayNumber === input.dayNumber
+          );
+        } else {
+          // Check for duplicate title (when dayNumber is null)
+          duplicate = data?.find(
+            (reward: DailyReward) => 
+              reward.title.toLowerCase() === input.title.toLowerCase() && 
+              reward.dayNumber === null
+          );
+        }
+        
         if (duplicate) {
           return Result.fail(new RewardAlreadyExistsError(duplicate.id.value, input.appId));
         }
@@ -41,8 +57,10 @@ export class CreateDailyRewardUseCase {
         rewardType,
         input.title,
         input.description,
-        input.points
+        input.points,
+        input.dayNumber ?? null
       );
+        
 
       // Save to repository
       const saveResult = await this._dailyRewardRepository.save(dailyReward);
@@ -65,6 +83,7 @@ export class CreateDailyRewardUseCase {
       description: dailyReward.description,
       points: dailyReward.points,
       isActive: dailyReward.isActive,
+      dayNumber: dailyReward.dayNumber,
       createdAt: dailyReward.createdAt.toISOString(),
       updatedAt: dailyReward.updatedAt.toISOString()
     };

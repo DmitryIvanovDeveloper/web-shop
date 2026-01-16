@@ -34,6 +34,7 @@ export class GetDailyRewardByIdUseCase {
       description: dailyReward.description,
       points: dailyReward.points,
       isActive: dailyReward.isActive,
+      dayNumber: dailyReward.dayNumber,
       createdAt: dailyReward.createdAt.toISOString(),
       updatedAt: dailyReward.updatedAt.toISOString()
     };

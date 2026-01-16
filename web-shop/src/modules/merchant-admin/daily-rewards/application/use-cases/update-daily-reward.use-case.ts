@@ -39,6 +39,10 @@ export class UpdateDailyRewardUseCase {
         updatedReward = updatedReward.withPoints(input.points);
       }
 
+      if (input.dayNumber !== undefined) {
+        updatedReward = updatedReward.withDayNumber(input.dayNumber);
+      }
+
       if (input.isActive !== undefined) {
         updatedReward = input.isActive ? updatedReward.activate() : updatedReward.deactivate();
       }
@@ -64,6 +68,7 @@ export class UpdateDailyRewardUseCase {
       description: dailyReward.description,
       points: dailyReward.points,
       isActive: dailyReward.isActive,
+      dayNumber: dailyReward.dayNumber,
       createdAt: dailyReward.createdAt.toISOString(),
       updatedAt: dailyReward.updatedAt.toISOString()
     };

@@ -16,6 +16,9 @@ import { TYPES } from '../../src/infrastructure/bootstrap/types';
 import { OfferCard } from '../../src/shared/components/molecules/offer-card';
 import { ProductsList } from '../../src/modules/products/interface-adapters/ui/components/products-list';
 import { DailyRewardsPopup } from '../../src/modules/daily-rewards';
+import { DAILY_REWARDS_TYPES } from '../../src/modules/daily-rewards/infrastructure/bootstrap/types';
+import type { CheckDailyRewardAvailabilityUseCase } from '../../src/modules/daily-rewards/application/use-cases/check-daily-reward-availability.use-case';
+import { isSuccess } from '../../src/shared/result/result';
 
 export default function StorePage(): JSX.Element {
   const router = useRouter();
@@ -297,29 +300,53 @@ export default function StorePage(): JSX.Element {
     }
   }, []);
 
-  // Show Daily Rewards popup for authenticated users
+  // Show Daily Rewards popup for authenticated users only if there are available rewards
   useEffect(() => {
     console.log('[store/page.tsx] Checking DailyRewards popup conditions:', {
       previewMode,
       userId,
+      appId,
       shouldShow: !previewMode && userId !== 'anonymous-user'
     });
 
-    if (previewMode || userId === 'anonymous-user') {
+    if (previewMode || userId === 'anonymous-user' || !appId) {
       console.log('[store/page.tsx] DailyRewards popup will NOT be shown');
       return;
     }
 
-    console.log('[store/page.tsx] DailyRewards popup will be shown in 3 seconds');
+    // Check if there are active rewards available today
+    const checkAndShowPopup = async () => {
+      try {
+        // Use CheckDailyRewardAvailabilityUseCase to check if reward can be claimed
+        const checkUseCase = container.get<CheckDailyRewardAvailabilityUseCase>(
+          DAILY_REWARDS_TYPES.CheckDailyRewardAvailabilityUseCase
+        );
+        
+        const result = await checkUseCase.execute({
+          userId,
+          appId
+        });
 
-    // Show popup after a short delay to let the page load
-    const timer = setTimeout(() => {
-      console.log('[store/page.tsx] Setting showDailyRewardsPopup to true');
-      setShowDailyRewardsPopup(true);
-    }, 3000); // 3 seconds delay
+        if (isSuccess(result) && result.data?.canClaim) {
+          console.log('[store/page.tsx] Active reward available, showing popup in 3 seconds');
+          setTimeout(() => {
+            console.log('[store/page.tsx] Setting showDailyRewardsPopup to true');
+            setShowDailyRewardsPopup(true);
+          }, 3000);
+        } else {
+          console.log('[store/page.tsx] No active reward available today, popup will NOT be shown', {
+            isSuccess: isSuccess(result),
+            canClaim: isSuccess(result) ? result.data?.canClaim : undefined,
+            error: !isSuccess(result) ? result.error?.message : undefined
+          });
+        }
+      } catch (error) {
+        console.error('[store/page.tsx] Error checking reward availability:', error);
+      }
+    };
 
-    return () => clearTimeout(timer);
-  }, [previewMode, userId]);
+    checkAndShowPopup();
+  }, [previewMode, userId, appId]);
 
   return (
     <main className="flex-1 overflow-y-auto w-full mx-auto px-4 md:px-8" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>

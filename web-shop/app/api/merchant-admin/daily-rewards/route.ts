@@ -14,14 +14,16 @@ const CreateDailyRewardSchema = z.object({
   type: z.enum(['points', 'currency', 'item']),
   title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters'),
   description: z.string().min(1, 'Description is required').max(500, 'Description must be less than 500 characters'),
-  points: z.number().int().positive('Points must be a positive integer')
+  points: z.number().int().positive('Points must be a positive integer'),
+  dayNumber: z.number().int().positive('Day number must be a positive integer').nullable().optional()
 });
 
 const UpdateDailyRewardSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters').optional(),
   description: z.string().min(1, 'Description is required').max(500, 'Description must be less than 500 characters').optional(),
   points: z.number().int().positive('Points must be a positive integer').optional(),
-  isActive: z.boolean().optional()
+  isActive: z.boolean().optional(),
+  dayNumber: z.number().int().positive('Day number must be a positive integer').nullable().optional()
 });
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -31,8 +33,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const status = searchParams.get('status') as 'active' | 'inactive' | 'all' | null;
     const limit = searchParams.get('limit');
     const offset = searchParams.get('offset');
+    const dayNumber = searchParams.get('dayNumber');
 
-    console.log('[GET /api/merchant-admin/daily-rewards] Request params:', { appId, status, limit, offset });
+    console.log('[GET /api/merchant-admin/daily-rewards] Request params:', { appId, status, limit, offset, dayNumber });
 
     if (!appId) {
       return NextResponse.json({ error: 'App ID is required' }, { status: 400 });
@@ -47,6 +50,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .select('*')
       .eq('app_id', appId)
       .order('created_at', { ascending: false });
+    
+    // Note: Supabase JS client doesn't support nullsFirst option directly
+    // We'll sort by day_number in application code if needed
+    // For now, just order by created_at
 
     // Apply status filter
     if (status === 'active') {
@@ -55,6 +62,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       query = query.eq('is_active', false);
     }
     // 'all' or null means no status filter
+
+    // Apply day number filter
+    if (dayNumber) {
+      const dayNumberNum = parseInt(dayNumber, 10);
+      if (!isNaN(dayNumberNum) && dayNumberNum > 0) {
+        query = query.eq('day_number', dayNumberNum);
+      }
+    }
 
     // Apply pagination
     if (limit) {
@@ -104,7 +119,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Use direct Supabase call instead of repository for now
     const databaseClient = container.get<DatabaseClientPort>(TYPES.DatabaseClient);
 
-    const rewardData = {
+    const rewardData: any = {
       id: crypto.randomUUID(),
       app_id: validationResult.data.appId,
       type: validationResult.data.type,
@@ -113,6 +128,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       points: validationResult.data.points,
       is_active: true
     };
+
+    // Add day_number if provided
+    if (validationResult.data.dayNumber !== undefined && validationResult.data.dayNumber !== null) {
+      rewardData.day_number = validationResult.data.dayNumber;
+    }
 
     const { data, error } = await databaseClient
       .from('daily_rewards')

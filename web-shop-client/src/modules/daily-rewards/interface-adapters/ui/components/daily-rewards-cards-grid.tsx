@@ -69,6 +69,7 @@ export function DailyRewardsCardsGrid({ rewards, isLoading = false, onClaimRewar
             type={reward.type}
             isActive={reward.isActive && !reward.isClaimedToday}
             onClaim={reward.isActive && !reward.isClaimedToday ? onClaimReward : undefined}
+            day={index + 1}
           />
         ))}
       </Grid>

@@ -23,11 +23,13 @@ export class LoadAppConfigUseCase {
 			? isDraft
 			: this._shouldLoadDraftFromEnvironment();
 
-		// Check if we're in UI Builder iframe mode - if so, skip config loading and wait for CONFIG_UPDATE
+		// Check if we're in UI Builder iframe mode
 		const isUIBuilderMode = this._isUIBuilderMode();
 		if (isUIBuilderMode) {
-			this._logger.info('[LoadAppConfigUseCase] Skipping config loading in UI Builder iframe mode - waiting for CONFIG_UPDATE');
-			return;
+			// In UI Builder mode, still load active config as fallback
+			// The CONFIG_UPDATE message from parent will override it when it arrives
+			this._logger.info('[LoadAppConfigUseCase] UI Builder iframe mode detected - loading active config as fallback (will be overridden by CONFIG_UPDATE)');
+			// Continue to load config below, but force isDraft=false to load active config
 		}
 
 		this._logger.info('[LoadAppConfigUseCase] Loading app configuration', {

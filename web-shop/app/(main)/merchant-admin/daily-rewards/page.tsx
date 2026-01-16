@@ -109,13 +109,21 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
 
   const handleCreateReward = async (formData: FormData): Promise<void> => {
     try {
-      const data = {
+      const dayNumberValue = formData.get('dayNumber');
+      const data: any = {
         appId,
         type: formData.get('type'),
         title: formData.get('title'),
         description: formData.get('description'),
         points: parseInt(formData.get('points') as string),
       };
+      
+      // Add dayNumber if provided (empty string means null)
+      if (dayNumberValue && dayNumberValue !== '') {
+        data.dayNumber = parseInt(dayNumberValue as string);
+      } else {
+        data.dayNumber = null;
+      }
 
       const response = await fetch('/api/merchant-admin/daily-rewards', {
         method: 'POST',
@@ -145,12 +153,20 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
     if (!editingReward) return;
 
     try {
-      const data = {
+      const dayNumberValue = formData.get('dayNumber');
+      const data: any = {
         title: formData.get('title'),
         description: formData.get('description'),
         points: parseInt(formData.get('points') as string),
-        is_active: formData.get('isActive') === 'true',
+        isActive: formData.get('isActive') === 'true',
       };
+      
+      // Add dayNumber if provided (empty string means null)
+      if (dayNumberValue && dayNumberValue !== '') {
+        data.dayNumber = parseInt(dayNumberValue as string);
+      } else {
+        data.dayNumber = null;
+      }
 
       const response = await fetch(`/api/merchant-admin/daily-rewards/${editingReward.id}`, {
         method: 'PUT',
@@ -310,7 +326,7 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
                     }}
                   />
                 </div>
-                <div style={{ marginBottom: '20px' }}>
+                <div style={{ marginBottom: '16px' }}>
                   <label style={{ display: 'block', marginBottom: '4px', color: '#E2E8F0' }}>
                     Points
                   </label>
@@ -328,6 +344,28 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
                       color: '#E2E8F0',
                     }}
                   />
+                </div>
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '4px', color: '#E2E8F0' }}>
+                    Day Number (optional)
+                  </label>
+                  <input
+                    name="dayNumber"
+                    type="number"
+                    min="1"
+                    placeholder="Leave empty for non-day-specific reward"
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(148, 163, 184, 0.2)',
+                      background: 'rgba(15, 23, 42, 0.5)',
+                      color: '#E2E8F0',
+                    }}
+                  />
+                  <p style={{ marginTop: '4px', fontSize: '12px', color: '#94A3B8' }}>
+                    Set day number (1, 2, 3...) for day-specific rewards. Leave empty for general rewards.
+                  </p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                   <button
@@ -453,6 +491,29 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
                 </div>
                 <div style={{ marginBottom: '16px' }}>
                   <label style={{ display: 'block', marginBottom: '4px', color: '#E2E8F0' }}>
+                    Day Number (optional)
+                  </label>
+                  <input
+                    name="dayNumber"
+                    type="number"
+                    min="1"
+                    defaultValue={editingReward.day_number ?? ''}
+                    placeholder="Leave empty for non-day-specific reward"
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(148, 163, 184, 0.2)',
+                      background: 'rgba(15, 23, 42, 0.5)',
+                      color: '#E2E8F0',
+                    }}
+                  />
+                  <p style={{ marginTop: '4px', fontSize: '12px', color: '#94A3B8' }}>
+                    Set day number (1, 2, 3...) for day-specific rewards. Leave empty for general rewards.
+                  </p>
+                </div>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', marginBottom: '4px', color: '#E2E8F0' }}>
                     Status
                   </label>
                   <select
@@ -545,6 +606,20 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
                           {reward.type === 'points' ? '💰' : reward.type === 'currency' ? '💎' : '📦'}
                         </span>
                         <h3 style={{ fontSize: '16px', fontWeight: 600 }}>{reward.title}</h3>
+                        {reward.day_number && (
+                          <span
+                            style={{
+                              padding: '4px 8px',
+                              borderRadius: '6px',
+                              fontSize: '12px',
+                              background: 'rgba(251, 191, 36, 0.2)',
+                              color: '#FBBF24',
+                              fontWeight: 600,
+                            }}
+                          >
+                            DAY {reward.day_number}
+                          </span>
+                        )}
                         <span
                           style={{
                             padding: '4px 8px',

@@ -10,6 +10,7 @@ export class DailyReward {
     public readonly description: string,
     public readonly points: number,
     public readonly isActive: boolean,
+    public readonly dayNumber: number | null,
     public readonly createdAt: Date,
     public readonly updatedAt: Date
   ) {}
@@ -20,7 +21,8 @@ export class DailyReward {
     type: RewardType,
     title: string,
     description: string,
-    points: number
+    points: number,
+    dayNumber: number | null = null
   ): DailyReward {
     // Business rules validation
     if (!title || title.trim().length === 0) {
@@ -39,8 +41,12 @@ export class DailyReward {
       throw new Error('App ID cannot be empty');
     }
 
+    if (dayNumber !== null && dayNumber <= 0) {
+      throw new Error('Day number must be positive if provided');
+    }
+
     const now = new Date();
-    return new DailyReward(id, appId.trim(), type, title.trim(), description.trim(), points, true, now, now);
+    return new DailyReward(id, appId.trim(), type, title.trim(), description.trim(), points, true, dayNumber, now, now);
   }
 
   static fromDatabase(
@@ -51,10 +57,11 @@ export class DailyReward {
     description: string,
     points: number,
     isActive: boolean,
+    dayNumber: number | null,
     createdAt: Date,
     updatedAt: Date
   ): DailyReward {
-    return new DailyReward(id, appId, type, title, description, points, isActive, createdAt, updatedAt);
+    return new DailyReward(id, appId, type, title, description, points, isActive, dayNumber, createdAt, updatedAt);
   }
 
   withTitle(title: string): DailyReward {
@@ -69,6 +76,7 @@ export class DailyReward {
       this.description,
       this.points,
       this.isActive,
+      this.dayNumber,
       this.createdAt,
       new Date()
     );
@@ -86,6 +94,7 @@ export class DailyReward {
       description.trim(),
       this.points,
       this.isActive,
+      this.dayNumber,
       this.createdAt,
       new Date()
     );
@@ -103,6 +112,25 @@ export class DailyReward {
       this.description,
       points,
       this.isActive,
+      this.dayNumber,
+      this.createdAt,
+      new Date()
+    );
+  }
+
+  withDayNumber(dayNumber: number | null): DailyReward {
+    if (dayNumber !== null && dayNumber <= 0) {
+      throw new Error('Day number must be positive if provided');
+    }
+    return new DailyReward(
+      this.id,
+      this.appId,
+      this.type,
+      this.title,
+      this.description,
+      this.points,
+      this.isActive,
+      dayNumber,
       this.createdAt,
       new Date()
     );
@@ -117,6 +145,7 @@ export class DailyReward {
       this.description,
       this.points,
       true,
+      this.dayNumber,
       this.createdAt,
       new Date()
     );
@@ -131,6 +160,7 @@ export class DailyReward {
       this.description,
       this.points,
       false,
+      this.dayNumber,
       this.createdAt,
       new Date()
     );

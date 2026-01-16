@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { AUTH_TYPES } from '../../../infrastructure/bootstrap/types';
 import { ROOT_TYPES } from '../../../../../infrastructure/bootstrap/types';
 import type { UIRendererPort } from '../../../../../application/ports/ui-renderer.port';
 import type { AuthPresenter } from '../../presenters/auth.presenter';
+import type { UIDescriptor } from '../../../../../shared/ui/ui-descriptor';
 
 type PopupState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -33,14 +35,44 @@ export function AuthPopup({
 }: AuthPopupProps) {
 	const authPresenter = container.get<AuthPresenter>(AUTH_TYPES.AuthPresenter);
 	const uiRenderer = container.get<UIRendererPort>(ROOT_TYPES.UIRenderer);
+	const [descriptor, setDescriptor] = useState<UIDescriptor | null>(null);
+	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (!showPopup || !renderPopupConfig) {
+			setDescriptor(null);
+			return;
+		}
+
+		// Load UI descriptor asynchronously (will use fallback if config not ready)
+		const loadDescriptor = async () => {
+			setIsLoading(true);
+			setError(null);
+			try {
+				const uiDescriptor = await authPresenter.createAuthPopupUI(
+					popupState,
+					appIdValue,
+					userIdValue,
+					errorMessage
+				);
+				setDescriptor(uiDescriptor);
+			} catch (err) {
+				console.error('[AuthPopup] Error creating popup UI:', err);
+				setError(err instanceof Error ? err.message : 'Failed to create popup UI');
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		loadDescriptor();
+	}, [showPopup, renderPopupConfig, popupState, appIdValue, userIdValue, errorMessage, authPresenter]);
 
 	if (!showPopup || !renderPopupConfig) {
 		return null;
 	}
 
-	// Проверяем, что конфиг загружен перед рендерингом
-	if (!authPresenter.isConfigReady()) {
-		console.warn('[AuthPopup] Config not ready, cannot render popup');
+	if (isLoading) {
 		return (
 			<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 				<div className="bg-gray-800 p-6 rounded-lg">
@@ -56,15 +88,23 @@ export function AuthPopup({
 		);
 	}
 
-	try {
-		// Создаём UIDescriptor из Presenter
-		const descriptor = authPresenter.createAuthPopupUI(
-			popupState,
-			appIdValue,
-			userIdValue,
-			errorMessage
+	if (error || !descriptor) {
+		return (
+			<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+				<div className="bg-gray-800 p-6 rounded-lg">
+					<p className="text-red-500">{error || 'Failed to render authentication popup'}</p>
+					<button 
+						onClick={onPopupClose}
+						className="mt-4 bg-gray-600 text-white px-4 py-2 rounded"
+					>
+						Close
+					</button>
+				</div>
+			</div>
 		);
+	}
 
+	try {
 		// Добавляем реальные handlers в context
 		const contextWithHandlers = {
 			...descriptor.context,
@@ -87,8 +127,8 @@ export function AuthPopup({
 			...descriptor,
 			context: contextWithHandlers
 		});
-	} catch (error) {
-		console.error('[AuthPopup] Error rendering popup:', error);
+	} catch (err) {
+		console.error('[AuthPopup] Error rendering popup:', err);
 		return (
 			<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 				<div className="bg-gray-800 p-6 rounded-lg">

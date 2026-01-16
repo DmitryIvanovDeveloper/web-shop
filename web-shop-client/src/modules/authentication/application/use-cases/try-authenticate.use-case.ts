@@ -78,15 +78,24 @@ export class TryAuthenticateUseCase {
       }
 
       console.log('[TryAuthenticateUseCase] Publishing UserAuthenticatedEvent');
-      await this._eventBus.publishAsync(
-        new UserAuthenticatedEvent(user.userId, user.username, user.appId, {
-          isNewUser: isNew,
-          lastActiveAt
-        })
-      );
-      console.log('[TryAuthenticateUseCase] UserAuthenticatedEvent published');
+      try {
+        await this._eventBus.publishAsync(
+          new UserAuthenticatedEvent(user.userId, user.username, user.appId, {
+            isNewUser: isNew,
+            lastActiveAt
+          })
+        );
+        console.log('[TryAuthenticateUseCase] UserAuthenticatedEvent published');
+      } catch (eventError) {
+        // Ошибки в обработчиках событий не должны прерывать авторизацию
+        // Пользователь уже создан/найден в Supabase и сохранен в localStorage
+        this._logger.warn('[TryAuthenticateUseCase] Error in event handlers, but authentication succeeded', {
+          error: eventError instanceof Error ? eventError.message : String(eventError)
+        });
+        console.warn('[TryAuthenticateUseCase] Error in event handlers, but authentication succeeded:', eventError);
+      }
 
-      const successResult = Result.ok(user);
+      const successResult: Result<AppUser, AuthenticationError> = Result.ok<AppUser, AuthenticationError>(user);
       console.log('[TryAuthenticateUseCase] Returning success result:', {
         isSuccess: successResult.isSuccess(),
         hasData: !!successResult.data,
