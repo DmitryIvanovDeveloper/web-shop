@@ -9,9 +9,20 @@ export interface DailyRewardsCardsGridProps {
   rewards: readonly DailyRewardViewModel[]; 
   isLoading?: boolean;
   onClaimReward?: (rewardId: string) => void;
+  labels?: {
+    claimButton?: string;
+    claimedButton?: string;
+    claiming?: string;
+    dayPrefix?: string;
+    active?: string;
+    inactive?: string;
+    points?: string;
+    currency?: string;
+    item?: string;
+  };
 }
 
-export function DailyRewardsCardsGrid({ rewards, isLoading = false, onClaimReward }: DailyRewardsCardsGridProps): JSX.Element {
+export function DailyRewardsCardsGrid({ rewards, isLoading = false, onClaimReward, labels }: DailyRewardsCardsGridProps): JSX.Element {
   const containerStyle: React.CSSProperties = {
     maxWidth: '1200px',
     width: '100%',
@@ -124,6 +135,7 @@ export function DailyRewardsCardsGrid({ rewards, isLoading = false, onClaimRewar
             day={reward.dayNumber ?? undefined}
             isLoading={reward.isClaiming}
             timeUntilNextClaim={reward.getTimeUntilNextClaim()}
+            labels={labels}
           />
         ))}
       </div>

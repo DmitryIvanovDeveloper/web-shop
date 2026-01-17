@@ -159,6 +159,24 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
   // Navigation loading state
   const [isNavigating, setIsNavigating] = useState(false);
 
+  // Get localization translations for app-level keys
+  const getAppTranslations = () => {
+    try {
+      const presenter = container.get(LOCALIZATION_TYPES.LocalizationPresenter) as any;
+      const vm = presenter.viewModel;
+      return {
+        loading: vm.translations['app.loading'] || 'Loading...',
+        title: vm.translations['app.title'] || 'Web Shop'
+      };
+    } catch {
+      return {
+        loading: 'Loading...',
+        title: 'Web Shop'
+      };
+    }
+  };
+  const appTranslations = getAppTranslations();
+
   const applyElementSelectionMode = useCallback((enabled: boolean) => {
     if (typeof window !== 'undefined') {
       (window as any).__elementSelectionMode = enabled;
@@ -600,7 +618,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
   return (
     <html lang="en">
       <head>
-        <title>Web Shop</title>
+        <title>{appTranslations.title}</title>
         <meta name="description" content="Web Shop Application" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
         <style>{`
@@ -655,7 +673,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                 textAlign: 'center'
               }}
             >
-              Loading...
+              {appTranslations.loading}
             </p>
           </div>
           )}

@@ -27,6 +27,7 @@ export function DailyRewardsPage({}: DailyRewardsPageProps): JSX.Element {
   const [rewards, setRewards] = useState<DailyRewardViewModel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [labels, setLabels] = useState(presenter.labels);
 
   useEffect(() => {
     // Set userId in presenter
@@ -39,6 +40,7 @@ export function DailyRewardsPage({}: DailyRewardsPageProps): JSX.Element {
       setRewards(presenter.rewards);
       setIsLoading(presenter.isLoading);
       setError(presenter.error);
+      setLabels(presenter.labels);
     });
 
     // Initial load
@@ -129,7 +131,8 @@ export function DailyRewardsPage({}: DailyRewardsPageProps): JSX.Element {
       <DailyRewardsCardsGrid 
         rewards={rewards} 
         isLoading={isLoading}
-        onClaimReward={handleClaimReward} 
+        onClaimReward={handleClaimReward}
+        labels={labels}
       />
     </div>
   );

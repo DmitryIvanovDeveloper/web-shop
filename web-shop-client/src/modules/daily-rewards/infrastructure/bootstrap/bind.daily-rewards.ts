@@ -6,6 +6,11 @@ import { CheckDailyRewardAvailabilityUseCase } from '../../application/use-cases
 import { ClaimDailyRewardUseCase } from '../../application/use-cases/claim-daily-reward.use-case';
 import { LoadDailyRewardsUseCase } from '../../application/use-cases/load-daily-rewards.use-case';
 import { DailyRewardsPresenter } from '../../interface-adapters/presenters/daily-rewards-presenter';
+import { DailyRewardsLocalizationLoadedEventHandler } from '../../interface-adapters/handlers/localization-loaded.handler';
+import { DailyRewardsLocalizationChangedEventHandler } from '../../interface-adapters/handlers/localization-changed.handler';
+import { LocalizationLoadedEvent } from '../../../localization/domain/events/localization-loaded.event';
+import { LocalizationChangedEvent } from '../../../localization/domain/events/localization-changed.event';
+import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
 
 export function bindDailyRewards(container: Container): void {
   // Repositories
@@ -35,7 +40,19 @@ export function bindDailyRewards(container: Container): void {
   // Presenters
   container
     .bind(DAILY_REWARDS_TYPES.DailyRewardsPresenter)
-    .to(DailyRewardsPresenter);
+    .to(DailyRewardsPresenter)
+    .inSingletonScope();
+
+  // Event Handlers (Interface Adapters) - автоматически подхватываются EventBus
+  container
+    .bind<IAsyncEventHandler<LocalizationLoadedEvent>>(DAILY_REWARDS_TYPES.LocalizationLoadedEventHandler)
+    .to(DailyRewardsLocalizationLoadedEventHandler)
+    .inTransientScope();
+
+  container
+    .bind<IAsyncEventHandler<LocalizationChangedEvent>>(DAILY_REWARDS_TYPES.LocalizationChangedEventHandler)
+    .to(DailyRewardsLocalizationChangedEventHandler)
+    .inTransientScope();
 }
 
 

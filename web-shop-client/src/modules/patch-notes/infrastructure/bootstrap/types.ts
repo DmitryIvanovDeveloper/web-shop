@@ -10,7 +10,11 @@ export const PATCH_NOTES_TYPES = {
 
   // Presenters
   PatchNotesAdminPresenter: Symbol.for('PatchNotesAdminPresenter'),
-  PatchNotesPublicPresenter: Symbol.for('PatchNotesPublicPresenter')
+  PatchNotesPublicPresenter: Symbol.for('PatchNotesPublicPresenter'),
+
+  // Event Handlers
+  LocalizationLoadedEventHandler: Symbol.for('IAsyncEventHandler<LocalizationLoadedEvent>'),
+  LocalizationChangedEventHandler: Symbol.for('IAsyncEventHandler<LocalizationChangedEvent>'),
 } as const;
 
 

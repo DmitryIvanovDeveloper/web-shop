@@ -18,6 +18,21 @@ export class PatchNotesPublicPresenter {
   private _onViewModelChanged?: () => void;
   private _currentAppId?: string;
 
+  private _labels = {
+    title: 'Changelog',
+    loading: 'Loading...',
+    emptyState: 'No updates available.',
+    error: 'Loading error',
+    version: 'Version',
+    versionPrefix: 'v',
+    readMore: 'Read More',
+    initializing: 'Initializing...'
+  };
+
+  public get labels() {
+    return { ...this._labels };
+  }
+
   constructor(
     @inject(PATCH_NOTES_TYPES.GetPublishedPatchNotesUseCase)
     private readonly _getPublishedPatchNotesUseCase: GetPublishedPatchNotesUseCase,
@@ -112,5 +127,24 @@ export class PatchNotesPublicPresenter {
       return Promise.resolve();
     }
     return this.loadPublishedNotes(this._currentAppId);
+  }
+
+  /**
+   * Обновляет labels на основе полученных переводов
+   */
+  public updateLabelsFromTranslations(translations: Record<string, string>): void {
+    this._labels = {
+      title: translations['patchNotes.title'] || 'Changelog',
+      loading: translations['patchNotes.loading'] || 'Loading...',
+      emptyState: translations['patchNotes.emptyState'] || 'No updates available.',
+      error: translations['patchNotes.error'] || 'Loading error',
+      version: translations['patchNotes.version'] || 'Version',
+      versionPrefix: translations['patchNotes.versionPrefix'] || 'v',
+      readMore: translations['patchNotes.readMore'] || 'Read More',
+      initializing: translations['patchNotes.initializing'] || 'Initializing...'
+    };
+
+    this._logger.info('[PatchNotesPublicPresenter] Labels updated from translations');
+    this._onViewModelChanged?.();
   }
 }

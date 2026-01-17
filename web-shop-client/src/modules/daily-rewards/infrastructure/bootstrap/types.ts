@@ -5,4 +5,7 @@ export const DAILY_REWARDS_TYPES = {
   DailyRewardRepository: Symbol.for('DailyRewardRepository'),
   RewardClaimRepository: Symbol.for('RewardClaimRepository'),
   DailyRewardsPresenter: Symbol.for('DailyRewardsPresenter'),
+  // Event Handlers
+  LocalizationLoadedEventHandler: Symbol.for('IAsyncEventHandler<LocalizationLoadedEvent>'),
+  LocalizationChangedEventHandler: Symbol.for('IAsyncEventHandler<LocalizationChangedEvent>'),
 } as const;

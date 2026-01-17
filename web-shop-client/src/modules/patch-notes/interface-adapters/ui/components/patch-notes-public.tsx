@@ -49,9 +49,12 @@ export function PatchNotesPublic({ appId }: PatchNotesPublicProps): JSX.Element 
   }, [presenter, appId]);
 
   if (error) {
+    const defaultLabels = {
+      title: 'Changelog'
+    };
     return (
       <div className="text-center py-8">
-        <h1 className="text-3xl font-bold mb-4">Changelog</h1>
+        <h1 className="text-3xl font-bold mb-4">{defaultLabels.title}</h1>
         <p className="text-red-600">Error: {error}</p>
       </div>
     );
@@ -59,10 +62,14 @@ export function PatchNotesPublic({ appId }: PatchNotesPublicProps): JSX.Element 
 
   // Don't render anything until presenter is initialized
   if (!presenter) {
+    const defaultLabels = {
+      title: 'Changelog',
+      initializing: 'Initializing...'
+    };
     return (
       <div className="text-center py-8">
-        <h1 className="text-3xl font-bold mb-4">Changelog</h1>
-        <p className="text-gray-600">Initializing...</p>
+        <h1 className="text-3xl font-bold mb-4">{defaultLabels.title}</h1>
+        <p className="text-gray-600">{defaultLabels.initializing}</p>
       </div>
     );
   }
@@ -84,10 +91,12 @@ export function PatchNotesPublic({ appId }: PatchNotesPublicProps): JSX.Element 
     marginBottom: '2rem',
   };
 
+  const labels = presenter.labels;
+
   if (viewModel.status === 'loading') {
     return (
       <div style={containerStyle}>
-        <h1 style={titleStyle}>Changelog</h1>
+        <h1 style={titleStyle}>{labels.title}</h1>
         <PatchNotesCardsGrid patchNotes={[]} isLoading={true} />
       </div>
     );
@@ -96,9 +105,9 @@ export function PatchNotesPublic({ appId }: PatchNotesPublicProps): JSX.Element 
   if (viewModel.status === 'error') {
     return (
       <div style={containerStyle}>
-        <h1 style={titleStyle}>Changelog</h1>
+        <h1 style={titleStyle}>{labels.title}</h1>
         <div style={{ textAlign: 'center', color: '#EF4444', padding: '2rem' }}>
-          Loading error: {viewModel.error}
+          {labels.error}: {viewModel.error}
         </div>
       </div>
     );
@@ -107,9 +116,9 @@ export function PatchNotesPublic({ appId }: PatchNotesPublicProps): JSX.Element 
   if (viewModel.status === 'empty') {
     return (
       <div style={containerStyle}>
-        <h1 style={titleStyle}>Changelog</h1>
+        <h1 style={titleStyle}>{labels.title}</h1>
         <div style={{ textAlign: 'center', color: '#94A3B8', padding: '2rem' }}>
-          No updates available.
+          {labels.emptyState}
         </div>
       </div>
     );
@@ -117,7 +126,7 @@ export function PatchNotesPublic({ appId }: PatchNotesPublicProps): JSX.Element 
 
   return (
     <div style={containerStyle}>
-      <h1 style={titleStyle}>Changelog</h1>
+      <h1 style={titleStyle}>{labels.title}</h1>
       <PatchNotesCardsGrid 
         patchNotes={viewModel.patchNotes as PatchNoteItem[]} 
         isLoading={false} 

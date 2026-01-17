@@ -28,13 +28,26 @@ export class DailyRewardsPresenter {
   };
   private _subscribers: Set<ViewModelUpdateCallback> = new Set();
 
-  public readonly labels = {
+  private _labels = {
     pageTitle: 'Daily Rewards',
     loading: 'Loading daily rewards...',
     error: 'Error loading daily rewards',
     noRewards: 'No daily rewards available',
-    points: 'points'
+    claimButton: 'Claim Reward',
+    claimedButton: 'Claimed',
+    claiming: 'Claiming...',
+    dayPrefix: 'DAY',
+    active: 'Active',
+    inactive: 'Inactive',
+    points: 'Points',
+    currency: 'Currency',
+    item: 'Item',
+    alreadyClaimed: 'You have already claimed your daily reward today. Please come back tomorrow!'
   };
+
+  public get labels() {
+    return { ...this._labels };
+  }
 
   public readonly state: { loading: boolean; error: string | null; data: unknown } = { loading: false, error: null, data: null };
 
@@ -81,6 +94,31 @@ export class DailyRewardsPresenter {
       ...this._viewModel,
       userId
     };
+  }
+
+  /**
+   * Обновляет labels на основе полученных переводов
+   */
+  public updateLabelsFromTranslations(translations: Record<string, string>): void {
+    this._labels = {
+      pageTitle: translations['dailyRewards.pageTitle'] || translations['dailyRewards.title'] || 'Daily Rewards',
+      loading: translations['dailyRewards.loading'] || 'Loading daily rewards...',
+      error: translations['dailyRewards.error'] || 'Error loading daily rewards',
+      noRewards: translations['dailyRewards.noRewards'] || 'No daily rewards available',
+      claimButton: translations['dailyRewards.claimButton'] || 'Claim Reward',
+      claimedButton: translations['dailyRewards.claimedButton'] || 'Claimed',
+      claiming: translations['dailyRewards.claiming'] || 'Claiming...',
+      dayPrefix: translations['dailyRewards.dayPrefix'] || 'DAY',
+      active: translations['dailyRewards.active'] || 'Active',
+      inactive: translations['dailyRewards.inactive'] || 'Inactive',
+      points: translations['dailyRewards.points'] || 'Points',
+      currency: translations['dailyRewards.currency'] || 'Currency',
+      item: translations['dailyRewards.item'] || 'Item',
+      alreadyClaimed: translations['dailyRewards.alreadyClaimed'] || 'You have already claimed your daily reward today. Please come back tomorrow!'
+    };
+
+    this._logger.info('[DailyRewardsPresenter] Labels updated from translations');
+    this._notifySubscribers();
   }
 
   public async loadRewards(input: LoadDailyRewardsInput): Promise<void> {
@@ -370,7 +408,7 @@ export class DailyRewardsPresenter {
           this._logger.info('[DailyRewardsPresenter] User already claimed reward today, reloading rewards');
           this._viewModel = {
             ...this._viewModel,
-            errorMessage: 'You have already claimed your daily reward today. Please come back tomorrow!',
+            errorMessage: this._labels.alreadyClaimed,
           };
           this._notifySubscribers();
           await this.loadRewards({ appId: input.appId, userId: input.userId });

@@ -15,16 +15,27 @@ export interface DailyRewardCardProps {
   day?: number; // Номер дня (1, 2, 3, ...)
   isLoading?: boolean; // Состояние загрузки при claim
   timeUntilNextClaim?: string | null; // Время до следующего claim'а (формат "HH:MM:SS")
+  labels?: {
+    claimButton?: string;
+    claimedButton?: string;
+    claiming?: string;
+    dayPrefix?: string;
+    active?: string;
+    inactive?: string;
+    points?: string;
+    currency?: string;
+    item?: string;
+  };
 }
 
-function getTypeBadge(type: DailyRewardCardProps['type']): { label: string; color: string } {
+function getTypeBadge(type: DailyRewardCardProps['type'], labels?: DailyRewardCardProps['labels']): { label: string; color: string } {
   switch (type) {
     case 'points':
-      return { label: 'Points', color: '#60A5FA' };
+      return { label: labels?.points || 'Points', color: '#60A5FA' };
     case 'currency':
-      return { label: 'Currency', color: '#F59E0B' };
+      return { label: labels?.currency || 'Currency', color: '#F59E0B' };
     case 'item':
-      return { label: 'Item', color: '#A855F7' };
+      return { label: labels?.item || 'Item', color: '#A855F7' };
   }
 }
 
@@ -40,6 +51,7 @@ export function DailyRewardCard({
   day,
   isLoading = false,
   timeUntilNextClaim = null,
+  labels,
 }: DailyRewardCardProps): JSX.Element {
   const cardStyle: React.CSSProperties = {
     width: '100%',
@@ -59,7 +71,7 @@ export function DailyRewardCard({
     boxSizing: 'border-box',
   };
 
-  const badge = getTypeBadge(type);
+  const badge = getTypeBadge(type, labels);
 
   const badgeStyle: React.CSSProperties = {
     display: 'inline-flex',
@@ -146,7 +158,7 @@ export function DailyRewardCard({
   return (
     <div style={cardStyle}>
       {day !== undefined && (
-        <div style={dayLabelStyle}>DAY {day}</div>
+        <div style={dayLabelStyle}>{labels?.dayPrefix || 'DAY'} {day}</div>
       )}
       <div>
         <span style={badgeStyle}>{badge.label}</span>
@@ -156,7 +168,7 @@ export function DailyRewardCard({
 
       <div style={pointsRowStyle}>
         <div style={pointsStyle}>{points}</div>
-        <div style={activePillStyle}>{isActive ? 'Active' : 'Inactive'}</div>
+        <div style={activePillStyle}>{isActive ? (labels?.active || 'Active') : (labels?.inactive || 'Inactive')}</div>
       </div>
 
       {!isClaimedToday && (isActive || shouldShowPadlock || timeUntilNextClaim) && (
@@ -187,12 +199,12 @@ export function DailyRewardCard({
           {isLoading ? (
             <>
               <ClipLoader size={14} color="#FFFFFF" loading={true} />
-              <span>Claiming...</span>
+              <span>{labels?.claiming || 'Claiming...'}</span>
             </>
           ) : isActive ? (
             <>
               <span>🎁</span>
-              <span>Claim Reward</span>
+              <span>{labels?.claimButton || 'Claim Reward'}</span>
             </>
           ) : timeUntilNextClaim ? (
             <div style={{
@@ -243,7 +255,7 @@ export function DailyRewardCard({
           opacity: 1,
           fontWeight: 700,
         }}>
-          <div>Claimed</div>
+          <div>{labels?.claimedButton || 'Claimed'}</div>
           {timeUntilNextClaim && (
             <div style={{ 
               fontSize: '12px', 
