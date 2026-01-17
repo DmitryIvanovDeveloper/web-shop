@@ -90,7 +90,6 @@ export class ProductsPresenter {
 
   public async loadProducts(): Promise<void> {
     if (!this._appId) {
-      this._logger.error('[ProductsPresenter] Cannot load products: appId is not set');
       return;
     }
 
@@ -103,7 +102,6 @@ export class ProductsPresenter {
 
     const result = await this._loadProductsUseCase.execute({ appId: this._appId });
     if (result.isFailure()) {
-      this._logger.error('[ProductsPresenter] Failed to load products', { error: result.error });
       this._viewModel = {
         ...this._viewModel,
         isLoading: false,
@@ -125,7 +123,6 @@ export class ProductsPresenter {
 
   public async createProduct(productData: Omit<ProductFormViewModel, 'id'>): Promise<void> {
     if (!this._appId) {
-      this._logger.error('[ProductsPresenter] Cannot create product: appId is not set');
       return;
     }
 
@@ -151,7 +148,6 @@ export class ProductsPresenter {
     });
 
     if (result.isFailure()) {
-      this._logger.error('[ProductsPresenter] Failed to create product', { error: result.error });
       this._viewModel = {
         ...this._viewModel,
         isSaving: false,
@@ -161,7 +157,6 @@ export class ProductsPresenter {
       return;
     }
 
-    // Reload products to get updated list
     await this.loadProducts();
 
     // Close form
@@ -176,7 +171,6 @@ export class ProductsPresenter {
 
   public async updateProduct(id: string, productData: Omit<ProductFormViewModel, 'id' | 'appid'>): Promise<void> {
     if (!this._appId) {
-      this._logger.error('[ProductsPresenter] Cannot update product: appId is not set');
       return;
     }
 
@@ -186,13 +180,6 @@ export class ProductsPresenter {
       errorMessage: null,
     };
     this._notifySubscribers();
-
-    this._logger.info('[ProductsPresenter] Updating product', {
-      id,
-      main_image: productData.main_image ? (productData.main_image.startsWith('http') ? 'URL' : 'base64/data') : 'null',
-    });
-
-    console.log('[ProductsPresenter] updateProduct called with:', { id, appId: this._appId, description: productData.description });
 
     const result = await this._updateProductUseCase.execute({
       id,
@@ -211,7 +198,6 @@ export class ProductsPresenter {
     });
 
     if (result.isFailure()) {
-      this._logger.error('[ProductsPresenter] Failed to update product', { error: result.error });
       this._viewModel = {
         ...this._viewModel,
         isSaving: false,
@@ -221,9 +207,7 @@ export class ProductsPresenter {
       return;
     }
 
-    // Update product in local view model without reloading the whole list
     if (!result.data) {
-      this._logger.error('[ProductsPresenter] Update succeeded but no data returned');
       this._viewModel = {
         ...this._viewModel,
         isSaving: false,
@@ -251,7 +235,6 @@ export class ProductsPresenter {
 
   public async deleteProduct(id: string): Promise<void> {
     if (!this._appId) {
-      this._logger.error('[ProductsPresenter] Cannot delete product: appId is not set');
       return;
     }
 
@@ -268,7 +251,6 @@ export class ProductsPresenter {
     });
 
     if (result.isFailure()) {
-      this._logger.error('[ProductsPresenter] Failed to delete product', { error: result.error });
       this._viewModel = {
         ...this._viewModel,
         isLoading: false,
@@ -278,7 +260,6 @@ export class ProductsPresenter {
       return;
     }
 
-    // Reload products to get updated list
     await this.loadProducts();
   }
 
@@ -342,24 +323,11 @@ export class ProductsPresenter {
   }
 
   public async uploadProductImage(file: File): Promise<Result<string, Error>> {
-    this._logger.info('[ProductsPresenter] Starting image upload', {
-      fileName: file.name,
-      fileSize: file.size,
-    });
-
     const result = await this._uploadProductImageUseCase.execute({ file });
 
     if (result.isFailure()) {
-      this._logger.error('[ProductsPresenter] Failed to upload image', {
-        error: result.error,
-        fileName: file.name,
-      });
       return Result.error(result.error!);
     }
-
-    this._logger.info('[ProductsPresenter] Image uploaded successfully', {
-      url: result.data!.url,
-    });
 
     return Result.ok(result.data!.url);
   }

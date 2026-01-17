@@ -29,21 +29,12 @@ export function DataGrid({
 
     const fetchData = async () => {
       try {
-        // Преобразуем "api://products/offers" -> "/api/products/offers"
         const apiUrl = dataSource.replace('api://', '/api/');
-        console.log('[DataGrid] Fetching data from:', apiUrl);
-        
-        // Используем обычный fetch для избежания проблем с DI контейнером
         const response = await fetch(apiUrl);
-        console.log('[DataGrid] Response status:', response.status);
         const json = await response.json();
-        console.log('[DataGrid] Response data:', json);
-        
         const offers = json.offers || json.products || json.data || (Array.isArray(json) ? json : []);
-        console.log('[DataGrid] Extracted offers:', offers);
         setData(offers);
       } catch (error) {
-        console.error('[DataGrid] Failed to load data:', error);
         setData([]);
       } finally {
         setLoading(false);

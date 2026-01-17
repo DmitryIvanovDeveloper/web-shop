@@ -253,35 +253,21 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
    * Switching between templates should not immediately overwrite each other.
    */
   useEffect(() => {
-    const effectId = Math.random().toString(36).substr(2, 9);
-    console.log(`[UIBuilderPage] Autosave useEffect triggered [${effectId}]`, {
-      isAdmin,
-      selectedTemplateId: templatesVm.selectedTemplateId,
-      lastModified: viewModel.lastModified,
-      hasConfig: !!viewModel.config
-    });
-
     if (!isAdmin) {
-      console.log('[UIBuilderPage] Autosave skipped: not admin');
       return;
     }
 
-
     if (!templatesVm.selectedTemplateId) {
-      console.log('[UIBuilderPage] Autosave skipped: no template selected');
       return;
     }
     if (!viewModel.config) {
-      console.log('[UIBuilderPage] Autosave skipped: no config');
       return;
     }
 
     const last = lastTemplateAutosaveRef.current;
     const currentConfigSnapshot = JSON.stringify(viewModel.config);
 
-    // If template changed – just record new state and skip autosave for this tick.
     if (last.templateId !== templatesVm.selectedTemplateId) {
-      console.log('[UIBuilderPage] Autosave: template changed, resetting tracking');
       lastTemplateAutosaveRef.current = {
         templateId: templatesVm.selectedTemplateId,
         lastModified: viewModel.lastModified,
@@ -290,42 +276,31 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       return;
     }
 
-    // If config didn't actually change – nothing to save.
     if (last.configSnapshot === currentConfigSnapshot) {
-      console.log('[UIBuilderPage] Autosave skipped: config unchanged');
       return;
     }
 
-    console.log('[UIBuilderPage] Autosave: config changed, scheduling save');
-
-    // Clear any existing timeout
     if (autosaveTimeoutRef.current) {
       window.clearTimeout(autosaveTimeoutRef.current);
     }
 
-    // Update tracking
     lastTemplateAutosaveRef.current = {
       templateId: templatesVm.selectedTemplateId,
       lastModified: viewModel.lastModified,
       configSnapshot: currentConfigSnapshot,
     };
 
-    // Set new timeout
     autosaveTimeoutRef.current = window.setTimeout(() => {
-      const timeoutId = Math.random().toString(36).substr(2, 9);
-      console.log(`[UIBuilderPage] Autosave: executing save [${timeoutId}]`);
       void templatesPresenter.saveSelectedTemplateFromCurrentConfig();
-      autosaveTimeoutRef.current = null; // Reset after execution
-    }, 2000); // 2s debounce to avoid excessive writes
+      autosaveTimeoutRef.current = null;
+    }, 2000);
 
-    // Cleanup function to clear timeout on unmount or dependency change
     return () => {
       if (autosaveTimeoutRef.current) {
         window.clearTimeout(autosaveTimeoutRef.current);
         autosaveTimeoutRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAdmin, viewModel.lastModified]);
 
   // Send viewport mode update to iframe when device or orientation changes
@@ -427,8 +402,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       if (isAdmin && templatesVm.selectedTemplateId) {
         const result = await templatesPresenter.markSelectedTemplatePublished();
         if (result.isFailure) {
-          // Ошибка публикации шаблона не должна блокировать publish конфига,
-          // но покажем пользователю предупреждение.
           alert(`Config published, but template publish failed: ${result.error?.message ?? 'Unknown error'}`);
           return;
         }
@@ -769,7 +742,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     if (!previewComm) return;
 
     const handlePreviewReady = () => {
-      console.log('[UIBuilderPage] Preview iframe is ready');
     };
 
     if (previewComm.onPreviewReady) {
@@ -1177,7 +1149,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         </svg>
       </button>
 
-      {/* Left Sidebar - список компонентов для редактирования */}
       <aside className="w-72 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
         <div className="p-3">
           {/* Page Builder - Add Section (only when Pages tab is active) */}
@@ -1851,8 +1822,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             setIsCreateTemplateModalOpen(false);
             setCreateTemplateType('base');
           } catch (error) {
-            // Error handling is done in presenter
-            console.error('Failed to create template:', error);
           }
         }}
         templateType={createTemplateType}

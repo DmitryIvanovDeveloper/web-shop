@@ -119,17 +119,8 @@ export class DailyRewardCardViewModelImpl implements DailyRewardViewModel {
     this.isClaimedToday = data.isClaimedToday;
     this._isClaiming = data.isClaiming;
 
-    console.log(`[DailyRewardViewModel] Creating ViewModel for ${this.title} (Day ${this.dayNumber}):`, {
-      id: this.id,
-      isActive: this.isActive,
-      isClaimedToday: this.isClaimedToday,
-      dayNumber: this.dayNumber
-    });
-    
-    // Определяем статус на основе состояния
     this._status = this.determineStatus();
     
-    // UI свойства
     this.typeIcon = this.getTypeIcon();
     this._statusBadge = this.getStatusBadge();
   }

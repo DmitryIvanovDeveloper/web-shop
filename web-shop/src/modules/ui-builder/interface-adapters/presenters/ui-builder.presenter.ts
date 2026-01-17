@@ -187,35 +187,17 @@ export class UIBuilderPresenter {
       return;
     }
 
-    this._logger.info('[UIBuilderPresenter] Element selection mode changed', { enabled });
     this.vm = { ...this.vm, elementSelectionMode: enabled };
     this.notify();
     this.sendConfigToIframe();
   }
 
-  /**
-   * Return a fresh default app config snapshot without mutating current state.
-   */
   public createDefaultConfigSnapshot(): Record<string, unknown> {
     return this.getDefaultConfig();
   }
 
-  /**
-   * Apply full app-level configuration from a Template into the current draft.
-   * Does not publish; changes are saved as draft via debounced save.
-   */
   public applyTemplateConfig(appConfig: unknown): void {
-    this._logger.info('[UIBuilderPresenter] Applying template config', {
-      hasConfig: !!appConfig,
-      configType: typeof appConfig,
-      isObject: typeof appConfig === 'object',
-      configKeys: typeof appConfig === 'object' && appConfig !== null ? Object.keys(appConfig as any) : []
-    });
-
     if (!appConfig || typeof appConfig !== 'object') {
-      this._logger.warn('[UIBuilderPresenter] applyTemplateConfig called with invalid config', {
-        hasConfig: !!appConfig,
-      });
       return;
     }
 
@@ -224,17 +206,10 @@ export class UIBuilderPresenter {
       config: appConfig as Record<string, unknown>,
       isDraft: true,
       error: null,
-      selectedElement: null, // Сброс выбора элемента при применении новой конфигурации
+      selectedElement: null,
     };
 
-    // Сброс области выбора элемента
     this.selectedElementArea = null;
-
-    this._logger.info('[UIBuilderPresenter] Template config applied to VM', {
-      hasNewConfig: !!this.vm.config,
-      configKeys: this.vm.config ? Object.keys(this.vm.config) : [],
-      selectedElementReset: true
-    });
 
     this.notify();
     this.sendConfigToIframe();
@@ -242,17 +217,13 @@ export class UIBuilderPresenter {
   }
 
   public async initialize(appId: string, merchantId: string, skipConfigLoad = false, templateConfig?: unknown): Promise<void> {
-    this._logger.info('[UIBuilderPresenter] Initializing with appId', { appId, merchantId, hasTemplateConfig: !!templateConfig });
     this.vm = { ...this.vm, isLoading: true, appId, merchantId };
     this.notify();
 
     try {
       if (templateConfig) {
-        // Use template config for admin users
-        this._logger.info('[UIBuilderPresenter] Using template config for initialization', { appId });
         let appConfig = templateConfig as any;
 
-        // Migrate all IDs to UUID format
         appConfig = migrateConfigIds(appConfig);
 
         const version = appConfig.version;
@@ -273,10 +244,8 @@ export class UIBuilderPresenter {
         const result = await this._loadDraftConfigUseCase.execute(appId);
 
         if (result.isSuccess && result.value) {
-          this._logger.info('[UIBuilderPresenter] Config loaded successfully', { appId });
           let appConfig = result.value as any;
 
-          // Migrate all IDs to UUID format
           appConfig = migrateConfigIds(appConfig);
 
           const version = appConfig.version;
@@ -291,31 +260,26 @@ export class UIBuilderPresenter {
             version: versionValue
           };
 
-          // Save migrated config back to Supabase
           await this.saveConfigToSupabase();
 
           this.sendConfigToIframe();
         } else {
-          this._logger.warn('[UIBuilderPresenter] Failed to load config, using default', { appId, error: result.error });
           this.vm = { ...this.vm, config: this.getDefaultConfig(), isLoading: false };
           this.sendConfigToIframe();
         }
       } else {
-        this._logger.info('[UIBuilderPresenter] Skipping config load, using default config', { appId });
         this.vm = { ...this.vm, config: this.getDefaultConfig(), isLoading: false };
         this.sendConfigToIframe();
       }
 
       this.notify();
     } catch (error) {
-      this._logger.error('[UIBuilderPresenter] Error initializing', { appId, error });
       this.vm = { ...this.vm, config: this.getDefaultConfig(), isLoading: false, error: 'Failed to load configuration' };
       this.notify();
     }
   }
 
   public async resetToActive(appId: string): Promise<void> {
-    this._logger.info('[UIBuilderPresenter] Resetting to active config', { appId });
     this.vm = { ...this.vm, isLoading: true };
     this.notify();
 
@@ -323,10 +287,8 @@ export class UIBuilderPresenter {
       const result = await this._loadActiveConfigUseCase.execute(appId);
       
       if (result.isSuccess && result.value) {
-        this._logger.info('[UIBuilderPresenter] Active config loaded successfully', { appId });
         let appConfig = result.value as any;
         
-        // Migrate all IDs to UUID format
         appConfig = migrateConfigIds(appConfig);
         
         this.vm = { 
@@ -337,12 +299,10 @@ export class UIBuilderPresenter {
           selectedElement: null 
         };
         
-        // Save migrated config back to Supabase as draft version 1
         await this.saveConfigToSupabaseAsVersion(1);
         
         this.sendConfigToIframe();
       } else {
-        this._logger.error('[UIBuilderPresenter] Failed to load active config', { appId, error: result.error });
         this.vm = { 
           ...this.vm, 
           isLoading: false, 
@@ -352,7 +312,6 @@ export class UIBuilderPresenter {
       
       this.notify();
     } catch (error) {
-      this._logger.error('[UIBuilderPresenter] Error resetting to active', { appId, error });
       this.vm = { 
         ...this.vm, 
         isLoading: false, 
@@ -553,12 +512,6 @@ export class UIBuilderPresenter {
 
     const located = this.locateElement(elementId);
     if (!located) {
-      this._logger.warn('[UIBuilderPresenter] selectElement: element not found', { 
-        elementId,
-        configExists: !!this.vm.config,
-        sidebarLayout: !!(this.vm.config as any)?.modules?.uiRenderer?.sidebar?.layout,
-        rightSidebarLayout: !!(this.vm.config as any)?.modules?.uiRenderer?.rightSidebar?.layout
-      });
       this.selectedElementArea = null;
       this.vm = { ...this.vm, selectedElement: null };
       this.notify();
@@ -590,7 +543,6 @@ export class UIBuilderPresenter {
       },
     };
 
-    // Send element selection to iframe for visual highlighting
     this.preview.selectElement(elementId);
     
     this.notify();
@@ -745,7 +697,6 @@ export class UIBuilderPresenter {
   public updateButtonPageSlug(elementId: string, pageSlug: string | null): void {
     const node = this.findNode(elementId);
     if (!node) {
-      this._logger.warn('[UIBuilderPresenter] updateButtonPageSlug: node not found', { elementId });
       return;
     }
 
@@ -755,10 +706,8 @@ export class UIBuilderPresenter {
 
     if (pageSlug && pageSlug.trim() !== '') {
       node.props.pageSlug = pageSlug;
-      this._logger.info('[UIBuilderPresenter] updateButtonPageSlug: set pageSlug', { elementId, pageSlug });
     } else {
       delete node.props.pageSlug;
-      this._logger.info('[UIBuilderPresenter] updateButtonPageSlug: removed pageSlug', { elementId });
     }
 
     this.selectElement(elementId);
@@ -848,7 +797,6 @@ export class UIBuilderPresenter {
   }
 
   public async publishDraft(): Promise<boolean> {
-    this._logger.info('[UIBuilderPresenter] Publishing draft', { appId: this.vm.appId });
     this.vm = { ...this.vm, isLoading: true };
     this.notify();
 
@@ -866,13 +814,7 @@ export class UIBuilderPresenter {
         const versionValue = typeof version === 'object' && version !== null && 'value' in version 
           ? (version as { value: number }).value 
           : (typeof version === 'number' ? version : null);
-        this._logger.info('[UIBuilderPresenter] Draft published successfully', { 
-          appId: this.vm.appId, 
-          version: versionValue
-        });
 
-        // After publishing, create a new draft from the published config for further editing
-        // This ensures we can continue editing after publish
         if (this.vm.config) {
           const newDraftResult = await this._saveDraftUseCase.execute({
             appId: this.vm.appId,
@@ -893,17 +835,12 @@ export class UIBuilderPresenter {
               this.vm = { 
                 ...this.vm, 
                 config: appConfig.config as unknown as Record<string, unknown>,
-                isDraft: true, // New draft created
+                isDraft: true,
                 isLoading: false,
                 version: draftVersionValue,
               };
               this.sendConfigToIframe();
-              this._logger.info('[UIBuilderPresenter] New draft created after publish', { 
-                appId: this.vm.appId, 
-                version: draftVersionValue
-              });
             } else {
-              // Fallback: keep current config, mark as draft
               this.vm = { 
                 ...this.vm, 
                 isDraft: true, 
@@ -912,11 +849,6 @@ export class UIBuilderPresenter {
               };
             }
           } else {
-            // Failed to create new draft, but publish was successful
-            this._logger.warn('[UIBuilderPresenter] Failed to create new draft after publish', { 
-              appId: this.vm.appId, 
-              error: newDraftResult.error 
-            });
             this.vm = { 
               ...this.vm, 
               isDraft: false, 
@@ -925,7 +857,6 @@ export class UIBuilderPresenter {
             };
           }
         } else {
-          // No config to create draft from
           this.vm = { 
             ...this.vm, 
             isDraft: false, 
@@ -937,10 +868,6 @@ export class UIBuilderPresenter {
     this.notify();
     return true;
       } else {
-        this._logger.error('[UIBuilderPresenter] Failed to publish draft', { 
-          appId: this.vm.appId, 
-          error: result.error 
-        });
         this.vm = { 
           ...this.vm, 
           isLoading: false, 
@@ -950,10 +877,6 @@ export class UIBuilderPresenter {
         return false;
       }
     } catch (error) {
-      this._logger.error('[UIBuilderPresenter] Error publishing draft', { 
-        appId: this.vm.appId, 
-        error 
-      });
       this.vm = { 
         ...this.vm, 
         isLoading: false, 
@@ -1046,14 +969,12 @@ export class UIBuilderPresenter {
   private findNodeInLayout(layoutKey: 'sidebar' | 'rightSidebar', elementId: string): any | null {
     const layout = (this.vm.config as any)?.modules?.uiRenderer?.[layoutKey]?.layout;
     if (!layout) {
-      this._logger.warn(`[UIBuilderPresenter] findNodeInLayout: layout not found for ${layoutKey}`);
       return null;
     }
 
     const dfs = (n: any, depth: number = 0): any | null => {
       if (!n) return null;
       if (n.id === elementId) {
-        this._logger.info(`[UIBuilderPresenter] findNodeInLayout: found element ${elementId} at depth ${depth}`);
         return n;
       }
       if (Array.isArray(n.children)) {
@@ -1066,13 +987,6 @@ export class UIBuilderPresenter {
     };
 
     const result = dfs(layout);
-    if (!result) {
-      this._logger.warn(`[UIBuilderPresenter] findNodeInLayout: element ${elementId} not found in ${layoutKey}`, {
-        layoutId: layout.id,
-        hasChildren: Array.isArray(layout.children),
-        childrenCount: Array.isArray(layout.children) ? layout.children.length : 0
-      });
-    }
     return result;
   }
 
@@ -1081,26 +995,15 @@ export class UIBuilderPresenter {
     const preferred = this.selectedElementArea ? [this.selectedElementArea] : layouts;
     const searchOrder = Array.from(new Set([...preferred, ...layouts]));
 
-    this._logger.info(`[UIBuilderPresenter] locateElement: searching for ${elementId}`, {
-      selectedElementArea: this.selectedElementArea,
-      searchOrder
-    });
-
     for (const layoutKey of searchOrder) {
       const node = this.findNodeInLayout(layoutKey, elementId);
       if (node) {
-        this._logger.info(`[UIBuilderPresenter] locateElement: found ${elementId} in ${layoutKey}`);
         return { node, layout: layoutKey };
       }
     }
-
-    this._logger.warn(`[UIBuilderPresenter] locateElement: element ${elementId} not found in any layout`);
     return null;
   }
 
-  /**
-   * Helper function to recursively search for a node by ID in a tree structure
-   */
   private findNodeInTree(node: any, elementId: string): any | null {
     if (!node) return null;
     if (node.id === elementId) return node;
@@ -1113,12 +1016,6 @@ export class UIBuilderPresenter {
     return null;
   }
 
-  /**
-   * Find the area (sidebar, rightSidebar, or page) where an element is located
-   * @param elementId - The ID of the element to find
-   * @param pageConstructorPresenter - Optional PageConstructorPresenter to search in page sections
-   * @returns The area where the element is located, or null if not found
-   */
   public findElementArea(
     elementId: string,
     pageConstructorPresenter?: { getViewModel(): { sections: Array<{ id: string; layout?: any; components?: Array<{ id: string; children?: any[] }> }>; offerCards?: Array<{ id: string }> } }
@@ -1129,22 +1026,14 @@ export class UIBuilderPresenter {
 
     const config = this.vm.config as any;
 
-    // 1. Check in sidebar
     const sidebarLayout = config?.modules?.uiRenderer?.sidebar?.layout;
     if (sidebarLayout) {
       const found = this.findNodeInTree(sidebarLayout, elementId);
-      this._logger.info('[UIBuilderPresenter] Checking sidebar for element', {
-        elementId,
-        hasSidebarLayout: !!sidebarLayout,
-        found,
-        sidebarLayoutId: sidebarLayout.id
-      });
       if (found) {
         return 'sidebar';
       }
     }
 
-    // 2. Check in rightSidebar
     const rightSidebarLayout = config?.modules?.uiRenderer?.rightSidebar?.layout;
     if (rightSidebarLayout && this.findNodeInTree(rightSidebarLayout, elementId)) {
       return 'rightSidebar';
@@ -1175,34 +1064,24 @@ export class UIBuilderPresenter {
       return 'authPopup';
     }
 
-    // 5. Check if elementId is a page container (page-{pageSlug})
     if (elementId.startsWith('page-')) {
-      this._logger.info('[UIBuilderPresenter] Found element as page container', { elementId });
       return 'page';
     }
-
-    // 6. Check in page sections (if PageConstructorPresenter is provided)
     if (pageConstructorPresenter) {
       const pageVm = pageConstructorPresenter.getViewModel();
       if (pageVm?.sections) {
         for (const section of pageVm.sections) {
           // Check if elementId matches the section ID
           if (section.id === elementId) {
-            this._logger.info('[UIBuilderPresenter] Found element as page section', { elementId, sectionId: section.id });
             return 'page';
           }
           
-          // Check in section components - components are stored directly in section.components array
           if (section.components && Array.isArray(section.components)) {
             for (const component of section.components) {
-              // Check if component.id matches elementId
               if (component.id === elementId) {
-                this._logger.info('[UIBuilderPresenter] Found element as page component', { elementId, sectionId: section.id, componentId: component.id });
                 return 'page';
               }
-              // Also check in component's children if it has any
               if (this.findNodeInTree(component, elementId)) {
-                this._logger.info('[UIBuilderPresenter] Found element in component tree', { elementId, sectionId: section.id, componentId: component.id });
                 return 'page';
               }
             }
@@ -1363,7 +1242,6 @@ export class UIBuilderPresenter {
 
   private sendConfigToIframe(): void {
     if (!this.vm.config) {
-      this._logger.warn('[UIBuilderPresenter] Cannot send config to iframe: config is null');
       return;
     }
     const configForPreview: Record<string, unknown> = {
@@ -1374,20 +1252,12 @@ export class UIBuilderPresenter {
     this.preview.sendConfig(configForPreview, selectedElementId);
   }
 
-  /**
-   * Force send config to iframe (useful after page switch when iframe needs to be updated)
-   */
   public forceSendConfigToIframe(): void {
-    this._logger.info('[UIBuilderPresenter] Force sending config to iframe', {
-      elementSelectionMode: this.vm.elementSelectionMode,
-      hasConfig: !!this.vm.config
-    });
     this.sendConfigToIframe();
   }
 
   private async saveConfigToSupabase(): Promise<void> {
     if (!this.vm.appId || !this.vm.config) {
-      this._logger.warn('[UIBuilderPresenter] Cannot save: missing appId or config');
       return;
     }
 
@@ -1397,14 +1267,7 @@ export class UIBuilderPresenter {
         merchantId: this.vm.merchantId,
         config: this.vm.config,
       });
-
-      if (result.isSuccess) {
-        this._logger.info('[UIBuilderPresenter] Config saved to Supabase successfully');
-      } else {
-        this._logger.error('[UIBuilderPresenter] Failed to save config', result.error);
-      }
     } catch (error) {
-      this._logger.error('[UIBuilderPresenter] Error saving config', error);
     }
   }
 
@@ -1415,12 +1278,11 @@ export class UIBuilderPresenter {
 
     this.saveDraftDebounceTimer = setTimeout(() => {
       this.saveConfigToSupabase();
-    }, 500); // 500ms debounce
+    }, 500);
   }
 
   private async saveConfigToSupabaseAsVersion(version: number): Promise<void> {
     if (!this.vm.appId || !this.vm.config) {
-      this._logger.warn('[UIBuilderPresenter] Cannot save config: missing appId or config');
       return;
     }
 
@@ -1431,20 +1293,12 @@ export class UIBuilderPresenter {
         config: this.vm.config,
         version: version,
       });
-
-      if (result.isSuccess) {
-        this._logger.info('[UIBuilderPresenter] Config saved to Supabase as version', version);
-      } else {
-        this._logger.error('[UIBuilderPresenter] Failed to save config as version', { version, error: result.error });
-      }
     } catch (error) {
-      this._logger.error('[UIBuilderPresenter] Error saving config as version', { version, error });
     }
   }
 
   public async loadPages(): Promise<void> {
     if (!this.vm.appId) {
-      this._logger.warn('[UIBuilderPresenter] Cannot load pages: appId is empty');
       return;
     }
 
@@ -1455,7 +1309,6 @@ export class UIBuilderPresenter {
       const result = await this._listPagesUseCase.execute(this.vm.appId);
 
       if (!result.isSuccess) {
-        this._logger.error('[UIBuilderPresenter] Failed to load pages', result.error);
         this.vm = { ...this.vm, isLoadingPages: false, error: result.error?.message || 'Failed to load pages' };
         this.notify();
         return;
@@ -1464,7 +1317,6 @@ export class UIBuilderPresenter {
       this.vm = { ...this.vm, pages: result.value || [], isLoadingPages: false };
       this.notify();
     } catch (error) {
-      this._logger.error('[UIBuilderPresenter] Error loading pages', error);
       this.vm = { ...this.vm, isLoadingPages: false, error: error instanceof Error ? error.message : 'Unknown error' };
       this.notify();
     }
@@ -1472,35 +1324,28 @@ export class UIBuilderPresenter {
 
   public async createPage(pageSlug: string): Promise<boolean> {
     if (!this.vm.appId) {
-      this._logger.warn('[UIBuilderPresenter] Cannot create page: appId is empty');
       return false;
     }
 
     if (!pageSlug || pageSlug.trim() === '') {
-      this._logger.warn('[UIBuilderPresenter] Cannot create page: pageSlug is empty');
       return false;
     }
 
-    // Normalize pageSlug (lowercase, replace spaces with hyphens)
     const normalizedSlug = pageSlug.trim().toLowerCase().replace(/\s+/g, '-');
 
     try {
       const result = await this._createPageUseCase.execute(this.vm.appId, normalizedSlug);
 
       if (!result.isSuccess) {
-        this._logger.error('[UIBuilderPresenter] Failed to create page', result.error);
         this.vm = { ...this.vm, error: result.error?.message || 'Failed to create page' };
         this.notify();
         return false;
       }
 
-      // Reload pages list after creating a new page
       await this.loadPages();
 
-      this._logger.info('[UIBuilderPresenter] Page created successfully', { pageSlug: normalizedSlug });
       return true;
     } catch (error) {
-      this._logger.error('[UIBuilderPresenter] Error creating page', error);
       this.vm = { ...this.vm, error: error instanceof Error ? error.message : 'Unknown error' };
       this.notify();
       return false;

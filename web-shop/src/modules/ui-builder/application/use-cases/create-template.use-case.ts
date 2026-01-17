@@ -1,7 +1,5 @@
 import { inject, injectable } from 'inversify';
 import { Result } from '@/shared/result/result';
-import type { Logger } from '@/application/ports/logger.port';
-import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import { UI_BUILDER_TYPES } from '../../infrastructure/bootstrap/types';
 import type { Template, TemplatePageSnapshot, TemplateMetadata } from '../../domain/entities/template.entity';
 import {
@@ -26,31 +24,19 @@ export interface CreateTemplateInput {
 export class CreateTemplateUseCase {
   constructor(
     @inject(UI_BUILDER_TYPES.TemplateRepository)
-    private readonly templateRepository: TemplateRepositoryPort,
-    @inject(ROOT_TYPES.Logger)
-    private readonly logger: Logger
+    private readonly templateRepository: TemplateRepositoryPort
   ) {}
 
   public async execute(input: CreateTemplateInput): Promise<Result<Template, Error>> {
-    this.logger.info('[CreateTemplateUseCase] Creating template', { name: input.name });
-
     const validationError = this.validateInput(input);
     if (validationError) {
-      this.logger.warn('[CreateTemplateUseCase] Validation failed', {
-        name: input.name,
-        error: validationError,
-      });
       return Result.error(validationError);
     }
 
     try {
-      // Ensure unique name
       const existingByName = await this.templateRepository.findByName(input.name);
       if (existingByName.isSuccess && existingByName.value) {
         const error = new TemplateNameAlreadyExistsError(input.name);
-        this.logger.warn('[CreateTemplateUseCase] Template name already exists', {
-          name: input.name,
-        });
         return Result.error(error);
       }
 
@@ -76,20 +62,11 @@ export class CreateTemplateUseCase {
 
       const createResult = await this.templateRepository.create(template);
       if (createResult.isFailure) {
-        this.logger.error('[CreateTemplateUseCase] Failed to persist template', {
-          name: input.name,
-          error: createResult.error,
-        });
         return Result.error(createResult.error ?? new Error('Failed to create template'));
       }
 
-      this.logger.info('[CreateTemplateUseCase] Template created', {
-        id: createResult.value?.id,
-        name: createResult.value?.name,
-      });
       return createResult;
     } catch (error) {
-      this.logger.error('[CreateTemplateUseCase] Unexpected error', { error });
       return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }

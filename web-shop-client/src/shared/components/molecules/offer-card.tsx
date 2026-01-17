@@ -159,10 +159,8 @@ export function OfferCard({
             alt={mainImageAlt}
             className="object-cover w-full h-full"
             onLoad={() => {
-              console.log('[OfferCard] Image loaded successfully:', mainImage);
             }}
             onError={() => {
-              console.error('[OfferCard] Failed to load image:', mainImage);
               setImageError(true);
             }}
           />

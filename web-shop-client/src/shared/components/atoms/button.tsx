@@ -31,7 +31,6 @@ export function UniversalButton({
   loadingText = 'Loading...',
   ...restProps
 }: UniversalButtonProps): JSX.Element {
-  // Определяем justify класс на основе style.justifyContent или используем center по умолчанию
   const getJustifyClass = () => {
     if (style?.justifyContent === 'flex-start') return 'justify-start';
     if (style?.justifyContent === 'flex-end') return 'justify-end';
@@ -40,12 +39,10 @@ export function UniversalButton({
   
   const justifyClass = getJustifyClass();
   
-  // Merge className properly - preserve preview-hover and other classes
   const buttonClasses = fullWidth 
     ? `w-full flex items-center ${justifyClass} rounded-lg ${className}`.trim()
     : className;
     
-  // Удаляем justifyContent из inline styles, так как он уже применён через CSS класс
   const { justifyContent, ...styleWithoutJustify } = style || {};
     
   const buttonStyle = fullWidth 
@@ -58,27 +55,15 @@ export function UniversalButton({
     : style;
     
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    console.log('[UniversalButton] handleClick called', {
-      text,
-      isLoading,
-      hasOnClick: !!onClick
-    });
-    
     if (isLoading) {
-      console.log('[UniversalButton] Button clicked but loading, ignoring');
       return;
     }
     
-    console.log('[UniversalButton] Button clicked:', text);
-    console.log('[UniversalButton] onClick handler exists:', !!onClick);
     if (onClick) {
       onClick(e);
-    } else {
-      console.warn('[UniversalButton] No onClick handler provided');
     }
   };
   
-  // Определяем отображаемый текст
   const displayText = isLoading ? loadingText : (text || children);
   const displayIcon = isLoading ? null : icon;
   

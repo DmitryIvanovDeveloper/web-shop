@@ -97,8 +97,6 @@ export class PageConstructorPresenter {
   }
 
   public async initialize(appId: string, pageSlug: string = 'home'): Promise<void> {
-    this._logger.info('[PageConstructorPresenter] Initializing', { appId, pageSlug });
-    
     this.vm = { ...this.vm, appId, pageSlug, isLoading: true, error: null };
     this.notify();
 
@@ -117,28 +115,15 @@ export class PageConstructorPresenter {
         
         this.pageStyles = migratedConfig.pageStyles || {};
         
-        // If page exists but has no sections, create default sections for home page
         let finalConfig = migratedConfig;
         const hasNoSections = !migratedConfig.sections || migratedConfig.sections.length === 0;
-        this._logger.info('[PageConstructorPresenter] Checking if default sections needed', {
-          pageSlug,
-          isHome: pageSlug === 'home',
-          hasNoSections,
-          sectionsCount: migratedConfig.sections?.length || 0,
-          sections: migratedConfig.sections
-        });
         
         if (pageSlug === 'home' && hasNoSections) {
-          this._logger.info('[PageConstructorPresenter] Page exists but has no sections, creating default sections for home');
           const defaultSections = this.createDefaultSectionsForHome();
           finalConfig = {
             ...migratedConfig,
             sections: defaultSections,
           };
-          this._logger.info('[PageConstructorPresenter] Created default sections for existing home page', {
-            sectionsCount: defaultSections.length,
-            sectionIds: defaultSections.map(s => s.id)
-          });
         }
         
         this.vm = { 
@@ -148,23 +133,14 @@ export class PageConstructorPresenter {
           isDraft: finalConfig.isDraft
         };
         
-        // Save migrated config back to Supabase if it was changed
         if (JSON.stringify(result.value) !== JSON.stringify(finalConfig)) {
           await this._saveDraftUseCase.execute(finalConfig);
-          this._logger.info('[PageConstructorPresenter] Updated page config saved to Supabase', {
-            hadSections: !!result.value.sections?.length,
-            hasSections: !!finalConfig.sections?.length,
-            sectionsCount: finalConfig.sections?.length || 0
-          });
         }
         
-        // Send migrated config to iframe
         this.sendConfigToIframe();
       } else {
-        // No draft exists, start with empty page or create default sections for home
         this.pageStyles = {};
         
-        // Create default sections for home page if it's empty
         if (pageSlug === 'home') {
           const defaultSections = this.createDefaultSectionsForHome();
           this.vm = { 
@@ -173,10 +149,10 @@ export class PageConstructorPresenter {
             isLoading: false 
           };
           
-          // Save default sections to Supabase
           const defaultPageConfig: PageConfig = {
             id: generateElementId('page'),
             appId,
+            merchantId: this.vm.merchantId || '550e8400-e29b-41d4-a716-446655440000',
             pageSlug,
             version: 1,
             isDraft: true,
@@ -186,7 +162,6 @@ export class PageConstructorPresenter {
           };
           
           await this._saveDraftUseCase.execute(defaultPageConfig);
-          this._logger.info('[PageConstructorPresenter] Created default sections for new home page');
         } else {
           this.vm = { 
             ...this.vm, 
@@ -196,22 +171,14 @@ export class PageConstructorPresenter {
         }
       }
 
-      // Load offer cards from app config
       await this.loadOfferCards();
       
-      // Clear offer card selection when initializing page (to prevent showing offer-card in iframe)
       this.selectedOfferCardId = null;
 
       this.notify();
       this.sendConfigToIframe();
       await this.sendAppConfigToIframe();
-      this._logger.info('[PageConstructorPresenter] Initialized successfully', { 
-        appId, 
-        pageSlug, 
-        sectionsCount: this.vm.sections.length 
-      });
     } catch (error) {
-      this._logger.error('[PageConstructorPresenter] Error initializing', error);
       this.vm = { 
         ...this.vm, 
         isLoading: false, 
@@ -224,8 +191,6 @@ export class PageConstructorPresenter {
   // ============ Section Operations ============
 
   public addSection(type: 'header' | 'content' | 'footer'): void {
-    this._logger.info('[PageConstructorPresenter] Adding section', { type });
-
     const newSection: PageSection = {
       id: generateElementId(type),
       type,
@@ -254,8 +219,6 @@ export class PageConstructorPresenter {
   }
 
   public removeSection(sectionId: string): void {
-    this._logger.info('[PageConstructorPresenter] Removing section', { sectionId });
-
     this.vm = {
       ...this.vm,
       sections: this.vm.sections.filter(s => s.id !== sectionId),
@@ -292,8 +255,6 @@ export class PageConstructorPresenter {
   }
 
   public updateSectionLayout(sectionId: string, layout: SectionLayout): void {
-    this._logger.info('[PageConstructorPresenter] Updating section layout', { sectionId, layout });
-
     this.vm = {
       ...this.vm,
       sections: this.vm.sections.map(section =>
@@ -314,8 +275,6 @@ export class PageConstructorPresenter {
   }
 
   public updateSectionStyles(sectionId: string, styles: Record<string, unknown>): void {
-    this._logger.info('[PageConstructorPresenter] Updating section styles', { sectionId });
-
     this.vm = {
       ...this.vm,
       sections: this.vm.sections.map(section =>
@@ -337,7 +296,6 @@ export class PageConstructorPresenter {
   // ============ Component Operations ============
 
   public addComponent(sectionId: string, componentType: string): void {
-    this._logger.info('[PageConstructorPresenter] Adding component', { sectionId, componentType });
 
     const newComponent: ComponentNode = {
       id: generateElementId(componentType.toLowerCase()),
@@ -358,11 +316,10 @@ export class PageConstructorPresenter {
 
     this.notify();
     this.saveConfigDebounced();
-    this.sendConfigToIframe(); // Send config to iframe immediately so new component is rendered
+    this.sendConfigToIframe();
   }
 
   public removeComponent(sectionId: string, componentId: string): void {
-    this._logger.info('[PageConstructorPresenter] Removing component', { sectionId, componentId });
 
     this.vm = {
       ...this.vm,
@@ -405,14 +362,6 @@ export class PageConstructorPresenter {
   }
 
   public updateComponent(sectionId: string, componentId: string, props: Record<string, unknown>, styles?: Record<string, unknown>): void {
-    this._logger.info('[PageConstructorPresenter] Updating component', { 
-      sectionId, 
-      componentId, 
-      hasStyles: !!styles,
-      styles: styles,
-      props: props
-    });
-
     this.vm = {
       ...this.vm,
       sections: this.vm.sections.map(section =>
@@ -435,34 +384,9 @@ export class PageConstructorPresenter {
       ),
     };
 
-    // Update selectedComponent if it's the one being edited
     if (this.vm.selectedComponent?.id === componentId) {
       const section = this.vm.sections.find(s => s.id === sectionId);
       this.vm.selectedComponent = section?.components.find(c => c.id === componentId) || null;
-    }
-
-    // Log the updated component to verify styles are saved
-    const updatedSection = this.vm.sections.find(s => s.id === sectionId);
-    const updatedComponent = updatedSection?.components.find(c => c.id === componentId);
-    
-    // Log styles in detail for Text components
-    if (updatedComponent?.type === 'Text') {
-      this._logger.info('[PageConstructorPresenter] Text component updated with styles:', {
-        componentId,
-        text: updatedComponent?.props?.text || '',
-        textColor: updatedComponent?.styles?.textColor,
-        fontSize: updatedComponent?.styles?.fontSize,
-        fontWeight: updatedComponent?.styles?.fontWeight,
-        textAlign: updatedComponent?.styles?.textAlign,
-        textDecoration: updatedComponent?.styles?.textDecoration,
-        allStyles: JSON.stringify(updatedComponent?.styles || {})
-      });
-    } else {
-      this._logger.info('[PageConstructorPresenter] Component updated', {
-        componentId,
-        componentStyles: updatedComponent?.styles,
-        componentProps: updatedComponent?.props
-      });
     }
 
     this.notify();
@@ -483,8 +407,6 @@ export class PageConstructorPresenter {
   }
 
   public async saveDraft(): Promise<boolean> {
-    this._logger.info('[PageConstructorPresenter] Saving draft');
-
     this.vm = { ...this.vm, isSaving: true, error: null };
     this.notify();
 
@@ -511,10 +433,8 @@ export class PageConstructorPresenter {
 
       this.vm = { ...this.vm, isSaving: false };
       this.notify();
-      this._logger.info('[PageConstructorPresenter] Draft saved successfully');
       return true;
     } catch (error) {
-      this._logger.error('[PageConstructorPresenter] Error saving draft', error);
       this.vm = {
         ...this.vm,
         isSaving: false,
@@ -526,8 +446,6 @@ export class PageConstructorPresenter {
   }
 
   public async publish(): Promise<boolean> {
-    this._logger.info('[PageConstructorPresenter] Publishing page');
-
     this.vm = { ...this.vm, isSaving: true, error: null };
     this.notify();
 
@@ -540,18 +458,11 @@ export class PageConstructorPresenter {
         return false;
       }
 
-      // After successful publish, reload the active version and send it to iframe
-      this._logger.info('[PageConstructorPresenter] Reloading active page config after publish');
       const activeResult = await this._pageConfigStorage.loadActive(this.vm.appId, this.vm.pageSlug);
       
       if (activeResult.isSuccess && activeResult.value) {
         const activeConfig = activeResult.value;
-        this._logger.info('[PageConstructorPresenter] Active config loaded after publish', {
-          sectionsCount: activeConfig.sections.length,
-          version: activeConfig.version
-        });
         
-        // Update ViewModel with active config
         this.vm = {
           ...this.vm,
           sections: activeConfig.sections,
@@ -561,18 +472,14 @@ export class PageConstructorPresenter {
         this.pageStyles = activeConfig.pageStyles || {};
         this.notify();
         
-        // Send active config to iframe
         this.sendActiveConfigToIframe(activeConfig);
       } else {
-        // If active config not found, just update status
         this.vm = { ...this.vm, isSaving: false, isDraft: false };
         this.notify();
       }
       
-      this._logger.info('[PageConstructorPresenter] Page published successfully');
       return true;
     } catch (error) {
-      this._logger.error('[PageConstructorPresenter] Error publishing', error);
       this.vm = {
         ...this.vm,
         isSaving: false,
@@ -586,8 +493,6 @@ export class PageConstructorPresenter {
   // ============ Page Settings ============
 
   public updatePagePadding(padding: string): void {
-    this._logger.info('[PageConstructorPresenter] Updating page padding', { padding });
-
     this.pageStyles = {
       ...this.pageStyles,
       padding: padding || undefined,
@@ -599,8 +504,6 @@ export class PageConstructorPresenter {
   }
 
   public updatePageGap(gap: string): void {
-    this._logger.info('[PageConstructorPresenter] Updating page gap', { gap });
-
     this.pageStyles = {
       ...this.pageStyles,
       gap: gap || undefined,
@@ -612,8 +515,6 @@ export class PageConstructorPresenter {
   }
 
   public updatePageBackgroundColor(backgroundColor: string): void {
-    this._logger.info('[PageConstructorPresenter] Updating page background color', { backgroundColor });
-
     this.pageStyles = {
       ...this.pageStyles,
       backgroundColor: backgroundColor || undefined,
@@ -625,8 +526,6 @@ export class PageConstructorPresenter {
   }
 
   public updatePageBackgroundOpacity(opacity: number): void {
-    this._logger.info('[PageConstructorPresenter] Updating page background opacity', { opacity });
-
     this.pageStyles = {
       ...this.pageStyles,
       backgroundOpacity: opacity !== undefined && opacity !== null ? opacity : undefined,
@@ -641,9 +540,6 @@ export class PageConstructorPresenter {
     return { ...this.pageStyles };
   }
 
-  /**
-   * Create default Template page snapshot (home page with default sections).
-   */
   public createDefaultTemplatePageSnapshot(): TemplatePageSnapshot {
     const sections = this.createDefaultSectionsForHome();
     return {
@@ -655,24 +551,12 @@ export class PageConstructorPresenter {
     };
   }
 
-  /**
-   * Apply page configuration snapshot from a Template into the current page.
-   * Expects pageConfig to contain { sections, pageStyles? } structure.
-   */
   public applyTemplatePageConfig(input: { appId: string; merchantId: string; pageSlug: string; pageConfig: unknown }): void {
-    this._logger.info('[PageConstructorPresenter] Applying template page config', {
-      appId: input.appId,
-      pageSlug: input.pageSlug,
-    });
-
     if (
       !input.pageConfig ||
       typeof input.pageConfig !== 'object' ||
       !Array.isArray((input.pageConfig as any).sections)
     ) {
-      this._logger.warn('[PageConstructorPresenter] Invalid template pageConfig payload', {
-        hasConfig: !!input.pageConfig,
-      });
       return;
     }
 
@@ -705,26 +589,15 @@ export class PageConstructorPresenter {
 
     const iframe = document.querySelector('iframe');
     if (!iframe?.contentWindow) {
-      this._logger.warn('[PageConstructorPresenter] Iframe not found for sending active config');
       return;
     }
-
-    this._logger.info('[PageConstructorPresenter] Sending active page config to iframe after publish', {
-      pageSlug: config.pageSlug,
-      sectionsCount: config.sections.length,
-      version: config.version,
-      isActive: config.isActive
-    });
 
     try {
       iframe.contentWindow.postMessage(
         { type: 'PAGE_CONFIG_UPDATE', config: config },
         '*'
       );
-
-      this._logger.info('[PageConstructorPresenter] Sent active config to iframe successfully');
     } catch (error) {
-      this._logger.error('[PageConstructorPresenter] Failed to send active config to iframe', error);
     }
   }
 
@@ -733,15 +606,13 @@ export class PageConstructorPresenter {
 
     const iframe = document.querySelector('iframe');
     if (!iframe?.contentWindow) {
-      this._logger.warn('[PageConstructorPresenter] Iframe not found for sending config');
       return;
     }
 
-    // Always send config, even if empty, so iframe knows the page is loaded
-    // Empty sections array is valid and should be sent
     const pageConfig: PageConfig = {
       id: 'draft',
       appId: this.vm.appId,
+      merchantId: this.vm.merchantId || '550e8400-e29b-41d4-a716-446655440000',
       pageSlug: this.vm.pageSlug,
       version: 1,
       isDraft: true,
@@ -750,46 +621,12 @@ export class PageConstructorPresenter {
       pageStyles: this.pageStyles ? { ...this.pageStyles } : undefined,
     };
 
-    // Log component styles for debugging
-    const allComponents = pageConfig.sections.flatMap(section => section.components ?? []);
-    const textComponents = allComponents.filter(component => component?.type === 'Text');
-    
-    // Log text components styles in detail
-    if (textComponents.length > 0) {
-      this._logger.info('[PageConstructorPresenter] Text components styles before sending:', {
-        textComponentsCount: textComponents.length,
-        textComponents: textComponents.map(c => ({
-          id: c.id,
-          text: c.props?.text || '',
-          textColor: c.styles?.textColor,
-          fontSize: c.styles?.fontSize,
-          fontWeight: c.styles?.fontWeight,
-          textAlign: c.styles?.textAlign,
-          textDecoration: c.styles?.textDecoration,
-          allStyles: JSON.stringify(c.styles || {})
-        }))
-      });
-    }
-    
-    this._logger.info('[PageConstructorPresenter] Sending page config to iframe', {
-      pageSlug: this.vm.pageSlug,
-      sectionsCount: pageConfig.sections.length,
-      sectionIds: pageConfig.sections.map(s => s.id),
-      pagePadding: pageConfig.pageStyles?.padding || 'not set',
-      pageGap: pageConfig.pageStyles?.gap || 'not set',
-      textComponentsCount: textComponents.length
-    });
-
     try {
       iframe.contentWindow.postMessage(
         { type: 'PAGE_CONFIG_UPDATE', config: pageConfig },
         '*'
       );
-
-      this._logger.info('[PageConstructorPresenter] Sent config to iframe successfully');
       
-      // Also send CONFIG_UPDATE with elementSelectionMode to ensure selection mode works after page switch
-      // This is important when switching pages via sidebar in iframe
       setTimeout(() => {
         try {
           iframe.contentWindow?.postMessage(
@@ -799,30 +636,20 @@ export class PageConstructorPresenter {
             },
             '*'
           );
-          this._logger.info('[PageConstructorPresenter] Sent CONFIG_UPDATE with elementSelectionMode', {
-            elementSelectionMode: this.elementSelectionMode
-          });
         } catch (error) {
-          this._logger.error('[PageConstructorPresenter] Failed to send CONFIG_UPDATE', error);
         }
-      }, 100); // Small delay to ensure PAGE_CONFIG_UPDATE is processed first
+      }, 100);
     } catch (error) {
-      this._logger.error('[PageConstructorPresenter] Failed to send config to iframe', error);
     }
   }
   
-  /**
-   * Set element selection mode and send update to iframe
-   */
   public setElementSelectionMode(enabled: boolean): void {
     if (this.elementSelectionMode === enabled) {
-      return; // No change needed
+      return;
     }
     
     this.elementSelectionMode = enabled;
-    this._logger.info('[PageConstructorPresenter] Element selection mode changed', { enabled });
     
-    // Send update to iframe immediately
     if (typeof window !== 'undefined') {
       const iframe = document.querySelector('iframe');
       if (iframe?.contentWindow) {
@@ -834,17 +661,12 @@ export class PageConstructorPresenter {
             },
             '*'
           );
-          this._logger.info('[PageConstructorPresenter] Sent elementSelectionMode update to iframe', { enabled });
         } catch (error) {
-          this._logger.error('[PageConstructorPresenter] Failed to send elementSelectionMode update', error);
         }
       }
     }
   }
   
-  /**
-   * Get current element selection mode
-   */
   public getElementSelectionMode(): boolean {
     return this.elementSelectionMode;
   }
@@ -854,7 +676,6 @@ export class PageConstructorPresenter {
 
     const iframe = document.querySelector('iframe');
     if (!iframe?.contentWindow) {
-      this._logger.warn('[PageConstructorPresenter] Iframe not found for sending app config');
       return;
     }
 
@@ -870,7 +691,6 @@ export class PageConstructorPresenter {
         const result = await this._loadDraftConfigUseCase.execute(this.vm.appId);
         
         if (!result.isSuccess || !result.value) {
-          this._logger.warn('[PageConstructorPresenter] Failed to load app-config for iframe', result.error);
           return;
         }
 
@@ -892,16 +712,11 @@ export class PageConstructorPresenter {
 
       this.lastAppConfig = updatedAppConfig;
 
-      // Send CONFIG_UPDATE message with app-config, offerCards, and selectedOfferCardId
-      // Only include selectedOfferCardId in payload if it's actually selected (not null)
-      // This prevents showing offer-card in iframe when editing pages
-      // If null, don't include it in payload so PageRenderer preserves current value
       const payload: Record<string, unknown> = {
         config: updatedAppConfig,
         offerCards: [...this.offerCards],
       };
       
-      // Only include selectedOfferCardId if it's not null
       if (this.selectedOfferCardId !== null) {
         payload.selectedOfferCardId = this.selectedOfferCardId;
       }
@@ -913,13 +728,7 @@ export class PageConstructorPresenter {
         },
         '*'
       );
-
-      this._logger.info('[PageConstructorPresenter] Sent app-config to iframe', {
-        offerCardsCount: this.offerCards.length,
-        selectedOfferCardId: this.selectedOfferCardId,
-      });
     } catch (error) {
-      this._logger.error('[PageConstructorPresenter] Failed to send app-config to iframe', error);
     }
   }
 
@@ -940,7 +749,6 @@ export class PageConstructorPresenter {
   }
 
   private getDefaultStyles(componentType: string): Record<string, unknown> {
-    // Default styles for Video component
     if (componentType === 'Video') {
       return {
         minHeight: '315px', // Standard YouTube embed height
@@ -964,7 +772,6 @@ export class PageConstructorPresenter {
       const result = await this._loadDraftConfigUseCase.execute(this.vm.appId);
       
       if (!result.isSuccess || !result.value) {
-        this._logger.warn('[PageConstructorPresenter] Failed to load offer cards, using empty array', result.error);
         this.offerCards = [];
         return;
       }
@@ -972,12 +779,8 @@ export class PageConstructorPresenter {
       this.lastAppConfig = result.value;
       const config = result.value.config as AppConfigStructure;
       const loadedCards = config.offerCards || [];
-      
-      // Ensure all cards have complete styles from getDefaultFigmaStyles()
-      // This ensures cards look correct even if DB has incomplete styles
       const figmaStyles = this.getDefaultFigmaStyles();
       this.offerCards = loadedCards.map(card => {
-        // Deep merge: start with Figma defaults, then apply DB styles
         const mergedStyles: OfferCardTemplate['styles'] = {
           container: { ...figmaStyles.container, ...(card.styles?.container || {}) },
           topLabel: { ...figmaStyles.topLabel, ...(card.styles?.topLabel || {}) },
@@ -985,14 +788,12 @@ export class PageConstructorPresenter {
           discountBadge: { ...figmaStyles.discountBadge, ...(card.styles?.discountBadge || {}) },
           title: { ...figmaStyles.title, ...(card.styles?.title || {}) },
           description: { ...figmaStyles.description, ...(card.styles?.description || {}) },
-          priceBlock: { ...figmaStyles.priceBlock, ...(card.styles?.priceBlock || {}) },
           originalPrice: { ...figmaStyles.originalPrice, ...(card.styles?.originalPrice || {}) },
           currentPrice: { ...figmaStyles.currentPrice, ...(card.styles?.currentPrice || {}) },
           rarity: { ...figmaStyles.rarity, ...(card.styles?.rarity || {}) },
           buyButton: { 
             ...figmaStyles.buyButton,
             ...(card.styles?.buyButton || {}),
-            // Fix incorrect old backgroundColor value
             backgroundColor: (card.styles?.buyButton?.backgroundColor === '#99ff00' || 
                              card.styles?.buyButton?.backgroundColor === '#99FF00')
               ? figmaStyles.buyButton?.backgroundColor
@@ -1002,10 +803,6 @@ export class PageConstructorPresenter {
           bonuses: { ...figmaStyles.bonuses, ...(card.styles?.bonuses || {}) },
           includedItems: { ...figmaStyles.includedItems, ...(card.styles?.includedItems || {}) },
         };
-
-        if (mergedStyles.priceBlock && 'backgroundColor' in mergedStyles.priceBlock) {
-          delete (mergedStyles.priceBlock as Record<string, unknown>).backgroundColor;
-        }
         
         return {
           ...card,
@@ -1014,36 +811,24 @@ export class PageConstructorPresenter {
         };
       });
 
-      // Don't auto-select offer card - it should only be selected when explicitly editing offer cards
-      // This prevents showing offer-card in iframe when editing pages
       if (!this.selectedOfferCardId || !this.offerCards.some(card => card.id === this.selectedOfferCardId)) {
-        // Only clear invalid selection, don't auto-select
         if (!this.offerCards.some(card => card.id === this.selectedOfferCardId)) {
           this.selectedOfferCardId = null;
-          this._logger.info('[PageConstructorPresenter] Cleared invalid offer card selection');
         }
       }
 
       this.updateLastAppConfigOfferCards();
       
-      // If styles were updated, save them back to DB
       const needsSave = loadedCards.some((card, index) => {
         const loaded = card.styles || {};
         const merged = this.offerCards[index].styles;
-        // Check if any styles were added from defaults
         return JSON.stringify(loaded) !== JSON.stringify(merged);
       });
       
       if (needsSave) {
-        this._logger.info('[PageConstructorPresenter] Offer cards styles were incomplete (autosave temporarily disabled)');
-        // TODO: re-enable auto-save once debugging is finished
-        // this.scheduleSaveOfferCards(0);
-        // await this.flushSaveOfferCards();
       }
       
-      this._logger.info('[PageConstructorPresenter] Loaded offer cards', { count: this.offerCards.length });
     } catch (error) {
-      this._logger.error('[PageConstructorPresenter] Error loading offer cards', error);
       this.offerCards = [];
     }
   }
@@ -1079,20 +864,9 @@ export class PageConstructorPresenter {
   public selectOfferCard(cardId: string | null): void {
     this.selectedOfferCardId = cardId;
 
-    if (cardId) {
-      this._logger.info('[PageConstructorPresenter] Selected offer card', {
-        cardId,
-      });
-    } else {
-      this._logger.info('[PageConstructorPresenter] Cleared offer card selection');
-    }
-
     this.sendAppConfigToIframe();
   }
 
-  /**
-   * Get default Figma-based styles for offer card
-   */
   private getDefaultFigmaStyles(): OfferCardTemplate['styles'] {
     return {
       container: {
@@ -1137,12 +911,6 @@ export class PageConstructorPresenter {
         fontWeight: '400',
         color: '#FAF9F6',
         lineHeight: '23px',
-      },
-      priceBlock: {
-        borderRadius: '20px',
-        padding: '16px 12px',
-        minHeight: '60px',
-        alignment: 'left',
       },
       originalPrice: {
         fontSize: '16px',
@@ -1189,18 +957,10 @@ export class PageConstructorPresenter {
     };
   }
 
-  /**
-   * Migrate existing offer cards to Figma styles (merges with existing styles)
-   * Ensures all values from getDefaultFigmaStyles() are in the config (DB)
-   */
   public async migrateOfferCardsToFigmaStyles(): Promise<void> {
-    this._logger.info('[PageConstructorPresenter] Migrating offer cards to Figma styles');
-    
     const figmaStyles = this.getDefaultFigmaStyles();
     
     this.offerCards = this.offerCards.map(card => {
-      // Deep merge: start with Figma defaults, then apply user customizations
-      // This ensures all values from getDefaultFigmaStyles() are present in config
       const mergedStyles: OfferCardTemplate['styles'] = {
         container: { ...figmaStyles.container, ...(card.styles.container || {}) },
         topLabel: { ...figmaStyles.topLabel, ...(card.styles.topLabel || {}) },
@@ -1208,14 +968,12 @@ export class PageConstructorPresenter {
         discountBadge: { ...figmaStyles.discountBadge, ...(card.styles.discountBadge || {}) },
         title: { ...figmaStyles.title, ...(card.styles.title || {}) },
         description: { ...figmaStyles.description, ...(card.styles.description || {}) },
-        priceBlock: { ...figmaStyles.priceBlock, ...(card.styles.priceBlock || {}) },
         originalPrice: { ...figmaStyles.originalPrice, ...(card.styles.originalPrice || {}) },
         currentPrice: { ...figmaStyles.currentPrice, ...(card.styles.currentPrice || {}) },
         rarity: { ...figmaStyles.rarity, ...(card.styles.rarity || {}) },
         buyButton: { 
           ...figmaStyles.buyButton,
           ...(card.styles.buyButton || {}),
-          // Fix incorrect old backgroundColor value - always use correct from Figma if wrong
           backgroundColor: (card.styles.buyButton?.backgroundColor === '#99ff00' || 
                            card.styles.buyButton?.backgroundColor === '#99FF00')
             ? figmaStyles.buyButton?.backgroundColor
@@ -1235,7 +993,6 @@ export class PageConstructorPresenter {
     
     this.scheduleSaveOfferCards();
     await this.sendAppConfigToIframe();
-    this._logger.info('[PageConstructorPresenter] Offer cards migrated to Figma styles', { count: this.offerCards.length });
   }
 
   public async addOfferCard(name?: string): Promise<void> {
@@ -1253,13 +1010,11 @@ export class PageConstructorPresenter {
     
     this.scheduleSaveOfferCards();
     await this.sendAppConfigToIframe();
-    this._logger.info('[PageConstructorPresenter] Added offer card', { cardId: newCard.id, name: newCard.name });
   }
 
   public async updateOfferCard(cardId: string, template: OfferCardTemplate): Promise<void> {
     const index = this.offerCards.findIndex(card => card.id === cardId);
     if (index === -1) {
-      this._logger.warn('[PageConstructorPresenter] Offer card not found for update', { cardId });
       return;
     }
 
@@ -1271,7 +1026,6 @@ export class PageConstructorPresenter {
 
     this.scheduleSaveOfferCards();
     await this.sendAppConfigToIframe();
-    this._logger.info('[PageConstructorPresenter] Updated offer card', { cardId });
   }
 
   public async removeOfferCard(cardId: string): Promise<void> {
@@ -1283,7 +1037,6 @@ export class PageConstructorPresenter {
 
     this.scheduleSaveOfferCards();
     await this.sendAppConfigToIframe();
-    this._logger.info('[PageConstructorPresenter] Removed offer card', { cardId });
   }
 
   public updateAppConfigSnapshot(config: AppConfigStructure | null): void {
@@ -1300,6 +1053,7 @@ export class PageConstructorPresenter {
       this.lastAppConfig = {
         id: undefined,
         appId: this.vm.appId,
+        merchantId: this.vm.merchantId || '550e8400-e29b-41d4-a716-446655440000',
         version: { value: 1 } as any,
         isDraft: true,
         isActive: false,
@@ -1309,7 +1063,6 @@ export class PageConstructorPresenter {
   }
 
   private scheduleSaveOfferCards(delayMs: number = this.saveOfferCardsDebounceMs): void {
-    this._logger.debug?.('[PageConstructorPresenter] Scheduling auto-save', { delayMs });
     this.saveOfferCardsPending = true;
 
     if (this.saveOfferCardsTimer) {
@@ -1337,12 +1090,10 @@ export class PageConstructorPresenter {
   }
 
   private async runOfferCardsSave(): Promise<void> {
-    this._logger.debug?.('[PageConstructorPresenter] Running auto-save');
     if (this.saveOfferCardsPromise) {
       try {
         await this.saveOfferCardsPromise;
       } catch {
-        // Ошибка уже залогирована в saveOfferCards
       }
     }
 
@@ -1365,13 +1116,7 @@ export class PageConstructorPresenter {
     }
   }
 
-  /**
-   * Creates default sections for home page
-   * Returns an array with a default content section
-   */
   private createDefaultSectionsForHome(): PageSection[] {
-    this._logger.info('[PageConstructorPresenter] Creating default sections for home page');
-    
     const defaultSection: PageSection = {
       id: generateElementId('content'),
       type: 'content',
@@ -1382,15 +1127,10 @@ export class PageConstructorPresenter {
       },
       styles: {
         minHeight: '350px',
-        border: '2px dashed #d1d5db', // Gray dashed border
+        border: '2px dashed #d1d5db',
       },
       components: [],
     };
-    
-    this._logger.info('[PageConstructorPresenter] Created default section', {
-      sectionId: defaultSection.id,
-      sectionType: defaultSection.type
-    });
     
     return [defaultSection];
   }
@@ -1403,13 +1143,11 @@ export class PageConstructorPresenter {
       );
       
       if (!result.isSuccess) {
-        this._logger.error('[PageConstructorPresenter] Failed to save offer cards', result.error);
         return;
       }
 
       this.updateLastAppConfigOfferCards();
     } catch (error) {
-      this._logger.error('[PageConstructorPresenter] Error saving offer cards', error);
     }
   }
 }

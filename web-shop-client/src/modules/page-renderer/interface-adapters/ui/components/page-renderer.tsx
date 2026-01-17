@@ -15,7 +15,6 @@ import { PageRendererPresenter } from '../../presenters/page-renderer.presenter'
 import type { PageRendererViewModel } from '../../view-models/page-renderer.view-model';
 import { selectionOverlay } from '../../../../../infrastructure/services/ui-renderer/selection-overlay.service';
 
-// Check if in preview mode
 const isPreviewMode = (): boolean => {
   if (typeof window === 'undefined') return false;
   const params = new URLSearchParams(window.location.search);
@@ -40,7 +39,6 @@ interface PageRendererProps {
 }
 
 export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = false }: PageRendererProps): JSX.Element {
-  console.log('[PageRenderer] Component rendered', { appId, pageSlug, previewMode });
   const router = useRouter();
   const [vm, setVm] = useState<PageRendererViewModel>({
     sections: [],
@@ -51,22 +49,17 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     offerCards: []
   });
   
-  // Create actionContext with navigate function for button navigation
   const actionContext = {
     navigate: (url: string) => {
-      console.log('[PageRenderer] Navigating to:', url);
       router.push(url);
     }
   };
 
-  // State for hover effect in element selection mode
   const [isHovered, setIsHovered] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
-  // State for selected element from UI Builder
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const selectedElementIdRef = React.useRef<string | null>(null);
 
-  // Listen for element selection mode changes
   useEffect(() => {
     if (typeof window === 'undefined') {
       return;
@@ -74,23 +67,16 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
 
     const handleModeChange = (event: CustomEvent) => {
       const enabled = event.detail?.enabled ?? false;
-      console.log('[PageRenderer] Received elementSelectionModeChanged event:', enabled, { pageSlug });
       setElementSelectionMode(enabled);
     };
 
     const initialMode = readSelectionModeFlag();
-    console.log('[PageRenderer] Initial elementSelectionMode:', initialMode, {
-      bodyAttribute: typeof document !== 'undefined' && document.body ? document.body.getAttribute('data-selection-mode') : null,
-      windowFlag: typeof window !== 'undefined' ? (window as any).__elementSelectionMode : false
-    });
     setElementSelectionMode(initialMode);
 
-    // Also check periodically if mode changed (in case it was set before this component mounted)
     const checkInterval = setInterval(() => {
       const currentMode = readSelectionModeFlag();
       setElementSelectionMode((prevMode) => {
         if (currentMode !== prevMode) {
-          console.log('[PageRenderer] ElementSelectionMode changed via polling:', { from: prevMode, to: currentMode });
           return currentMode;
         }
         return prevMode;
@@ -109,14 +95,7 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     const presenter = container.get<PageRendererPresenter>(PAGE_RENDERER_TYPES.PageRendererPresenter);
     const loadUseCase = container.get<LoadPageConfigUseCase>(PAGE_RENDERER_TYPES.LoadPageConfigUseCase);
 
-    // Подписываемся на изменения ViewModel
     const unsubscribe = presenter.subscribe((newVm) => {
-      console.log('[PageRenderer] ViewModel updated:', { 
-        sectionsCount: newVm.sections.length, 
-        isLoading: newVm.isLoading,
-        pageSlug,
-        sections: newVm.sections.map(s => ({ id: s.id, type: s.type, componentsCount: s.components?.length || 0 }))
-      });
       setVm((prev) => {
         const selId = selectedElementIdRef.current;
 
@@ -124,23 +103,9 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
           return { ...newVm, selectedElementId: null };
         }
 
-        // Preserve pageStyles if this config update is not for the selected element
         const pageStyles =
           !selId || newVm.pageId === selId ? newVm.pageStyles : prev.pageStyles;
-        if (!selId || newVm.pageId === selId) {
-          console.log('[PageRenderer] Applying page styles update', {
-            selectedElementId: selId,
-            pageId: newVm.pageId,
-            hasPageStyles: !!newVm.pageStyles
-          });
-        } else {
-          console.log('[PageRenderer] Skipping page styles update (selected element is different)', {
-            selectedElementId: selId,
-            pageId: newVm.pageId
-          });
-        }
 
-        // For sections/components: only replace the section/component that matches selected id; keep others from previous VM
         const sections = newVm.sections.map((sec) => {
           const matchesSection = sec.id === selId;
           const matchesComponent = sec.components?.some((c) => c.id === selId);
@@ -160,7 +125,6 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       });
     });
 
-    // Инициализируем загрузку данных
     presenter.setLoading(true);
     loadUseCase.execute({ appId, pageSlug, previewMode }).then((result) => {
       if (!result.isSuccess) {
@@ -173,35 +137,28 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     };
   }, [appId, pageSlug, previewMode]);
 
-  // Apply selection to element when selectedElementId changes
   useEffect(() => {
     if (typeof document === 'undefined') {
       return;
     }
 
-    // Clear legacy selection styles/classes managed by PageRenderer
     document.querySelectorAll('[data-element-id]').forEach((el) => {
       const htmlEl = el as HTMLElement;
       htmlEl.classList.remove('preview-selected');
       htmlEl.style.removeProperty('box-shadow');
     });
 
-    // If selection cleared – hide overlay and exit
     if (!selectedElementId) {
       selectionOverlay.hide();
       return;
     }
 
-    // Use setTimeout to ensure DOM is ready after page switch
     const timeoutId = setTimeout(() => {
       const targetElement = document.querySelector(
         `[data-element-id="${selectedElementId}"]`
       ) as HTMLElement | null;
 
       if (!targetElement) {
-        console.warn('[PageRenderer] SELECT_ELEMENT: element not found for overlay', {
-          selectedElementId
-        });
         selectionOverlay.hide();
         return;
       }
@@ -212,40 +169,22 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
         top: rect.top,
         width: rect.width,
         height: rect.height
-      }, selectedElementId, true); // isSelected = true
-      console.log('[PageRenderer] Applied selection overlay to element:', {
-        selectedElementId,
-        rect,
-        isSelected: true
-      });
+      }, selectedElementId, true);
     }, 50);
 
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [selectedElementId, pageSlug]); // Re-apply when pageSlug changes too
+  }, [selectedElementId, pageSlug]);
 
-  // Handle preview updates from UI Builder via postMessage
   useEffect(() => {
-    // Also check URL params for previewMode (in case prop is not passed correctly)
     const urlParams = new URLSearchParams(window.location.search);
     const urlPreviewMode = urlParams.get('previewMode') === 'true' || urlParams.get('uibuilder') === 'true';
     const effectivePreviewMode = previewMode || urlPreviewMode;
     
-    console.log('[PageRenderer] Setting up message handler', { 
-      previewMode, 
-      urlPreviewMode,
-      effectivePreviewMode,
-      appId, 
-      pageSlug,
-      search: window.location.search
-    });
     if (!effectivePreviewMode) {
-      console.log('[PageRenderer] Preview mode is false, skipping message handler setup');
       return;
     }
-
-    console.log('[PageRenderer] Message handler setup complete, listening for CONFIG_UPDATE and PAGE_CONFIG_UPDATE');
     const presenter = container.get<PageRendererPresenter>(PAGE_RENDERER_TYPES.PageRendererPresenter);
     const loadFromMessageUseCase = container.get<LoadPageConfigFromMessageUseCase>(
       PAGE_RENDERER_TYPES.LoadPageConfigFromMessageUseCase
@@ -255,30 +194,21 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     );
 
     const handleMessage = async (event: MessageEvent) => {
-      console.log('[PageRenderer] Message received', { type: event.data?.type, origin: event.origin });
-      
-      // Handle SELECT_ELEMENT message from parent (UI Builder)
       if (event.data.type === 'SELECT_ELEMENT') {
         const elementId = event.data.payload?.elementId || null;
-        console.log('[PageRenderer] Received SELECT_ELEMENT message', { elementId });
         setSelectedElementId(elementId);
         return;
       }
       
-      // Handle CLICK_BUTTON message from parent (UI Builder)
       if (event.data.type === 'CLICK_BUTTON') {
         try {
           const { buttonId, temporarilyDisableSelectionMode } = event.data;
-          console.log('[PageRenderer] Received CLICK_BUTTON message', { buttonId, temporarilyDisableSelectionMode });
           
-          // Find button element by data-element-id
           const buttonElement = document.querySelector(`[data-element-id="${buttonId}"]`) as HTMLElement;
           if (!buttonElement) {
-            console.warn('[PageRenderer] CLICK_BUTTON: button element not found', { buttonId });
             return;
           }
 
-          // Temporarily disable element selection mode if needed
           let wasSelectionModeActive = false;
           if (temporarilyDisableSelectionMode) {
             wasSelectionModeActive = document.body.getAttribute('data-selection-mode') === 'true';
@@ -286,16 +216,12 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
               document.body.removeAttribute('data-selection-mode');
               (window as any).__elementSelectionMode = false;
               window.dispatchEvent(new CustomEvent('elementSelectionModeChanged', { detail: { enabled: false } }));
-              console.log('[PageRenderer] CLICK_BUTTON: temporarily disabled element selection mode');
             }
           }
 
           try {
-            // Simulate click
-            console.log('[PageRenderer] CLICK_BUTTON: simulating click on button', { buttonId });
             buttonElement.click();
             
-            // Also dispatch MouseEvent for better compatibility
             const clickEvent = new MouseEvent('click', {
               bubbles: true,
               cancelable: true,
@@ -303,73 +229,43 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
             });
             buttonElement.dispatchEvent(clickEvent);
           } catch (error) {
-            console.error('[PageRenderer] CLICK_BUTTON: error simulating click', error);
           } finally {
-            // Restore element selection mode if it was active
             if (wasSelectionModeActive) {
               setTimeout(() => {
                 document.body.setAttribute('data-selection-mode', 'true');
                 (window as any).__elementSelectionMode = true;
                 window.dispatchEvent(new CustomEvent('elementSelectionModeChanged', { detail: { enabled: true } }));
-                console.log('[PageRenderer] CLICK_BUTTON: restored element selection mode');
               }, 100);
             }
           }
         } catch (error) {
-          console.error('[PageRenderer] Failed to handle CLICK_BUTTON message', error);
         }
         return;
       }
       
       if (event.data.type === 'PAGE_CONFIG_UPDATE') {
         try {
-          console.log('[PageRenderer] Processing PAGE_CONFIG_UPDATE', {
-            hasConfig: !!event.data.config,
-            sectionsCount: event.data.config?.sections?.length || 0,
-            appId,
-            pageSlug
-          });
           await loadFromMessageUseCase.execute(
             event.data.config,
             appId,
             pageSlug
           );
-          console.log('[PageRenderer] PAGE_CONFIG_UPDATE processed successfully');
           
-          // Re-apply theme background after page config is loaded
-          // This ensures theme background is visible even after page config loads
           window.dispatchEvent(new Event('appConfigLoaded'));
         } catch (error) {
-          console.error('[PageRenderer] Failed to process config update from message', error);
         }
       } else if (event.data.type === 'CONFIG_UPDATE') {
         try {
-          console.log('[PageRenderer] Received CONFIG_UPDATE', {
-            hasConfig: !!event.data.payload?.config,
-            hasOfferCards: !!event.data.payload?.offerCards,
-            offerCardsCount: event.data.payload?.offerCards?.length || 0,
-            selectedOfferCardId: event.data.payload?.selectedOfferCardId,
-            topLevelHasSelectionMode: typeof event.data.elementSelectionMode === 'boolean',
-            topLevelSelectionMode: event.data.elementSelectionMode
-          });
-
-          // Track selected element from builder; use to guard style application
           if (event.data.payload?.selectedElementId !== undefined) {
             const selId = event.data.payload.selectedElementId || null;
             setSelectedElementId(selId);
             selectedElementIdRef.current = selId;
           }
 
-          // 1. Load app-config (this will publish AppConfigLoadedEvent)
-          // PageRendererAppConfigLoadedHandler will extract offerCards from config and update presenter
           if (event.data.payload?.config) {
             await loadAppConfigFromMessageUseCase.execute(event.data.payload.config);
           }
 
-          // 2. Determine elementSelectionMode from either:
-          //    a) config.elementSelectionMode (preferred)
-          //    b) top-level event.data.elementSelectionMode (used by PageConstructorPresenter)
-          //    If neither is provided, KEEP current mode (do not force-disable).
           let selectionModeValue: boolean | null = null;
 
           if (event.data.payload?.config) {
@@ -380,20 +276,11 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
             } else if (rawSelectionMode !== undefined) {
               selectionModeValue = Boolean(rawSelectionMode);
             }
-
-            console.log('[PageRenderer] Setting elementSelectionMode from CONFIG_UPDATE', {
-              elementSelectionMode: selectionModeValue,
-              configHasElementSelectionMode: 'elementSelectionMode' in configPayload
-            });
           } else if (typeof event.data.elementSelectionMode === 'boolean') {
             selectionModeValue = event.data.elementSelectionMode;
-            console.log('[PageRenderer] Setting elementSelectionMode from top-level CONFIG_UPDATE field', {
-              elementSelectionMode: selectionModeValue
-            });
           }
 
           if (selectionModeValue !== null) {
-            // Apply elementSelectionMode to document.body and window flags
             if (typeof document !== 'undefined' && document.body) {
               if (selectionModeValue) {
                 document.body.setAttribute('data-selection-mode', 'true');
@@ -408,86 +295,43 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
                 new CustomEvent('elementSelectionModeChanged', { detail: { enabled: selectionModeValue } })
               );
             }
-          } else {
-            console.log('[PageRenderer] CONFIG_UPDATE without elementSelectionMode - keeping current mode');
           }
 
-          // 3. Set selected offer card ID in presenter (offerCards are updated via EventBus handler)
-          //    Only set if it's explicitly provided and not null (to avoid showing offer-card when editing pages)
           if (event.data.payload?.selectedOfferCardId !== undefined && event.data.payload?.selectedOfferCardId !== null) {
-            console.log('[PageRenderer] Setting selected offer card ID', { cardId: event.data.payload.selectedOfferCardId });
             presenter.setSelectedOfferCardId(event.data.payload.selectedOfferCardId);
           } else {
-            // Always clear when null or undefined to prevent showing offer-card when editing pages
             presenter.setSelectedOfferCardId(null);
           }
         } catch (error) {
-          console.error('[PageRenderer] Failed to process app config update from message', error);
         }
       }
     };
 
     window.addEventListener('message', handleMessage);
-    console.log('[PageRenderer] Message listener added');
     return () => {
       window.removeEventListener('message', handleMessage);
-      console.log('[PageRenderer] Message listener removed');
     };
   }, [previewMode, appId, pageSlug]);
 
-  // Find selected offer card for demo section
-  // Use useMemo to ensure it updates when offerCards or selectedOfferCardId changes
-  // IMPORTANT: All Hooks must be called before any early returns
   const selectedOfferCard = React.useMemo(() => {
     if (!vm.selectedOfferCardId || vm.offerCards.length === 0) return null;
     const card = vm.offerCards.find(card => card.id === vm.selectedOfferCardId);
-    console.log('[PageRenderer] Selected offer card computed', {
-      selectedOfferCardId: vm.selectedOfferCardId,
-      offerCardsCount: vm.offerCards.length,
-      found: !!card,
-      buyButtonBg: card?.styles?.buyButton?.backgroundColor
-    });
     return card || null;
   }, [vm.selectedOfferCardId, vm.offerCards]);
 
-  // Debug logging
-  useEffect(() => {
-    if (previewMode) {
-      console.log('[PageRenderer] Demo section debug:', {
-        previewMode,
-        selectedOfferCardId: vm.selectedOfferCardId,
-        offerCardsCount: vm.offerCards.length,
-        selectedOfferCard: selectedOfferCard ? selectedOfferCard.name : null
-      });
-    }
-  }, [previewMode, vm.selectedOfferCardId, vm.offerCards, selectedOfferCard]);
-
-  // Set styles for demo section when selectedOfferCard or its styles change
   useEffect(() => {
     if (previewMode && selectedOfferCard && typeof window !== 'undefined') {
-      // Set styles from selected offer card
       (window as any).__offerCardStyles = {
         styles: selectedOfferCard.styles || {}
       };
       
-      // Dispatch event to notify OfferCard components
       window.dispatchEvent(new Event('appConfigLoaded'));
-      
-      console.log('[PageRenderer] Updated window.__offerCardStyles', {
-        cardId: selectedOfferCard.id,
-        cardName: selectedOfferCard.name,
-        buyButtonBg: selectedOfferCard.styles?.buyButton?.backgroundColor,
-        styles: selectedOfferCard.styles
-      });
     }
   }, [previewMode, selectedOfferCard, selectedOfferCard?.styles, selectedOfferCard?.id]);
-
-  // Helper function to convert hex color to rgba with opacity
   const getBackgroundColorWithOpacity = (color: string | undefined, opacity: number | undefined): string | undefined => {
     if (!color) return undefined;
     if (opacity === undefined || opacity === 1) return color;
     
-    // If color is already rgba/rgb, extract values
     if (color.startsWith('rgba') || color.startsWith('rgb')) {
       const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
       if (match) {
@@ -495,7 +339,6 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       }
     }
     
-    // Convert hex to rgba
     if (color.startsWith('#')) {
       const hex = color.replace('#', '');
       const r = parseInt(hex.substring(0, 2), 16);
@@ -504,11 +347,9 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       return `rgba(${r}, ${g}, ${b}, ${opacity})`;
     }
     
-    // If color is a named color or other format, use opacity on the element
     return color;
   };
 
-  // Early returns AFTER all Hooks
   if (vm.isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -530,21 +371,16 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     );
   }
 
-  // Generate page element ID for selection: prefer UUID from page config, fallback to slug-based ID
   const pageElementId = vm.pageId ?? `page-${pageSlug}`;
 
-  // Handle click for page element selection
   const handlePageClick = (e: React.MouseEvent<HTMLElement>) => {
     const previewModeValue = isPreviewMode();
     const selectionMode = elementSelectionMode;
-    console.log('[PageRenderer] Page click handler check:', { previewMode: previewModeValue, selectionMode, pageSlug, pageElementId });
     
     if (previewModeValue && selectionMode && pageElementId) {
-      // Only handle click if the target is the page container itself, not a child element
       const target = e.target as HTMLElement;
       const currentTarget = e.currentTarget as HTMLElement;
       
-      // If clicking on a child element with data-element-id, let it handle the click
       if (target !== currentTarget && target.closest('[data-element-id]') !== currentTarget) {
         return;
       }
@@ -552,14 +388,8 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       e.preventDefault();
       e.stopPropagation();
       
-      console.log('[PageRenderer] Page clicked in selection mode:', pageElementId);
-      
       if (window.parent && window.parent !== window) {
         const builderOrigin = process.env.NEXT_PUBLIC_BUILDER_URL || '*';
-        console.log('[PageRenderer] Sending ELEMENT_SELECTED to parent:', {
-          elementId: pageElementId,
-          origin: builderOrigin
-        });
         
         window.parent.postMessage(
           { type: 'ELEMENT_SELECTED', elementId: pageElementId },
@@ -569,31 +399,14 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     }
   };
 
-  // Handle mouse enter for hover effect
   const handlePageMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
     const previewModeValue = isPreviewMode();
     const selectionMode = elementSelectionMode;
     
-    console.log('[PageRenderer] Mouse enter check:', { 
-      previewMode: previewModeValue, 
-      selectionMode, 
-      pageElementId,
-      elementSelectionMode,
-      hasWindowFlag: typeof window !== 'undefined' ? (window as any).__elementSelectionMode : false,
-      bodyAttribute: typeof document !== 'undefined' && document.body ? document.body.getAttribute('data-selection-mode') : null
-    });
-    
     if (!previewModeValue || !selectionMode || !pageElementId) {
-      console.log('[PageRenderer] Mouse enter conditions not met:', {
-        previewMode: previewModeValue,
-        selectionMode,
-        hasPageElementId: !!pageElementId
-      });
       return;
     }
     
-    // If a sidebar container is currently visible (e.g. slide-out sidebar on mobile),
-    // we do NOT want the page outline/spotlight to be active behind it.
     if (typeof document !== 'undefined') {
       const sidebarElements = document.querySelectorAll<HTMLElement>('[data-element-id*="sidebar"]');
       const hasVisibleSidebar = Array.from(sidebarElements).some((el) => {
@@ -611,7 +424,6 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       });
 
       if (hasVisibleSidebar) {
-        console.log('[PageRenderer] Skipping page hover - visible sidebar detected');
         return;
       }
     }
@@ -619,38 +431,28 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
     const target = e.currentTarget as HTMLElement;
     const eventTarget = e.target as HTMLElement;
     
-    // For page container, be more lenient - only skip if we're directly over a child element with its own data-element-id
-    // This allows hover to work when cursor is over padding/margin areas or empty space
     if (eventTarget !== target) {
       const childWithId = eventTarget.closest('[data-element-id]') as HTMLElement;
-      // Only skip if we found a child element with data-element-id that is not the page container itself
       if (childWithId && childWithId !== target && childWithId.hasAttribute('data-element-id')) {
         const childId = childWithId.getAttribute('data-element-id');
         if (childId && childId !== pageElementId) {
-          console.log('[PageRenderer] Skipping hover - child element has data-element-id:', childId);
           return;
         }
       }
     }
     
-    // Additional check: if there's a currently hovered child element, don't show spotlight for parent
-    // This handles the case when cursor moves from child to parent but child's mouseleave hasn't fired yet
     if (typeof document !== 'undefined') {
       const hoveredChild = document.querySelector('[data-element-id].preview-hover') as HTMLElement;
       if (hoveredChild && hoveredChild !== target && target.contains(hoveredChild)) {
         const hoveredChildId = hoveredChild.getAttribute('data-element-id');
         if (hoveredChildId && hoveredChildId !== pageElementId) {
-          console.log('[PageRenderer] Skipping hover - child element is still hovered:', hoveredChildId);
           return;
         }
       }
     }
     
-    console.log('[PageRenderer] Mouse enter on page - applying styles:', pageElementId);
     setIsHovered(true);
     
-    // Before showing spotlight for page, hide any child element spotlights
-    // This ensures smooth transition when moving cursor from child to parent
     if (typeof document !== 'undefined') {
       const childElements = target.querySelectorAll('[data-element-id]');
       childElements.forEach((child) => {
@@ -658,7 +460,6 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
         if (childEl !== target && childEl.hasAttribute('data-element-id')) {
           const childId = childEl.getAttribute('data-element-id');
           if (childId && childId !== pageElementId) {
-            // Hide spotlight for child element if it was showing
             selectionOverlay.hide(childId);
             childEl.classList.remove('preview-hover');
           }
@@ -666,13 +467,11 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       });
     }
     
-    // Apply box-shadow directly to DOM element for immediate feedback (doesn't affect layout)
     if (!target.classList.contains('preview-hover')) {
       target.classList.add('preview-hover');
     }
     target.style.setProperty('cursor', 'pointer', 'important');
     
-    // Show overlay on hover (only if not selected)
     const isSelected = selectedElementId === pageElementId;
     if (!isSelected) {
       const rect = target.getBoundingClientRect();
@@ -683,48 +482,27 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
         height: rect.height
       }, pageElementId, false);
     }
-    
-    console.log('[PageRenderer] Applied hover styles to page:', {
-      pageElementId,
-      isSelected,
-      hasClass: target.classList.contains('preview-hover')
-    });
   };
 
-  // Handle mouse leave for hover effect
   const handlePageMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
     const previewModeValue = isPreviewMode();
     const selectionMode = elementSelectionMode;
     
     if (previewModeValue && selectionMode && pageElementId) {
-      console.log('[PageRenderer] Mouse leave on page:', pageElementId);
       setIsHovered(false);
       
       const target = e.currentTarget as HTMLElement;
       target.classList.remove('preview-hover');
       target.style.removeProperty('cursor');
       
-      // Hide overlay on mouse leave (only if not selected)
       const isSelected = selectedElementId === pageElementId;
       if (!isSelected) {
         selectionOverlay.hide(pageElementId);
       }
-      
-      console.log('[PageRenderer] Removed hover styles from page:', {
-        pageElementId,
-        isSelected
-      });
     }
   };
 
-  // For /store page, always render ProductsList
   if (pageSlug === 'store') {
-    console.log('[PageRenderer] Rendering /store page with ProductsList', {
-      sectionsCount: vm.sections.length,
-      isLoading: vm.isLoading,
-      previewMode
-    });
-
     const pageStyle: React.CSSProperties = {
       padding: vm.pageStyles?.padding || undefined,
       gap: vm.pageStyles?.gap || undefined,
@@ -734,17 +512,11 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
         vm.pageStyles?.backgroundColor,
         vm.pageStyles?.backgroundOpacity
       ) || undefined,
-      // Add box-shadow for hover in selection mode (doesn't affect layout)
       ...(isPreviewMode() && elementSelectionMode && isHovered ? {
         boxShadow: '0 0 0 2px #3b82f6',
         position: 'relative' as const,
       } : {}),
     };
-
-    console.log('[PageRenderer] Rendering /store page sections:', { 
-      sectionsCount: vm.sections.length, 
-      sections: vm.sections.map(s => ({ id: s.id, type: s.type, componentsCount: s.components.length }))
-    });
     
     return (
       <div 
@@ -755,9 +527,7 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
         onMouseEnter={handlePageMouseEnter}
         onMouseLeave={handlePageMouseLeave}
       >
-        {/* Render configured sections if available */}
         {vm.sections.length > 0 && vm.sections.map(section => {
-          console.log('[PageRenderer] Rendering section:', section.id);
           return (
             <SectionRenderer
               key={section.id}
@@ -767,15 +537,10 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
           );
         })}
         
-        {/* Always render ProductsList on /store page */}
         <ProductsList />
       </div>
     );
   }
-
-  // For other pages, render sections if available
-  // If no sections, still render empty container (for preview mode)
-  // This allows elements to be selected even if no sections exist
 
   const pageStyle: React.CSSProperties = {
     padding: vm.pageStyles?.padding || undefined,
@@ -786,7 +551,6 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       vm.pageStyles?.backgroundColor,
       vm.pageStyles?.backgroundOpacity
     ) || undefined,
-    // Add box-shadow for hover in selection mode (doesn't affect layout)
     ...(isPreviewMode() && elementSelectionMode && isHovered ? {
       boxShadow: '0 0 0 2px #3b82f6',
       position: 'relative' as const,
@@ -802,7 +566,6 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
       onMouseEnter={handlePageMouseEnter}
       onMouseLeave={handlePageMouseLeave}
     >
-      {/* Demo section for selected offer card (only when explicitly requested via URL param) */}
       {(() => {
         if (typeof window === 'undefined') return false;
         const params = new URLSearchParams(window.location.search);

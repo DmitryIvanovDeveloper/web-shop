@@ -18,35 +18,27 @@ export interface ProductsListProps {
 export function ProductsList({ className, style }: ProductsListProps): JSX.Element | null {
   const [, forceUpdate] = useState({});
 
-  // State for tracking loading status of individual products
   const [loadingProducts, setLoadingProducts] = useState<Set<string>>(new Set());
 
-  // Get presenter and auth service from DI container
   const presenter = container.get<ProductsListPresenter>(PRODUCTS_TYPES.ProductsListPresenter);
   const authService = container.get<AuthServicePort>(PRODUCTS_TYPES.AuthService);
 
-  // Get view model with labels
   const viewModel = presenter.getViewModel();
 
-  // Get appId with priority: session > query params
   const getAppId = (): string | null => {
-    // 1. First try to get from authenticated user session
     const currentUser = authService.getCurrentUser();
     if (currentUser?.appId) {
       return currentUser.appId;
     }
 
-    // 2. Fallback to query parameters
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
-      // Support both 'appId' and 'app' query parameters
       const appIdFromQuery = searchParams.get('appId') || searchParams.get('app');
       if (appIdFromQuery) {
         return appIdFromQuery;
       }
     }
 
-    // 3. Fallback to environment default (for direct /store access without query)
     const envAppId = process.env.NEXT_PUBLIC_APP_ID || null;
     if (envAppId) {
       return envAppId;
@@ -55,16 +47,12 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
   };
 
   useEffect(() => {
-    // Subscribe to presenter updates
     presenter.setOnViewModelChanged(() => {
       forceUpdate({});
     });
 
-    // Initial load with appId from session or query
-    // Wait a bit for session restoration to complete
     const loadProducts = async () => {
       try {
-        // Small delay to allow session restoration to complete
         await new Promise(resolve => setTimeout(resolve, 200));
 
         const appId = getAppId();
@@ -78,16 +66,12 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
           appId,
           userId: currentUser?.userId || undefined
         });
-
-        console.log('[ProductsList] Products loaded successfully');
       } catch (error) {
-        console.error('[ProductsList] Failed to load products:', error);
       }
     };
 
     loadProducts();
     
-    // Listen for auth state changes (e.g., session restored from localStorage)
     const handleAuthStateChanged = (): void => {
       setTimeout(() => {
         const appId = getAppId();
@@ -101,13 +85,11 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
             userId: currentUser?.userId || undefined,
           })
           .catch(() => {
-            // Presenter already logs failures
           });
       }, 100);
     };
     
     if (typeof window !== 'undefined') {
-      // We rely on presenter caching products; authStateChanged will refresh only purchased state.
       window.addEventListener('authStateChanged', handleAuthStateChanged);
     }
     
@@ -123,15 +105,11 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
 
 
     try {
-      // Set loading state for this product (spinner will stay active)
       setLoadingProducts(prev => new Set(prev).add(productId));
 
-      // Pass only product ID to presenter (convert ProductId to string)
       await presenter.onBuyProduct(productId);
 
-      // Don't clear loading state on success - spinner stays active until redirect
     } catch {
-      // Clear loading state only on error
       setLoadingProducts(prev => {
         const next = new Set(prev);
         next.delete(productId);
@@ -145,7 +123,6 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
       <div className={className} style={style} dir="ltr">
         <h2 className="text-white text-xl font-bold mb-4">{viewModel.labels.productsTitle}</h2>
         <Grid>
-          {/* Show 6 skeleton cards while loading */}
           {Array.from({ length: 6 }, (_, index) => (
             <div key={`skeleton-${index}`} className="@container">
               <OfferCardSkeleton />

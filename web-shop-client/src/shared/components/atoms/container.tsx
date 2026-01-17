@@ -27,9 +27,6 @@ export function UniversalContainer({
   onClick,
   ...restProps
 }: UniversalContainerProps): JSX.Element {
-  console.log('[UniversalContainer] Rendered with props:', { vertical, sidebar, gap, className });
-  
-  // Проверяем, есть ли уже flex flex-col в className (с ! или без)
   const hasFlexCol = (className.includes('flex') || className.includes('!flex')) && 
                     (className.includes('flex-col') || className.includes('!flex-col'));
   
@@ -43,16 +40,11 @@ export function UniversalContainer({
         : `!flex !flex-col ${className}`.replace(/\s+/g, ' ').trim()
     : className;
   
-  // Apply gap via inline style if provided, otherwise use default
-  // When gap is applied, we must also ensure display: flex is in inline style
   const containerStyle: CSSProperties = {
     ...style,
-    // Apply flex layout for vertical containers, even without gap
     ...(vertical && { display: 'flex', flexDirection: 'column' }),
     ...(vertical && gap ? { gap } : {}),
   };
-  
-  console.log('[UniversalContainer] Final classes:', containerClasses, 'style:', containerStyle);
     
   return (
     <aside 

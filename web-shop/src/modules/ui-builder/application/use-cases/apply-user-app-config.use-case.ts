@@ -21,7 +21,6 @@ export class ApplyUserAppConfigUseCase {
         return Result.error(new Error('User app config not found'));
       }
 
-      // Применяем конфигурацию через UIBuilderPresenter
       this.uiBuilderPresenter.applyTemplateConfig(userAppConfig.config);
 
       return Result.ok(undefined);

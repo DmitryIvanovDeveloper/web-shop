@@ -57,8 +57,6 @@ export function useBadgeStyles(): BadgeStyles {
           setBadgeStyles(data.badges);
         }
       } catch (error) {
-        console.error('[useBadgeStyles] Failed to load badge styles:', error);
-        // Keep default styles on error
       }
     };
 

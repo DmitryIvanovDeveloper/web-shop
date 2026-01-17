@@ -19,7 +19,6 @@ interface DynamicRendererProps {
   readonly actionContext?: ActionContext;
 }
 
-// Check if in preview mode
 const isPreviewMode = (): boolean => {
   if (typeof window === 'undefined') return false;
   const params = new URLSearchParams(window.location.search);
@@ -37,7 +36,6 @@ const readSelectionModeFlag = (): boolean => {
 };
 
 export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererProps): JSX.Element | null {
-  // Simple translation helper
   const getTranslation = (): { t: (key: string, fallback?: string) => string, currentLanguage: any } => {
     try {
       const presenter = container.get<LocalizationPresenter>(LOCALIZATION_TYPES.LocalizationPresenter);
@@ -53,27 +51,18 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
   };
 
   const { t, currentLanguage } = getTranslation();
-  if (node?.id === 'sidebar-container') {
-    console.log('[DynamicRenderer] RENDERING SIDEBAR-CONTAINER:', node);
-  }
 
   if (!node) {
-    console.error('[DynamicRenderer] Node is undefined or null');
     return null;
   }
-  
-  console.log('[DynamicRenderer] UI_RENDERER_TYPES:', UI_RENDERER_TYPES);
-  console.log('[DynamicRenderer] ComponentRegistry symbol:', UI_RENDERER_TYPES.ComponentRegistry);
   
   const registry = container.get<ComponentRegistry>(UI_RENDERER_TYPES.ComponentRegistry);
   const styleBuilder = container.get<StyleBuilder>(UI_RENDERER_TYPES.StyleBuilder);
   const actionHandler = container.get<ActionHandler>(UI_RENDERER_TYPES.ActionHandler);
 
-  // State for hover effect in element selection mode
   const [isHovered, setIsHovered] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
 
-  // Listen for element selection mode changes
   useEffect(() => {
     if (typeof window === 'undefined') {
       return;
@@ -81,7 +70,6 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
 
     const handleModeChange = (event: CustomEvent) => {
       const enabled = event.detail?.enabled ?? false;
-      console.log('[DynamicRenderer] Received elementSelectionModeChanged event:', enabled, { nodeId: node.id });
       setElementSelectionMode(enabled);
     };
 
@@ -97,16 +85,12 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
 
   const Component = registry.getComponent(node.type);
   if (!Component) {
-    console.warn(`Component not found: ${node.type}`);
-    console.warn(`Available components:`, Array.from(registry['_components'].keys()));
     return null;
   }
   
-  // Debug для DataGrid
   if (node.type === 'DataGrid') {
   }
 
-  // Определяем стили в зависимости от loading состояния
   const styles = actionContext?.isLoading && node.styles?.loadingStyles 
     ? { ...node.styles, ...node.styles.loadingStyles }
     : node.styles;
@@ -114,24 +98,9 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
   const className = styleBuilder.buildClassName(styles, theme);
   let style = styleBuilder.buildInlineStyles(styles, theme, node.type);
   
-  // Debug logging for Text component styles
   if (node.type === 'Text') {
-    console.log('[DynamicRenderer] Text component styles:', {
-      nodeId: node.id,
-      nodeStyles: node.styles,
-      builtStyle: style,
-      textColor: node.styles?.textColor,
-      fontSize: node.styles?.fontSize,
-      fontWeight: node.styles?.fontWeight,
-      inlineColor: style.color,
-      inlineFontSize: style.fontSize,
-      inlineFontWeight: style.fontWeight,
-      allStyles: JSON.stringify(node.styles || {}),
-      allBuiltStyles: JSON.stringify(style)
-    });
   }
   
-  // Add box-shadow for hover in selection mode (doesn't affect layout)
   const isSelectionModeActive = isPreviewMode() && elementSelectionMode && node.id;
   if (isSelectionModeActive && isHovered) {
     style = {
@@ -141,13 +110,11 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     };
   }
 
-  // For main-content Container, remove background styles (they're applied to body)
   if (node.id === 'main-content' && node.type === 'Container') {
     const { backgroundImage, backgroundSize, backgroundPosition, backgroundRepeat, ...restStyle } = style;
     style = restStyle;
   } 
 
-  // For Button with pageSlug, create navigate action if not already set
   let buttonActions = node.actions;
   if (node.type === 'Button' && node.props?.pageSlug && typeof node.props.pageSlug === 'string' && !node.actions?.onClick) {
     buttonActions = {
@@ -159,37 +126,23 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     };
   }
 
-  // Обработка onClick action с поддержкой preview mode
   const handleClick = (e?: React.MouseEvent) => {
-    console.log('[DynamicRenderer] handleClick called', {
-      nodeId: node.id,
-      nodeType: node.type,
-      isPreviewMode: isPreviewMode(),
-      elementSelectionMode: elementSelectionMode
-    });
-    
-    // Preview mode + element selection mode - send element selection to parent window
     if (isPreviewMode() && elementSelectionMode && node.id) {
       if (e) {
         e.preventDefault();
         e.stopPropagation();
       }
       
-      // Remove outline from all elements when clicking
-      // Trigger mouseleave event on all elements to ensure hover handlers are called
       if (typeof document !== 'undefined') {
         const allElements = document.querySelectorAll('[data-element-id]');
-        console.log(`[DynamicRenderer] Removing outline from ${allElements.length} elements after click`);
         allElements.forEach((el) => {
           const htmlEl = el as HTMLElement;
-          // Trigger mouseleave event to ensure hover handlers clean up
           const mouseLeaveEvent = new MouseEvent('mouseleave', {
             bubbles: true,
             cancelable: true,
             view: window
           });
           htmlEl.dispatchEvent(mouseLeaveEvent);
-          // Also manually remove styles as fallback
           htmlEl.classList.remove('preview-hover');
           htmlEl.style.removeProperty('cursor');
           htmlEl.style.removeProperty('outline');
@@ -198,37 +151,21 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
           htmlEl.style.removeProperty('overflow');
           htmlEl.style.removeProperty('border');
         });
-        console.log(`[DynamicRenderer] Outline removed from all elements`);
       }
       
-      // Reset hover state
       setIsHovered(false);
       
-      console.log('[DynamicRenderer] Element clicked in selection mode:', node.id);
-      
-      // Also check if element has data-element-id attribute that might differ from node.id
       let elementIdToSend = node.id;
       if (e?.currentTarget) {
         const dataElementId = (e.currentTarget as HTMLElement).getAttribute('data-element-id');
         if (dataElementId && dataElementId !== node.id) {
-          console.log('[DynamicRenderer] Element has different data-element-id:', {
-            nodeId: node.id,
-            dataElementId,
-            using: dataElementId
-          });
           elementIdToSend = dataElementId;
         }
       }
       
       if (window.parent && window.parent !== window) {
         const builderOrigin = process.env.NEXT_PUBLIC_BUILDER_URL || '*';
-        console.log('[DynamicRenderer] Sending ELEMENT_SELECTED to parent:', {
-          elementId: elementIdToSend,
-          nodeId: node.id,
-          origin: builderOrigin
-        });
         
-        // Check if parent window still exists before sending message
         if (window.parent && typeof window.parent.postMessage === 'function') {
           try {
             window.parent.postMessage(
@@ -236,89 +173,55 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
               builderOrigin
             );
           } catch (error) {
-            console.warn('[DynamicRenderer] Failed to send ELEMENT_SELECTED message to parent:', error);
           }
-        } else {
-          console.warn('[DynamicRenderer] Parent window not available for ELEMENT_SELECTED message');
         }
+      }
       return;
     }
-    }
 
-    // Normal mode - handle action
-    console.log('[DynamicRenderer] Normal mode - handling action');
-    // Use buttonActions if it was set (for pageSlug navigation), otherwise use node.actions
     const actionsToUse = buttonActions || node.actions;
     if (actionsToUse?.onClick && actionContext) {
       actionHandler.handleAction(actionsToUse.onClick, actionContext);
     }
   };
 
-  // Hover handlers for element selection mode
   const handleMouseEnter = (e: React.MouseEvent) => {
     if (isPreviewMode() && elementSelectionMode && node.id) {
       const target = e.currentTarget as HTMLElement;
       const eventTarget = e.target as HTMLElement;
       
-      // Check if the cursor is actually over this element, not a child element with data-element-id
-      // If a child element with data-element-id is being hovered, don't highlight the parent
       if (eventTarget !== target) {
-        // The cursor is over a child element, not this element
-        // Check if the child has its own data-element-id
         const childWithId = eventTarget.closest('[data-element-id]') as HTMLElement;
         if (childWithId && childWithId !== target && childWithId.hasAttribute('data-element-id')) {
-          // A child element with data-element-id is being hovered, don't highlight parent
           return;
         }
       }
       
-      console.log('[DynamicRenderer] Mouse enter on element:', node.id, { elementSelectionMode, previewMode: isPreviewMode(), nodeType: node.type });
       setIsHovered(true);
-      // Apply box-shadow directly to DOM element for immediate feedback (doesn't affect layout)
       if (!target.classList.contains('preview-hover')) {
         target.classList.add('preview-hover');
       }
-      // Use setProperty with important flag to ensure styles are applied
       target.style.setProperty('cursor', 'pointer', 'important');
-      // Use box-shadow instead of outline to avoid layout shifts
       target.style.setProperty('box-shadow', '0 0 0 2px #3b82f6', 'important');
       target.style.setProperty('position', 'relative', 'important');
-      console.log('[DynamicRenderer] Applied outline styles to:', node.id, {
-        outline: target.style.outline,
-        outlineOffset: target.style.outlineOffset,
-        border: target.style.border,
-        hasClass: target.classList.contains('preview-hover')
-      });
-      // Don't stop propagation - allow hover to work on other elements
     }
   };
 
   const handleMouseLeave = (e: React.MouseEvent) => {
     if (isPreviewMode() && elementSelectionMode && node.id) {
-      console.log('[DynamicRenderer] Mouse leave on element:', node.id);
       setIsHovered(false);
-      // Remove box-shadow from DOM element
       const target = e.currentTarget as HTMLElement;
       target.classList.remove('preview-hover');
       target.style.removeProperty('cursor');
       target.style.removeProperty('box-shadow');
-      // Don't stop propagation - allow hover to work on other elements
     }
   };
 
-  // Use buttonActions if it was set (for pageSlug navigation), otherwise use node.actions
   const actionsToCheck = buttonActions || node.actions;
   const clickHandler = (actionsToCheck?.onClick && actionContext) || isPreviewMode() 
     ? handleClick 
     : undefined;
 
-  // Debug logging для main-content
-  if (node.id === 'main-content') {
-    console.log('[DynamicRenderer] main-content styles:', node.styles);
-    console.log('[DynamicRenderer] main-content inline styles:', style);
-  }
-
-  // Для DataGrid передаем renderItem
   if (node.type === 'DataGrid') {
     const renderItem = (item: any, index: number) => (
       <OfferCard key={item.id || index} {...item} />
@@ -334,7 +237,6 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     return createElement(Component, componentProps);
   }
 
-  // Для остальных компонентов рекурсивно рендерим children
   const children =
     node.children && node.children.length > 0
       ? node.children.map((child, idx) => (
@@ -347,41 +249,31 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
         ))
       : undefined;
 
-  // Для Popup компонента передаем onClose из actionContext
   const popupProps = node.type === 'Popup' && actionContext?.onPopupClose
     ? { onClose: actionContext.onPopupClose }
     : {};
 
-  // Для Container компонентов не добавляем flex классы - UniversalContainer сам их добавит
-  // НЕ устанавливаем className здесь, он будет установлен позже после мержа с selectionModeProps
   const containerProps = {
     ...(node.type === 'Container' && node.styles?.gap ? { gap: node.styles.gap, vertical: true } : {})
   };
 
-  // Специальная обработка для InputText
   const inputTextProps = node.type === 'InputText' 
     ? { 
         onChange: (value: string) => {
-          console.log('Input value changed:', value);
         }
       }
     : {};
 
-  // Специальная обработка для UniversalInput
   const universalInputProps = node.type === 'UniversalInput' 
     ? { 
         onChange: (value: string | number) => {
-          console.log('UniversalInput value changed:', value);
         }
       }
     : {};
 
-  // Специальная обработка для Input
   const inputProps = node.type === 'Input' 
     ? { 
         onChange: (value: string | number) => {
-          console.log('Input value changed:', value);
-          // Если есть onChange action, вызываем его через ActionHandler
           if (node.actions?.onChange && actionContext) {
             actionHandler.handleAction(node.actions.onChange, actionContext, value);
           }
@@ -389,60 +281,27 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
       }
     : {};
 
-  // Специальная обработка для Select
   const selectProps = node.type === 'Select' 
     ? { 
         onChange: (value: string | number) => {
-          console.log('[DynamicRenderer] Select value changed:', value, 'nodeId:', node.id);
-          // Если есть onChange action, вызываем его через ActionHandler
           if (node.actions?.onChange && actionContext) {
-            console.log('[DynamicRenderer] Calling actionHandler for Select onChange', {
-              nodeId: node.id,
-              action: node.actions.onChange,
-              value
-            });
             actionHandler.handleAction(node.actions.onChange, actionContext, value);
-          } else {
-            console.warn('[DynamicRenderer] Select onChange action not found or actionContext missing', {
-              nodeId: node.id,
-              hasOnChangeAction: !!node.actions?.onChange,
-              hasActionContext: !!actionContext
-            });
           }
         }
       }
     : {};
 
-  // Специальная обработка для OffersList (больше не нужен presenter)
   const offersListProps = {};
 
-  // Check preview mode
   const previewMode = isPreviewMode();
 
-  // Add data-element-id for preview mode to enable color updates and selection
   const previewProps = node.id ? { 'data-element-id': node.id } : {};
-  
-  // Debug: log when container has data-element-id
-  if (node.type === 'Container' && node.id === 'sidebar-container' && previewProps['data-element-id']) {
-    console.log('[DynamicRenderer] sidebar-container has data-element-id:', previewProps['data-element-id']);
-  }
-  
-  // Debug: log when Text component has data-element-id
-  if (node.type === 'Text' && previewProps['data-element-id']) {
-    console.log('[DynamicRenderer] Text component has data-element-id:', {
-      nodeId: node.id,
-      dataElementId: previewProps['data-element-id'],
-      hasId: !!node.id
-    });
-  }
 
-  // Обработка локализации в props
   const processLocalizedProps = useCallback((props: any) => {
     if (!props) return props;
 
     const processedProps = { ...props };
 
-    // Обрабатываем text prop
     if (typeof processedProps.text === 'string' && processedProps.text.startsWith('i18n:')) {
       const key = processedProps.text.replace('i18n:', '');
       processedProps.text = t(key);
@@ -453,43 +312,22 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
 
   const processedProps = processLocalizedProps(node.props);
 
-  // Специальная обработка для Button - text уже в processedProps, но убеждаемся что он передаётся
   const buttonProps = node.type === 'Button'
     ? { text: processedProps?.text || processedProps?.children }
     : {};
 
-  // Типобезопасные props - TypeScript знает структуру
-  // Exclude pageSlug from props passed to DOM (it's only used for action creation)
   const { pageSlug, ...propsWithoutPageSlug } = processedProps || {};
   
-  // Add hover class and handlers for element selection mode
-  // isSelectionModeActive already declared above (line 99)
   const selectionModeProps = isSelectionModeActive ? {
     onMouseEnter: handleMouseEnter,
     onMouseLeave: handleMouseLeave,
   } : {};
   
-  // Merge className: always add preview-hover when hovered in selection mode
-  // Make sure preview-hover is added at the end so it can override other styles
   let mergedClassName = className || '';
   if (isSelectionModeActive && isHovered) {
-    // Add preview-hover class if not already present
     if (!mergedClassName.includes('preview-hover')) {
       mergedClassName = `${mergedClassName} preview-hover`.trim();
     }
-  }
-  
-  // Debug logging for hover state (for buttons and containers in sidebar)
-  if (isSelectionModeActive && node.id && (node.type === 'Button' || node.type === 'Container')) {
-    console.log('[DynamicRenderer] Selection mode active for', node.type, ':', {
-      nodeId: node.id,
-      isHovered,
-      elementSelectionMode,
-      mergedClassName,
-      hasSelectionHandlers: !!selectionModeProps.onMouseEnter,
-      previewMode: isPreviewMode(),
-      isSelectionModeActive
-    });
   }
   
   const componentProps = {
@@ -503,7 +341,7 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     ...offersListProps,
     ...buttonProps,
     ...previewProps,
-    ...selectionModeProps, // Must be before className to ensure handlers are included
+    ...selectionModeProps,
     className: mergedClassName,
     style,
     children,
@@ -511,26 +349,11 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     isLoading: actionContext?.isLoading || false,
   };
 
-  // Debug logging for Text component props
-  if (node.type === 'Text') {
-    console.log('[DynamicRenderer] Text component props being passed:', {
-      nodeId: node.id,
-      style: componentProps.style,
-      textColor: style?.color,
-      fontSize: style?.fontSize,
-      fontWeight: style?.fontWeight,
-      textAlign: style?.textAlign,
-      textDecoration: style?.textDecoration,
-      allProps: JSON.stringify(componentProps)
-    });
-  }
-
   try {
-    // Force re-render when language changes by adding key
     const componentKey = `${node.id}-${currentLanguage?.code || 'default'}`;
     return createElement(Component, { ...componentProps, key: componentKey });
   } catch (error) {
-    console.error(`[DynamicRenderer] Error rendering ${node.type}:`, error);
     return <div className="error-fallback">Error rendering {node.type}</div>;
   }
 }
+

@@ -18,16 +18,12 @@ export function SidebarRenderer({
 }: SidebarRendererProps): JSX.Element {
   const [configVersion, setConfigVersion] = useState(0);
 
-  // Subscribe to config updates (for live preview updates)
   useEffect(() => {
-    // Check if already ready and trigger initial render
     if (presenter.isReady()) {
       setConfigVersion(1);
     }
 
     const unsubscribe = presenter.subscribe(() => {
-      console.log('[SidebarRenderer] Config updated, incrementing configVersion');
-      // Force re-render when config changes
       setConfigVersion(prev => prev + 1);
     });
 
@@ -36,10 +32,7 @@ export function SidebarRenderer({
     };
   }, [presenter]);
 
-  // Синхронно получаем конфигурацию из presenter
-  // configVersion инкрементируется при каждом subscribe callback
   const config = useMemo(() => {
-    console.log('[SidebarRenderer] useMemo triggered, configVersion:', configVersion, 'layoutType:', layoutType);
     if (configVersion === 0) return null;
     
     switch (layoutType) {
@@ -52,10 +45,8 @@ export function SidebarRenderer({
       default:
         return null;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [configVersion, layoutType]);
 
-  // Если конфигурация еще не загружена
   if (!config) {
     return (
       <div style={{ padding: '16px', color: '#A0A0A0' }}>

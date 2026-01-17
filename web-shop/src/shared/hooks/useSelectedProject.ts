@@ -12,7 +12,6 @@ export function useSelectedProject() {
   const [selectedProject, setSelectedProject] = useState<SelectedProject | null>(null);
 
   useEffect(() => {
-    // Load from localStorage on mount
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('selectedProject');
       if (stored) {
@@ -20,12 +19,10 @@ export function useSelectedProject() {
           const parsed = JSON.parse(stored);
           setSelectedProject(parsed);
         } catch (error) {
-          console.error('Error parsing selected project from localStorage:', error);
         }
       }
     }
 
-    // Listen for project selection events
     const handleProjectSelected = (event: CustomEvent<SelectedProject>) => {
       setSelectedProject(event.detail);
     };

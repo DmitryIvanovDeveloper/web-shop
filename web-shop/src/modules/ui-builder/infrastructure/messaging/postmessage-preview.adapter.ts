@@ -17,11 +17,6 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
 
   public setIframeRef(ref: HTMLIFrameElement | null): void {
     const hasChanged = this._iframeEl !== ref;
-    console.log('[PostMessagePreviewAdapter] setIframeRef called', {
-      hasRef: !!ref,
-      wasReady: this._isIframeReady,
-      hasChanged
-    });
     this._iframeEl = ref;
     if (hasChanged) {
       this._isIframeReady = false;
@@ -34,46 +29,32 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
     }
 
     this._elementSelectedHandler = (event: MessageEvent) => {
-      console.log('[PostMessagePreviewAdapter] Received message:', {
-        type: event.data.type,
-        origin: event.origin,
-        targetOrigin: this._targetOrigin
-      });
-
       const isLocalhost = event.origin.startsWith('http://localhost:');
       const isAllowedOrigin = this._targetOrigin === '*' || event.origin === this._targetOrigin;
 
       if (!isAllowedOrigin && !isLocalhost) {
-        console.warn('[PostMessagePreviewAdapter] Message from untrusted origin:', event.origin);
         return;
       }
 
       if (event.data.type === 'ELEMENT_SELECTED') {
-        console.log('[PostMessagePreviewAdapter] Element selected:', event.data.elementId);
         callback(event.data.elementId);
       }
 
       if (event.data.type === 'PREVIEW_READY') {
-        console.log('[PostMessagePreviewAdapter] Preview ready, notifying callbacks');
         this.notifyPreviewReady();
       }
     };
-
-    console.log('[PostMessagePreviewAdapter] Listening for element selection and preview ready messages');
     window.addEventListener('message', this._elementSelectedHandler);
   }
 
   public onPreviewReady(callback: () => void): void {
-    console.log('[PostMessagePreviewAdapter] Registering onPreviewReady callback');
     this._readyCallbacks.push(callback);
   }
 
   public notifyPreviewReady(): void {
-    console.log('[PostMessagePreviewAdapter] notifying callbacks', { count: this._readyCallbacks.length });
     this._isIframeReady = true;
 
     if (this._pendingMessages.length > 0) {
-      console.log('[PostMessagePreviewAdapter] Sending pending messages', { count: this._pendingMessages.length });
       this._pendingMessages.forEach(msg => {
         if (this._iframeEl?.contentWindow) {
           this._iframeEl.contentWindow.postMessage(msg.payload, this._targetOrigin);
@@ -86,12 +67,6 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
   }
 
   public sendConfig(config: Record<string, unknown>, selectedElementId?: string | null): void {
-    console.log('[PostMessagePreviewAdapter] sendConfig called', {
-      hasConfig: !!config,
-      configKeys: config ? Object.keys(config) : null,
-      selectedElementId
-    });
-
     const message = {
       type: 'CONFIG_UPDATE',
       payload: {
@@ -100,24 +75,11 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
       },
     };
 
-    console.log('[PostMessagePreviewAdapter] created message', {
-      hasPayload: !!message.payload,
-      payloadKeys: message.payload ? Object.keys(message.payload) : null,
-      hasConfigInPayload: !!message.payload?.config,
-      configInPayloadKeys: message.payload?.config ? Object.keys(message.payload.config) : null
-    });
-
     if (!this._iframeEl?.contentWindow || !this._isIframeReady) {
-      console.warn('[PostMessagePreviewAdapter] iframe not ready, queueing config update', {
-        hasIframe: !!this._iframeEl,
-        hasContentWindow: !!this._iframeEl?.contentWindow,
-        isIframeReady: this._isIframeReady
-      });
       this._pendingMessages.push({ payload: message });
       return;
     }
 
-    console.log('[PostMessagePreviewAdapter] sending message to iframe');
     this._iframeEl.contentWindow.postMessage(message, this._targetOrigin);
   }
 
@@ -128,12 +90,10 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
     };
 
     if (!this._iframeEl?.contentWindow || !this._isIframeReady) {
-      console.warn('[PostMessagePreviewAdapter] iframe not ready, queueing showAuthPopup message');
       this._pendingMessages.push({ payload: message });
       return;
     }
 
-    console.log('[PostMessagePreviewAdapter] Sending showAuthPopup message', { visible });
     this._iframeEl.contentWindow.postMessage(message, this._targetOrigin);
   }
 
@@ -144,12 +104,9 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
     };
 
     if (!this._iframeEl?.contentWindow || !this._isIframeReady) {
-      console.warn('[PostMessagePreviewAdapter] iframe not ready, queueing selectElement message');
       this._pendingMessages.push({ payload: message });
       return;
     }
-
-    console.log('[PostMessagePreviewAdapter] Sending selectElement message', { elementId });
     this._iframeEl.contentWindow.postMessage(message, this._targetOrigin);
   }
 }

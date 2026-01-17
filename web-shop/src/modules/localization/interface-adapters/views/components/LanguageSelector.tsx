@@ -77,7 +77,7 @@ export function LanguageSelector({
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <span className="text-2xl mr-3">{language.flag || '🏳️'}</span>
+                  <span className="text-2xl mr-3">🏳️</span>
                   <div>
                     <div className="font-medium text-gray-900">
                       {language.nativeName}

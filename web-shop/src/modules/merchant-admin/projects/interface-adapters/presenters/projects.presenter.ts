@@ -75,20 +75,17 @@ export class ProjectsPresenter {
 
   async loadProjects(): Promise<void> {
     if (!this._currentMerchantId) {
-      this._logger.warn('[ProjectsPresenter] No merchant ID set for loading projects');
       return;
     }
 
     this._updateViewModel({ isLoading: true, error: null });
 
     try {
-      // Load all projects for the merchant
       const listResult = await this._listProjectsUseCase.execute({
         merchantId: this._currentMerchantId
       } as ListMerchantProjectsRequest);
 
       if (listResult.isFailure) {
-        this._logger.error('[ProjectsPresenter] Failed to load projects', listResult.error);
         this._updateViewModel({
           isLoading: false,
           error: listResult.error?.message || 'Failed to load projects'
@@ -96,13 +93,11 @@ export class ProjectsPresenter {
         return;
       }
 
-      // Load active project
       const activeResult = await this._getActiveProjectUseCase.execute({
         merchantId: this._currentMerchantId
       } as GetActiveProjectRequest);
 
       if (activeResult.isFailure) {
-        this._logger.error('[ProjectsPresenter] Failed to load active project', activeResult.error);
         this._updateViewModel({
           isLoading: false,
           error: activeResult.error?.message || 'Failed to load active project'
@@ -119,13 +114,7 @@ export class ProjectsPresenter {
         isLoading: false,
         error: null
       });
-
-      this._logger.info('[ProjectsPresenter] Projects loaded successfully', {
-        projectCount: projects.length,
-        activeProjectId: activeProject?.id
-      });
     } catch (error) {
-      this._logger.error('[ProjectsPresenter] Unexpected error loading projects', error);
       this._updateViewModel({
         isLoading: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -135,7 +124,6 @@ export class ProjectsPresenter {
 
   async selectProject(projectId: string): Promise<Project | null> {
     if (!this._currentMerchantId) {
-      this._logger.warn('[ProjectsPresenter] No merchant ID set for project selection');
       return null;
     }
 
@@ -148,7 +136,6 @@ export class ProjectsPresenter {
       } as SelectActiveProjectRequest);
 
       if (result.isFailure) {
-        this._logger.error('[ProjectsPresenter] Failed to select project', result.error);
         this._updateViewModel({
           isLoading: false,
           error: result.error?.message || 'Failed to select project'
@@ -156,15 +143,10 @@ export class ProjectsPresenter {
         return null;
       }
 
-      // Reload projects to get updated state
       await this.loadProjects();
 
-      this._logger.info('[ProjectsPresenter] Project selected successfully', { projectId });
-
-      // Return the selected project so the view can get appId
       return result.value!.project;
     } catch (error) {
-      this._logger.error('[ProjectsPresenter] Unexpected error selecting project', error);
       this._updateViewModel({
         isLoading: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -174,7 +156,6 @@ export class ProjectsPresenter {
 
   async createProject(name: string, appId: string, description?: string): Promise<void> {
     if (!this._currentMerchantId) {
-      this._logger.warn('[ProjectsPresenter] No merchant ID set for project creation');
       return;
     }
 
@@ -189,7 +170,6 @@ export class ProjectsPresenter {
       } as CreateProjectRequest);
 
       if (result.isFailure) {
-        this._logger.error('[ProjectsPresenter] Failed to create project', result.error);
         this._updateViewModel({
           isCreating: false,
           error: result.error?.message || 'Failed to create project'
@@ -197,15 +177,8 @@ export class ProjectsPresenter {
         return;
       }
 
-      // Reload projects to include the new one
       await this.loadProjects();
-
-      this._logger.info('[ProjectsPresenter] Project created successfully', {
-        projectId: result.value!.project.id.value,
-        appId
-      });
     } catch (error) {
-      this._logger.error('[ProjectsPresenter] Unexpected error creating project', error);
       this._updateViewModel({
         isCreating: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -224,7 +197,6 @@ export class ProjectsPresenter {
       } as UpdateProjectRequest);
 
       if (result.isFailure) {
-        this._logger.error('[ProjectsPresenter] Failed to update project', result.error);
         this._updateViewModel({
           isUpdating: false,
           error: result.error?.message || 'Failed to update project'
@@ -232,12 +204,8 @@ export class ProjectsPresenter {
         return;
       }
 
-      // Reload projects to get updated data
       await this.loadProjects();
-
-      this._logger.info('[ProjectsPresenter] Project updated successfully', { projectId });
     } catch (error) {
-      this._logger.error('[ProjectsPresenter] Unexpected error updating project', error);
       this._updateViewModel({
         isUpdating: false,
         error: error instanceof Error ? error.message : 'Unknown error'

@@ -2,7 +2,6 @@ import { injectable, inject } from 'inversify';
 import type { PageConfigStoragePort } from '../../application/ports/page-config-storage.port';
 import { Result } from '@/shared/result/result';
 import type { PageConfig } from '../../domain/entities/page-config.entity';
-import type { Logger } from '@/application/ports/logger.port';
 import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import type { DatabaseClientPort } from '@/application/ports/database-client.port';
 
@@ -23,13 +22,10 @@ interface PageConfigRow {
 @injectable()
 export class SupabasePageConfigStorage implements PageConfigStoragePort {
   constructor(
-    @inject(ROOT_TYPES.Logger) private readonly _logger: Logger,
     @inject(ROOT_TYPES.DatabaseClient) private readonly _db: DatabaseClientPort
   ) {}
 
   async loadDraft(appId: string, pageSlug: string): Promise<Result<PageConfig | null, Error>> {
-    this._logger.info('[SupabasePageConfigStorage] Loading draft page config', { appId, pageSlug });
-
     try {
       const { data, error } = await this._db
         .from('page_configs')
@@ -41,12 +37,10 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
         .limit(1);
 
       if (error) {
-        this._logger.error('[SupabasePageConfigStorage] Error loading draft', error);
         return Result.fail(new Error(`Failed to load draft: ${error.message}`));
       }
 
       if (!data || data.length === 0) {
-        this._logger.info('[SupabasePageConfigStorage] No draft found', { appId, pageSlug });
         return Result.ok<PageConfig | null, Error>(null);
       }
 
@@ -73,17 +67,13 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
         pageStyles: (row.page_styles as { padding?: string; gap?: string; backgroundColor?: string; backgroundOpacity?: number }) || {},
       };
 
-      this._logger.info('[SupabasePageConfigStorage] Draft loaded successfully', { appId, pageSlug, version: pageConfig.version });
       return Result.ok<PageConfig | null, Error>(pageConfig);
     } catch (error) {
-      this._logger.error('[SupabasePageConfigStorage] Error loading draft', error);
       return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
   async loadActive(appId: string, pageSlug: string): Promise<Result<PageConfig | null, Error>> {
-    this._logger.info('[SupabasePageConfigStorage] Loading active page config', { appId, pageSlug });
-
     try {
       const { data, error } = await this._db
         .from('page_configs')
@@ -97,10 +87,8 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
 
       if (error) {
         if (error.code === 'PGRST116') {
-          this._logger.info('[SupabasePageConfigStorage] No active config found', { appId, pageSlug });
           return Result.ok<PageConfig | null, Error>(null);
         }
-        this._logger.error('[SupabasePageConfigStorage] Error loading active config', error);
         return Result.fail(new Error(`Failed to load active config: ${error.message}`));
       }
 
@@ -131,23 +119,14 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
         pageStyles: (row.page_styles as { padding?: string; gap?: string; backgroundColor?: string; backgroundOpacity?: number }) || {},
       };
 
-      this._logger.info('[SupabasePageConfigStorage] Active config loaded successfully', { appId, pageSlug, version: pageConfig.version });
       return Result.ok<PageConfig | null, Error>(pageConfig);
     } catch (error) {
-      this._logger.error('[SupabasePageConfigStorage] Error loading active config', error);
       return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
   async saveDraft(config: PageConfig): Promise<Result<void, Error>> {
-    this._logger.info('[SupabasePageConfigStorage] Saving draft page config', { 
-      appId: config.appId, 
-      pageSlug: config.pageSlug,
-      version: config.version 
-    });
-
     try {
-      // Check if draft already exists
       const { data: existingDraft } = await this._db
         .from('page_configs')
         .select('id, version')
@@ -162,7 +141,6 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
         : 1;
 
       if (existingDraft && Array.isArray(existingDraft) && existingDraft.length > 0) {
-        // Update existing draft
         const { error } = await this._db
           .from('page_configs')
           .update({
@@ -174,17 +152,9 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
           .eq('id', existingDraft[0].id);
 
         if (error) {
-          this._logger.error('[SupabasePageConfigStorage] Failed to update draft', error);
           return Result.fail(new Error(`Failed to update draft: ${error.message}`));
         }
-
-        this._logger.info('[SupabasePageConfigStorage] Draft updated successfully', { 
-          appId: config.appId, 
-          pageSlug: config.pageSlug,
-          version: newVersion 
-        });
       } else {
-        // Insert new draft
         const { error } = await this._db
           .from('page_configs')
           .insert({
@@ -199,29 +169,18 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
           });
 
         if (error) {
-          this._logger.error('[SupabasePageConfigStorage] Failed to insert draft', error);
           return Result.fail(new Error(`Failed to insert draft: ${error.message}`));
         }
-
-        this._logger.info('[SupabasePageConfigStorage] Draft created successfully', { 
-          appId: config.appId, 
-          pageSlug: config.pageSlug,
-          version: newVersion 
-        });
       }
 
       return Result.ok<void, Error>(undefined as void);
     } catch (error) {
-      this._logger.error('[SupabasePageConfigStorage] Error saving draft', error);
       return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
   async publish(appId: string, pageSlug: string): Promise<Result<void, Error>> {
-    this._logger.info('[SupabasePageConfigStorage] Publishing page config', { appId, pageSlug });
-
     try {
-      // Load current draft
       const draftResult = await this.loadDraft(appId, pageSlug);
       if (!draftResult.isSuccess || !draftResult.value) {
         return Result.fail(new Error('No draft found to publish'));
@@ -229,7 +188,6 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
 
       const draft = draftResult.value;
 
-      // Deactivate current active version if exists
       const { error: deactivateError } = await this._db
         .from('page_configs')
         .update({ is_active: false })
@@ -238,11 +196,9 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
         .eq('is_active', true);
 
       if (deactivateError) {
-        this._logger.error('[SupabasePageConfigStorage] Failed to deactivate active configs', deactivateError);
         return Result.fail(new Error(`Failed to deactivate active configs: ${deactivateError.message}`));
       }
 
-      // Activate the draft config (mark as both active and not draft) - same approach as app_config
       const { error: activateError } = await this._db
         .from('page_configs')
         .update({ 
@@ -253,49 +209,32 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
         .eq('id', draft.id);
 
       if (activateError) {
-        this._logger.error('[SupabasePageConfigStorage] Failed to activate draft', activateError);
         return Result.fail(new Error(`Failed to activate draft: ${activateError.message}`));
       }
 
-      this._logger.info('[SupabasePageConfigStorage] Page config published successfully', { 
-        appId, 
-        pageSlug,
-        version: draft.version 
-      });
       return Result.ok<void, Error>(undefined as void);
     } catch (error) {
-      this._logger.error('[SupabasePageConfigStorage] Error publishing', error);
       return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
   async listPages(appId: string): Promise<Result<string[], Error>> {
-    this._logger.info('[SupabasePageConfigStorage] Listing pages for app', { appId });
-
     try {
-      // Get all unique page slugs for this app
       const { data, error } = await this._db
         .from('page_configs')
         .select('page_slug')
         .eq('app_id', appId);
 
       if (error) {
-        this._logger.error('[SupabasePageConfigStorage] Error listing pages', error);
         return Result.fail(new Error(`Failed to list pages: ${error.message}`));
       }
 
-      // Extract unique page slugs
       const pageSlugs: string[] = Array.from(new Set(
         (data || []).map((row: { page_slug: string }) => row.page_slug as string)
       ));
 
-      this._logger.info('[SupabasePageConfigStorage] Pages listed successfully', { 
-        appId, 
-        count: pageSlugs.length 
-      });
       return Result.ok<string[], Error>(pageSlugs);
     } catch (error) {
-      this._logger.error('[SupabasePageConfigStorage] Error listing pages', error);
       return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }

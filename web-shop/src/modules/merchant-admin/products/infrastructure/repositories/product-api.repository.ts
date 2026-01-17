@@ -4,8 +4,6 @@ import { Product } from '../../domain/entities/product.entity';
 import type { ProductCommandServicePort } from '../../application/ports/product-command-service.port';
 import type { ProductQueryServicePort } from '../../application/ports/product-query-service.port';
 import type { HttpClient } from '../../../../../application/ports/http-client.port';
-import type { Logger } from '../../../../../application/ports/logger.port';
-import { ROOT_TYPES } from '../../../../../infrastructure/bootstrap/types';
 import { TYPES } from '../../../../../infrastructure/bootstrap/types';
 import { ProductNotFoundError } from '../../domain/errors/product.error';
 
@@ -89,9 +87,7 @@ const mapProductToDto = (product: Product): ProductDto => {
 export class ProductApiRepository implements ProductQueryServicePort, ProductCommandServicePort {
   public constructor(
     @inject(TYPES.HttpClient)
-    private readonly httpClient: HttpClient,
-    @inject(ROOT_TYPES.Logger)
-    private readonly logger: Logger
+    private readonly httpClient: HttpClient
   ) {}
 
   public async loadAll(appId: string): Promise<Result<readonly Product[], Error>> {
@@ -101,10 +97,6 @@ export class ProductApiRepository implements ProductQueryServicePort, ProductCom
       );
 
       if (response.status !== 200) {
-        this.logger.error('[ProductApiRepository] Failed to load products', {
-          status: response.status,
-          appId,
-        });
         return Result.error(new Error(`Failed to load products: ${response.statusText}`));
       }
 
@@ -114,10 +106,6 @@ export class ProductApiRepository implements ProductQueryServicePort, ProductCom
       for (const dto of dtos) {
         const productResult = mapDtoToProduct(dto);
         if (productResult.isFailure()) {
-          this.logger.error('[ProductApiRepository] Failed to map product DTO', {
-            error: productResult.error,
-            dto,
-          });
           continue;
         }
         products.push(productResult.data!);
@@ -125,7 +113,6 @@ export class ProductApiRepository implements ProductQueryServicePort, ProductCom
 
       return Result.ok(products);
     } catch (error) {
-      this.logger.error('[ProductApiRepository] Unexpected load error', { error, appId });
       return Result.error(error as Error);
     }
   }
@@ -144,7 +131,6 @@ export class ProductApiRepository implements ProductQueryServicePort, ProductCom
 
       return Result.ok(product);
     } catch (error) {
-      this.logger.error('[ProductApiRepository] Unexpected loadById error', { error, id, appId });
       return Result.error(error as Error);
     }
   }
@@ -164,10 +150,6 @@ export class ProductApiRepository implements ProductQueryServicePort, ProductCom
       const response = await this.httpClient.post<ProductDto>(`/api/products`, payload);
 
       if (response.status !== 200 && response.status !== 201) {
-        this.logger.error('[ProductApiRepository] Failed to create product', {
-          status: response.status,
-          productId: product.id,
-        });
         return Result.error(new Error(`Failed to create product: ${response.statusText}`));
       }
 
@@ -183,7 +165,6 @@ export class ProductApiRepository implements ProductQueryServicePort, ProductCom
 
       return Result.ok(productResult.data!);
     } catch (error) {
-      this.logger.error('[ProductApiRepository] Unexpected create error', { error, productId: product.id });
       return Result.error(error as Error);
     }
   }
@@ -204,10 +185,6 @@ export class ProductApiRepository implements ProductQueryServicePort, ProductCom
       const response = await this.httpClient.put<ProductDto>(`/api/products`, payload);
 
       if (response.status !== 200) {
-        this.logger.error('[ProductApiRepository] Failed to update product', {
-          status: response.status,
-          productId: product.id,
-        });
         return Result.error(new Error(`Failed to update product: ${response.statusText}`));
       }
 
@@ -223,7 +200,6 @@ export class ProductApiRepository implements ProductQueryServicePort, ProductCom
 
       return Result.ok(productResult.data!);
     } catch (error) {
-      this.logger.error('[ProductApiRepository] Unexpected update error', { error, productId: product.id });
       return Result.error(error as Error);
     }
   }
@@ -235,19 +211,12 @@ export class ProductApiRepository implements ProductQueryServicePort, ProductCom
       );
 
       if (response.status !== 200) {
-        this.logger.error('[ProductApiRepository] Failed to delete product', {
-          status: response.status,
-          productId: id,
-        });
         return Result.error(new Error(`Failed to delete product: ${response.statusText}`));
       }
 
       return Result.ok(undefined);
     } catch (error) {
-      this.logger.error('[ProductApiRepository] Unexpected delete error', { error, productId: id, appId });
       return Result.error(error as Error);
     }
   }
 }
-
-

@@ -24,7 +24,6 @@ export default function DashboardPage() {
   const searchParams = useSearchParams();
   const appId = searchParams?.get('appId');
 
-  // Redirect to projects page if appId is missing
   useLayoutEffect(() => {
     if (!appId) {
       router.push('/projects');
@@ -62,16 +61,14 @@ export default function DashboardPage() {
         logger
       );
 
-      // Subscribe React component to presenter view-model updates
       unsubscribe = p.subscribe(() => {
         force((x) => x + 1);
       });
 
       setPresenter(p);
       void p.loadDashboard('demo-user');
-      void p.loadFilterPresets(); // Load presets on init
+      void p.loadFilterPresets();
       
-      // Load filters from URL if present
       const params = new URLSearchParams(window.location.search);
       if (params.toString()) {
         p.loadFiltersFromUrl(params);
@@ -81,7 +78,6 @@ export default function DashboardPage() {
     try {
       resolveDeps();
     } catch (e) {
-      console.error('Failed to resolve dependencies:', e);
     }
 
     return () => {
@@ -140,9 +136,9 @@ export default function DashboardPage() {
           onSaveFilterPreset={handleSaveFilterPreset}
           labels={{
             title: 'Realtime Dashboard',
-            loading: 'Загрузка...',
-            error: 'Ошибка',
-            noData: 'Нет данных',
+            loading: 'Loading...',
+            error: 'Error',
+            noData: 'No data',
           }}
         />
       )}

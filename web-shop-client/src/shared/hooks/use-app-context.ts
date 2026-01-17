@@ -21,22 +21,16 @@ export function useAppContext(): AppContext {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('[useAppContext] Initializing...');
     try {
-      console.log('[useAppContext] Getting use case from container...');
       const useCase = container.get<GetAppContextUseCase>(TYPES.GetAppContext);
-      console.log('[useAppContext] Executing use case...');
       const appContext = useCase.execute();
-      console.log('[useAppContext] Use case executed successfully:', appContext);
       setContext(appContext);
     } catch (err) {
-      console.error('[useAppContext] Error:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
     }
   }, []);
 
   if (error) {
-    console.log('[useAppContext] Returning error state:', error);
     // Render error UI instead of throwing
     return {
       appId: '',
@@ -46,7 +40,6 @@ export function useAppContext(): AppContext {
   }
 
   if (!context) {
-    console.log('[useAppContext] Returning loading state');
     // Still loading
     return {
       appId: '',
@@ -55,7 +48,6 @@ export function useAppContext(): AppContext {
     } as any;
   }
 
-  console.log('[useAppContext] Returning context:', context);
   return context;
 }
 
@@ -66,18 +58,13 @@ export function useAppContext(): AppContext {
 export function useAppId(): string | null {
   const { appId, error, loading } = useAppContext() as any;
 
-  console.log('[useAppId] Hook called', { appId, error, loading });
-
   if (loading) {
-    console.log('[useAppId] Returning null - loading state');
-    return null; // Don't throw error, return null for loading state
+    return null;
   }
 
   if (error || !appId) {
-    console.log('[useAppId] Returning null - error or no appId', { error, appId });
-    return null; // Don't throw error, return null for error/missing state
+    return null;
   }
 
-  console.log('[useAppId] Returning appId:', appId);
   return appId;
 }

@@ -160,7 +160,7 @@ export function LocalizationStatus({ viewModel }: LocalizationStatusProps): JSX.
                     : 'bg-gray-100 text-gray-600'
                 }`}
               >
-                <span className="mr-2">{language.flag || '🏳️'}</span>
+                <span className="mr-2">🏳️</span>
                 {language.nativeName} ({language.code.toUpperCase()})
                 <span className={`ml-2 px-1.5 py-0.5 rounded text-xs ${
                   language.direction === 'rtl'

@@ -1,7 +1,5 @@
 import { inject, injectable } from 'inversify';
 import { Result } from '@/shared/result/result';
-import type { Logger } from '@/application/ports/logger.port';
-import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import { UI_BUILDER_TYPES } from '../../infrastructure/bootstrap/types';
 import type { Template } from '../../domain/entities/template.entity';
 import {
@@ -28,14 +26,10 @@ export interface UpdateTemplateInput {
 export class UpdateTemplateUseCase {
   constructor(
     @inject(UI_BUILDER_TYPES.TemplateRepository)
-    private readonly templateRepository: TemplateRepositoryPort,
-    @inject(ROOT_TYPES.Logger)
-    private readonly logger: Logger
+    private readonly templateRepository: TemplateRepositoryPort
   ) {}
 
   public async execute(input: UpdateTemplateInput): Promise<Result<Template, Error>> {
-    this.logger.info('[UpdateTemplateUseCase] Updating template', { id: input.id });
-
     if (!input.id) {
       return Result.error(new TemplateValidationError('Template id is required'));
     }
@@ -46,24 +40,15 @@ export class UpdateTemplateUseCase {
         const error =
           existingResult.error ??
           new TemplateNotFoundError(input.id);
-        this.logger.warn('[UpdateTemplateUseCase] Template not found', {
-          id: input.id,
-          error,
-        });
         return Result.error(error);
       }
 
       const existing = existingResult.value;
 
-      // If name changed, ensure uniqueness
       if (input.name && input.name.trim() !== existing.name) {
         const byName = await this.templateRepository.findByName(input.name.trim());
         if (byName.isSuccess && byName.value && byName.value.id !== existing.id) {
           const error = new TemplateNameAlreadyExistsError(input.name.trim());
-          this.logger.warn('[UpdateTemplateUseCase] New name already used', {
-            id: input.id,
-            name: input.name,
-          });
           return Result.error(error);
         }
       }
@@ -87,29 +72,16 @@ export class UpdateTemplateUseCase {
 
       const validationError = this.validateTemplate(updated);
       if (validationError) {
-        this.logger.warn('[UpdateTemplateUseCase] Validation failed', {
-          id: input.id,
-          error: validationError,
-        });
         return Result.error(validationError);
       }
 
       const saveResult = await this.templateRepository.update(updated);
       if (saveResult.isFailure) {
-        this.logger.error('[UpdateTemplateUseCase] Failed to persist template', {
-          id: input.id,
-          error: saveResult.error,
-        });
         return Result.error(saveResult.error ?? new Error('Failed to update template'));
       }
 
-      this.logger.info('[UpdateTemplateUseCase] Template updated', {
-        id: saveResult.value?.id,
-        name: saveResult.value?.name,
-      });
       return saveResult;
     } catch (error) {
-      this.logger.error('[UpdateTemplateUseCase] Unexpected error', { error });
       return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }

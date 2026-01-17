@@ -1,10 +1,5 @@
 import { inject, injectable } from 'inversify';
 
-import type {
-  ChangeActiveLanguageRequest,
-  BulkUpdateTranslationsRequest,
-  LocalizationStatusResponse
-} from '/Users/dmitryivanov/Documents/Work/development-ai/webshops-specs/web-shop/src/modules/localization/application/input-output/localization.io';
 import type { LocalizationViewModel } from '../view-models/localization.view-model';
 import { LOCALIZATION_TYPES } from '../../infrastructure/bootstrap/types';
 import { ChangeActiveLanguageUseCase, GetLocalizationStatusUseCase, UpdateTranslationsUseCase } from '../../application/use-cases';
@@ -69,7 +64,6 @@ export class LocalizationPresenter {
       const result = await this._getLocalizationStatusUseCase.execute();
 
       if (result.isFailure) {
-        console.error('[LocalizationPresenter] Use case failed:', result.error);
         this._updateViewModel({
           isLoading: false,
           error: result.error?.message || 'Unknown error'
@@ -78,11 +72,7 @@ export class LocalizationPresenter {
       }
 
       const status = result.value!;
-      console.log('[LocalizationPresenter] Status loaded:', status);
-      console.log('[LocalizationPresenter] Supported languages:', status.supportedLanguages);
 
-      // Load translations for all supported languages for editing
-      console.log('[LocalizationPresenter] Loading translations for all supported languages');
       const allTranslationsPromises = status.supportedLanguages.map(async (lang) => {
         const translationsResult = await this._translationRepository.getTranslationsByLanguage(lang.code);
         return translationsResult.isSuccess ? translationsResult.value! : [];
@@ -98,10 +88,6 @@ export class LocalizationPresenter {
         isTranslated: t.value && t.value.length > 0
       }));
 
-      console.log('[LocalizationPresenter] Final translations count:', translations.length);
-      console.log('[LocalizationPresenter] Supported languages count:', status.supportedLanguages.length);
-      console.log('[LocalizationPresenter] Active language:', status.activeLanguage?.code);
-
       const newViewModel = {
         isLoading: false,
         activeLanguage: status.activeLanguage,
@@ -111,13 +97,8 @@ export class LocalizationPresenter {
         incompleteLanguages: status.incompleteLanguages
       };
 
-      console.log('[LocalizationPresenter] New view model:', newViewModel);
-
       this._updateViewModel(newViewModel);
-
-      console.log('[LocalizationPresenter] View model updated');
     } catch (error) {
-      console.error('[LocalizationPresenter] Unexpected error:', error);
       this._updateViewModel({
         isLoading: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -139,7 +120,6 @@ export class LocalizationPresenter {
         return;
       }
 
-      // Reload status to get updated data
       await this.loadLocalizationStatus();
     } catch (error) {
       this._updateViewModel({
@@ -167,7 +147,6 @@ export class LocalizationPresenter {
         return;
       }
 
-      // Reload status to get updated coverage
       await this.loadLocalizationStatus();
     } catch (error) {
       this._updateViewModel({

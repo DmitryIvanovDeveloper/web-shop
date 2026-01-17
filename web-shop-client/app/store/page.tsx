@@ -381,8 +381,6 @@ export default function StorePage(): JSX.Element {
               mainImage={selectedOfferCard.media?.mainImage ?? 'https://via.placeholder.com/400x274/374151/ffffff?text=Dragon+Slayer+Sword'}
               mainImageAlt={selectedOfferCard.media?.mainImageAlt ?? 'Offer card image'}
               discount="80%"
-              originalPrice="24,99 $"
-              currentPrice="14,99 $"
               isPurchased={isPurchased}
             />
               );
