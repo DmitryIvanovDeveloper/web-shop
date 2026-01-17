@@ -3,7 +3,10 @@
 This file describes the **logical data model** currently stored in Supabase for the Webshops stack.  
 It is meant to be used as a **migration reference** when moving the data to Mobile Arts infrastructure (ADLS or another store).
 
-All tables live in the **`public`** schema. There are **no foreign-key constraints** – relationships are expressed via IDs (`app_id`, `user_id`, `product_id`, etc.), which simplifies export/import.
+All tables live in the **`public`** schema. Most relationships are expressed via IDs (`app_id`, `user_id`, `product_id`, etc.) without foreign-key constraints, which simplifies export/import. However, some tables do have foreign keys:
+- `translations.language_code` → `languages.code` (ON DELETE CASCADE)
+- `languages.fallback_code` → `languages.code` (ON DELETE SET NULL)
+- `daily_reward_claims.reward_id` → `daily_rewards.id` (ON DELETE CASCADE)
 
 ---
 
@@ -45,6 +48,7 @@ All tables live in the **`public`** schema. There are **no foreign-key constrain
   - `is_draft bool` (default `true`)
   - `sections jsonb` (default `'[]'`) – array of page sections; each section includes layout + ComponentNode trees.
   - `page_styles jsonb` (default `'{}'`) – page-level styles (padding, background, etc.)
+  - `merchant_id varchar` (default `'550e8400-e29b-41d4-a716-446655440000'`)
   - `created_at timestamptz` (default `now()`)
   - `updated_at timestamptz` (default `now()`)
 - **Indexes**:
@@ -68,6 +72,7 @@ All tables live in the **`public`** schema. There are **no foreign-key constrain
   - `page_configs jsonb` – array of page config templates
   - `metadata jsonb` – e.g. `{ "description": "...", "category": "...", "createdBy": "...", "previewImageUrl": "...", "tags": ["..."] }`
   - `is_active bool` (default `true`)
+  - `published bool` (default `false`)
   - `created_at timestamptz` (default `now()`)
   - `updated_at timestamptz` (default `now()`)
 - **Indexes**:
@@ -243,28 +248,171 @@ ALTER TABLE products ADD COLUMN limited_offer int;
 
 ---
 
-## Merchant‑Admin: Promo Codes Module (logical model)
+### Table: `languages`
 
-This section describes the **logical data model** for the future Merchant‑Admin "promo codes" module.  
-It is a design reference for future migrations and implementation – tables may evolve, but the core
-concepts and invariants should stay stable.
+- **Purpose**: Supported languages for localization system.
+- **Columns**:
+  - `id uuid PK`
+  - `code varchar(5)` (unique) – ISO 639-1 language code (e.g. `'en'`, `'ar'`)
+  - `name varchar(100)` – display name (e.g. `'English'`, `'Arabic'`)
+  - `native_name varchar(100)` – native name (e.g. `'English'`, `'العربية'`)
+  - `direction varchar(3)` – text direction: `'ltr'` or `'rtl'` (check constraint)
+  - `is_active bool` (default `false`)
+  - `fallback_code varchar(5)` (nullable) – fallback language code for missing translations
+  - `flag varchar` (nullable) – flag emoji or identifier
+  - `created_at timestamptz` (default `now()`)
+  - `updated_at timestamptz` (default `now()`)
+- **Indexes**:
+  - `languages_pkey (id)`
+  - `languages_code_key (code)` – unique
+  - `idx_languages_active (is_active)`
+  - `idx_languages_direction (direction)`
+- **Foreign keys**:
+  - `fallback_code` → `languages.code` (ON DELETE SET NULL)
+- **Relations (logical)**:
+  - Referenced by `translations.language_code`
+- **Minimal example**:
+  - `code: "en"`, `name: "English"`, `native_name: "English"`, `direction: "ltr"`, `is_active: true`.
+
+---
+
+### Table: `translations`
+
+- **Purpose**: Translation strings for different languages and keys.
+- **Columns**:
+  - `id uuid PK`
+  - `key varchar(255)` – translation key in dot notation (e.g. `'products.buyButton'`)
+  - `language_code varchar(5)` – reference to `languages.code`
+  - `value text` – translated text
+  - `is_translated bool` (default `true`) – whether translation is complete
+  - `context text` (nullable) – additional context for translators
+  - `created_at timestamptz` (default `now()`)
+  - `updated_at timestamptz` (default `now()`)
+- **Primary key**:
+  - `(key, language_code)` – unique constraint
+- **Indexes**:
+  - `translations_pkey (id)`
+  - `idx_translations_language_code (language_code)`
+  - `idx_translations_key (key)`
+  - `idx_translations_language_key (language_code, key)`
+  - `idx_translations_is_translated (is_translated)`
+- **Foreign keys**:
+  - `language_code` → `languages.code` (ON DELETE CASCADE)
+- **Minimal example**:
+  - `key: "products.buyButton"`, `language_code: "en"`, `value: "Buy Now"`, `is_translated: true`.
+
+---
+
+### Table: `daily_rewards`
+
+- **Purpose**: Daily reward configurations managed by merchants.
+- **Columns**:
+  - `id uuid PK`
+  - `app_id text` – app/game ID
+  - `type text` – reward type: `'points'`, `'currency'`, or `'item'` (check constraint)
+  - `title text` – reward title
+  - `description text` – reward description
+  - `points integer` – number of points/currency awarded (check: `points > 0`)
+  - `is_active bool` (default `true`) – whether reward is currently available
+  - `day_number integer` (nullable) – day number for this reward (1, 2, 3, etc.). NULL means reward is not day-specific.
+  - `created_at timestamptz` (default `now()`)
+  - `updated_at timestamptz` (default `now()`)
+- **Indexes**:
+  - `daily_rewards_pkey (id)`
+  - `idx_daily_rewards_app_id (app_id)`
+  - `idx_daily_rewards_active (is_active)`
+  - `idx_daily_rewards_app_active (app_id, is_active)`
+  - `idx_daily_rewards_day_number (day_number)`
+  - `idx_daily_rewards_app_day (app_id, day_number)`
+  - `daily_rewards_app_day_unique (app_id, day_number) WHERE day_number IS NOT NULL` – unique per app/day
+  - `daily_rewards_app_title_unique (app_id, title)` – unique title per app
+- **Relations (logical)**:
+  - Referenced by `daily_reward_claims.reward_id`
+- **Minimal example**:
+  - `app_id: "APP123"`, `type: "points"`, `title: "Daily Bonus"`, `points: 100`, `day_number: 1`, `is_active: true`.
+
+---
+
+### Table: `daily_reward_claims`
+
+- **Purpose**: Tracks user claims of daily rewards.
+- **Columns**:
+  - `id uuid PK`
+  - `user_id text` – external user identifier
+  - `reward_id uuid` – reference to `daily_rewards.id`
+  - `claimed_at timestamptz` (default `now()`) – when the user claimed the reward
+  - `points_awarded integer` – actual points awarded (check: `points_awarded > 0`)
+  - `created_at timestamptz` (default `now()`)
+  - `updated_at timestamptz` (default `now()`)
+- **Indexes**:
+  - `daily_reward_claims_pkey (id)`
+  - `idx_reward_claims_user_id (user_id)`
+  - `idx_reward_claims_reward_id (reward_id)`
+  - `idx_reward_claims_user_date (user_id, DATE(claimed_at))`
+  - `idx_reward_claims_claimed_at (claimed_at)`
+- **Foreign keys**:
+  - `reward_id` → `daily_rewards.id` (ON DELETE CASCADE)
+- **Constraints**:
+  - `UNIQUE(user_id, DATE(claimed_at))` – one claim per user per day
+- **Minimal example**:
+  - `user_id: "user-123"`, `reward_id: "550e8400-e29b-41d4-a716-446655440000"`, `points_awarded: 100`, `claimed_at: 2025-01-17T10:00:00Z`.
+
+---
+
+### Table: `patch_notes`
+
+- **Purpose**: Application patch notes and version management.
+- **Columns**:
+  - `id uuid PK`
+  - `version varchar` (unique) – semantic version (e.g. `'1.2.3'`, check: `version ~ '^\\d+\\.\\d+\\.\\d+$'`)
+  - `title varchar` – patch note title
+  - `description text` (nullable) – patch note description
+  - `changes jsonb` (default `'[]'`) – array of changes (e.g. `[{ "type": "feature", "description": "..." }]`)
+  - `status varchar` (default `'draft'`) – status: `'draft'`, `'published'`, or `'scheduled'` (check constraint)
+  - `app_id varchar` (default `'default-app'`) – application identifier
+  - `published_at timestamptz` (nullable) – when the patch note was published
+  - `scheduled_for timestamptz` (nullable) – scheduled publication time (check: `scheduled_for > now()`)
+  - `created_at timestamptz` (default `now()`)
+  - `updated_at timestamptz` (default `now()`)
+- **Indexes**:
+  - `patch_notes_pkey (id)`
+  - `patch_notes_version_key (version)` – unique
+- **Minimal example**:
+  - `version: "1.2.3"`, `title: "New Features Update"`, `status: "published"`, `app_id: "APP123"`, `published_at: 2025-01-17T10:00:00Z`.
+
+---
+
+### Table: `projects`
+
+- **Purpose**: Application projects (games/apps) managed by merchants.
+- **Columns**:
+  - `id uuid PK`
+  - `app_id varchar` (unique) – application identifier
+  - `name varchar` – project name
+  - `description text` (nullable) – project description
+  - `status varchar` (default `'active'`) – status: `'active'`, `'archived'`, or `'draft'` (check constraint)
+  - `merchant_id uuid` – merchant identifier
+  - `created_at timestamptz` (default `now()`)
+  - `updated_at timestamptz` (default `now()`)
+- **Indexes**:
+  - `projects_pkey (id)`
+  - `projects_app_id_key (app_id)` – unique
+- **Minimal example**:
+  - `app_id: "APP123"`, `name: "My Game"`, `status: "active"`, `merchant_id: "550e8400-e29b-41d4-a716-446655440000"`.
+
+---
+
+## Merchant‑Admin: Promo Codes Module
+
+This section describes the **implemented** Merchant‑Admin "promo codes" module.
 
 ### Domain concepts
 
-- **PromoCampaign / Affiliate**
-  - A logical grouping for promo codes owned by an **influencer, partner or internal campaign**.
-  - Examples: `"influencer-123"`, `"twitch-partner-42"`, `"summer_sale_2026"`.
-  - Used for reporting and aggregation (usage, revenue, AOV per campaign/affiliate).
-
 - **PromoCode**
   - A concrete code that users can enter at checkout (e.g. `"IVANOV10"`, `"STREAMER_X_15"`).
-  - Belongs to an app (`app_id`) and may optionally belong to a campaign/affiliate.
+  - Belongs to an app (`app_id`) and may optionally belong to a campaign (`campaign_id`).
   - Encodes a **discount rule** and restrictions (time window, limits).
-
-- **PromoUsage**
-  - A logical record of a successful promo code application.
-  - Links promo code / campaign / affiliate to a concrete **payment / order**.
-  - Used primarily for analytics (how many times a code was used, how much revenue it generated).
+  - Note: `promo_campaigns` and `promo_usages` tables are not yet implemented in the current schema.
 
 #### PromoCode invariants (business rules)
 
@@ -280,7 +428,7 @@ concepts and invariants should stay stable.
 - **Limits**
   - Global limit: `max_redemptions` – maximum number of total uses across all users.
   - Per‑user limit: `max_redemptions_per_user` – how many times a single user can use the code.
-  - Optional per‑campaign limit: total allowed redemptions across all codes in the same campaign.
+  - Note: Per-campaign limits are not yet implemented (no `promo_campaigns` table exists).
 - **Discount types (v1)**
   - Percentage discount: `discount_type = 'percent'`, `discount_value` in range `(0, 100]`.
   - Fixed‑amount discount: `discount_type = 'fixed_amount'`, `discount_value` in base currency of the app.
@@ -291,39 +439,13 @@ concepts and invariants should stay stable.
 
 ---
 
-### Table: `promo_campaigns`
-
-- **Purpose**: Grouping of promo codes by influencer, partner or internal campaign.
-- **Columns**:
-  - `id uuid PK`
-  - `app_id text` – app/merchant application ID.
-  - `slug text` – short identifier (e.g. `"streamer_x"`, `"summer_2026"`).
-  - `name text` – human‑readable name.
-  - `description text` (nullable)
-  - `owner_type text` – `influencer`, `partner`, `internal` (enum at the application level).
-  - `owner_id text` (nullable) – external identifier of influencer/partner in another system.
-  - `metadata jsonb` (default `'{}'`) – arbitrary attributes for reporting (channels, tags, etc.).
-  - `is_active bool` (default `true`)
-  - `created_at timestamptz` (default `now()`)
-  - `updated_at timestamptz` (default `now()`)
-- **Indexes**:
-  - `promo_campaigns_pkey (id)`
-  - `idx_promo_campaigns_app_id (app_id)`
-  - `idx_promo_campaigns_slug (app_id, slug)`
-  - `idx_promo_campaigns_owner (owner_type, owner_id)`
-- **Relations (logical)**:
-  - `promo_codes.campaign_id` → `promo_campaigns.id` (optional).
-  - Analytics can aggregate by `campaign_id` / `owner_type` / `owner_id`.
-
----
-
 ### Table: `promo_codes`
 
 - **Purpose**: Concrete promo codes that can be applied at checkout.
 - **Columns**:
   - `id uuid PK`
   - `app_id text`
-  - `campaign_id uuid` (nullable) – links to `promo_campaigns.id` when the code belongs to a campaign/affiliate.
+  - `campaign_id uuid` (nullable) – optional campaign identifier (for future `promo_campaigns` table if implemented).
   - `code text` – visible code string (stored in canonical form, e.g. upper‑case).
   - `name text` – internal/admin name (e.g. `"Streamer X 10% off"`).
   - `description text` (nullable)
@@ -344,45 +466,13 @@ concepts and invariants should stay stable.
   - `updated_at timestamptz` (default `now()`)
 - **Indexes**:
   - `promo_codes_pkey (id)`
-  - `idx_promo_codes_app_code (app_id, code)` – unique per app (enforced by a unique index).
-  - `idx_promo_codes_campaign (campaign_id)`
-  - `idx_promo_codes_active (is_active, start_at, end_at)`
+  - Unique constraint on `(app_id, code)` should be enforced at the application layer (case-insensitive).
 - **Constraints (logical)**:
   - Unique `(app_id, code)` – case‑insensitive check should be enforced at the application layer.
   - For `discount_type = 'percent'`, `discount_value` must be in `(0, 100]`.
   - For `discount_type = 'fixed_amount'`, `discount_value > 0` and `currency` must be set.
-
----
-
-### Table: `promo_usages`
-
-- **Purpose**: Log of successful promo code applications (used for reporting and analytics).
-- **Columns**:
-  - `id uuid PK`
-  - `app_id text`
-  - `promo_code_id uuid` – reference to `promo_codes.id`.
-  - `campaign_id uuid` (nullable) – denormalized link to `promo_campaigns.id` for faster analytics.
-  - `user_id text` (nullable) – external user identifier (same semantics as in `transaction_log.user_id`).
-  - `order_id uuid` (nullable) – logical order identifier; may reuse `transaction_log.id` when applicable.
-  - `transaction_log_id uuid` (nullable) – explicit link to `transaction_log.id` when the integration is implemented.
-  - `used_at timestamptz` (default `now()`)
-  - `order_amount_before numeric` (nullable) – order total before applying the promo.
-  - `order_amount_after numeric` (nullable) – order total after applying the promo.
-  - `discount_amount numeric` (nullable) – actual discount applied (for percentage promos it depends on order total).
-  - `currency text` (nullable) – currency of the order.
-  - `source text` – where the usage came from: `webshop`, `mobile`, `external`, etc.
-  - `metadata jsonb` (default `'{}'`) – optional extra fields (e.g. channel, device, checkout variant).
-- **Indexes**:
-  - `promo_usages_pkey (id)`
-  - `idx_promo_usages_app (app_id)`
-  - `idx_promo_usages_promo_code (promo_code_id)`
-  - `idx_promo_usages_campaign (campaign_id)`
-  - `idx_promo_usages_user (user_id)`
-  - `idx_promo_usages_used_at (used_at)`
 - **Relations (logical)**:
-  - `promo_usages.promo_code_id` → `promo_codes.id`.
-  - `promo_usages.transaction_log_id` → `transaction_log.id` (when wired).
-  - Used by future analytics to compute **usage counts, revenue, AOV and performance per code/campaign/affiliate**.
+  - `campaign_id` is nullable and can reference future `promo_campaigns` table if implemented.
 
 ---
 
@@ -437,10 +527,13 @@ This structure is important to keep intact when migrating, since it’s interpre
 
 ## Notes for Migration
 
-- There are **no foreign keys**, so:
-  - You can export each table independently.
+- Most tables have **no foreign keys**, so:
+  - You can export most tables independently.
   - Logical relationships should be re-defined in the target system by joining on `app_id`, `user_id`, `product_id`, etc.
-- JSONB fields (`config`, `sections`, `page_styles`, `metadata`, `payload`, `context`, `rule_tree`, `configuration`) should be preserved as JSON documents.
+- **Tables with foreign keys** (export in order):
+  - Export `languages` before `translations` (due to `translations.language_code` → `languages.code`).
+  - Export `daily_rewards` before `daily_reward_claims` (due to `daily_reward_claims.reward_id` → `daily_rewards.id`).
+- JSONB fields (`config`, `sections`, `page_styles`, `metadata`, `payload`, `context`, `rule_tree`, `configuration`, `changes`) should be preserved as JSON documents.
 - Indexes listed above represent current access patterns; when moving to ADLS or another analytical store, use them as a hint for:
   - partitioning keys (e.g. by `app_id`, `created_at`, `page_slug`),
   - clustered/secondary indexes in serving layers (e.g. lakehouse engine, warehouse).
