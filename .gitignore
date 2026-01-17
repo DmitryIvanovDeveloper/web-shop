@@ -101,3 +101,19 @@ Thumbs.db
 *.tmp
 *.temp
 .vercel
+
+# Test files and screenshots in repository root
+/test-*.js
+/check-*.js
+/debug-*.js
+/comprehensive-*.js
+/final-*.js
+/detailed-*.js
+/integration-*.js
+/compare-*.js
+/timer-*.js
+/ui-state-*.js
+/viewmodel-*.js
+/*.png
+/.dummy.ipynb
+/add_description_migration.sql
