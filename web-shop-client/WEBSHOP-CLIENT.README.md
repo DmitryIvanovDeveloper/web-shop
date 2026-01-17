@@ -226,4 +226,36 @@ web-shop-client/
     └── mocks/api/** (app-config, auth, offers, products, shop, ui-renderer, user)
 ```
 
+### Getting Started
+
+Prerequisites:
+- Node.js LTS (check `.nvmrc` if present).
+- One package manager: npm (default), or pnpm/yarn if the project uses them.
+
+Setup & run:
+```bash
+# install deps
+npm install
+
+# dev server
+npm run dev
+
+# lint
+npm run lint
+
+# unit/integration tests
+npm test
+
+# e2e (Playwright, if configured)
+npm run test:e2e
+
+# production build
+npm run build
+```
+
+Environment:
+- Create `.env.local` with Supabase keys (anon/publishable) and any Stripe/public keys if used.
+- For server-side Supabase access, ensure service keys are provided via runtime env (not committed).
+- If payment flows are enabled, Stripe test keys must be configured per payment app conventions.
+
 

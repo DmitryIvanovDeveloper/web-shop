@@ -1,151 +1,43 @@
 # Daily Rewards Module
 
-Модуль ежедневных наград предоставляет функциональность для отображения и управления ежедневными наградами в приложении.
+Responsible for fetching, showing, and claiming daily rewards. Built with Clean Architecture (Domain → Application → Interface Adapters → Infrastructure) and wired through DI (`DAILY_REWARDS_TYPES`, `ROOT_TYPES`).
 
-## Компоненты
+## Architecture
+- **Domain**: `DailyReward`, `DailyRewardClaim`, value objects (`RewardId`, `RewardType`, `ClaimId`), errors (`RewardAlreadyClaimedTodayError`, `RewardNotAvailableError`).
+- **Application / ports**: `DailyRewardRepositoryPort` (findAll, findActive, findNextRewardAvailability), `RewardClaimRepositoryPort` (save, findLastClaimByUser).
+- **Application / use-cases**: `LoadDailyRewardsUseCase`, `CheckDailyRewardAvailabilityUseCase`, `ClaimDailyRewardUseCase` (determines next reward by `dayNumber` when `rewardId` not provided).
+- **Infrastructure / repositories**:
+  - `SupabaseDailyRewardRepository` → HTTP GET `/api/daily-rewards?appId=...`, `/api/daily-rewards/next?appId=...&userId=...`, `/api/daily-rewards/active?appId=...`
+  - `SupabaseRewardClaimRepository` → POST `/api/daily-rewards/claim`, GET `/api/daily-rewards/claims/last?userId=...` (handles browser vs SSR base URL)
+- **Interface Adapters / presenter**: `DailyRewardsPresenter` maps domain → view models, enriches active/claimed status, sets countdown to `nextClaimDate`, localizes labels.
+- **Interface Adapters / UI**:
+  - `DailyRewards` — single-card view with claim button and timer; `appId` comes from `useAppId`, requires `userId`.
+  - `DailyRewardsPopup` — popup grid of active rewards with auto-show; currently imports `DailyRewardsListPresenter` (not present in code). Replace with an existing presenter or add the missing one.
+  - `DailyRewardsCardsGrid`, `DailyRewardCard`, `DailyRewardCardSkeleton` — render sorted rewards, show skeleton on first load.
+- **Bootstrap**: `infrastructure/bootstrap/bind.daily-rewards.ts` binds repositories, use-cases, presenter, localization handlers.
 
-### DailyRewardCard
+## Data flows
+1) **Load**: UI → `DailyRewardsPresenter.loadRewards({ appId, userId? })` → `LoadDailyRewardsUseCase` → GET `/api/daily-rewards` → map to view models.
+2) **Availability**: `CheckDailyRewardAvailabilityUseCase` → GET `/api/daily-rewards/next` → marks active reward, sets `nextClaimDate`, `isClaimedToday`.
+3) **Claim**: UI → `DailyRewardsPresenter.claimReward({ userId, appId, rewardId? })` → `ClaimDailyRewardUseCase` → prevents double-claim per day using last claim check → POST `/api/daily-rewards/claim` → returns `nextRewardId` / `nextClaimDate` (tomorrow 00:00) → reloads rewards. If `rewardId` is missing, uses `dayNumber` sequencing (starts from day 1 for new users).
 
-Компонент карточки для отображения ежедневной награды с номером дня и множителем.
+## API endpoints used by this module
+- `GET /api/daily-rewards?appId={appId}`
+- `GET /api/daily-rewards/next?appId={appId}&userId={userId}`
+- `GET /api/daily-rewards/active?appId={appId}`
+- `POST /api/daily-rewards/claim`
+- `GET /api/daily-rewards/claims/last?userId={userId}`
 
+## Usage (React + DI)
 ```tsx
-import { DailyRewardCard } from '@modules/daily-rewards';
+const presenter = container.get<DailyRewardsPresenter>(DAILY_REWARDS_TYPES.DailyRewardsPresenter);
+presenter.subscribe(() => forceUpdate());
 
-<DailyRewardCard day={1} multiplier={10} />
+await presenter.loadRewards({ appId, userId });
+await presenter.claimReward({ appId, userId }); // rewardId is optional; picked from availability
 ```
 
-**Пропсы:**
-- `day: number` - номер дня (1, 2, 3, ...)
-- `multiplier: number` - множитель награды (1, 2, 5, 10, ...)
-
-**Стили:**
-- Размер: 120x150px
-- Светлый фон (#f9f9f9)
-- Закругленные углы
-- Тень для объема
-
-### DailyRewardsCardsGrid
-
-Компонент для отображения сетки карточек наград.
-
-```tsx
-import { DailyRewardsCardsGrid } from '@modules/daily-rewards';
-
-const rewards = [
-  { day: 1, multiplier: 1 },
-  { day: 2, multiplier: 2 },
-  { day: 3, multiplier: 3 },
-];
-
-<DailyRewardsCardsGrid rewards={rewards} />
-```
-
-**Пропсы:**
-- `rewards: Array<{day: number, multiplier: number}>` - массив наград
-
-### DailyRewardsList
-
-Компонент для отображения списка наград в виде карточек с дополнительной информацией.
-
-```tsx
-import { DailyRewardsList } from '@modules/daily-rewards';
-
-<DailyRewardsList
-  rewards={rewards}
-  labels={presenter.labels}
-/>
-```
-
-## Страницы
-
-### /daily-rewards
-
-Основная страница с двумя режимами отображения:
-- **Cards View**: показывает карточки типа DailyRewardCard в сетке
-- **List View**: показывает подробный список наград
-
-### /daily-rewards-demo
-
-Демо-страница для тестирования компонентов DailyRewardCard и DailyRewardsCardsGrid.
-
-## API Endpoints
-
-### GET /api/daily-rewards?appId={appId}
-
-Возвращает список всех наград для указанного приложения.
-
-**Ответ:**
-```json
-{
-  "rewards": [
-    {
-      "id": "string",
-      "appId": "string",
-      "type": "points|currency|item",
-      "title": "string",
-      "description": "string",
-      "points": number,
-      "isActive": boolean,
-      "createdAt": "string",
-      "updatedAt": "string"
-    }
-  ]
-}
-```
-
-## Использование
-
-### В React компоненте
-
-```tsx
-import {
-  DailyRewardCard,
-  DailyRewardsCardsGrid,
-  DailyRewardsList
-} from '@modules/daily-rewards';
-
-function MyComponent() {
-  const rewards = [
-    { day: 1, multiplier: 1 },
-    { day: 2, multiplier: 2 },
-    { day: 3, multiplier: 5 },
-  ];
-
-  return (
-    <div>
-      {/* Отдельная карточка */}
-      <DailyRewardCard day={1} multiplier={10} />
-
-      {/* Сетка карточек */}
-      <DailyRewardsCardsGrid rewards={rewards} />
-
-      {/* Список с дополнительной информацией */}
-      <DailyRewardsList rewards={rewards} labels={labels} />
-    </div>
-  );
-}
-```
-
-### В Next.js странице
-
-```tsx
-// app/daily-rewards/page.tsx
-import { DailyRewardsPage } from '@modules/daily-rewards';
-
-export default function DailyRewards() {
-  return <DailyRewardsPage />;
-}
-```
-
-## Архитектура
-
-Модуль построен по принципам Clean Architecture:
-
-- **Domain**: бизнес-логика (сущности, правила)
-- **Application**: use cases (бизнес-сценарии)
-- **Interface Adapters**: presenters, UI компоненты
-- **Infrastructure**: репозитории, API клиенты
-
-## Стилизация
-
-Компоненты используют встроенные стили (inline styles) для обеспечения консистентности и простоты интеграции. Все цвета и размеры соответствуют дизайн-системе приложения.
+## Known gaps / TODO
+- `DailyRewardsPopup` references `DailyRewardsListPresenter` which does not exist; swap to the existing presenter or add the missing class + binding.
+- Error handling for “already claimed” is text/name based; consider explicit error codes.
+- If `dayNumber` is null, next reward falls back to the first reward; ensure backend provides `day_number` for deterministic sequencing.

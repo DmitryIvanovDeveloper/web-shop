@@ -1,140 +1,50 @@
 # Localization Module
 
-The Localization module provides multilingual support and regional settings for the application.
+Lightweight localization for the web client: loads translations over HTTP, updates a presenter via events, and exposes a small translation service/hook.
 
 ## Architecture
+- **Domain**: `Language`, `Translation`, VOs (`language-code`, `text-direction`, `translation-key`), events `LocalizationLoadedEvent`, `LocalizationChangedEvent`.
+- **Application / ports**: `TranslationRepositoryPort`, `LanguageRepositoryPort`, `BrowserLanguageDetectorPort`.
+- **Application / use-cases**: `LoadLocalizationUseCase` (initial load), `ChangeLocalizationUseCase` (switch language).
+- **Infrastructure**: HTTP repositories (`translation-http.repository`, `language-http.repository`), browser language service, DI bindings in `infrastructure/bootstrap/bind.localization.ts`.
+- **Interface adapters**: `LocalizationPresenter`, event handlers (`localization-loaded.handler`, `localization-changed.handler`), view model, UI samples (`LanguageSelector`, `LocalizationDashboard`, `LocalizationExample`), translation service.
 
-The module is built on Domain-Driven Design and Clean Architecture principles:
+## Data flow (what really happens)
+1) UI calls `LocalizationPresenter.loadLocalization(languageCode?)`.
+2) `LoadLocalizationUseCase` fetches translations via `TranslationRepository.getTranslationsByLanguage(lang)` → `/api/localization/translations?lang=${lang}`.
+3) Publishes `LocalizationLoadedEvent` through EventBus; the handler updates `LocalizationPresenter` state (`translations`, `currentLanguage`, `direction`).
+4) Presenter sets `document.documentElement.dir/lang` (browser).
+5) `TranslationService.t(key, fallback)` reads from the presenter’s view model; if missing, returns `fallback` or the key.
+6) `ChangeLocalizationUseCase` repeats the flow and publishes `LocalizationChangedEvent`.
 
-- **Domain Layer**: Business logic, entities, value objects
-- **Application Layer**: Use cases, ports for external dependencies
-- **Infrastructure Layer**: Repository implementations, HTTP clients
-- **Interface Adapters**: Presenters, View Models, React hooks
+## Direction / language
+- Direction is computed as `rtl` only for `ar`; everything else defaults to `ltr` (no per-language direction table).
+- Default language is `en` if none is provided.
+- Browser-language detection port exists, but the shipped flow uses the explicit languageCode passed in.
 
-## Core Features
-
-### 🌐 Language Support
-- 14 pre-configured languages (including RTL: Arabic, Hebrew, Urdu, Farsi)
-- Ability to add new languages
-- Automatic browser language detection
-- Active language management through admin panel
-
-### 📝 Translation Management
-- Key-value translation system
-- Grouping by modules (auth, products, offers, etc.)
-- Bulk translation updates
-- Translation status tracking
-
-### 🎯 RTL/LTR Support
-- Automatic text direction switching
-- UI adaptation for RTL languages
-- CSS-in-JS direction support
+## HTTP endpoints used
+- `GET /api/localization/translations?lang={code}`
+- `GET /api/localization/active-language`
+- `GET /api/localization/languages`
 
 ## Usage
-
-### In React Components
-
 ```tsx
-import { useTranslation } from '@/modules/localization';
+import { container } from '@/infrastructure/bootstrap/container';
+import { LOCALIZATION_TYPES } from './infrastructure/bootstrap/types';
+import { createTranslationService } from './application/services/translation.service';
 
-function MyComponent() {
-  const { t, direction, currentLanguage } = useTranslation();
+const presenter = container.get(LOCALIZATION_TYPES.LocalizationPresenter);
+await presenter.loadLocalization('en');
+const t = createTranslationService(presenter).t;
 
-  return (
-    <div dir={direction}>
-      <h1>{t('auth.welcomeTitle', 'Welcome')}</h1>
-      <p>{t('auth.welcomeMessage', 'Hello there!')}</p>
-      <span>Current language: {currentLanguage?.name}</span>
-    </div>
-  );
-}
+// In component:
+// <div dir={presenter.viewModel.direction}>{t('auth.welcomeTitle', 'Welcome')}</div>
 ```
 
-### In Admin Panel
-
-```tsx
-import { LocalizationDashboard } from '@/modules/localization';
-
-function AdminPage() {
-  return (
-    <div>
-      <LocalizationDashboard />
-    </div>
-  );
-}
-```
-
-## API Endpoints
-
-### Get Active Language
-```
-GET /api/localization/active-language
-```
-
-### Get Languages List
-```
-GET /api/localization/languages
-```
-
-### Get Translations
-```
-GET /api/localization/translations?lang=en
-```
-
-## Database Schema
-
-### Table `languages`
-```sql
-CREATE TABLE languages (
-  code VARCHAR(5) PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  native_name VARCHAR(100) NOT NULL,
-  direction VARCHAR(3) CHECK (direction IN ('ltr', 'rtl')),
-  is_active BOOLEAN DEFAULT false,
-  fallback_code VARCHAR(5),
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-### Table `translations`
-```sql
-CREATE TABLE translations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  key VARCHAR(255) NOT NULL,
-  language_code VARCHAR(5) NOT NULL,
-  value TEXT NOT NULL,
-  is_translated BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-## Adding a New Language
-
-1. Add record to `languages` table
-2. Add translations for all keys to `translations` table
-3. Restart the application
-
-## Adding New Translations
-
-1. Add keys to application code
-2. Create translations via admin panel
-3. Update components to use new keys
-
-## Events
-
-- `LanguageActivatedEvent` - language activated
-- `LanguageDeactivatedEvent` - language deactivated
-- `TranslationUpdatedEvent` - translation updated
-- `TranslationCreatedEvent` - translation created
-
-## Extension
-
-To add new features:
-
-1. Add new Value Objects to `domain/value-objects/`
-2. Create new Use Cases in `application/use-cases/`
-3. Implement Repository methods
-4. Update API endpoints
-5. Create UI components
+## Known limitations
+- Only `ar` is treated as RTL; other RTL languages are not auto-detected.
+- No fallback chaining: if a key is missing, `t` returns `fallback` or the key itself.
+- No built-in admin UI wiring; `TranslationEditor`/`LocalizationDashboard` are sample components and require the above endpoints to exist.
+- Repository retries translations fetch up to 3 times; errors are logged but not cached.
+- There is no shipped `useTranslation` hook; use the presenter + `createTranslationService` manually.
+- `BrowserLanguageDetectorPort` exists, but the browser service is not wired into use-cases—language must be passed explicitly to `loadLocalization`/`changeLocalization`.
