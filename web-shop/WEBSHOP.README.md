@@ -57,44 +57,25 @@
   - **`public.transaction_log`**: payment events used by the dashboard  
     - `paid_amount`, `payment_status`, `payment_method`, optional `error_message`, timestamps, and references to user/app/product.
 
-- **Merchant Admin · Promo Codes (design)**
-  - **`public.promo_campaigns`** (planned): promo campaigns / affiliates  
+- **Merchant Admin · Promo Codes**
+  - **`public.promo_campaigns`**: promo campaigns / affiliates.  
     - Grouping of promo codes by influencer, partner or internal campaign.  
     - Key fields: `id`, `app_id`, `slug`, `name`, `owner_type`, `owner_id`, `is_active`, `metadata`, timestamps.
-  - **`public.promo_codes`** (planned): concrete promo codes  
+  - **`public.promo_codes`**: concrete promo codes.  
     - Codes per app with discount rules and limits.  
     - Key fields: `id`, `app_id`, `campaign_id`, `code`, `name`, `discount_type`, `discount_value`, `currency`,  
       validity window (`start_at`, `end_at`), limits (`max_redemptions`, `max_redemptions_per_user`), `priority`, `is_exclusive`, `is_active`, audit fields.
-  - **`public.promo_usages`** (planned): promo usage log  
-    - Links promo codes to concrete payments/orders for analytics.  
+  - **`public.promo_usages`**: promo usage log.  
+    - Links promo codes to payments/orders for analytics.  
     - Key fields: `id`, `app_id`, `promo_code_id`, `campaign_id`, `user_id`, `order_id` / `transaction_log_id`,  
       `used_at`, `order_amount_before`, `order_amount_after`, `discount_amount`, `currency`, `source`, `metadata`.
 
-  - **Core application use cases (planned)**  
-    Implemented as application layer services in `modules/merchant-admin/promo-codes/application`:
-    - `CreatePromoCodeUseCase` – create a new promo code with validation of business rules.
-    - `UpdatePromoCodeUseCase` – edit fields of an existing promo code.
-    - `ChangePromoCodeStatusUseCase` – quick enable/disable (toggle `is_active`).
-    - `BulkCreatePromoCodesUseCase` – optional mass generation/import of codes for a campaign.
-    - `ListPromoCodesUseCase` – filtered, paginated list for the admin table.
-    - `GetPromoCodeDetailsUseCase` – detailed view, including basic usage stats.
+  - **Implemented use cases** (module: `modules/merchant-admin/promo-codes`):
+    - `CreatePromoCodeUseCase`, `UpdatePromoCodeUseCase`, `ChangePromoCodeStatusUseCase`, `ListPromoCodesUseCase`, `GetPromoCodeDetailsUseCase` (and bulk/create flows where applicable).
 
-  - **Ports (planned, application layer)**  
-    Defined under `src/application/ports` / module‑specific ports:
-    - `PromoCodeRepositoryPort` – CRUD + search:
-      - `findById`, `findByCode(appId, code)`, `search(filter, pagination)`, `save`, `update`, `existsByCode`.
-    - `PromoUsageRepositoryPort` – read access to usage log:
-      - `countByPromoCode`, `countByCampaign`, `listByPromoCode`, basic aggregations for UI.
-    - `PromoCampaignRepositoryPort` – CRUD for `promo_campaigns` when needed.
-    - Shared ports:
-      - `IdGeneratorPort` – for promo code / campaign IDs.
-      - `ClockPort` – for `now()` when checking validity windows (`start_at` / `end_at`).
-
-  - **Infrastructure adapters (planned)**  
-    In `modules/merchant-admin/promo-codes/infrastructure`:
-    - Supabase‑backed repositories implementing the promo ports using  
-      `public.promo_campaigns`, `public.promo_codes`, `public.promo_usages`.
-    - Mappers between DB rows ↔ domain entities, without business logic.
+  - **Ports / Infrastructure**:
+    - `PromoCodeRepositoryPort`, `PromoUsageRepositoryPort`, `PromoCampaignRepositoryPort`.
+    - Supabase-backed repositories in `infrastructure` using the tables above; DTO ↔ domain mapping only.
 
 - **UI Builder / Page Editor**
   - **`public.app_configs`**: app-level UI configurations  
