@@ -81,15 +81,37 @@
   - **`public.app_configs`**: app-level UI configurations  
     - Stores full app config JSON, version and `is_active` / `is_draft` flags per `app_id`.
   - **`public.page_configs`**: per-page layouts  
-    - `page_slug`, `sections` (arrays of ComponentNode trees) and `page_styles` JSON.
+    - `page_slug`, `sections` (arrays of ComponentNode trees), `page_styles` JSON, and `merchant_id`.
   - **`public.templates`**: reusable templates for configs  
     - Bundles of `app_config`, `page_configs` and `metadata` (description, tags, preview image).
+    - Key fields: `id`, `name`, `app_config` (jsonb), `page_configs` (jsonb), `metadata` (jsonb), `is_active`, `published` (bool), timestamps.
 
 - **Shared · Users & Offer Context**
   - **`public.users`**: in-app users  
     - Links `user_id` to `app_id` and tracks creation / last activity timestamps.
   - **`public.user_offer_context`**: per-user offer context  
     - JSON context per (`user_id`, `app_id`) with segments, attributes and flags used by the offer engine.
+
+- **Merchant Admin · Daily Rewards**
+  - **`public.daily_rewards`**: daily reward configurations per app  
+    - Key fields: `id`, `app_id`, `type` (points/currency/item), `title`, `description`, `points`, `is_active`, `day_number`, timestamps.
+  - **`public.daily_reward_claims`**: user claims tracking  
+    - Links `user_id` to `reward_id`, tracks `claimed_at`, `points_awarded` with one claim per user per day constraint.
+
+- **Merchant Admin · Localization**
+  - **`public.languages`**: supported languages  
+    - Key fields: `code` (ISO 639-1), `name`, `native_name`, `direction` (ltr/rtl), `is_active`, `fallback_code`, `flag`, timestamps.
+  - **`public.translations`**: translation strings  
+    - Key fields: `id`, `key` (dot notation), `language_code`, `value`, `is_translated`, `context`, timestamps.
+    - Unique constraint on (`key`, `language_code`).
+
+- **Merchant Admin · Patch Notes**
+  - **`public.patch_notes`**: application version notes  
+    - Key fields: `id`, `version` (semver), `title`, `description`, `changes` (jsonb), `status` (draft/published/scheduled), `app_id`, `published_at`, `scheduled_for`, timestamps.
+
+- **Merchant Admin · Projects**
+  - **`public.projects`**: application projects (games/apps)  
+    - Key fields: `id`, `app_id` (unique), `name`, `description`, `status` (active/archived/draft), `merchant_id`, timestamps.
 
 ### Folder Structure
 

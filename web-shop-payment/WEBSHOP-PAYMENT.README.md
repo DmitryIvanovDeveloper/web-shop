@@ -29,6 +29,8 @@
   - `/api/payments/create-intent` – creates Stripe PaymentIntent.
   - `/api/payments/confirm` – confirms a payment using PaymentIntent data.
   - `/api/payments/status/[paymentIntentId]` – retrieves status of a specific PaymentIntent.
+  - `/api/products/by-id` – retrieves product information by appId and productId for payment processing.
+  - `/api/promo-codes/validate` – validates and applies promotional codes during checkout.
   - `/api/webhooks/stripe` – Stripe webhook endpoint for asynchronous events.
 
 ### Pages overview
@@ -111,9 +113,15 @@
     - Records who (`user_id`, `app_id`, `product_id`) bought what, for how much, with which method and final status.
     - Also stores `stripe_payment_intent_id` and optional error message if the payment fails.
 
+- **Promo Code module (`src/modules/promo-code`)**
+  - Client-side module for validating promotional codes during checkout.
+  - Communicates with backend API (`/api/promo-codes/validate`) which validates against merchant-admin promo codes module.
+  - Calculates discounts (percent or fixed amount) and returns `AppliedDiscount` with final order amount.
+
 - **Shared catalog / offers**
   - **`public.products`** – shared product catalog used both for display and price calculation.
   - **`public.users`** – shared users table used to link transactions back to specific players.
+  - **`public.promo_codes`** – promo codes managed by merchant-admin module, validated by this payment app.
 
 ### Folder Structure
 
@@ -133,6 +141,10 @@ web-shop-payment/
 │       │   ├── create-intent/route.ts
 │       │   ├── confirm/route.ts
 │       │   └── status/[paymentIntentId]/route.ts
+│       ├── products/
+│       │   └── by-id/route.ts
+│       ├── promo-codes/
+│       │   └── validate/route.ts
 │       └── webhooks/
 │           └── stripe/route.ts
 ├── src/
@@ -160,45 +172,65 @@ web-shop-payment/
 │   │   ├── logging/console-logger.ts
 │   │   └── realtime/supabase-realtime-client.ts
 │   ├── modules/
-│   │   └── payments/
+│   │   ├── payments/
+│   │   │   ├── domain/
+│   │   │   │   ├── entities/payment.entity.ts
+│   │   │   │   └── errors/payment.error.ts
+│   │   │   ├── application/
+│   │   │   │   ├── ports/
+│   │   │   │   │   ├── payment-product.repository.port.ts
+│   │   │   │   │   ├── payment-repository.port.ts
+│   │   │   │   │   ├── payment-service.port.ts
+│   │   │   │   │   └── payment-storage.port.ts
+│   │   │   │   ├── services/
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   └── webhook.service.ts
+│   │   │   │   └── use-cases/
+│   │   │   │       ├── create-payment-intent.use-case.ts
+│   │   │   │       ├── confirm-payment.use-case.ts
+│   │   │   │       ├── load-payment-product.use-case.ts
+│   │   │   │       ├── save-payment-transaction.use-case.ts
+│   │   │   │       └── input-output/
+│   │   │   ├── infrastructure/
+│   │   │   │   ├── bootstrap/
+│   │   │   │   │   ├── bind.payments.ts
+│   │   │   │   │   └── types.ts
+│   │   │   │   ├── repositories/
+│   │   │   │   │   ├── payment-product-http.repository.ts
+│   │   │   │   │   └── payment.repository.ts
+│   │   │   │   ├── services/
+│   │   │   │   │   ├── stripe-payment.service.ts
+│   │   │   │   │   └── mock-payment.service.ts
+│   │   │   │   └── storages/
+│   │   │   │       ├── in-memory-payment.storage.ts
+│   │   │   │       └── supabase-payment.storage.ts
+│   │   │   └── interface-adapters/
+│   │   │       ├── handlers/payment-webhook.handler.ts
+│   │   │       ├── presenters/
+│   │   │       │   ├── payment.presenter.ts
+│   │   │       │   └── payment-realtime.presenter.ts
+│   │   │       ├── ui/
+│   │   │       │   ├── payment-page.tsx
+│   │   │       │   ├── components/payment-flow.tsx
+│   │   │       │   ├── components/payment-form.tsx
+│   │   │       │   └── components/payment-history.tsx
+│   │   │       └── view-models/payment.view-model.ts
+│   │   └── promo-code/
 │   │       ├── domain/
-│   │       │   ├── entities/payment.entity.ts
-│   │       │   └── errors/payment.error.ts
+│   │       │   ├── entities/validated-promo-code.entity.ts
+│   │       │   └── errors/promo-code.error.ts
 │   │       ├── application/
 │   │       │   ├── ports/
-│   │       │   │   ├── payment-repository.port.ts
-│   │       │   │   ├── payment-service.port.ts
-│   │       │   │   └── payment-storage.port.ts
-│   │       │   ├── services/
-│   │       │   │   ├── index.ts
-│   │       │   │   └── webhook.service.ts
+│   │       │   │   └── promo-code-validation.port.ts
 │   │       │   └── use-cases/
-│   │       │       ├── create-payment-intent.use-case.ts
-│   │       │       ├── confirm-payment.use-case.ts
-│   │       │       ├── save-payment-transaction.use-case.ts
-│   │       │       └── input-output/
+│   │       │       └── validate-promo-code.use-case.ts
 │   │       ├── infrastructure/
 │   │       │   ├── bootstrap/
-│   │       │   │   ├── bind.payments.ts
+│   │       │   │   ├── bind.promo-code.ts
 │   │       │   │   └── types.ts
-│   │       │   ├── repositories/payment.repository.ts
-│   │       │   ├── services/
-│   │       │   │   ├── stripe-payment.service.ts
-│   │       │   │   └── mock-payment.service.ts
-│   │       │   └── storages/
-│   │       │       ├── in-memory-payment.storage.ts
-│   │       │       └── supabase-payment.storage.ts
-│   │       └── interface-adapters/
-│   │           ├── handlers/payment-webhook.handler.ts
-│   │           ├── presenters/
-│   │           │   ├── payment.presenter.ts
-│   │           │   └── payment-realtime.presenter.ts
-│   │           ├── ui/
-│   │           │   ├── payment-page.tsx
-│   │           │   ├── components/payment-flow.tsx
-│   │           │   ├── components/payment-form.tsx
-│   │           │   └── components/payment-history.tsx
-│   │           └── view-models/payment.view-model.ts
+│   │       │   └── repositories/
+│   │       │       └── promo-code-http.repository.ts
+│   │       └── README.md
 │   ├── shared/
 │   │   ├── domain/
 │   │   ├── components/

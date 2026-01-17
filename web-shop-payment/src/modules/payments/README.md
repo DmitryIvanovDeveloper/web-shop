@@ -115,32 +115,62 @@ Confirms a payment after successful provider processing.
 **Input:**
 ```typescript
 {
-  intentId: string;
-  paymentMethodId?: string;
+  paymentIntentId: string;
+  productSnapshot: {
+    id: string;
+    title: string;
+    price: number;
+    currency: string;
+  };
+  userId: string;
+  appId?: string;
+  paymentContext: PaymentElementsContext; // Stripe provider and elements instances
 }
 ```
 
 **Process:**
-1. Calls payment service to confirm payment
-2. Saves transaction record if successful
-3. Updates payment status
+1. Validates payment context (provider and elements instances)
+2. Calls payment service to confirm payment
+3. Publishes `PaymentConfirmedEvent` via EventBus (PaymentWebhookHandler saves transaction to database)
+4. Returns success result
 
 #### `SavePaymentTransactionUseCase`
-Saves payment transaction details to persistent storage.
+Saves payment transaction details to persistent storage via PaymentRepositoryPort.
 
 **Input:**
 ```typescript
 {
+  paymentIntentId: string;
   userId: string;
   productId: string;
   appId?: string;
   amount: number;
   currency: string;
   status: PaymentStatus;
-  providerIntentId: string;
-  errorMessage?: string;
 }
 ```
+
+**Process:**
+1. Validates input (paymentIntentId, userId, productId, amount > 0)
+2. Creates Payment domain entity
+3. Saves via PaymentRepositoryPort
+4. Returns transaction ID
+
+#### `LoadPaymentProductUseCase`
+Loads product information for payment processing.
+
+**Input:**
+```typescript
+{
+  productId: string;
+  appId: string;
+}
+```
+
+**Process:**
+1. Validates input (productId and appId required)
+2. Calls PaymentProductRepositoryPort.getById(appId, productId)
+3. Returns product information (id, title, price, currency)
 
 ### Ports
 
@@ -149,9 +179,26 @@ Interface for payment provider operations.
 
 ```typescript
 interface PaymentServicePort {
-  createPaymentIntent(request: PaymentIntentRequest): Promise<Result<PaymentIntentResponse, PaymentError>>;
-  confirmPayment(intentId: string, paymentMethodId?: string): Promise<Result<PaymentConfirmation, PaymentError>>;
-  getPaymentStatus(intentId: string): Promise<Result<PaymentStatusResponse, PaymentError>>;
+  createPaymentIntent(input: CreatePaymentIntentInput): Promise<Result<PaymentIntentResult, PaymentError>>;
+  confirmPayment(input: ConfirmPaymentInput): Promise<Result<void, PaymentError>>;
+  getPaymentStatus(paymentIntentId: string): Promise<Result<PaymentStatusResult, PaymentError>>;
+}
+
+interface CreatePaymentIntentInput {
+  amount: number;
+  currency: string;
+  productId: string;
+  metadata?: Record<string, string>;
+}
+
+interface ConfirmPaymentInput {
+  paymentIntentId: string;
+  paymentContext: PaymentElementsContext; // Provider and elements instances
+}
+
+interface PaymentElementsContext {
+  providerInstance: unknown; // Payment provider SDK instance
+  elementsInstance: unknown; // Payment elements UI instance
 }
 ```
 
@@ -182,8 +229,14 @@ Interface for product information retrieval.
 
 ```typescript
 interface PaymentProductRepositoryPort {
-  getProduct(productId: string): Promise<Result<ProductInfo, PaymentError>>;
-  validateProduct(productId: string, amount: number, currency: string): Promise<Result<boolean, PaymentError>>;
+  getById(appId: string, productId: string): Promise<Result<PaymentProduct, Error>>;
+}
+
+interface PaymentProduct {
+  id: string;
+  title: string;
+  price: number;
+  currency: string;
 }
 ```
 
@@ -242,6 +295,22 @@ Manages payment entity persistence.
 #### `PaymentProductHttpRepository`
 Retrieves product information via HTTP API calls to the merchant admin.
 
+**API Endpoint:**
+- `GET /api/products/by-id?appId={appId}&productId={productId}`
+
+**Response:**
+```typescript
+{
+  product?: {
+    id: string;
+    title: string;
+    price: number;
+    currency?: string | null;
+  };
+  error?: string;
+}
+```
+
 ## Interface Adapters Layer
 
 ### Handlers
@@ -280,6 +349,7 @@ Displays user's payment history.
 | POST | `/api/payments/create-intent` | Creates Stripe PaymentIntent |
 | POST | `/api/payments/confirm` | Confirms payment with PaymentIntent |
 | GET | `/api/payments/status/[intentId]` | Gets payment status by intent ID |
+| GET | `/api/products/by-id?appId={appId}&productId={productId}` | Retrieves product information for payment |
 | POST | `/api/webhooks/stripe` | Stripe webhook endpoint |
 
 ## Usage Examples
@@ -320,12 +390,24 @@ const confirmUseCase = container.get<ConfirmPaymentUseCase>(
 );
 
 const result = await confirmUseCase.execute({
-  intentId: 'pi_1234567890',
-  paymentMethodId: 'pm_card_visa'
+  paymentIntentId: 'pi_1234567890',
+  productSnapshot: {
+    id: 'product-123',
+    title: 'Product Name',
+    price: 29.99,
+    currency: 'USD'
+  },
+  userId: 'user-456',
+  appId: 'APP123',
+  paymentContext: {
+    providerInstance: stripeProvider, // Stripe instance
+    elementsInstance: stripeElements  // Stripe Elements instance
+  }
 });
 
 if (result.isSuccess()) {
   // Payment confirmed successfully
+  // PaymentConfirmedEvent will be handled by PaymentWebhookHandler
   redirectToSuccessPage();
 } else {
   // Handle payment failure
@@ -343,10 +425,12 @@ if (result.isSuccess()) {
 5. **User enters payment details** → Stripe processes payment
 
 ### Payment Confirmation Flow
-1. **Stripe processes payment** → Sends webhook or client confirms
-2. **ConfirmPaymentUseCase called** → Calls Stripe API
-3. **Payment confirmed** → SavePaymentTransactionUseCase saves to database
-4. **UI updates status** → Shows success/failure to user
+1. **User submits payment form** → Payment context (provider and elements) provided
+2. **ConfirmPaymentUseCase called** → Validates payment context
+3. **Use Case calls PaymentService** → Confirms payment via Stripe
+4. **Payment confirmed** → Use Case publishes `PaymentConfirmedEvent` via EventBus
+5. **PaymentWebhookHandler** → Listens to event and saves transaction via `SavePaymentTransactionUseCase`
+6. **UI updates status** → Shows success/failure to user
 
 ## Error Handling
 
