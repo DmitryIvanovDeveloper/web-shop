@@ -12,7 +12,7 @@ export function DailyRewardCardSkeleton({
   style,
 }: DailyRewardCardSkeletonProps): JSX.Element {
   const cardStyle: React.CSSProperties = {
-    width: '220px',
+    width: '100%',
     minHeight: '160px',
     backgroundColor: '#0B1220',
     borderRadius: '12px',
@@ -23,8 +23,11 @@ export function DailyRewardCardSkeleton({
     alignItems: 'stretch',
     justifyContent: 'space-between',
     padding: '14px',
+    textAlign: 'left',
     position: 'relative',
     overflow: 'hidden',
+    opacity: 1,
+    boxSizing: 'border-box',
     ...style
   };
 
@@ -63,14 +66,27 @@ export function DailyRewardCardSkeleton({
         {/* Shimmer overlay */}
         <div style={shimmerStyle} />
 
+        {/* Day label skeleton */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '14px',
+            right: '14px',
+            ...skeletonBaseStyle,
+            width: '50px',
+            height: '18px',
+          }}
+        />
+
         <div>
           {/* Badge skeleton */}
           <div
             style={{
               ...skeletonBaseStyle,
+              display: 'inline-block',
               width: '80px',
-              height: '24px',
-              marginBottom: '10px',
+              height: '28px',
+              borderRadius: '999px',
             }}
           />
 
@@ -80,7 +96,7 @@ export function DailyRewardCardSkeleton({
               ...skeletonBaseStyle,
               width: '140px',
               height: '20px',
-              marginBottom: '8px',
+              marginTop: '10px',
             }}
           />
 
@@ -90,6 +106,7 @@ export function DailyRewardCardSkeleton({
               ...skeletonBaseStyle,
               width: '100%',
               height: '14px',
+              marginTop: '8px',
               marginBottom: '4px',
             }}
           />
@@ -102,46 +119,46 @@ export function DailyRewardCardSkeleton({
           />
         </div>
 
-        <div style={{ marginTop: '14px' }}>
-          {/* Points row skeleton */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'baseline',
-              justifyContent: 'space-between',
-              gap: '10px',
-              marginBottom: '16px',
-            }}
-          >
-            {/* Points skeleton */}
-            <div
-              style={{
-                ...skeletonBaseStyle,
-                width: '60px',
-                height: '28px',
-              }}
-            />
-
-            {/* Active pill skeleton */}
-            <div
-              style={{
-                ...skeletonBaseStyle,
-                width: '70px',
-                height: '24px',
-              }}
-            />
-          </div>
-
-          {/* Button skeleton */}
+        {/* Points row skeleton */}
+        <div
+          style={{
+            marginTop: '14px',
+            display: 'flex',
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+            gap: '10px',
+          }}
+        >
+          {/* Points skeleton */}
           <div
             style={{
               ...skeletonBaseStyle,
-              width: '100%',
-              height: '40px',
-              borderRadius: '8px',
+              width: '60px',
+              height: '28px',
+            }}
+          />
+
+          {/* Active pill skeleton */}
+          <div
+            style={{
+              ...skeletonBaseStyle,
+              width: '70px',
+              height: '28px',
+              borderRadius: '999px',
             }}
           />
         </div>
+
+        {/* Button skeleton */}
+        <div
+          style={{
+            ...skeletonBaseStyle,
+            marginTop: '16px',
+            width: '100%',
+            height: '44px',
+            borderRadius: '8px',
+          }}
+        />
       </div>
     </>
   );
