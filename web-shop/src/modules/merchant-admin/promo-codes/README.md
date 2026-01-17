@@ -1,3 +1,22 @@
+# Merchant Admin – Promo Codes
+
+Admin module for creating and managing promo codes.
+
+## Architecture
+- **Domain**: promo code entity, value objects (code, validity), errors.
+- **Application / use-cases**: create/update/delete promo codes, list/filter, activate/deactivate.
+- **Ports**: promo-codes repository.
+- **Infrastructure**: HTTP repository in `infrastructure/repositories` calling `/api/merchant-admin/promo-codes` endpoints; DI bindings in `infrastructure/bootstrap`.
+- **Interface adapters**: presenter + view-model, admin views for promo code list/editor.
+
+## Data flow
+1) UI → presenter → use case → repository (REST).
+2) Repository maps DTO ⇄ domain and persists changes.
+3) Presenter updates view-model for admin UI.
+
+## Notes
+- Enforce uniqueness/validity period in use cases/API.
+- No EventBus usage; request/response flow only.
 # Promo Codes Module (Merchant Admin)
 
 ## Overview

@@ -1,5 +1,38 @@
 # Localization Module (Merchant Admin)
 
+Admin-side localization management: languages CRUD/activation and bulk translation updates for apps.
+
+## Architecture
+- **Domain**: `Language`, `Translation`, VOs (`LanguageCode`, `TextDirection`, `TranslationKey`), errors (`LanguageNotFoundError`, `LanguageAlreadyExistsError`, `TranslationNotFoundError`, etc.).
+- **Application / use-cases**:
+  - `ChangeActiveLanguageUseCase` — validate language exists, activate via repo.
+  - `GetLocalizationStatusUseCase` — aggregate languages/translation stats for dashboard.
+  - `UpdateTranslationsUseCase` — bulk upsert translations for a language.
+- **Ports**: `LanguageRepositoryPort`, `TranslationRepositoryPort`.
+- **Infrastructure**: HTTP repositories (`language.repository`, `translation.repository`) calling `/api/localization/*`; DI bindings in `infrastructure/bootstrap/bind.localization.ts`.
+- **Interface adapters**: `LocalizationPresenter`, view-model, admin UI (`LocalizationDashboard`, `LanguageSelector`, `TranslationEditor`, `LocalizationStatus`).
+
+## Data flow
+1) Dashboard loads status → `GetLocalizationStatusUseCase` → repos → presenter updates VM.
+2) Activate language → `ChangeActiveLanguageUseCase` → `LanguageRepository.activateLanguage` (POST `/api/localization/activate-language`).
+3) Update translations → `UpdateTranslationsUseCase` → `TranslationRepository.updateTranslations` (POST `/api/localization/translations/update`).
+
+## HTTP endpoints (admin)
+- `GET /api/localization/languages`
+- `GET /api/localization/languages?code={code}`
+- `GET /api/localization/active-language`
+- `POST /api/localization/languages` (create)
+- `PUT /api/localization/languages/{code}` (update metadata)
+- `POST /api/localization/activate-language`
+- `POST /api/localization/deactivate-language`
+- `POST /api/localization/translations/update`
+
+## Notes
+- No EventBus wiring yet for activation events (TODO).
+- Validation relies on VOs; API errors are surfaced as failures.
+- No retry/backoff on translation updates; language repo fails fast on non-200 responses.
+# Localization Module (Merchant Admin)
+
 ## Overview
 The Localization module provides merchant admin functionality for managing multilingual content and language settings. It allows administrators to configure supported languages, manage translations, and control language activation/deactivation for their applications.
 
