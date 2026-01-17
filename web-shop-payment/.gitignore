@@ -23,6 +23,11 @@
 # misc
 .DS_Store
 *.pem
+*.backup
+*.old
+*.log
+test-*.js
+public/test-*.html
 
 # debug
 npm-debug.log*

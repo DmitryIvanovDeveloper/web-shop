@@ -26,6 +26,12 @@
 # misc
 .DS_Store
 *.pem
+*.backup
+*.old
+*.log
+test-*.js
+create-*-table.js
+page_content.html
 
 # debug
 npm-debug.log*
