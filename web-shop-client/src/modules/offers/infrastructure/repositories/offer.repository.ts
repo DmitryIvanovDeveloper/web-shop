@@ -9,9 +9,7 @@ export class OfferRepository implements OfferRepositoryPort {
   public constructor(@inject(TYPES.HttpClient) private readonly http: HttpClient) {}
 
   public async getById(offerId: string): Promise<Offer> {
-    // offerId is actually a product ID from rule tree
-    // Load product from database via API endpoint
-    const response = await this.http.get(`/api/products/${encodeURIComponent(offerId)}`);
+            const response = await this.http.get(`/api/products/${encodeURIComponent(offerId)}`);
     
     if (response.status !== 200) {
       throw new Error(`Failed to load product: ${response.statusText || 'Unknown error'}`);
@@ -30,8 +28,7 @@ export class OfferRepository implements OfferRepositoryPort {
     }
 
     try {
-      // Use batch endpoint for loading multiple products at once (optimization)
-      const response = await this.http.post('/api/products/batch', { ids: offerIds });
+            const response = await this.http.post('/api/products/batch', { ids: offerIds });
       
       if (response.status !== 200) {
         throw new Error(`Failed to load products: ${response.statusText || 'Unknown error'} (status ${response.status})`);
@@ -43,18 +40,15 @@ export class OfferRepository implements OfferRepositoryPort {
           isArray: Array.isArray(response.data),
           dataType: typeof response.data,
         });
-        // Throw error to trigger fallback to individual requests
-        throw new Error(`Batch endpoint returned invalid data format: expected array, got ${typeof response.data}`);
+                throw new Error(`Batch endpoint returned invalid data format: expected array, got ${typeof response.data}`);
       }
       
-      // Empty array is valid (products may not exist), return it
-      return response.data as Offer[];
+            return response.data as Offer[];
     } catch (error) {
       console.error('[OfferRepository] Batch load failed', {
         error: error instanceof Error ? error.message : String(error),
         offerIdsCount: offerIds.length,
       });
-      throw error; // Re-throw to trigger fallback in EvaluateOffersUseCase
-    }
+      throw error;     }
   }
 }

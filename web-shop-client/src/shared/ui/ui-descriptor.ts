@@ -1,7 +1,4 @@
-/**
- * UIDescriptor - контракт между модулями и UI Renderer Service
- * Модуль создаёт UIDescriptor и передаёт в сервис для рендеринга
- */
+
 
 import type { ComponentNode } from './component-node';
 import type { ThemeConfig } from './theme-config';

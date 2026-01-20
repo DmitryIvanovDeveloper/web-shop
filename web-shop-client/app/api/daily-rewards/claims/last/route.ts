@@ -20,8 +20,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    // Get last claim by user, ordered by claimed_at descending
-    const { data, error } = await supabase
+        const { data, error } = await supabase
       .from('daily_reward_claims')
       .select('*')
       .eq('user_id', userId)
@@ -29,8 +28,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .limit(1);
 
     if (error) {
-      console.error('[GET /api/daily-rewards/claims/last] Database error:', error);
-      return NextResponse.json({ error: 'Failed to fetch last claim' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to fetch last claim' }, { status: 500 });
     }
 
     if (!data || data.length === 0) {
@@ -39,7 +37,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('[GET /api/daily-rewards/claims/last] Unexpected error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

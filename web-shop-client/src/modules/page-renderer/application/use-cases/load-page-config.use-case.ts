@@ -39,8 +39,7 @@ export class LoadPageConfigUseCase {
       return Result.error(result.error);
     }
     
-    // Публикуем событие с загруженными данными
-    await this._eventBus.publishAsync(
+        await this._eventBus.publishAsync(
       new PageConfigLoadedEvent(
         result.data || null,
         input.appId,

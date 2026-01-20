@@ -25,8 +25,7 @@ export class SupabaseConfigLoader {
 
   public isConfigured(): boolean {
     try {
-      // Access underlying client to ensure it was created
-      (this._db as any).getClient?.();
+            (this._db as any).getClient?.();
       return true;
     } catch (e) {
       this._logger.error('[SupabaseConfigLoader] Not configured', e);
@@ -48,9 +47,7 @@ export class SupabaseConfigLoader {
       .select('*')
       .eq('app_id', appId)
       .eq('is_active', true)
-      .eq('is_draft', false) // Исключаем draft конфиги, даже если они по ошибке помечены как active
-      .order('version', { ascending: false }) // Сортируем по version, а не created_at для корректного выбора последнего активного
-      .limit(1);
+      .eq('is_draft', false)       .order('version', { ascending: false })       .limit(1);
 
     this._logger.info('[SupabaseConfigLoader] Query result', {
       dataFound: !!data,
@@ -76,11 +73,9 @@ export class SupabaseConfigLoader {
       return null;
     }
 
-    // The JSON stored in `config` must conform to AppConfig
-    const config = row.config as AppConfig;
+        const config = row.config as AppConfig;
     
-    // Log config structure for debugging
-    this._logger.info('[SupabaseConfigLoader] Config loaded from database', {
+        this._logger.info('[SupabaseConfigLoader] Config loaded from database', {
       appId,
       hasConfig: !!config,
       configKeys: config ? Object.keys(config) : [],
@@ -113,11 +108,9 @@ export class SupabaseConfigLoader {
       return null;
     }
 
-    // The JSON stored in `config` must conform to AppConfig
-    const config = row.config as AppConfig;
+        const config = row.config as AppConfig;
     
-    // Log config structure for debugging
-    this._logger.info('[SupabaseConfigLoader] Draft config loaded from database', {
+        this._logger.info('[SupabaseConfigLoader] Draft config loaded from database', {
       appId,
       hasConfig: !!config,
       configKeys: config ? Object.keys(config) : [],

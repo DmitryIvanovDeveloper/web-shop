@@ -20,8 +20,7 @@ export class GetPublishedPatchNotesUseCase {
         return result;
       }
 
-      // Sort by published date (newest first)
-      const patchNotes: PatchNote[] = (result as Success<PatchNote[]>).data || [];
+            const patchNotes: PatchNote[] = (result as Success<PatchNote[]>).data || [];
       const sortedNotes = patchNotes.sort((a: PatchNote, b: PatchNote) => {
         const dateA = a.publishedAt || new Date(0);
         const dateB = b.publishedAt || new Date(0);

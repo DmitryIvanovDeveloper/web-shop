@@ -13,8 +13,7 @@ import { LocalizationChangedEvent } from '../../../localization/domain/events/lo
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
 
 export function bindDailyRewards(container: Container): void {
-  // Repositories
-  container
+    container
     .bind(DAILY_REWARDS_TYPES.DailyRewardRepository)
     .to(SupabaseDailyRewardRepository)
     .inSingletonScope();
@@ -24,8 +23,7 @@ export function bindDailyRewards(container: Container): void {
     .to(SupabaseRewardClaimRepository)
     .inSingletonScope();
 
-  // Use Cases
-  container
+    container
     .bind(DAILY_REWARDS_TYPES.CheckDailyRewardAvailabilityUseCase)
     .to(CheckDailyRewardAvailabilityUseCase);
 
@@ -37,14 +35,12 @@ export function bindDailyRewards(container: Container): void {
     .bind(DAILY_REWARDS_TYPES.LoadDailyRewardsUseCase)
     .to(LoadDailyRewardsUseCase);
 
-  // Presenters
-  container
+    container
     .bind(DAILY_REWARDS_TYPES.DailyRewardsPresenter)
     .to(DailyRewardsPresenter)
     .inSingletonScope();
 
-  // Event Handlers (Interface Adapters) - автоматически подхватываются EventBus
-  container
+    container
     .bind<IAsyncEventHandler<LocalizationLoadedEvent>>(DAILY_REWARDS_TYPES.LocalizationLoadedEventHandler)
     .to(DailyRewardsLocalizationLoadedEventHandler)
     .inTransientScope();

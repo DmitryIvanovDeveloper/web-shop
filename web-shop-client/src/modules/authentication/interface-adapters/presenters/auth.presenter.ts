@@ -1,9 +1,5 @@
 
-/**
- * Presenter для Authentication
- * Result → ViewModel + State Management
- * @injectable - регистрируется в DI!
- */
+
 
 import { injectable, inject } from 'inversify';
 import { Result } from '../../../../shared/domain/result/result';
@@ -83,20 +79,15 @@ export class AuthPresenter {
 		return { ...this._labels };
 	}
 
-	/**
-	 * Получение текущего ViewModel (копия для иммутабельности)
-	 */
+	
 	public get viewModel(): AuthViewModel {
 		return { ...this._viewModel };
 	}
 
-	/**
-	 * Подписка на изменения ViewModel (паттерн как в других модулях)
-	 */
+	
 	public subscribe(callback: (vm: AuthViewModel) => void): () => void {
 		this._subscribers.push(callback);
-		// Вызываем callback сразу с текущим состоянием
-		callback(this.viewModel);
+				callback(this.viewModel);
 		return () => {
 			const index = this._subscribers.indexOf(callback);
 			if (index > -1) {
@@ -105,25 +96,19 @@ export class AuthPresenter {
 		};
 	}
 
-	/**
-	 * Уведомление подписчиков об изменении ViewModel
-	 */
+	
 	private _notifySubscribers(): void {
 		const currentViewModel = this.viewModel;
 		this._subscribers.forEach(callback => callback(currentViewModel));
 	}
 
-	/**
-	 * Обновление ViewModel и уведомление подписчиков
-	 */
+	
 	private _updateViewModel(updates: Partial<AuthViewModel>): void {
 		this._viewModel = { ...this._viewModel, ...updates };
 		this._notifySubscribers();
 	}
 
-	/**
-	 * Обновляет labels на основе полученных переводов
-	 */
+	
 	public updateLabelsFromTranslations(translations: Record<string, string>): void {
 		this._labels = {
 			loginButton: translations['auth.loginButton'] || 'Login',
@@ -147,52 +132,36 @@ export class AuthPresenter {
 			refundPolicy: translations['auth.refundPolicy'] || 'Refund Policy'
 		};
 
-		console.log('[AuthPresenter] Labels updated from translations');
-	}
+			}
 
 	constructor(
 		@inject(AUTH_TYPES.TryAuthenticateUseCase)
 		private readonly _tryAuthenticateUseCase: TryAuthenticateUseCase,
 	) { }
-	/**
-	 * Преобразование AppUser в ViewModel
-	 */
+	
 	public present(user: AppUser): AuthViewModel {
-		// Обновляем состояние при успешной авторизации
-		this._isAuthenticated = true;
+				this._isAuthenticated = true;
 		this._currentUser = user;
 		
-		console.log('[AuthPresenter] present - Authentication state updated:', {
-			isAuthenticated: this._isAuthenticated,
-			currentUser: this._currentUser
-		});
-		
-		// Обновляем ViewModel и уведомляем подписчиков
-		this._updateViewModel({
+						this._updateViewModel({
 			status: 'success',
 			user: user,
 			error: undefined,
 			labels: this.labels
 		});
 		
-		// Генерируем событие для обратной совместимости (если нужно)
-		if (typeof window !== 'undefined') {
+				if (typeof window !== 'undefined') {
 			const event = new CustomEvent('authStateChanged', { 
 				detail: { isAuthenticated: true, user } 
 			});
-			console.log('[AuthPresenter] present - dispatching authStateChanged event:', event.detail);
-			window.dispatchEvent(event);
-			console.log('[AuthPresenter] present - authStateChanged event dispatched successfully');
-		} else {
-			console.log('[AuthPresenter] present - window is undefined, cannot dispatch event');
-		}
+						window.dispatchEvent(event);
+					} else {
+					}
 
 		return this.viewModel;
 	}
 
-	/**
-	 * Состояние загрузки
-	 */
+	
 	public presentLoading(): AuthViewModel {
 		this._updateViewModel({
 			status: 'loading',
@@ -203,9 +172,7 @@ export class AuthPresenter {
 		return this.viewModel;
 	}
 
-	/**
-	 * Начальное состояние
-	 */
+	
 	public presentIdle(): AuthViewModel {
 		this._updateViewModel({
 			status: 'idle',
@@ -216,13 +183,9 @@ export class AuthPresenter {
 		return this.viewModel;
 	}
 
-	/**
-	 * Методы для управления состоянием авторизации
-	 */
+	
 
-	/**
-	 * Проверка авторизации
-	 */
+	
 	public isUserAuthenticated(): boolean {
 		console.log('[AuthPresenter] isUserAuthenticated called:', { 
 			isAuthenticated: this._isAuthenticated,
@@ -232,37 +195,23 @@ export class AuthPresenter {
 		return this._isAuthenticated;
 	}
 
-	/**
-	 * Получение текущего пользователя
-	 */
+	
 	public getCurrentUser(): AppUser | null {
 		return this._currentUser;
 	}
 
-	/**
-	 * Установка состояния авторизации (вызывается из обработчика)
-	 */
+	
 	public setAuthenticated(user: AppUser): void {
-		console.log('[AuthPresenter] setAuthenticated called with user:', user);
-		this._isAuthenticated = true;
+				this._isAuthenticated = true;
 		this._currentUser = user;
-		console.log('[AuthPresenter] Authentication state updated:', {
-			isAuthenticated: this._isAuthenticated,
-			currentUser: this._currentUser
-		});
-		
-		// Создаем ViewModel с информацией о пользователе
-		const viewModel: AuthViewModel = {
+						const viewModel: AuthViewModel = {
 			status: 'success',
 			user: user,
 			error: undefined,
 			labels: this.labels
 		};
 		
-		console.log('[AuthPresenter] ViewModel created:', viewModel);
-		
-		// Генерируем событие для уведомления UI компонентов с ViewModel
-		if (typeof window !== 'undefined') {
+						if (typeof window !== 'undefined') {
 			window.dispatchEvent(new CustomEvent('authStateChanged', { 
 				detail: { 
 					isAuthenticated: true, 
@@ -270,51 +219,38 @@ export class AuthPresenter {
 					viewModel 
 				} 
 			}));
-			console.log('[AuthPresenter] authStateChanged event dispatched with ViewModel');
-		}
+					}
 	}
 
-	/**
-	 * Сброс состояния авторизации
-	 */
+	
 	public setUnauthenticated(): void {
 		this._isAuthenticated = false;
 		this._currentUser = null;
 		
-		// Обновляем ViewModel и уведомляем подписчиков
-		this._updateViewModel({
+				this._updateViewModel({
 			status: 'idle',
 			user: undefined,
 			error: undefined,
 			labels: this.labels
 		});
 		
-		// Генерируем событие для обратной совместимости
-		if (typeof window !== 'undefined') {
+				if (typeof window !== 'undefined') {
 			window.dispatchEvent(new CustomEvent('authStateChanged', { 
 				detail: { isAuthenticated: false, user: null } 
 			}));
 		}
 	}
 
-	/**
-	 * Показать AuthPopup (вызывается из event handler)
-	 * Используется когда пользователь пытается выполнить действие требующее авторизации
-	 */
+	
 	public showAuthPopup(): void {
-		console.log('[AuthPresenter] Showing auth popup');
-		
-		// Генерируем CustomEvent для AuthModule
-		if (typeof window !== 'undefined') {
+						if (typeof window !== 'undefined') {
 			window.dispatchEvent(new CustomEvent('showAuthPopup', { 
 				detail: { reason: 'authentication_required' } 
 			}));
 		}
 	}
 
-	/**
-	 * Получение ViewModel с текущим состоянием
-	 */
+	
 	public getCurrentViewModel(): AuthViewModel {
 		if (this._isAuthenticated && this._currentUser) {
 			return {
@@ -327,14 +263,9 @@ export class AuthPresenter {
 		return this.presentIdle();
 	}
 
-	/**
-	 * Упрощенная авторизация: требует appId и userId, обращается напрямую к Supabase flow
-	 */
+	
 	public async tryAuthenticate(appId: string, userId: string): Promise<AuthViewModel> {
-		console.log('[AuthPresenter] tryAuthenticate called', { appId, userId });
-		
-		// Устанавливаем состояние загрузки
-		this.presentLoading();
+						this.presentLoading();
 		
 		const result = await this._tryAuthenticateUseCase.execute(appId, userId);
 		
@@ -346,19 +277,11 @@ export class AuthPresenter {
 		});
 
 		if (result.isSuccess()) {
-			console.log('[AuthPresenter] tryAuthenticate success, calling present');
-			const viewModel = this.present(result.data);
-			console.log('[AuthPresenter] tryAuthenticate present completed, ViewModel:', {
-				status: viewModel.status,
-				hasUser: !!viewModel.user,
-				userId: viewModel.user?.userId
-			});
-			return viewModel;
+						const viewModel = this.present(result.data);
+						return viewModel;
 		}
 
-		console.log('[AuthPresenter] tryAuthenticate failed, updating ViewModel with error');
-		// Обновляем ViewModel с ошибкой
-		this._updateViewModel({
+						this._updateViewModel({
 			status: 'error',
 			user: undefined,
 			error: result.error?.message || 'Authentication failed',
@@ -369,9 +292,7 @@ export class AuthPresenter {
 		return this.viewModel;
 	}
 
-	/**
-	 * Инициализация авторизации через UseCase (оставляем для обратной совместимости)
-	 */
+	
 	public async initializeAuthentication(appId: string, userId?: string): Promise<AuthViewModel> {
 		if (!userId) {
 			return {
@@ -384,29 +305,20 @@ export class AuthPresenter {
 		return this.tryAuthenticate(appId, userId);
 	}
 
-	/**
-	 * DEPRECATED: Old methods kept for backward compatibility
-	 * New implementation uses createAuthPopupUI() instead
-	 */
+	
 
-	/**
-	 * Set config from AppConfigLoadedEvent
-	 */
+	
 	public setConfig(config: AuthModuleConfig): void {
 		this._config = config;
 		Object.assign(this.labels, config.labels);
 	}
 
-	/**
-	 * Check if config is loaded and ready
-	 */
+	
 	public isConfigReady(): boolean {
 		return this._config !== null;
 	}
 
-	/**
-	 * Load popup layout from ui-config.json
-	 */
+	
 	private async _loadPopupLayoutFromUIConfig(): Promise<any | null> {
 		try {
 			if (typeof window === 'undefined') {
@@ -415,29 +327,23 @@ export class AuthPresenter {
 
 			const response = await fetch('/mocks/api/authentication/ui-config.json');
 			if (!response.ok) {
-				console.warn('[AuthPresenter] Failed to load ui-config.json');
-				return null;
+								return null;
 			}
 
 			const uiConfig = await response.json();
 			const popupLayout = uiConfig.loginPopup?.layout;
 
 			if (!popupLayout) {
-				console.warn('[AuthPresenter] No loginPopup layout in ui-config.json');
-				return null;
+								return null;
 			}
 
-			console.log('[AuthPresenter] Popup layout loaded from ui-config.json');
-			return popupLayout;
+						return popupLayout;
 		} catch (error) {
-			console.error('[AuthPresenter] Error loading ui-config.json:', error);
-			return null;
+						return null;
 		}
 	}
 
-	/**
-	 * Load fallback config from JSON file
-	 */
+	
 	private async _loadFallbackConfig(): Promise<AuthModuleConfig | null> {
 		try {
 			if (typeof window === 'undefined') {
@@ -446,20 +352,17 @@ export class AuthPresenter {
 
 			const response = await fetch('/mocks/api/app-config.json');
 			if (!response.ok) {
-				console.warn('[AuthPresenter] Failed to load fallback config from JSON');
-				return null;
+								return null;
 			}
 
 			const appConfig = await response.json();
 			const authConfig = appConfig.modules?.authentication;
 
 			if (!authConfig) {
-				console.warn('[AuthPresenter] No authentication config in fallback JSON');
-				return null;
+								return null;
 			}
 
-			// Transform JSON config to AuthModuleConfig format
-			const fallbackConfig: AuthModuleConfig = {
+						const fallbackConfig: AuthModuleConfig = {
 				labels: authConfig.labels || this._labels,
 				settings: authConfig.settings || {
 					closeDelay: 1500,
@@ -540,27 +443,21 @@ export class AuthPresenter {
 				}
 			};
 
-			console.log('[AuthPresenter] Fallback config loaded from JSON');
-			return fallbackConfig;
+						return fallbackConfig;
 		} catch (error) {
-			console.error('[AuthPresenter] Error loading fallback config:', error);
-			return null;
+						return null;
 		}
 	}
 
-	/**
-	 * Get config (from Supabase or fallback)
-	 */
+	
 	private async _getConfig(): Promise<AuthModuleConfig | null> {
 		if (this._config) {
 			return this._config;
 		}
 
-		// Try to load fallback config
-		const fallbackConfig = await this._loadFallbackConfig();
+				const fallbackConfig = await this._loadFallbackConfig();
 		if (fallbackConfig) {
-			// Cache fallback config
-			this._config = fallbackConfig;
+						this._config = fallbackConfig;
 			Object.assign(this._labels, fallbackConfig.labels);
 			return fallbackConfig;
 		}
@@ -568,12 +465,9 @@ export class AuthPresenter {
 		return null;
 	}
 
-	/**
-	 * Create Login Button UI Descriptor
-	 */
+	
 	public createLoginButtonUI(): UIDescriptor {
-		// Если конфиг не готов, используем дефолтные значения
-		if (!this._config) {
+				if (!this._config) {
 			return {
 				theme: {
 					colors: {
@@ -624,8 +518,7 @@ export class AuthPresenter {
 
 		const labels = this._config.labels;
 
-		// Преобразуем GlobalTheme в ThemeConfig (минимальная версия для кнопки)
-		const theme = {
+				const theme = {
 			colors: this._config.theme.colors,
 			spacing: this._config.theme.spacing,
 		};
@@ -654,24 +547,19 @@ export class AuthPresenter {
 		};
 	}
 
-	/**
-	 * Create Auth Popup UI Descriptor
-	 */
+	
 	public async createAuthPopupUI(
 		state: 'idle' | 'loading' | 'success' | 'error',
 		appIdValue: string,
 		userIdValue: string,
 		errorMessage: string | null
 	): Promise<UIDescriptor> {
-		// Try to get config (from Supabase or fallback JSON)
-		const config = await this._getConfig();
+				const config = await this._getConfig();
 		if (!config) {
-			// If no config available at all, use minimal fallback
-			return this._createMinimalFallbackPopup(state, appIdValue, userIdValue, errorMessage);
+						return this._createMinimalFallbackPopup(state, appIdValue, userIdValue, errorMessage);
 		}
 
-		// Temporarily set config for private methods
-		const originalConfig = this._config;
+				const originalConfig = this._config;
 		this._config = config;
 
 		try {
@@ -689,14 +577,11 @@ export class AuthPresenter {
 
 			return await this._createIdlePopup(appIdValue, userIdValue);
 		} finally {
-			// Restore original config
-			this._config = originalConfig;
+						this._config = originalConfig;
 		}
 	}
 
-	/**
-	 * Transform popup layout from ui-config.json to UIDescriptor format
-	 */
+	
 	private _transformPopupLayoutToUIDescriptor(
 		popupLayout: any,
 		labels: AuthLabels,
@@ -704,8 +589,7 @@ export class AuthPresenter {
 		appIdValue: string,
 		userIdValue: string
 	): UIDescriptor {
-		// Helper function to map component types
-		const mapComponentType = (type: string): string => {
+				const mapComponentType = (type: string): string => {
 			const typeMap: Record<string, string> = {
 				'Popup': UIComponents.Popup,
 				'Container': UIComponents.Container,
@@ -716,8 +600,7 @@ export class AuthPresenter {
 			return typeMap[type] || UIComponents.Container;
 		};
 
-		// Helper function to transform children recursively
-		const transformChildren = (children: any[]): any[] => {
+				const transformChildren = (children: any[]): any[] => {
 			return children.map((child: any) => {
 				const transformed: any = {
 					id: child.id,
@@ -727,8 +610,7 @@ export class AuthPresenter {
 					actions: child.actions || {}
 				};
 
-				// Replace placeholder values with actual values
-				if (transformed.id === 'input-text' && child.props?.placeholder === 'App ID') {
+								if (transformed.id === 'input-text' && child.props?.placeholder === 'App ID') {
 					transformed.props.value = appIdValue;
 					transformed.props.placeholder = labels.appIdPlaceholder;
 					if (transformed.actions.onChange) {
@@ -747,8 +629,7 @@ export class AuthPresenter {
 					}
 				}
 
-				// Replace text placeholders with labels
-				if (transformed.props.text) {
+								if (transformed.props.text) {
 					if (transformed.props.text === 'Welcome to ') {
 						transformed.props.text = labels.welcomeMessage;
 					} else if (transformed.props.text === 'Game: Online Shooter Hub') {
@@ -762,8 +643,7 @@ export class AuthPresenter {
 					}
 				}
 
-				// Recursively transform children
-				if (child.children && Array.isArray(child.children)) {
+								if (child.children && Array.isArray(child.children)) {
 					transformed.children = transformChildren(child.children);
 				} else {
 					transformed.children = [];
@@ -793,9 +673,7 @@ export class AuthPresenter {
 		};
 	}
 
-	/**
-	 * Create minimal fallback popup when no config is available
-	 */
+	
 	private _createMinimalFallbackPopup(
 		state: 'idle' | 'loading' | 'success' | 'error',
 		appIdValue: string,
@@ -846,8 +724,7 @@ export class AuthPresenter {
 			};
 		}
 
-		// Default idle popup
-		return {
+				return {
 			layout: {
 				id: 'auth-popup-root',
 				type: UIComponents.Popup,
@@ -928,15 +805,12 @@ export class AuthPresenter {
 		const { labels } = this._config!;
 		const theme = this._config!.theme;
 
-		// Try to load popup layout from ui-config.json
-		const popupLayout = await this._loadPopupLayoutFromUIConfig();
+				const popupLayout = await this._loadPopupLayoutFromUIConfig();
 		if (popupLayout) {
-			// Transform ui-config.json layout to UIDescriptor format
-			return this._transformPopupLayoutToUIDescriptor(popupLayout, labels, theme, appIdValue, userIdValue);
+						return this._transformPopupLayoutToUIDescriptor(popupLayout, labels, theme, appIdValue, userIdValue);
 		}
 
-		// Fallback to default structure
-
+		
 		return {
 			layout: {
 				id: 'auth-popup-root',

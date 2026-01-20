@@ -2,7 +2,6 @@ import { Result } from '../../../../shared/domain/result/result';
 import { UIRendererError } from '../errors/ui-renderer.error';
 import type { StyleConfig, ActionsConfig } from '../types';
 
-// Типобезопасный ComponentNode без any
 export class ComponentNode {
   private constructor(
     public readonly id: string,

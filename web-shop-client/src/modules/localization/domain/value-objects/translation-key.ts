@@ -1,9 +1,6 @@
 import { InvalidArgumentError } from '../../../../shared/domain/errors/invalid-argument.error';
 
-/**
- * TranslationKey Value Object
- * Represents a translation key in dot-notation (e.g., 'products.buyButton', 'auth.loginButton')
- */
+
 export class TranslationKey {
   private constructor(private readonly _value: string) {}
 
@@ -32,9 +29,7 @@ export class TranslationKey {
       return false;
     }
 
-    // Allow alphanumeric, dots, underscores, and hyphens
-    // Must start and end with alphanumeric
-    return /^[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9]$|^[a-zA-Z0-9]$/.test(trimmed);
+            return /^[a-zA-Z0-9][a-zA-Z0-9._-]*[a-zA-Z0-9]$|^[a-zA-Z0-9]$/.test(trimmed);
   }
 
   public getModule(): string {

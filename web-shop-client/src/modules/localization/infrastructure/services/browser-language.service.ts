@@ -5,10 +5,7 @@ import type { Logger } from '../../../application/ports/logger.port';
 import type { BrowserLanguageDetectorPort } from '../../application/ports/browser-language-detector.port';
 import { LanguageCode } from '../../domain';
 
-/**
- * BrowserLanguageService
- * Implementation of BrowserLanguageDetectorPort for web-shop-client
- */
+
 @injectable()
 export class BrowserLanguageService implements BrowserLanguageDetectorPort {
   constructor(
@@ -20,15 +17,13 @@ export class BrowserLanguageService implements BrowserLanguageDetectorPort {
     try {
       this._logger.info('[BrowserLanguageService] Detecting user language from browser');
 
-      // Check if we're in browser environment
-      if (typeof navigator === 'undefined') {
+            if (typeof navigator === 'undefined') {
         const error = new Error('Browser environment not available');
         this._logger.error('[BrowserLanguageService] Not in browser environment', { error });
         return Failure.fail(error);
       }
 
-      // Get language from navigator
-      const browserLang = navigator.language || navigator.languages?.[0] || 'en';
+            const browserLang = navigator.language || navigator.languages?.[0] || 'en';
 
       this._logger.info('[BrowserLanguageService] Browser language detected', {
         browserLang,
@@ -36,8 +31,7 @@ export class BrowserLanguageService implements BrowserLanguageDetectorPort {
       });
 
       try {
-        const languageCode = LanguageCode.create(browserLang.split('-')[0]); // Remove country code
-        this._logger.info('[BrowserLanguageService] Language code created', {
+        const languageCode = LanguageCode.create(browserLang.split('-')[0]);         this._logger.info('[BrowserLanguageService] Language code created', {
           languageCode: languageCode.value
         });
         return Success.ok(languageCode);

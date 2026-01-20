@@ -31,8 +31,7 @@ export class DailyReward {
   canBeClaimedBy(userId: string, lastClaimDate?: Date): boolean {
     if (!this.isActive) return false;
 
-    // Check if user already claimed today
-    if (lastClaimDate) {
+        if (lastClaimDate) {
       const today = new Date();
       const lastClaimDay = new Date(lastClaimDate);
 

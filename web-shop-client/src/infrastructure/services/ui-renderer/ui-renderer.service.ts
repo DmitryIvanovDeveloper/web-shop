@@ -1,10 +1,4 @@
-/**
- * UI Renderer Service - универсальный сервис рендеринга UI
- * Infrastructure Service - НЕ модуль!
- * 
- * Принимает UIDescriptor от модулей и возвращает JSX.Element
- * НЕ владеет данными, НЕ загружает конфигурацию
- */
+
 
 import { injectable, inject } from 'inversify';
 import { createElement, cloneElement } from 'react';
@@ -35,8 +29,7 @@ export class UIRendererService implements UIRendererPort {
 		@inject(ROOT_TYPES.UIActionHandler)
 		private readonly _actionHandler: UIActionHandler
 	) {
-		// Setup global selection listener once in browser environment
-		if (typeof window !== 'undefined') {
+				if (typeof window !== 'undefined') {
 			this._setupSelectionListener();
 		}
 	}
@@ -88,12 +81,10 @@ export class UIRendererService implements UIRendererPort {
 			return null;
 		}
 
-		// Build styles
-		const className = this._styleBuilder.buildClassName(node.styles || {}, theme);
+				const className = this._styleBuilder.buildClassName(node.styles || {}, theme);
 		const style = this._styleBuilder.buildInlineStyles(node.styles || {}, theme);
 		
-		// Debug logging for Text component styles
-		if (node.type === 'Text') {
+				if (node.type === 'Text') {
 			this._logger.info('[UIRendererService] Text component styles:', {
 				nodeId: node.id,
 				textColor: node.styles?.textColor,
@@ -116,8 +107,7 @@ export class UIRendererService implements UIRendererPort {
 			props: node.props
 		});
 
-		// For Button with pageSlug, create navigate action if not already set
-		let buttonActions = node.actions;
+				let buttonActions = node.actions;
 		if (node.type === 'Button' && node.props?.pageSlug && typeof node.props.pageSlug === 'string' && !node.actions?.onClick) {
 			buttonActions = {
 				...node.actions,
@@ -126,50 +116,32 @@ export class UIRendererService implements UIRendererPort {
 					url: `/${node.props.pageSlug}`
 				}
 			};
-			console.log('[UIRendererService] Created navigate action from pageSlug', {
-				nodeId: node.id,
-				pageSlug: node.props.pageSlug,
-				url: `/${node.props.pageSlug}`
-			});
-		}
+					}
 
-		// Handle onClick action (use buttonActions if it was set for pageSlug navigation)
-		const nodeWithActions = buttonActions ? { ...node, actions: buttonActions } : node;
+				const nodeWithActions = buttonActions ? { ...node, actions: buttonActions } : node;
 		const handleClick = this._createClickHandler(nodeWithActions, context);
 		
-		// Exclude pageSlug from props passed to DOM (it's only used for action creation)
-		const { pageSlug, ...propsWithoutPageSlug } = node.props || {};
+				const { pageSlug, ...propsWithoutPageSlug } = node.props || {};
 		
-		// Handle onChange action for inputs
-		const handleChange = this._createChangeHandler(node, context);
+				const handleChange = this._createChangeHandler(node, context);
 
-		// Special handling for Select component - inject options from actionContext
-		let selectProps = propsWithoutPageSlug;
+				let selectProps = propsWithoutPageSlug;
 		if (node.type === 'Select' && context?.availableLanguages) {
 			selectProps = {
 				...propsWithoutPageSlug,
 				options: context.availableLanguages
 			};
-			console.log('[UIRendererService] Injected languages into Select component', {
-				nodeId: node.id,
-				languagesCount: context.availableLanguages.length
-			});
-		}
+					}
 
-		// Add hover handlers for element selection mode (preview mode) and button hover effects
-		const hoverHandlers = this._createHoverHandlers(node);
+				const hoverHandlers = this._createHoverHandlers(node);
 
-		// Add button hover effects if this is a button with hover properties
-		const buttonHoverHandlers = this._createButtonHoverHandlers(node, style);
+				const buttonHoverHandlers = this._createButtonHoverHandlers(node, style);
 
-		// Add data-element-id for preview mode to enable selection and hover effects
-		const previewProps = this._isPreviewMode() && node.id ? { 'data-element-id': node.id } : {};
+				const previewProps = this._isPreviewMode() && node.id ? { 'data-element-id': node.id } : {};
 
-		// Recursively render children
-		const children = this._renderChildren(node, theme, context, depth);
+				const children = this._renderChildren(node, theme, context, depth);
 
-		// Build component props
-		const componentProps: Record<string, unknown> = {
+				const componentProps: Record<string, unknown> = {
 			...selectProps,
 			...previewProps,
 			className,
@@ -181,32 +153,22 @@ export class UIRendererService implements UIRendererPort {
 			...buttonHoverHandlers
 		};
 
-		// Only add isLoading for Button components (not to DOM elements)
-		if (node.type === 'Button') {
+				if (node.type === 'Button') {
 			componentProps.isLoading = context?.isLoading || false;
 		}
 
-		console.log('[UIRendererService] Component props for', node.type, {
-			...componentProps,
-			style: componentProps.style
-		});
-
-		// Special handling for UniversalContainer
-		if (node.type === 'Container') {
+						if (node.type === 'Container') {
 			const isVertical = node.styles?.flexDirection === 'column';
 			const isSidebar = node.id.includes('sidebar') || node.id.includes('Sidebar');
-			console.log(`[UIRendererService] Container ${node.id} - isVertical: ${isVertical}, flexDirection: ${node.styles?.flexDirection}, isSidebar: ${isSidebar}`);
-			componentProps.vertical = isVertical;
+						componentProps.vertical = isVertical;
 			componentProps.sidebar = isSidebar;
 			
-			// Extract gap from style if present
-			if (style.gap) {
+						if (style.gap) {
 				componentProps.gap = style.gap;
 			}
 		}
 
-		// Special handling for UniversalVideo - map src to url
-		if (node.type === 'Video') {
+				if (node.type === 'Video') {
 			if (componentProps.src && !componentProps.url) {
 				componentProps.url = componentProps.src;
 				delete componentProps.src;
@@ -246,8 +208,7 @@ export class UIRendererService implements UIRendererPort {
 	}
 
 	private _setupSelectionListener(): void {
-		// Avoid registering multiple times
-		const globalFlag = '__uiRendererSelectionListenerInitialized';
+				const globalFlag = '__uiRendererSelectionListenerInitialized';
 		if ((window as any)[globalFlag]) {
 			return;
 		}
@@ -265,14 +226,12 @@ export class UIRendererService implements UIRendererPort {
 				return;
 			}
 
-			// If elementId is null/undefined – hide overlay
-			if (!elementId) {
+						if (!elementId) {
 				selectionOverlay.hide();
 				return;
 			}
 
-			// Find target element by data-element-id
-			const targetElement = document.querySelector(
+						const targetElement = document.querySelector(
 				`[data-element-id="${elementId}"]`
 			) as HTMLElement | null;
 
@@ -283,15 +242,13 @@ export class UIRendererService implements UIRendererPort {
 					top: rect.top,
 					width: rect.width,
 					height: rect.height,
-				}, elementId, true); // isSelected = true
-				this._logger.info('[UIRendererService] Updated selection overlay for element', {
+				}, elementId, true); 				this._logger.info('[UIRendererService] Updated selection overlay for element', {
 					elementId,
 					rect,
 					isSelected: true
 				});
 			} else {
-				// If element not found, hide overlay to avoid stale highlight
-				selectionOverlay.hide();
+								selectionOverlay.hide();
 				this._logger.warn('[UIRendererService] SELECT_ELEMENT: element not found', {
 					elementId,
 				});
@@ -300,8 +257,7 @@ export class UIRendererService implements UIRendererPort {
 	}
 
 	private _createHoverHandlers(node: ComponentNode): Record<string, unknown> {
-		// Check if in preview mode and element selection mode
-		if (typeof window === 'undefined') {
+				if (typeof window === 'undefined') {
 			return {};
 		}
 
@@ -311,37 +267,30 @@ export class UIRendererService implements UIRendererPort {
 			return {};
 		}
 
-		// Create hover handlers using DOM manipulation (since we can't use React hooks in service)
-		const handleMouseEnter = (e: MouseEvent<HTMLElement>) => {
+				const handleMouseEnter = (e: MouseEvent<HTMLElement>) => {
 			if (this._isPreviewMode() && this._isElementSelectionMode() && node.id) {
 				const target = e.currentTarget;
 				const eventTarget = e.target as HTMLElement;
 				
-				// Check if the cursor is actually over this element, not a child element with data-element-id
-				// If a child element with data-element-id is being hovered, don't highlight the parent
-				if (eventTarget !== target) {
+												if (eventTarget !== target) {
 					const childWithId = eventTarget.closest('[data-element-id]') as HTMLElement;
 					if (childWithId && childWithId !== target && childWithId.hasAttribute('data-element-id')) {
 						const childId = childWithId.getAttribute('data-element-id');
 						if (childId && childId !== node.id) {
-							// A child element with data-element-id is being hovered, don't highlight parent
-							this._logger.info(`[UIRendererService] Skipping hover on parent ${node.id} - child ${childId} is being hovered`);
+														this._logger.info(`[UIRendererService] Skipping hover on parent ${node.id} - child ${childId} is being hovered`);
 							return;
 						}
 					}
 				}
 				
-				// Before showing spotlight for parent, hide any child element spotlights
-				// This ensures smooth transition when moving cursor from child to parent
-				if (typeof document !== 'undefined') {
+												if (typeof document !== 'undefined') {
 					const childElements = target.querySelectorAll('[data-element-id]');
 					childElements.forEach((child) => {
 						const childEl = child as HTMLElement;
 						if (childEl !== target && childEl.hasAttribute('data-element-id')) {
 							const childId = childEl.getAttribute('data-element-id');
 							if (childId && childId !== node.id) {
-								// Hide spotlight for child element if it was showing
-								selectionOverlay.hide(childId);
+																selectionOverlay.hide(childId);
 								childEl.classList.remove('preview-hover');
 							}
 						}
@@ -352,18 +301,15 @@ export class UIRendererService implements UIRendererPort {
 					target.classList.add('preview-hover');
 				}
 				
-				// Show overlay on hover - this will automatically replace any previous hover overlay
-				const rect = target.getBoundingClientRect();
+								const rect = target.getBoundingClientRect();
 				selectionOverlay.show({
 					left: rect.left,
 					top: rect.top,
 					width: rect.width,
 					height: rect.height
-				}, node.id, false); // isSelected = false for hover
-				
+				}, node.id, false); 				
 				this._logger.info(`[UIRendererService] Applied preview-hover class and overlay to: ${node.id}`);
-				// Don't stop propagation - allow hover to work on other elements
-			}
+							}
 		};
 
 		const handleMouseLeave = (e: MouseEvent<HTMLElement>) => {
@@ -371,14 +317,10 @@ export class UIRendererService implements UIRendererPort {
 				const target = e.currentTarget;
 				target.classList.remove('preview-hover');
 				
-				// Hide overlay on mouse leave (only if not selected)
-				// We can't check if it's selected here, so we pass elementId to hide()
-				// hide() will check internally if it's selected
-				selectionOverlay.hide(node.id);
+																selectionOverlay.hide(node.id);
 				
 				this._logger.info(`[UIRendererService] Removed preview-hover class and overlay from: ${node.id}`);
-				// Don't stop propagation - allow hover to work on other elements
-			}
+							}
 		};
 
 		return {
@@ -387,12 +329,9 @@ export class UIRendererService implements UIRendererPort {
 		};
 	}
 
-	/**
-	 * Create hover handlers for button components with hover effects
-	 */
+	
 	private _createButtonHoverHandlers(node: any, style: React.CSSProperties): Record<string, unknown> {
-		// Only add hover handlers for buttons that have hover properties
-		const hasHoverProperties = style &&
+				const hasHoverProperties = style &&
 			(('--hover-background-color' in style) ||
 			 ('--hover-opacity' in style) ||
 			 ('--hover-shadow' in style));
@@ -404,16 +343,14 @@ export class UIRendererService implements UIRendererPort {
 		const handleMouseEnter = (e: MouseEvent<HTMLElement>) => {
 			const target = e.currentTarget;
 
-			// Store original styles
-			const originalStyles = {
+						const originalStyles = {
 				backgroundColor: target.style.backgroundColor,
 				opacity: target.style.opacity,
 				boxShadow: target.style.boxShadow
 			};
 			(target as any)._originalStyles = originalStyles;
 
-			// Apply hover styles
-			const hoverStyle = style as any;
+						const hoverStyle = style as any;
 			if (hoverStyle['--hover-background-color']) {
 				target.style.backgroundColor = hoverStyle['--hover-background-color'] as string;
 			}
@@ -429,8 +366,7 @@ export class UIRendererService implements UIRendererPort {
 			const target = e.currentTarget;
 			const originalStyles = (target as any)._originalStyles;
 
-			// Restore original styles
-			if (originalStyles) {
+						if (originalStyles) {
 				target.style.backgroundColor = originalStyles.backgroundColor;
 				target.style.opacity = originalStyles.opacity;
 				target.style.boxShadow = originalStyles.boxShadow;
@@ -447,8 +383,7 @@ export class UIRendererService implements UIRendererPort {
 		node: ComponentNode,
 		context: ActionContext | undefined
 	): ((e?: React.MouseEvent<HTMLElement>) => void) | undefined {
-		// In element selection mode, send element selection message to parent window
-		const isPreviewMode = this._isPreviewMode();
+				const isPreviewMode = this._isPreviewMode();
 		const isElementSelectionMode = this._isElementSelectionMode();
 		const hasNodeId = !!node.id;
 		
@@ -469,44 +404,35 @@ export class UIRendererService implements UIRendererPort {
 					currentTarget: e?.currentTarget
 				});
 				
-				// For containers, check if click was on the container itself or a child
-				// If click was on a child with its own data-element-id, don't handle it here
-				if (e && node.type === 'Container') {
+												if (e && node.type === 'Container') {
 					const target = e.target as HTMLElement;
 					const currentTarget = e.currentTarget as HTMLElement;
 					
-					// Check if click was on a child element with its own data-element-id
-					if (target !== currentTarget) {
+										if (target !== currentTarget) {
 						const childElementId = target.closest('[data-element-id]')?.getAttribute('data-element-id');
 						if (childElementId && childElementId !== node.id) {
 							this._logger.info(`[UIRendererService] Click was on child element ${childElementId}, not handling container ${node.id} click`);
-							return; // Let the child element handle the click
-						}
+							return; 						}
 					}
 				}
 				
-				// Prevent default behavior
-				if (e) {
+								if (e) {
 					e.preventDefault();
 					e.stopPropagation();
 				}
 				
-				// Remove outline from all elements when clicking
-				// Trigger mouseleave event on all elements to ensure hover handlers are called
-				if (typeof document !== 'undefined') {
+												if (typeof document !== 'undefined') {
 					const allElements = document.querySelectorAll('[data-element-id]');
 					this._logger.info(`[UIRendererService] Removing outline from ${allElements.length} elements after click`);
 					allElements.forEach((el) => {
 						const htmlEl = el as HTMLElement;
-						// Trigger mouseleave event to ensure hover handlers clean up
-						const mouseLeaveEvent = new MouseEvent('mouseleave', {
+												const mouseLeaveEvent = new MouseEvent('mouseleave', {
 							bubbles: true,
 							cancelable: true,
 							view: window
 						});
 						htmlEl.dispatchEvent(mouseLeaveEvent);
-						// Also manually remove styles as fallback
-						htmlEl.classList.remove('preview-hover');
+												htmlEl.classList.remove('preview-hover');
 						htmlEl.style.removeProperty('cursor');
 						htmlEl.style.removeProperty('outline');
 						htmlEl.style.removeProperty('outline-offset');
@@ -519,8 +445,7 @@ export class UIRendererService implements UIRendererPort {
 				
 				this._logger.info(`[UIRendererService] Element clicked in selection mode: ${node.id}`);
 				
-				// Also check if element has data-element-id attribute that might differ from node.id
-				let elementIdToSend = node.id;
+								let elementIdToSend = node.id;
 				if (e?.currentTarget) {
 					const dataElementId = (e.currentTarget as HTMLElement).getAttribute('data-element-id');
 					if (dataElementId && dataElementId !== node.id) {
@@ -541,8 +466,7 @@ export class UIRendererService implements UIRendererPort {
 						origin: builderOrigin
 					});
 					
-					// Check if parent window still exists before sending message
-					if (window.parent && typeof window.parent.postMessage === 'function') {
+										if (window.parent && typeof window.parent.postMessage === 'function') {
 						try {
 							window.parent.postMessage(
 								{ type: 'ELEMENT_SELECTED', elementId: elementIdToSend },
@@ -573,8 +497,7 @@ export class UIRendererService implements UIRendererPort {
 		node: ComponentNode,
 		context: ActionContext | undefined
 	): ((value: string | number) => void) | undefined {
-		// Disable change handlers in element selection mode
-		if (this._isPreviewMode() && this._isElementSelectionMode()) {
+				if (this._isPreviewMode() && this._isElementSelectionMode()) {
 			return undefined;
 		}
 
@@ -603,8 +526,7 @@ export class UIRendererService implements UIRendererPort {
 				if (!element) {
 					return null;
 				}
-				// Add key prop using child.id or fallback to index
-				const key = child.id || `child-${depth}-${index}`;
+								const key = child.id || `child-${depth}-${index}`;
 				return cloneElement(element, { key });
 			})
 			.filter((element): element is JSX.Element => element !== null);

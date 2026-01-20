@@ -4,13 +4,7 @@ import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
 import type { DatabaseClientPort } from '../../../../application/ports/database-client.port';
 
-/**
- * Supabase Purchase Repository Implementation
- * 
- * Infrastructure implementation of PurchaseRepositoryPort using Supabase
- * Handles purchase history operations through Supabase API
- * Uses shared DatabaseClientPort for Supabase access
- */
+
 @injectable()
 export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
   constructor(
@@ -82,8 +76,7 @@ export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
         throw new Error(`Failed to load product purchase counts: ${error.message}`);
       }
 
-      // Count purchases per product
-      const purchaseCounts = new Map<string, number>();
+            const purchaseCounts = new Map<string, number>();
       data?.forEach((item: { product_id: string | null }) => {
         const productId = item.product_id;
         if (typeof productId === 'string' && productId.length > 0) {

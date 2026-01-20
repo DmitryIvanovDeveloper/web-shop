@@ -18,17 +18,14 @@ export function LocalizationExample(): JSX.Element {
   const [presenter, setPresenter] = useState<LocalizationPresenter | null>(null);
 
   useEffect(() => {
-    // Get presenter from DI container
-    const localizationPresenter = container.get<LocalizationPresenter>(
+        const localizationPresenter = container.get<LocalizationPresenter>(
       LOCALIZATION_TYPES.LocalizationPresenter
     );
     setPresenter(localizationPresenter);
 
-    // Subscribe to view model changes
-    const unsubscribe = localizationPresenter.subscribe(setViewModel);
+        const unsubscribe = localizationPresenter.subscribe(setViewModel);
 
-    // Load localization on mount
-    localizationPresenter.loadLocalization();
+        localizationPresenter.loadLocalization();
 
     return unsubscribe;
   }, []);

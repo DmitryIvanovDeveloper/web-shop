@@ -33,8 +33,7 @@ export function PatchNotesCardsGrid({ patchNotes, isLoading = false }: PatchNote
     padding: '0',
   };
 
-  // Адаптивное количество колонок на основе ширины экрана
-  const getColumns = (width: number): number => {
+    const getColumns = (width: number): number => {
     if (width >= 1536) return 3;
     if (width >= 1280) return 3;
     if (width >= 1024) return 3;
@@ -47,8 +46,7 @@ export function PatchNotesCardsGrid({ patchNotes, isLoading = false }: PatchNote
     if (typeof window !== 'undefined') {
       const width = window.innerWidth;
       const columns = getColumns(width);
-      // На широких экранах ограничиваем максимальную ширину карточек
-      const maxCardWidth = width >= 1920 ? '400px' : width >= 1536 ? '380px' : 'none';
+            const maxCardWidth = width >= 1920 ? '400px' : width >= 1536 ? '380px' : 'none';
       const gridTemplate = maxCardWidth 
         ? `repeat(${columns}, minmax(0, ${maxCardWidth}))`
         : `repeat(${columns}, minmax(0, 1fr))`;
@@ -73,8 +71,7 @@ export function PatchNotesCardsGrid({ patchNotes, isLoading = false }: PatchNote
     const updateGridStyle = () => {
       const width = window.innerWidth;
       const columns = getColumns(width);
-      // На широких экранах ограничиваем максимальную ширину карточек
-      const maxCardWidth = width >= 1920 ? '400px' : width >= 1536 ? '380px' : 'none';
+            const maxCardWidth = width >= 1920 ? '400px' : width >= 1536 ? '380px' : 'none';
       const gridTemplate = maxCardWidth 
         ? `repeat(${columns}, minmax(0, ${maxCardWidth}))`
         : `repeat(${columns}, minmax(0, 1fr))`;
@@ -93,8 +90,7 @@ export function PatchNotesCardsGrid({ patchNotes, isLoading = false }: PatchNote
     return () => window.removeEventListener('resize', updateGridStyle);
   }, []);
 
-  // Показываем skeleton только если isLoading и нет patch notes (первая загрузка)
-  const hasNotes = patchNotes.length > 0;
+    const hasNotes = patchNotes.length > 0;
   
   if (isLoading && !hasNotes) {
     return (
@@ -108,12 +104,10 @@ export function PatchNotesCardsGrid({ patchNotes, isLoading = false }: PatchNote
     );
   }
 
-  // Sort patch notes by publishedAt (newest first)
-  const sortedNotes = [...patchNotes].sort((a, b) => {
+    const sortedNotes = [...patchNotes].sort((a, b) => {
     const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
     const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
-    return dateB - dateA; // Descending order (newest first)
-  });
+    return dateB - dateA;   });
 
   return (
     <div style={containerStyle}>

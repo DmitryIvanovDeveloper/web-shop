@@ -16,10 +16,7 @@ import {
   WeeklyPurchaseMetricsCalculatedEvent,
 } from './user-offer-context.events';
 
-/**
- * Maps each event type to the context fields it is expected to mutate.
- * This serves as documentation and sanity checks for handlers/use cases.
- */
+
 export const USER_CONTEXT_EVENT_FIELD_MAP: Record<string, readonly string[]> = {
   [UserRegisteredEvent.TYPE]: ['user.flags.isNew'],
   [UserReturnedEvent.TYPE]: ['user.flags.isNew', 'user.metrics.daysSinceLastActive'],

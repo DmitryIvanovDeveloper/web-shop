@@ -5,15 +5,7 @@ import { TYPES } from '../../infrastructure/bootstrap/types';
 import { AppConfigLoadedEvent } from '../../shared/events/app-config-events';
 import type { AppConfig } from '../../shared/config/app-config.types';
 
-/**
- * Load App Config From Message Use Case
- * Handles AppConfig loaded from UI Builder via postMessage
- * 
- * Flow:
- * 1. Receives config from UI Builder (via postMessage)
- * 2. Publishes AppConfigLoadedEvent through EventBus
- * 3. Dispatches window event for UI cleanup
- */
+
 @injectable()
 export class LoadAppConfigFromMessageUseCase {
 	constructor(
@@ -30,8 +22,7 @@ export class LoadAppConfigFromMessageUseCase {
 		});
 
 		try {
-			// Publish event for all modules to consume
-			await this._eventBus.publishAsync(new AppConfigLoadedEvent(config));
+						await this._eventBus.publishAsync(new AppConfigLoadedEvent(config));
 
 			this._logger.info('[LoadAppConfigFromMessageUseCase] AppConfigLoadedEvent published');
 		} catch (error) {

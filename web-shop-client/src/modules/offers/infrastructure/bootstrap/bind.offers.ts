@@ -20,20 +20,16 @@ import type { UIComponentRegistry } from '../../../../infrastructure/services/ui
 import { OffersList } from '../../interface-adapters/ui/components/offers-list';
 
 export function bindOffers(container: Container): void {
-  // Repositories
-  container.bind(OFFERS_TYPES.RulesRepository).to(RulesRepository).inSingletonScope();
+    container.bind(OFFERS_TYPES.RulesRepository).to(RulesRepository).inSingletonScope();
   container.bind(OFFERS_TYPES.OfferRepository).to(OfferRepository).inSingletonScope();
   container.bind(OFFERS_TYPES.ConditionReader).to(PropertyReadersService).inSingletonScope();
   
-  // Use Cases
-  container.bind(OFFERS_TYPES.EvaluateOffersUseCase).to(EvaluateOffersUseCase).inSingletonScope();
+    container.bind(OFFERS_TYPES.EvaluateOffersUseCase).to(EvaluateOffersUseCase).inSingletonScope();
   container.bind(OFFERS_TYPES.SelectOffersUseCase).to(SelectOffersInteractor).inSingletonScope();
   
-  // Presenters
-  container.bind(OFFERS_TYPES.OffersListPresenter).to(OffersListPresenter).inSingletonScope();
+    container.bind(OFFERS_TYPES.OffersListPresenter).to(OffersListPresenter).inSingletonScope();
   
-  // Event Handlers (Interface Adapters) - автоматически подхватываются EventBus
-  container
+    container
     .bind<IAsyncEventHandler<UserAuthenticatedEvent>>(OFFERS_TYPES.UserAuthenticatedHandler)
     .to(OffersUserAuthenticatedHandler)
     .inTransientScope();
@@ -48,7 +44,6 @@ export function bindOffers(container: Container): void {
     .to(OffersLocalizationChangedEventHandler)
     .inTransientScope();
 
-  // Register UI components in shared UI renderer registry
-  const uiComponentRegistry = container.get<UIComponentRegistry>(TYPES.UIComponentRegistry);
+    const uiComponentRegistry = container.get<UIComponentRegistry>(TYPES.UIComponentRegistry);
   uiComponentRegistry.register('OffersList', OffersList);
 }

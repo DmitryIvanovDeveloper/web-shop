@@ -8,8 +8,7 @@ import { LOCALIZATION_TYPES } from '../../src/modules/localization';
 import type { LocalizationPresenter } from '../../src/modules/localization';
 
 export default function TestSidebarPage() {
-  // Simple translation helper
-  const getTranslation = () => {
+    const getTranslation = () => {
     try {
       const presenter = container.get<LocalizationPresenter>(LOCALIZATION_TYPES.LocalizationPresenter);
       const vm = presenter.viewModel;
@@ -39,7 +38,7 @@ export default function TestSidebarPage() {
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Sidebar Preview */}
+          {}
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">Sidebar Preview</h2>
             <div className="space-y-4">
@@ -64,7 +63,7 @@ export default function TestSidebarPage() {
             </div>
           </div>
 
-          {/* Translation Status */}
+          {}
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">Translation Status</h2>
             <div className="space-y-4">
@@ -84,7 +83,7 @@ export default function TestSidebarPage() {
           </div>
         </div>
 
-        {/* Instructions */}
+        {}
         <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-yellow-800 mb-2">Testing Instructions</h3>
           <ol className="text-sm text-yellow-700 space-y-1">

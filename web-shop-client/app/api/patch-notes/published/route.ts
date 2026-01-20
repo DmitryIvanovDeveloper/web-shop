@@ -23,8 +23,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Show all patch notes by default for client testing, only published for production
-    const statusFilter = searchParams.get('status') || 'all';
+        const statusFilter = searchParams.get('status') || 'all';
 
     let query = supabase
       .from('patch_notes')
@@ -38,13 +37,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
-      console.error('[GET /api/patch-notes/published] Supabase error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+            return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
     return NextResponse.json(data || []);
   } catch (error) {
-    console.error('[GET /api/patch-notes/published] Unexpected error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

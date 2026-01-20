@@ -29,38 +29,29 @@ import type { UIComponentRegistry } from '../../../../infrastructure/services/ui
 import { ProductsList } from '../../interface-adapters/ui/components/products-list';
 
 export function bindProducts(container: Container): void {
-  // Repository Layer
-  container.bind<ProductRepositoryPort>(PRODUCTS_TYPES.ProductRepository)
+    container.bind<ProductRepositoryPort>(PRODUCTS_TYPES.ProductRepository)
     .to(ProductRepository).inSingletonScope();
 
   container.bind<PurchaseRepositoryPort>(PRODUCTS_TYPES.PurchaseRepository)
     .to(PurchasesHttpRepository).inSingletonScope();
 
-  // Services
-  container.bind(PRODUCTS_TYPES.ProductStyleService)
+    container.bind(PRODUCTS_TYPES.ProductStyleService)
     .to(ProductStyleService).inSingletonScope();
 
-  // NOTE: AuthService НЕ регистрируется здесь!
-  // Он регистрируется в Authentication модуле и доступен через shared Symbol
-  // Products модуль использует его через PRODUCTS_TYPES.AuthService = Symbol.for('AuthService')
-
-  // Browser and Payment Services
-  container.bind<BrowserPort>(ROOT_TYPES.Browser)
+      
+    container.bind<BrowserPort>(ROOT_TYPES.Browser)
     .to(BrowserService).inSingletonScope();
 
   container.bind<PaymentRedirectPort>(PRODUCTS_TYPES.PaymentRedirect)
     .to(PaymentRedirectService).inSingletonScope();
   
-  // Use Cases
-  container.bind(PRODUCTS_TYPES.LoadProductsUseCase).to(LoadProductsUseCase).inSingletonScope();
+    container.bind(PRODUCTS_TYPES.LoadProductsUseCase).to(LoadProductsUseCase).inSingletonScope();
   container.bind(PRODUCTS_TYPES.SelectProductForPaymentUseCase).to(SelectProductForPaymentUseCase).inSingletonScope();
   container.bind(PRODUCTS_TYPES.GetPurchasedProductsUseCase).to(GetPurchasedProductsUseCase).inSingletonScope();
 
-  // Presenters
-  container.bind(PRODUCTS_TYPES.ProductsListPresenter).to(ProductsListPresenter).inSingletonScope();
+    container.bind(PRODUCTS_TYPES.ProductsListPresenter).to(ProductsListPresenter).inSingletonScope();
 
-  // Event Handlers (Interface Adapters) - автоматически подхватываются EventBus
-  container
+    container
     .bind<IAsyncEventHandler<UserAuthenticatedEvent>>(PRODUCTS_TYPES.ProductsUserAuthenticatedHandler)
     .to(ProductsUserAuthenticatedHandler)
     .inTransientScope();
@@ -80,8 +71,7 @@ export function bindProducts(container: Container): void {
     .to(ProductsLocalizationChangedEventHandler)
     .inTransientScope();
 
-  // Register UI components in shared UI renderer registry
-  const uiComponentRegistry = container.get<UIComponentRegistry>(TYPES.UIComponentRegistry);
+    const uiComponentRegistry = container.get<UIComponentRegistry>(TYPES.UIComponentRegistry);
   uiComponentRegistry.register('ProductsList', ProductsList);
 }
 

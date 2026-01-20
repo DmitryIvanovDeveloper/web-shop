@@ -18,7 +18,7 @@ export function UserInfo({ renderSidebarButton, currentUser }: UserInfoProps) {
 
 	return (
 		<div className="relative w-full p-4" style={{ display: 'block' }}>
-			{/* Основной контейнер с информацией о пользователе - строго вертикально */}
+			{}
 					<div
 				className="flex flex-col items-center space-y-3"
 						style={{
@@ -28,7 +28,7 @@ export function UserInfo({ renderSidebarButton, currentUser }: UserInfoProps) {
 					width: '100%'
 				}}
 			>
-				{/* Аватар с использованием библиотеки */}
+				{}
 				<div className="relative" style={{ display: 'block' }}>
 					<Avatar
 						name={currentUser.username}
@@ -37,7 +37,7 @@ export function UserInfo({ renderSidebarButton, currentUser }: UserInfoProps) {
 						className="mx-auto"
 					/>
 
-					{/* Кнопка меню */}
+					{}
 						<button
 							onClick={() => setIsMenuOpen(!isMenuOpen)}
 						className="absolute bottom-0 right-0 w-6 h-6 rounded bg-gray-600 hover:bg-gray-500 flex items-center justify-center transition-colors"
@@ -51,7 +51,7 @@ export function UserInfo({ renderSidebarButton, currentUser }: UserInfoProps) {
 						</button>
 					</div>
 
-				{/* Имя пользователя - строго под аватаром */}
+				{}
 				<div 
 					className="text-center text-white"
 					style={{
@@ -64,15 +64,13 @@ export function UserInfo({ renderSidebarButton, currentUser }: UserInfoProps) {
 				</div>
 			</div>
 
-			{/* Выпадающее меню */}
+			{}
 			{isMenuOpen && (
 				<div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 rounded-lg shadow-lg z-50">
 					<div className="p-2 space-y-1">
 						<button
 							onClick={() => {
-								// TODO: Реализовать логику выхода
-								console.log('Logout clicked');
-								setIsMenuOpen(false);
+																								setIsMenuOpen(false);
 							}}
 							className="w-full text-left px-3 py-2 text-white hover:bg-gray-700 rounded transition-colors"
 						>
@@ -80,9 +78,7 @@ export function UserInfo({ renderSidebarButton, currentUser }: UserInfoProps) {
 						</button>
 						<button
 							onClick={() => {
-								// TODO: Реализовать логику настроек
-								console.log('Settings clicked');
-								setIsMenuOpen(false);
+																								setIsMenuOpen(false);
 							}}
 							className="w-full text-left px-3 py-2 text-white hover:bg-gray-700 rounded transition-colors"
 						>

@@ -1,8 +1,4 @@
-/**
- * API Route: App Config
- * Отдаёт централизованный app-config.json
- * GET /api/app-config
- */
+
 
 import { NextResponse } from 'next/server';
 import appConfig from '../../../public/mocks/api/app-config.json';

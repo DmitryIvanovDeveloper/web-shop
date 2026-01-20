@@ -18,8 +18,7 @@ export class ThemeConfig {
     readonly colors: Record<string, string>;
     readonly spacing: readonly number[];
   }): Result<ThemeConfig, AppLayoutError> {
-    // Type guard для colors
-    if (
+        if (
       !params.colors.primary ||
       !params.colors.background ||
       !params.colors.surface ||

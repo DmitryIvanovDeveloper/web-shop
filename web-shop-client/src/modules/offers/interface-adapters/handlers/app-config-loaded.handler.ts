@@ -1,7 +1,4 @@
-/**
- * App Config Loaded Handler for Offers Module
- * Обрабатывает событие загрузки app-config и передаёт shared стили для OfferCard
- */
+
 
 import { injectable, inject } from 'inversify';
 import type { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
@@ -31,8 +28,7 @@ export class OffersAppConfigLoadedHandler implements IAsyncEventHandler<AppConfi
 				return;
 			}
 
-			// Сохраняем стили в window для доступа из компонентов
-			if (typeof window !== 'undefined') {
+						if (typeof window !== 'undefined') {
 				(window as any).__offerCardStyles = sharedConfig.offerCardUI;
 				this._logger.info('[OffersAppConfigLoadedHandler] OfferCard styles applied to window');
 			}

@@ -34,13 +34,11 @@ export class LoadLocalizationUseCase {
     try {
       this._logger.info('[LoadLocalizationUseCase] Starting localization load', { request });
 
-      // Use provided language or default to English
-      const languageCode = request.languageCode || 'en';
+            const languageCode = request.languageCode || 'en';
 
       this._logger.info('[LoadLocalizationUseCase] Loading translations', { languageCode });
 
-      // Load translations for the language
-      const translationsResult = await this._translationRepository.getTranslationsByLanguage(languageCode);
+            const translationsResult = await this._translationRepository.getTranslationsByLanguage(languageCode);
 
       if (isFailure(translationsResult)) {
         this._logger.error('[LoadLocalizationUseCase] Failed to load translations', {
@@ -52,8 +50,7 @@ export class LoadLocalizationUseCase {
 
       const translationEntities = translationsResult.data;
 
-      // Convert Translation[] to Record<string, string>
-      const translations: Record<string, string> = {};
+            const translations: Record<string, string> = {};
       for (const translation of translationEntities) {
         translations[translation.key] = translation.value;
       }
@@ -66,8 +63,7 @@ export class LoadLocalizationUseCase {
         direction
       };
 
-      // Publish event for all modules to receive translations
-      await this._eventBus.publishAsync(new LocalizationLoadedEvent(
+            await this._eventBus.publishAsync(new LocalizationLoadedEvent(
         translations,
         languageCode,
         direction

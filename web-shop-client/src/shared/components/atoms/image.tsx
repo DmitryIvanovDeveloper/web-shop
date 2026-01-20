@@ -16,9 +16,7 @@ export function UniversalImage({
   style,
   ...rest
 }: UniversalImageProps): JSX.Element | null {
-  // Don't render img if src is empty, undefined, or null
-  // Explicitly check for empty string to prevent React warning
-  if (!src || src.trim() === '') {
+      if (!src || src.trim() === '') {
     return null;
   }
   

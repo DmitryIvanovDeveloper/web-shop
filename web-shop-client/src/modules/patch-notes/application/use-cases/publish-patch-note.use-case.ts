@@ -20,8 +20,7 @@ export class PublishPatchNoteUseCase {
 
   async execute(input: PublishPatchNoteInput): Promise<Result<PatchNoteOutput, Error>> {
     try {
-      // Find the patch note
-      const patchNoteId = PatchNoteId.fromString(input.id);
+            const patchNoteId = PatchNoteId.fromString(input.id);
       const findResult = await this._patchNoteRepository.findById(patchNoteId);
 
       if (findResult instanceof Failure) {
@@ -34,8 +33,7 @@ export class PublishPatchNoteUseCase {
 
       const patchNote = findResult.data;
 
-      // Publish the patch note
-      let publishedPatchNote;
+            let publishedPatchNote;
       try {
         publishedPatchNote = patchNote.publish();
       } catch (error) {
@@ -45,14 +43,12 @@ export class PublishPatchNoteUseCase {
         throw error;
       }
 
-      // Save the published version
-      const saveResult = await this._patchNoteRepository.save(publishedPatchNote);
+            const saveResult = await this._patchNoteRepository.save(publishedPatchNote);
       if (saveResult instanceof Failure) {
         return saveResult;
       }
 
-      // Publish domain event
-      await this._eventBus.publish(
+            await this._eventBus.publish(
         new PatchNotePublishedEvent(
           patchNoteId,
           patchNote.version.value,
@@ -60,8 +56,7 @@ export class PublishPatchNoteUseCase {
         )
       );
 
-      // Return output
-      return Success.ok(this.mapToOutput(saveResult.data));
+            return Success.ok(this.mapToOutput(saveResult.data));
 
     } catch (error) {
       return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));

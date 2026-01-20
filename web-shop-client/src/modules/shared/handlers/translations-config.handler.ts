@@ -4,10 +4,7 @@ import { TranslationsConfigEvent } from '../../localization/domain/events/transl
 import { ROOT_TYPES } from '../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../application/ports/logger.port';
 
-/**
- * Base TranslationsConfigHandler
- * All modules should extend this handler to receive translations config
- */
+
 @injectable()
 export abstract class TranslationsConfigHandler implements IAsyncEventHandler<TranslationsConfigEvent> {
   constructor(
@@ -26,8 +23,7 @@ export abstract class TranslationsConfigHandler implements IAsyncEventHandler<Tr
       translationsCount: Object.keys(event.translations).length
     });
 
-    // Call abstract method that modules will implement
-    await this.onTranslationsConfig(event.translations, event.languageCode.value, event.direction.value);
+        await this.onTranslationsConfig(event.translations, event.languageCode.value, event.direction.value);
   }
 
   protected abstract onTranslationsConfig(

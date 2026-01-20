@@ -30,14 +30,11 @@ export class PropertyReadersService implements ConditionReaderPort {
 
   public async read(propertyPath: string, appId?: string, userId?: string): Promise<ComparableValue> {
     if (propertyPath === 'user.purchases.length') {
-      // If appId is not provided, return default value (0) without making API call
-      // This prevents 400 errors when appId is missing
-      if (!appId) {
+                  if (!appId) {
         return 0;
       }
 
-      // Build query string with appId and userId if provided
-      const queryParams = new URLSearchParams();
+            const queryParams = new URLSearchParams();
       queryParams.set('appId', appId);
       if (userId) queryParams.set('userId', userId);
       

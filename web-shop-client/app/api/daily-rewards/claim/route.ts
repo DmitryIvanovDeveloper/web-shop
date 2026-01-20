@@ -22,8 +22,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }, { status: 400 });
     }
 
-    // Check if user already claimed today
-    const today = new Date();
+        const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
 
@@ -35,8 +34,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .lt('claimed_at', endOfDay.toISOString());
 
     if (checkError) {
-      console.error('[POST /api/daily-rewards/claim] Check existing claims error:', checkError);
-      return NextResponse.json({ error: 'Failed to check existing claims' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to check existing claims' }, { status: 500 });
     }
 
     if (existingClaims && existingClaims.length > 0) {
@@ -46,10 +44,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }, { status: 409 });
     }
 
-    // Verify reward exists
-    // Note: We don't check is_active here because activity is determined dynamically
-    // based on day_number and user's claim history, not by the is_active field in DB
-    const { data: reward, error: rewardError } = await supabase
+                const { data: reward, error: rewardError } = await supabase
       .from('daily_rewards')
       .select('*')
       .eq('id', rewardId)
@@ -59,8 +54,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Reward not found' }, { status: 404 });
     }
 
-    // Create claim record
-    const claimData = {
+        const claimData = {
       id: id || crypto.randomUUID(),
       user_id: userId,
       reward_id: rewardId,
@@ -75,39 +69,32 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .single();
 
     if (error) {
-      console.error('[POST /api/daily-rewards/claim] Database error:', error);
-      return NextResponse.json({ error: 'Failed to save daily reward claim' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to save daily reward claim' }, { status: 500 });
     }
 
-    // Calculate next reward and next claim date
-    let nextRewardId: string | null = null;
+        let nextRewardId: string | null = null;
     let nextClaimDate: Date | null = null;
 
-    // Get all rewards for the app to find next one
-    const { data: allRewards, error: rewardsError } = await supabase
+        const { data: allRewards, error: rewardsError } = await supabase
       .from('daily_rewards')
       .select('*')
       .eq('app_id', reward.app_id || '')
       .order('day_number', { ascending: true, nullsFirst: false });
 
     if (!rewardsError && allRewards && allRewards.length > 0) {
-      // Find claimed reward's day_number
-      const claimedReward = allRewards.find(r => r.id === rewardId);
+            const claimedReward = allRewards.find(r => r.id === rewardId);
       if (claimedReward) {
         if (claimedReward.day_number !== null) {
-          // Find next reward by day_number
-          const nextReward = allRewards.find(r => r.day_number === claimedReward.day_number + 1);
+                    const nextReward = allRewards.find(r => r.day_number === claimedReward.day_number + 1);
           if (nextReward) {
             nextRewardId = nextReward.id;
           }
         } else if (allRewards.length > 0) {
-          // If no day_number, return first reward
-          nextRewardId = allRewards[0].id;
+                    nextRewardId = allRewards[0].id;
         }
       }
 
-      // Calculate next claim date (tomorrow at midnight)
-      if (nextRewardId) {
+            if (nextRewardId) {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         tomorrow.setHours(0, 0, 0, 0);
@@ -121,7 +108,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       nextClaimDate: nextClaimDate?.toISOString() || null
     }, { status: 201 });
   } catch (error) {
-    console.error('[POST /api/daily-rewards/claim] Unexpected error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

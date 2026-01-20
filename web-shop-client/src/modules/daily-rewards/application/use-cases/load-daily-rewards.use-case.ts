@@ -13,16 +13,11 @@ export class LoadDailyRewardsUseCase {
 
   async execute(input: LoadDailyRewardsInput): Promise<Result<LoadDailyRewardsOutput, Error>> {
     try {
-      console.log('[LoadDailyRewardsUseCase] Executing', { appId: input.appId });
-
-      // Get all rewards for the app
-      console.log('[LoadDailyRewardsUseCase] Calling repository.findAllRewards');
-      const rewardsResult = await this._dailyRewardRepository.findAllRewards(input.appId);
+                        const rewardsResult = await this._dailyRewardRepository.findAllRewards(input.appId);
       console.log('[LoadDailyRewardsUseCase] Repository result:', { success: !isFailure(rewardsResult) });
 
       if (isFailure(rewardsResult)) {
-        console.error('[LoadDailyRewardsUseCase] Repository failed:', rewardsResult.error);
-        return Failure.fail(rewardsResult.error);
+                return Failure.fail(rewardsResult.error);
       }
 
       const rewards = rewardsResult.data;

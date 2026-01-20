@@ -40,8 +40,7 @@ import type { UserOfferContextDomainEvent } from '../../domain/events/user-offer
 import { UserAuthenticatedEvent } from '../../../authentication/domain/events';
 
 export function bindUserOfferContext(container: Container): void {
-  // Repository bindings
-  container.bind(UserOfferContextSupabaseRepository).toSelf().inSingletonScope();
+    container.bind(UserOfferContextSupabaseRepository).toSelf().inSingletonScope();
   container
     .bind(USER_OFFER_CONTEXT_TYPES.ContextReader)
     .toService(UserOfferContextSupabaseRepository);
@@ -49,8 +48,7 @@ export function bindUserOfferContext(container: Container): void {
     .bind(USER_OFFER_CONTEXT_TYPES.ContextWriter)
     .toService(UserOfferContextSupabaseRepository);
 
-  // Use cases
-  container
+    container
     .bind(USER_OFFER_CONTEXT_TYPES.HandleUserRegisteredUseCase)
     .to(HandleUserRegisteredUseCase)
     .inSingletonScope();
@@ -111,8 +109,7 @@ export function bindUserOfferContext(container: Container): void {
     .to(HandleSubscriptionPlanChangedUseCase)
     .inSingletonScope();
 
-  // Event handler
-  container
+    container
     .bind(USER_OFFER_CONTEXT_TYPES.UserOfferContextEventHandler)
     .to(UserOfferContextEventHandler)
     .inSingletonScope();

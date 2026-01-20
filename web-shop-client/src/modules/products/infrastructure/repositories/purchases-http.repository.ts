@@ -77,8 +77,7 @@ export class PurchasesHttpRepository implements PurchaseRepositoryPort {
     const data = response.data;
     const counts = data?.counts || {};
 
-    // Convert Record<string, number> to Map<string, number>
-    const purchaseCounts = new Map<string, number>();
+        const purchaseCounts = new Map<string, number>();
     Object.entries(counts).forEach(([productId, count]) => {
       purchaseCounts.set(productId, count);
     });

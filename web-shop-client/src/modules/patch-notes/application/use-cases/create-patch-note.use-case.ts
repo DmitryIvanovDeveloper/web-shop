@@ -23,8 +23,7 @@ export class CreatePatchNoteUseCase {
 
   async execute(input: CreatePatchNoteInput): Promise<Result<PatchNoteOutput, Error>> {
     try {
-      // Check if version already exists for this app
-      const existingPatchNote = await this._patchNoteRepository.findByVersion(
+            const existingPatchNote = await this._patchNoteRepository.findByVersion(
         Version.create(input.version),
         input.appId
       );
@@ -33,16 +32,14 @@ export class CreatePatchNoteUseCase {
         return Failure.fail(new PatchNoteAlreadyExistsError(input.version));
       }
 
-      // Create domain objects
-      const patchNoteId = PatchNoteId.create();
+            const patchNoteId = PatchNoteId.create();
       const version = Version.create(input.version);
 
       const changes = input.changes.map(change =>
         ChangeItem.create(change.type, change.description)
       );
 
-      // Create patch note entity
-      const patchNote = PatchNote.create(
+            const patchNote = PatchNote.create(
         patchNoteId,
         input.appId,
         version,
@@ -51,19 +48,16 @@ export class CreatePatchNoteUseCase {
         changes
       );
 
-      // Save to repository
-      const saveResult = await this._patchNoteRepository.save(patchNote);
+            const saveResult = await this._patchNoteRepository.save(patchNote);
       if (saveResult instanceof Failure) {
         return saveResult;
       }
 
-      // Publish domain event
-      await this._eventBus.publish(
+            await this._eventBus.publish(
         new PatchNoteCreatedEvent(patchNoteId, input.version, input.title)
       );
 
-      // Return output
-      return Success.ok(this.mapToOutput(saveResult.data));
+            return Success.ok(this.mapToOutput(saveResult.data));
 
     } catch (error) {
       return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));

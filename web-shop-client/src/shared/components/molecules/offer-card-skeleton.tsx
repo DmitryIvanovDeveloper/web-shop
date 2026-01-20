@@ -22,7 +22,7 @@ export function OfferCardSkeleton({
         ...style
       }}
     >
-      {/* Shimmer overlay effect */}
+      {}
       <div 
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -37,11 +37,11 @@ export function OfferCardSkeleton({
           100% { transform: translateX(100%); }
         }
       `}</style>
-      {/* Main wrapper - как у конкурентов */}
+      {}
       <div className="!flex !size-full !flex-col">
-        {/* Image + Items wrapper */}
+        {}
         <div>
-          {/* Main Image Section - Skeleton */}
+          {}
           <div
             className="relative w-full bg-gray-700 !flex !items-center !justify-center"
             style={{
@@ -58,8 +58,8 @@ export function OfferCardSkeleton({
               }}
             />
             
-            {/* Badges Container - Skeleton badges absolute как у Pixel Gun */}
-            {/* Left side badges - inline styles для гарантированного применения */}
+            {}
+            {}
             <div className="absolute pointer-events-none z-10 max-w-full" style={{ 
               display: 'flex',
               flexDirection: 'column',
@@ -68,7 +68,7 @@ export function OfferCardSkeleton({
               left: '-4px',
               fontSize: 'clamp(8px, 2.5cqw, 12px)' 
             }}>
-              {/* Left side badges */}
+              {}
               <div
                 className="bg-gray-600 rounded"
                 style={{ 
@@ -80,7 +80,7 @@ export function OfferCardSkeleton({
               />
             </div>
 
-            {/* Right side badges - inline styles для гарантированного применения */}
+            {}
             <div className="absolute pointer-events-none z-10" style={{ 
               display: 'flex',
               flexDirection: 'column',
@@ -111,7 +111,7 @@ export function OfferCardSkeleton({
           </div>
         </div>
 
-      {/* Content Section - Skeleton Grid с фиксированными строками как у конкурентов */}
+      {}
       <div 
         className="!grid !size-full p-2 sm:p-3 md:p-4" 
         style={{ 
@@ -121,10 +121,10 @@ export function OfferCardSkeleton({
           alignContent: 'start'
         }}
       >
-          {/* Row 1: Title - Skeleton */}
+          {}
           <div className="!flex !flex-col" style={{ display: 'flex', flexDirection: 'column', gap: '2px', minHeight: '44px' }}>
             <div className="w-full" style={{ containerType: 'inline-size' }}>
-              {/* Title Skeleton */}
+              {}
               <div
                 className="bg-gray-600 rounded mx-auto"
                 style={{ 
@@ -136,9 +136,9 @@ export function OfferCardSkeleton({
             </div>
           </div>
           
-          {/* Row 2: Rarity badges - Skeleton */}
+          {}
           <div className="!flex !flex-wrap !justify-center" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px', minHeight: '36px' }}>
-            {/* Rarity Skeleton */}
+            {}
             <div
               className="bg-gray-600 rounded"
               style={{ 
@@ -148,12 +148,12 @@ export function OfferCardSkeleton({
             />
           </div>
 
-          {/* Row 3: Spacer - растягивается для выравнивания кнопки внизу */}
+          {}
           <div></div>
 
-          {/* Row 4: Button + RP/LP - Skeleton - всегда внизу карточки */}
+          {}
           <div className="!flex !flex-col landscape-max-lg:py-1">
-            {/* Buy Button Skeleton */}
+            {}
             <div
               className="bg-gray-600 rounded-lg"
               style={{
@@ -163,7 +163,7 @@ export function OfferCardSkeleton({
               }}
             />
             
-            {/* RP/LP Bonuses Skeleton - разведены по углам */}
+            {}
             <div className="text-gray-400 !flex !justify-between !w-full" style={{ display: 'flex', flexDirection: 'row', fontSize: '12px', justifyContent: 'space-between', width: '100%' }}>
               <div className="bg-gray-600 rounded" style={{ width: '40px', height: '12px' }} />
               <div className="bg-gray-600 rounded" style={{ width: '40px', height: '12px' }} />

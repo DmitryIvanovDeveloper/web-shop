@@ -30,7 +30,6 @@ export interface LoggingConfig {
   output: 'console' | 'file' | 'both';
   filePath?: string;
 }
-// Inversify TYPES symbols
 export const TYPES = {
 	Logger: Symbol.for('Logger'),
 	HttpClient: Symbol.for('HttpClient'),
@@ -51,28 +50,21 @@ export const TYPES = {
 	GetAppContext: Symbol.for('GetAppContext')
 } as const;
 
-// Export as ROOT_TYPES for consistency with documentation
 export const ROOT_TYPES = TYPES;
 
-// Export AUTH_TYPES from authentication module
 export { AUTH_TYPES } from '../../modules/authentication/infrastructure/bootstrap/types';
 
-// Export LOCALIZATION_TYPES from localization module
 export { LOCALIZATION_TYPES } from '../../modules/localization/infrastructure/bootstrap/types';
 
-// Export DAILY_REWARDS_TYPES from daily-rewards module
 export { DAILY_REWARDS_TYPES } from '../../modules/daily-rewards/infrastructure/bootstrap/types';
 
-// Export SHOP_TYPES from shop module
-// Http client selection mode
 export enum HttpClientMode {
   Axios = 'axios',
   Mock = 'mock',
 }
 
 export function resolveHttpClientMode(): HttpClientMode {
-  // Читаем из env (Next.js runtime env с префиксом NEXT_PUBLIC_)
-  const value = process.env.NEXT_PUBLIC_HTTP_CLIENT?.toLowerCase();
+    const value = process.env.NEXT_PUBLIC_HTTP_CLIENT?.toLowerCase();
   if (value === HttpClientMode.Mock) return HttpClientMode.Mock;
   return HttpClientMode.Axios;
 }

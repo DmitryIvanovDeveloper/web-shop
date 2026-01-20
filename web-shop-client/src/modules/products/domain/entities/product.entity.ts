@@ -3,12 +3,7 @@ import { Price } from '../value-objects/price.value-object';
 import { ProductPricingService } from '../services/product-pricing.service';
 import { ProductAvailabilityService } from '../services/product-availability.service';
 
-/**
- * Product Domain Entity
- * 
- * Encapsulates product business logic and invariants
- * Pure domain entity with no external dependencies
- */
+
 export class ProductEntity {
   private readonly _id: ProductId;
   private readonly _title: string;
@@ -73,9 +68,7 @@ export class ProductEntity {
     return this._appid;
   }
 
-  /**
-   * Check if product is available for purchase
-   */
+  
   isAvailable(): boolean {
     const availability = ProductAvailabilityService.isProductAvailable(
       this._isPurchased,
@@ -85,9 +78,7 @@ export class ProductEntity {
     return availability.isAvailable;
   }
 
-  /**
-   * Get availability message
-   */
+  
   getAvailabilityMessage(): string {
     return ProductAvailabilityService.getAvailabilityMessage(
       this._isPurchased,
@@ -96,23 +87,17 @@ export class ProductEntity {
     );
   }
 
-  /**
-   * Check if product is in high demand
-   */
+  
   isHighDemand(): boolean {
     return ProductAvailabilityService.isHighDemandProduct(this._playerLimit);
   }
 
-  /**
-   * Get formatted price for display
-   */
+  
   getFormattedPrice(): string {
     return this._price?.format() || 'Price not available';
   }
 
-  /**
-   * Check if product is premium (based on rarity)
-   */
+  
   isPremium(): boolean {
     const premiumRarities = ['LEGENDARY', 'MYTHICAL', 'EPIC'];
     return this._rarity ? premiumRarities.some(rarity => 
@@ -120,30 +105,22 @@ export class ProductEntity {
     ) : false;
   }
 
-  /**
-   * Check if product is time-limited
-   */
+  
   isTimeLimited(): boolean {
     return !!this._timer;
   }
 
-  /**
-   * Check if product has player limit
-   */
+  
   hasPlayerLimit(): boolean {
     return !!this._playerLimit && this._playerLimit.toLowerCase() !== 'unlimited';
   }
 
-  /**
-   * Get time remaining for time-limited products
-   */
+  
   getTimeRemaining(): import('../services/product-availability.service').TimeRemaining | null {
     return ProductAvailabilityService.calculateRemainingTime(this._timer || '');
   }
 
-  /**
-   * Create a new product with updated purchase status
-   */
+  
   markAsPurchased(): ProductEntity {
     if (this._isPurchased) {
       throw new Error('Product is already purchased');
@@ -156,14 +133,11 @@ export class ProductEntity {
       this._rarity,
       this._playerLimit,
       this._timer,
-      true, // isPurchased = true
-      this._appid
+      true,       this._appid
     );
   }
 
-  /**
-   * Create a new product with updated app ID
-   */
+  
   withAppId(appid: string): ProductEntity {
     return new ProductEntity(
       this._id,
@@ -177,9 +151,7 @@ export class ProductEntity {
     );
   }
 
-  /**
-   * Validate business invariants
-   */
+  
   private _validateInvariants(): void {
     if (!this._title || this._title.trim() === '') {
       throw new Error('Product title is required');
@@ -189,12 +161,9 @@ export class ProductEntity {
       throw new Error('Product title cannot exceed 100 characters');
     }
 
-    // Price validation is handled by Price value object itself
-  }
+      }
 
-  /**
-   * Convert to plain object (for serialization)
-   */
+  
   toPlainObject(): {
     id: string;
     title: string;
@@ -217,9 +186,7 @@ export class ProductEntity {
     };
   }
 
-  /**
-   * Create from plain object (for deserialization)
-   */
+  
   static fromPlainObject(data: {
     id: string;
     title: string;

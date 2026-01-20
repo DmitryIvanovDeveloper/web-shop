@@ -10,12 +10,7 @@ interface AppContext {
   merchantId: string | null;
 }
 
-/**
- * React hook for accessing application context
- * Provides appId and merchantId from URL parameters
- *
- * @throws Error if appId is not available in URL
- */
+
 export function useAppContext(): AppContext {
   const [context, setContext] = useState<AppContext | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -31,8 +26,7 @@ export function useAppContext(): AppContext {
   }, []);
 
   if (error) {
-    // Render error UI instead of throwing
-    return {
+        return {
       appId: '',
       merchantId: null,
       error
@@ -40,8 +34,7 @@ export function useAppContext(): AppContext {
   }
 
   if (!context) {
-    // Still loading
-    return {
+        return {
       appId: '',
       merchantId: null,
       loading: true
@@ -51,10 +44,7 @@ export function useAppContext(): AppContext {
   return context;
 }
 
-/**
- * Convenience hook for getting just the appId
- * Returns null if appId is not available yet (loading/error state)
- */
+
 export function useAppId(): string | null {
   const { appId, error, loading } = useAppContext() as any;
 

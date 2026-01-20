@@ -1,7 +1,4 @@
-/**
- * App Config Types - типы для централизованного конфига приложения
- * Загружается при старте и распространяется через EventBus
- */
+
 
 export interface AppConfig {
 	readonly version: string;
@@ -158,7 +155,6 @@ export interface SharedConfig {
 	readonly productCardUI?: ComponentNodeData;
 }
 
-// Minimal placeholder types to satisfy compile; detailed shapes are provided by UI Builder schemas
 export interface FieldSchema {
   readonly key: string;
   readonly type: 'string' | 'number' | 'boolean' | 'array' | 'object' | 'componentNode';
@@ -185,8 +181,6 @@ export interface ApiConstants { readonly [key: string]: any }
 export interface UIConstants { readonly [key: string]: any }
 export interface UILayoutConfig { readonly [key: string]: any }
 
-// Legacy types - kept for backward compatibility with offer-card.tsx
-// Эти типы используются внутри styles объекта ComponentNode
 export interface CardContainerStyle {
 	readonly backgroundColor: string;
 	readonly borderRadius: string;
@@ -235,7 +229,6 @@ export interface BonusesStyle {
 	readonly fontSize: string;
 }
 
-// Helper type для извлечения стилей из ComponentNode формата карточек
 export interface OfferCardUIConfig {
 	readonly container: CardContainerStyle;
 	readonly image: CardImageStyle;
@@ -307,8 +300,7 @@ export interface AuthLabels {
 	readonly privacyPolicy: string;
 	readonly termsOfService: string;
 	readonly refundPolicy: string;
-	readonly [key: string]: string; // Allows custom fields from UI Builder
-}
+	readonly [key: string]: string; }
 
 export interface AuthSettings { readonly [key: string]: any }
 export interface LoginButtonUIConfig { readonly [key: string]: any }
@@ -377,7 +369,6 @@ export interface UIConstants {
 	readonly mobileBreakpoint: number;
 }
 
-// UI Renderer Module Config
 export interface UIRendererModuleConfig {
 	readonly sidebar: UILayoutConfig;
 	readonly rightSidebar: UILayoutConfig;

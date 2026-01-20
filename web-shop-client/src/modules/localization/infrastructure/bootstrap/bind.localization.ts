@@ -1,14 +1,11 @@
 import type { Container } from 'inversify';
 import { LOCALIZATION_TYPES } from './types';
 
-// Repositories
 import { LanguageHttpRepository } from '../repositories/language-http.repository';
 import { TranslationHttpRepository } from '../repositories/translation-http.repository';
 
-// Use Cases
 import { LoadLocalizationUseCase, ChangeLocalizationUseCase } from '../../application/use-cases';
 
-// Presenters
 import { LocalizationPresenter } from '../../interface-adapters/presenters/localization.presenter';
 import { LocalizationLoadedEventHandler } from '../../interface-adapters/handlers/localization-loaded.handler';
 import { LocalizationChangedEventHandler } from '../../interface-adapters/handlers/localization-changed.handler';
@@ -17,8 +14,7 @@ import { LocalizationLoadedEvent } from '../../domain/events/localization-loaded
 import { LocalizationChangedEvent } from '../../domain/events/localization-changed.event';
 
 export function bindLocalization(container: Container): void {
-  // Repositories
-  container
+    container
     .bind(LOCALIZATION_TYPES.LanguageRepository)
     .to(LanguageHttpRepository)
     .inSingletonScope();
@@ -28,8 +24,7 @@ export function bindLocalization(container: Container): void {
     .to(TranslationHttpRepository)
     .inSingletonScope();
 
-  // Use Cases
-  container
+    container
     .bind(LOCALIZATION_TYPES.LoadLocalizationUseCase)
     .to(LoadLocalizationUseCase)
     .inSingletonScope();
@@ -39,14 +34,12 @@ export function bindLocalization(container: Container): void {
     .to(ChangeLocalizationUseCase)
     .inSingletonScope();
 
-  // Presenters
-  container
+    container
     .bind(LOCALIZATION_TYPES.LocalizationPresenter)
     .to(LocalizationPresenter)
     .inSingletonScope();
 
-  // Event Handlers - automatically discovered by EventBus
-  container
+    container
     .bind<IAsyncEventHandler<LocalizationLoadedEvent>>(LOCALIZATION_TYPES.LocalizationLoadedEventHandler)
     .to(LocalizationLoadedEventHandler)
     .inTransientScope();

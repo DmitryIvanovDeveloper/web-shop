@@ -1,7 +1,4 @@
-/**
- * Logger Port - Interface for logging functionality
- * All modules use this interface for logging
- */
+
 
 export interface Logger {
   info(message: string, meta?: any): void;

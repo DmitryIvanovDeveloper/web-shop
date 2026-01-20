@@ -26,9 +26,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { data, error } = await query;
 
     if (error) {
-      // Server-side log only
-      // eslint-disable-next-line no-console
-      console.error('[GET /api/products] Supabase error', error);
       return NextResponse.json({ error: 'Failed to load products' }, { status: 500 });
     }
 
@@ -36,25 +33,21 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    // Calculate limitedOffer for products that have player_limit
     let purchaseCounts = new Map<string, number>();
-    const productsWithLimits = data?.filter((item: Record<string, unknown>) =>
-      item.player_limit && typeof item.player_limit === 'number' && item.player_limit > 0
-    ) || [];
+    const productsWithLimits =
+      data?.filter(
+        (item: Record<string, unknown>) =>
+          item.player_limit && typeof item.player_limit === 'number' && item.player_limit > 0,
+      ) || [];
 
-if (productsWithLimits.length > 0 && appId) {
+    if (productsWithLimits.length > 0 && appId) {
       try {
-        // Get purchase counts for this app
-    const purchaseRepository = container.get<PurchaseRepositoryPort>(PRODUCTS_TYPES.PurchaseRepository);
+        const purchaseRepository = container.get<PurchaseRepositoryPort>(
+          PRODUCTS_TYPES.PurchaseRepository,
+        );
         purchaseCounts = await purchaseRepository.getProductPurchaseCounts(appId);
-        console.log('[GET /api/products] Loaded purchase counts', {
-          appId,
-          productCount: purchaseCounts.size,
-          counts: Object.fromEntries(purchaseCounts)
-        });
       } catch (error) {
-        console.error('[GET /api/products] Failed to load purchase counts for limitedOffer calculation', error);
-        // Continue without purchase counts
+        // ignore purchase count errors; continue without limits
       }
     }
 
@@ -104,14 +97,6 @@ if (productsWithLimits.length > 0 && appId) {
             const purchasedCount = purchaseCounts.get(productId) || 0;
             const limitedOffer = Math.max(0, playerLimit - purchasedCount);
 
-            console.log('[GET /api/products] Calculated limitedOffer', {
-              productId,
-              productTitle: item.title,
-              playerLimit,
-              purchasedCount,
-              limitedOffer: limitedOffer > 0 ? limitedOffer : undefined
-            });
-
             return limitedOffer > 0 ? limitedOffer : undefined;
           })(),
         };
@@ -119,11 +104,9 @@ if (productsWithLimits.length > 0 && appId) {
 
     return NextResponse.json(products);
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('[GET /api/products] Unexpected error', error);
     return NextResponse.json(
       { error: 'Unexpected error while loading products' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

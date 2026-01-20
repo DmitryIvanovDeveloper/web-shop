@@ -14,8 +14,7 @@ export interface UniversalButtonProps {
   readonly fullWidth?: boolean;
   readonly isLoading?: boolean;
   readonly loadingText?: string;
-  readonly [key: string]: unknown; // Allow data-* attributes
-}
+  readonly [key: string]: unknown; }
 
 export function UniversalButton({
   text,

@@ -15,8 +15,7 @@ export interface DailyRewardsPopupProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
   readonly autoShow?: boolean;
-  readonly showDelay?: number; // milliseconds
-}
+  readonly showDelay?: number; }
 
 export function DailyRewardsPopup({
   userId,
@@ -42,8 +41,7 @@ export function DailyRewardsPopup({
   const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize presenter
-  useEffect(() => {
+    useEffect(() => {
     if (!presenter && appId) {
       try {
         const presenterInstance = container.get<DailyRewardsListPresenter>(DAILY_REWARDS_TYPES.DailyRewardsListPresenter);
@@ -51,22 +49,19 @@ export function DailyRewardsPopup({
           setPresenter(presenterInstance);
         }
       } catch (error) {
-        console.error('[DailyRewardsPopup] Failed to initialize presenter:', error);
-        setError('Failed to initialize presenter');
+                setError('Failed to initialize presenter');
       }
     }
   }, [presenter, appId]);
 
-  // Subscribe to presenter changes and load rewards
-  useEffect(() => {
+    useEffect(() => {
     if (!presenter || !appId || !userId) {
       return;
     }
 
     presenter.setUserId(userId);
 
-    // Subscribe to presenter changes
-    const unsubscribe = presenter.subscribe(() => {
+        const unsubscribe = presenter.subscribe(() => {
       const presenterRewards = presenter.rewards;
       const mappedRewards = presenterRewards.map((reward) => ({
         id: reward.id,
@@ -78,8 +73,7 @@ export function DailyRewardsPopup({
         isClaimedToday: reward.isClaimedToday,
       }));
       
-      // Filter only active rewards that can be claimed today
-      const availableRewards = mappedRewards.filter(
+            const availableRewards = mappedRewards.filter(
         reward => reward.isActive && !reward.isClaimedToday
       );
       
@@ -89,14 +83,12 @@ export function DailyRewardsPopup({
       setError(presenter.error);
     });
 
-    // Load rewards
-    presenter.loadRewards({ appId, userId });
+        presenter.loadRewards({ appId, userId });
 
     return unsubscribe;
   }, [presenter, appId, userId]);
 
-  // Auto-show logic
-  useEffect(() => {
+    useEffect(() => {
     if (autoShow && !hasShown && !isOpen) {
       const timer = setTimeout(() => {
         setInternalIsOpen(true);
@@ -117,14 +109,12 @@ export function DailyRewardsPopup({
       return;
     }
     
-    // presenter сам управляет isClaiming через ViewModel
-    await presenter.claimReward({ userId, appId });
+        await presenter.claimReward({ userId, appId });
   };
 
   const actualIsOpen = isOpen || internalIsOpen;
 
-  // Don't show popup if no rewards available (after loading completes)
-  const hasAvailableRewards = rewards.some(reward => reward.isActive && !reward.isClaimedToday);
+    const hasAvailableRewards = rewards.some(reward => reward.isActive && !reward.isClaimedToday);
 
   if (!actualIsOpen || (!isLoading && !hasAvailableRewards)) {
     return null;
@@ -151,12 +141,12 @@ export function DailyRewardsPopup({
       }}
     >
       <div className="!flex !flex-col h-full !justify-center !items-center">
-        {/* Header */}
+        {}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-white text-2xl font-bold">🎯 Daily Rewards</h2>
         </div>
 
-        {/* Daily Rewards Grid */}
+        {}
         <div className="flex-1 overflow-y-auto">
           {isLoading || rewards.length === 0 ? (
             <Grid 

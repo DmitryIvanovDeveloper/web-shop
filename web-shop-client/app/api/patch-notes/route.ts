@@ -21,25 +21,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       PATCH_NOTES_TYPES.GetPublishedPatchNotesUseCase
     );
 
-    console.log('[GET /api/patch-notes] Calling use case with appId:', appId);
-    const result = await useCase.execute(appId);
-    console.log('[GET /api/patch-notes] Use case result:', result);
-
-    if (result instanceof Failure) {
-      console.error('[GET /api/patch-notes] Use case failed', result.error);
-      return NextResponse.json(
+        const result = await useCase.execute(appId);
+        if (result instanceof Failure) {
+            return NextResponse.json(
         { error: result.error.message },
         { status: 500 }
       );
     }
 
     const data = (result as any).data;
-    console.log('[GET /api/patch-notes] Returning data:', data);
-    return NextResponse.json(data);
+        return NextResponse.json(data);
 
   } catch (error) {
-    console.error('[GET /api/patch-notes] Unexpected error', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Unexpected error while fetching patch notes' },
       { status: 500 }
     );
@@ -50,8 +44,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json();
 
-    // Ensure appId is provided
-    if (!body.appId) {
+        if (!body.appId) {
       return NextResponse.json({ error: 'appId is required in the request body' }, { status: 400 });
     }
 
@@ -62,8 +55,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const result = await useCase.execute(body);
 
     if (result instanceof Failure) {
-      console.error('[POST /api/patch-notes] Use case failed', result.error);
-      return NextResponse.json(
+            return NextResponse.json(
         { error: result.error.message },
         { status: 400 }
       );
@@ -72,8 +64,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json((result as any).data, { status: 201 });
 
   } catch (error) {
-    console.error('[POST /api/patch-notes] Unexpected error', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Unexpected error while creating patch note' },
       { status: 500 }
     );

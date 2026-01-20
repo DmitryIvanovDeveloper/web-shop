@@ -25,7 +25,8 @@ async function killPort(port) {
       for (const line of lines) {
         const parts = line.trim().split(/\s+/);
         const pid = parts[parts.length - 1];
-        if (pid && !isNaN(pid)) {
+        // PID "0" is a system placeholder on Windows — skip it to avoid taskkill errors
+        if (pid && !isNaN(pid) && pid !== '0') {
           pids.add(pid);
         }
       }
@@ -82,4 +83,5 @@ async function killPort(port) {
 }
 
 killPort(port).catch(console.error);
+
 

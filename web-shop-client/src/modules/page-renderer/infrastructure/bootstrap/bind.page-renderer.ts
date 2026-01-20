@@ -12,36 +12,30 @@ import { AppConfigLoadedEvent } from '../../../../shared/events/app-config-event
 import { PAGE_RENDERER_TYPES } from './types';
 
 export function bindPageRenderer(container: Container): void {
-  // Repository
-  container.bind<PageConfigRepositoryPort>(PAGE_RENDERER_TYPES.PageConfigRepository)
+    container.bind<PageConfigRepositoryPort>(PAGE_RENDERER_TYPES.PageConfigRepository)
     .to(SupabasePageConfigRepository)
     .inSingletonScope();
   
-  // Use Case
-  container.bind<LoadPageConfigUseCase>(PAGE_RENDERER_TYPES.LoadPageConfigUseCase)
+    container.bind<LoadPageConfigUseCase>(PAGE_RENDERER_TYPES.LoadPageConfigUseCase)
     .to(LoadPageConfigUseCase)
     .inSingletonScope();
   
-  // Use Case for message handling
-  container.bind<LoadPageConfigFromMessageUseCase>(PAGE_RENDERER_TYPES.LoadPageConfigFromMessageUseCase)
+    container.bind<LoadPageConfigFromMessageUseCase>(PAGE_RENDERER_TYPES.LoadPageConfigFromMessageUseCase)
     .to(LoadPageConfigFromMessageUseCase)
     .inSingletonScope();
   
-  // Presenter
-  container.bind<PageRendererPresenter>(PAGE_RENDERER_TYPES.PageRendererPresenter)
+    container.bind<PageRendererPresenter>(PAGE_RENDERER_TYPES.PageRendererPresenter)
     .to(PageRendererPresenter)
     .inSingletonScope();
   
-  // Event Handlers
-  container
+    container
     .bind<IAsyncEventHandler<PageConfigLoadedEvent>>(
       PAGE_RENDERER_TYPES.PageConfigLoadedEventHandler
     )
     .to(PageConfigLoadedHandler)
     .inTransientScope();
 
-  // Handler for AppConfigLoadedEvent (updates offerCards from config)
-  container
+    container
     .bind<IAsyncEventHandler<AppConfigLoadedEvent>>(
       PAGE_RENDERER_TYPES.AppConfigLoadedEventHandler
     )

@@ -19,23 +19,14 @@ export function SidebarRenderer({
   layoutType = 'sidebar',
   currentPathname
 }: SidebarRendererProps): JSX.Element {
-  console.log(`[SidebarRenderer] Component rendered for ${layoutType}`);
-  const [, forceUpdate] = useState(0);
+    const [, forceUpdate] = useState(0);
   const pathname = usePathname();
 
-  // Update current pathname in presenter when it changes
-  // Use passed pathname or fallback to hook
-  const activePathname = currentPathname || pathname;
-  console.log('[SidebarRenderer] Component rendered with activePathname:', activePathname, 'currentPathname prop:', currentPathname, 'pathname hook:', pathname);
-
-  // Set pathname immediately when component renders
-  presenter.setCurrentPathname(activePathname); // Removed presenter from dependencies
-
-  // Subscribe to config updates
-  useEffect(() => {
+      const activePathname = currentPathname || pathname;
+      presenter.setCurrentPathname(activePathname); 
+    useEffect(() => {
     const unsubscribe = presenter.subscribe(() => {
-      // Force re-render when config changes
-      forceUpdate(prev => prev + 1);
+            forceUpdate(prev => prev + 1);
     });
 
     return () => {
@@ -43,13 +34,11 @@ export function SidebarRenderer({
     };
   }, [presenter]);
 
-  // Always try to get config from presenter
-  let config = null;
+    let config = null;
   switch (layoutType) {
     case 'sidebar':
       config = presenter.getSidebar();
-      console.log('[SidebarRenderer] Got sidebar config:', !!config);
-      break;
+            break;
     case 'rightSidebar':
       config = presenter.getRightSidebar();
       break;
@@ -64,20 +53,15 @@ export function SidebarRenderer({
       );
   }
 
-  // If no config available, show loading state
-  if (!config) {
-    console.log('[SidebarRenderer] No config available for', layoutType, 'returning notReady message');
-    return (
+    if (!config) {
+        return (
       <div style={{ padding: '16px', color: '#A0A0A0' }}>
         {presenter.labels.notReady}
       </div>
     );
   }
 
-  console.log('[SidebarRenderer] Config found for', layoutType, 'proceeding to render DynamicRenderer');
-
-  // Force re-render when translations change by using language code as key
-  const languageCode = presenter.getLanguageCode();
+      const languageCode = presenter.getLanguageCode();
 
   return (
     <DynamicRenderer

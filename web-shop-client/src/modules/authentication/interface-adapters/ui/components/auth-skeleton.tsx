@@ -1,8 +1,6 @@
 'use client';
 
-/**
- * Skeleton компонент для отображения во время загрузки авторизации
- */
+
 export function AuthSkeleton(): JSX.Element {
 	return (
 		<div className="w-full p-4 space-y-3 animate-pulse">

@@ -1,37 +1,25 @@
-/**
- * Domain Types для Authentication
- * Чистые бизнес-сущности без внешних зависимостей
- */
 
-/**
- * Пользователь приложения
- */
+
+
 export interface AppUser {
   readonly userId: string;
   readonly username: string;
   readonly appId: string;
 }
 
-/**
- * Запрос на валидацию App ID
- */
+
 export interface ValidateAppLoginRequest {
   readonly appId: string;
-  readonly userId?: string; // Опционально - если передан, проверяем/создаем в Supabase
-}
+  readonly userId?: string; }
 
-/**
- * Конфигурация UI для авторизации
- */
+
 export interface AuthUIConfig {
   readonly version: string;
   readonly loginButton: AuthButtonConfig;
   readonly loginPopup: AuthPopupConfig;
 }
 
-/**
- * Конфигурация кнопки Login
- */
+
 export interface AuthButtonConfig {
   readonly layout: {
     readonly id: string;
@@ -135,9 +123,7 @@ export interface AuthButtonConfig {
   readonly showWhenAuthenticated: boolean;
 }
 
-/**
- * Конфигурация popup авторизации
- */
+
 export interface AuthPopupConfig {
   readonly theme: {
     readonly colors: {

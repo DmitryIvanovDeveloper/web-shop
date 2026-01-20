@@ -1,7 +1,6 @@
 import { ProductId } from './value-objects/product-id.value-object';
 import { Price } from './value-objects/price.value-object';
 
-// Reuse Offer interface from offers module for consistency
 export interface Product {
   readonly id: ProductId;
   readonly mainImage?: string;

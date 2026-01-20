@@ -12,8 +12,7 @@ export interface UniversalContainerProps {
   readonly onMouseEnter?: (e: React.MouseEvent<HTMLElement>) => void;
   readonly onMouseLeave?: (e: React.MouseEvent<HTMLElement>) => void;
   readonly onClick?: (e: React.MouseEvent<HTMLElement>) => void;
-  readonly [key: string]: unknown; // Allow data-* attributes and other props
-}
+  readonly [key: string]: unknown; }
 
 export function UniversalContainer({
   className = '',

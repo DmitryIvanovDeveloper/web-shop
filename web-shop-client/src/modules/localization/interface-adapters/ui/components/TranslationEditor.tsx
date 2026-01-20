@@ -13,10 +13,7 @@ interface TranslationEditorProps {
   disabled?: boolean;
 }
 
-/**
- * TranslationEditor component for admin panel
- * Allows editing translations for a specific language
- */
+
 export const TranslationEditor: React.FC<TranslationEditorProps> = ({
   language,
   translations,

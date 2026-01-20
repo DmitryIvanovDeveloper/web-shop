@@ -2,10 +2,7 @@ import { TranslationKey } from '../value-objects/translation-key';
 import { LanguageCode } from '../value-objects/language-code';
 import { EmptyTranslationError } from '../errors/translation.error';
 
-/**
- * Translation Entity
- * Represents a single translation for a specific key and language
- */
+
 export class Translation {
   public readonly id: string;
   public readonly createdAt: Date;
@@ -19,8 +16,7 @@ export class Translation {
     public readonly isTranslated: boolean,
     createdAt: Date,
     updatedAt: Date,
-    public readonly context?: string // optional context for translators
-  ) {
+    public readonly context?: string   ) {
     this.id = id;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;

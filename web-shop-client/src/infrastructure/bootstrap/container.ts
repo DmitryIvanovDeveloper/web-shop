@@ -40,76 +40,56 @@ import type { AppContextPort } from '../../application/ports/app-context.port';
 import { UrlAppContextService } from '../app-context/url-app-context.service';
 import { GetAppContextUseCase } from '../../application/use-cases/get-app-context.use-case';
 
-// Create Inversify container
 const container = new Container();
 
-// Register core services
 container.bind<Logger>(TYPES.Logger).to(ConsoleLogger);
 
-// Register HTTP client based on mode
 const mode = resolveHttpClientMode();
 if (mode === HttpClientMode.Mock) {
   container.bind<HttpClient>(TYPES.HttpClient).to(HttpClientMock).inSingletonScope();
 } else {
-  // Use empty baseURL - Next.js handles /api/* routing automatically
-  container.bind<HttpClient>(TYPES.HttpClient).toConstantValue(new AxiosHttpClient(''));
+    container.bind<HttpClient>(TYPES.HttpClient).toConstantValue(new AxiosHttpClient(''));
 }
 
 container.bind<EventBusPort>(TYPES.EventBus).to(EventBus).inSingletonScope();
 
-// Register Database Client (Supabase)
 container.bind<DatabaseClientPort>(TYPES.DatabaseClient).to(SupabaseClient).inSingletonScope();
 
-// Register UI Renderer Service (universal infrastructure service)
 container.bind(TYPES.UIComponentRegistry).to(UIComponentRegistry).inSingletonScope();
 container.bind(TYPES.UIStyleBuilder).to(UIStyleBuilder).inSingletonScope();
 container.bind(TYPES.UIActionHandler).to(UIActionHandler).inSingletonScope();
 container.bind<UIRendererPort>(TYPES.UIRenderer).to(UIRendererService).inSingletonScope();
 
-// Register App Context Service
 container.bind<AppContextPort>(TYPES.AppContext).to(UrlAppContextService).inSingletonScope();
 container.bind(TYPES.GetAppContext).to(GetAppContextUseCase).inSingletonScope();
 
-// Register Authentication module
 bindAuthentication(container);
 
-// Register Localization module (must be before App Layout to avoid handler conflicts)
 bindLocalization(container);
 
-// Register App Layout module
 bindAppLayout(container);
 
-// Register User Offer Context module
 bindUserOfferContext(container);
 
-// Register Offers module
 bindOffers(container);
 
-// Register Personal Offers module
 bindPersonalOffers(container);
 
-// Register Products module
 bindProducts(container);
 
-// Register Page Renderer module
 bindPageRenderer(container);
 
-// Register Patch Notes module
 bindPatchNotes(container);
 
-// Register Daily Rewards module
 bindDailyRewards(container);
 
-// App Config
 container.bind(TYPES.SupabaseConfigLoader).to(SupabaseConfigLoader).inSingletonScope();
 container.bind(TYPES.LoadAppConfig).to(LoadAppConfigUseCase).inSingletonScope();
 container.bind(TYPES.LoadAppConfigFromMessage).to(LoadAppConfigFromMessageUseCase).inSingletonScope();
 
-// Config Subscription for real-time updates
 container.bind<ConfigSubscriptionPort>(TYPES.ConfigSubscriptionPort).to(SupabaseConfigSubscriptionAdapter).inSingletonScope();
 container.bind(TYPES.SubscribeToConfigUpdates).to(SubscribeToConfigUpdatesUseCase).inSingletonScope();
 
-// UI Handler for AppConfigLoadedEvent (dispatches window event for UI components)
 container
   .bind<IAsyncEventHandler<AppConfigLoadedEvent>>(
     Symbol.for('IAsyncEventHandler<AppConfigLoadedEvent>')
@@ -124,6 +104,5 @@ container
   .to(ApplyBackgroundOnConfigHandler)
   .inTransientScope();
 
-// UI Renderer handlers are registered in bind.ui-renderer.ts
 
 export { container };

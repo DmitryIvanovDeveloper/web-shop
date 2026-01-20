@@ -4,17 +4,14 @@ import path from 'path';
 
 export async function GET(request: NextRequest) {
   try {
-    // Путь к моковым данным
-    const mockDataPath = path.join(process.cwd(), 'public', 'mocks', 'api', 'auth', 'users.json');
+        const mockDataPath = path.join(process.cwd(), 'public', 'mocks', 'api', 'auth', 'users.json');
     
-    // Читаем моковые данные
-    const mockData = fs.readFileSync(mockDataPath, 'utf8');
+        const mockData = fs.readFileSync(mockDataPath, 'utf8');
     const users = JSON.parse(mockData);
     
     return NextResponse.json(users);
   } catch (error) {
-    console.error('Error loading auth users:', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Failed to load users' },
       { status: 500 }
     );

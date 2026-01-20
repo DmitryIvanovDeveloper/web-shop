@@ -4,12 +4,7 @@ import type { BrowserPort } from '../../application/ports/browser.port';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
 
-/**
- * Payment Redirect Service Implementation
- * 
- * Infrastructure implementation of PaymentRedirectPort
- * Handles payment service redirection through abstraction
- */
+
 @injectable()
 export class PaymentRedirectService implements PaymentRedirectPort {
   constructor(
@@ -19,21 +14,17 @@ export class PaymentRedirectService implements PaymentRedirectPort {
     private readonly _logger: Logger
   ) {}
 
-  /**
-   * Build payment URL with product and user data
-   */
+  
   buildPaymentUrl(request: PaymentRedirectRequest): string {
     const appConfig = this._browser.getAppConfig();
 
-    // Validate paymentServiceUrl
-    if (!appConfig.paymentServiceUrl || appConfig.paymentServiceUrl.trim() === '') {
+        if (!appConfig.paymentServiceUrl || appConfig.paymentServiceUrl.trim() === '') {
       throw new Error(`Invalid paymentServiceUrl: "${appConfig.paymentServiceUrl}"`);
     }
 
     const paymentUrl = new URL('/payment', appConfig.paymentServiceUrl);
 
-    // Only pass minimal parameters
-    paymentUrl.searchParams.set('productId', request.productId);
+        paymentUrl.searchParams.set('productId', request.productId);
     paymentUrl.searchParams.set('userId', request.userId);
     paymentUrl.searchParams.set('appId', request.appId);
 
@@ -47,9 +38,7 @@ export class PaymentRedirectService implements PaymentRedirectPort {
     return paymentUrl.toString();
   }
 
-  /**
-   * Redirect to payment service
-   */
+  
   redirectToPayment(paymentUrl: string): void {
     this._logger.info('[PaymentRedirectService] Redirecting to payment service', {
       paymentUrl

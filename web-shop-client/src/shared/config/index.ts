@@ -1,6 +1,4 @@
-/**
- * Shared Config - экспорт типов конфигурации
- */
+
 
 export type {
 	AppConfig,

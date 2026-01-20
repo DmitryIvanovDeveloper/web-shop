@@ -8,7 +8,6 @@ export class AppLayoutError extends Error {
   }
 }
 
-// Legacy export for backward compatibility
 export const UIRendererError = AppLayoutError;
 
 

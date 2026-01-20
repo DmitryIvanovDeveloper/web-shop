@@ -1,7 +1,4 @@
-/**
- * Grid Template - готовые шаблоны для grid layouts
- * Упрощает создание популярных UI паттернов
- */
+
 
 import type { ComponentNode } from '../component-node';
 import { UIComponents } from '../component-types';

@@ -10,11 +10,11 @@ export interface DailyRewardCardProps {
   type: 'points' | 'currency' | 'item';
   isActive: boolean;
   isClaimedToday?: boolean;
-  shouldShowPadlock?: boolean; // Показывать ли замок для неактивных наград
+  shouldShowPadlock?: boolean;
   onClaim?: () => void;
-  day?: number; // Номер дня (1, 2, 3, ...)
-  isLoading?: boolean; // Состояние загрузки при claim
-  timeUntilNextClaim?: string | null; // Время до следующего claim'а (формат "HH:MM:SS")
+  day?: number;
+  isLoading?: boolean;
+  timeUntilNextClaim?: string | null;
   labels?: {
     claimButton?: string;
     claimedButton?: string;
@@ -257,9 +257,9 @@ export function DailyRewardCard({
         }}>
           <div>{labels?.claimedButton || 'Claimed'}</div>
           {timeUntilNextClaim && (
-            <div style={{ 
-              fontSize: '12px', 
-              marginTop: '4px', 
+            <div style={{
+              fontSize: '12px',
+              marginTop: '4px',
               opacity: 0.8,
               fontWeight: 400,
             }}>

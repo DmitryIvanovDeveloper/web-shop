@@ -13,13 +13,9 @@ export class CheckDailyRewardAvailabilityUseCase {
 
   async execute(input: CheckDailyRewardAvailabilityInput): Promise<Result<DailyRewardAvailabilityOutput, Error>> {
     try {
-      console.log('[CheckDailyRewardAvailabilityUseCase] Executing', { appId: input.appId, userId: input.userId });
-
-      // Get next reward availability from repository (which calls API)
-      const nextRewardResult = await this._dailyRewardRepository.findNextRewardAvailability(input.appId, input.userId);
+                  const nextRewardResult = await this._dailyRewardRepository.findNextRewardAvailability(input.appId, input.userId);
       if (isFailure(nextRewardResult)) {
-        console.error('[CheckDailyRewardAvailabilityUseCase] Failed to get next reward availability:', nextRewardResult.error);
-        return Failure.fail(nextRewardResult.error);
+                return Failure.fail(nextRewardResult.error);
       }
 
       const availability = nextRewardResult.data;
@@ -32,13 +28,7 @@ export class CheckDailyRewardAvailabilityUseCase {
         nextClaimDate: availability.nextClaimDate
       };
 
-      console.log('[CheckDailyRewardAvailabilityUseCase] Next reward availability result', {
-        canClaim: availability.canClaim,
-        hasReward: !!availability.reward,
-        hasNextClaimDate: !!availability.nextClaimDate
-      });
-
-      return Success.ok(output);
+            return Success.ok(output);
     } catch (error) {
       return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
     }

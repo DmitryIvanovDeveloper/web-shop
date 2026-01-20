@@ -15,8 +15,7 @@ export async function GET() {
       .single();
 
     if (error) {
-      console.error('[API] Failed to get active language:', error);
-      return NextResponse.json(
+            return NextResponse.json(
         { error: 'Failed to get active language' },
         { status: 500 }
       );
@@ -33,8 +32,7 @@ export async function GET() {
 
     return NextResponse.json(activeLanguage);
   } catch (error) {
-    console.error('[API] Unexpected error getting active language:', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );

@@ -17,8 +17,7 @@ export class ProductsTranslationsConfigHandler extends TranslationsConfigHandler
     languageCode: string,
     direction: 'ltr' | 'rtl'
   ): Promise<void> {
-    // Pass translations config to products presenter
-    this._productsPresenter.onTranslationsConfig(translations, languageCode, direction);
+        this._productsPresenter.onTranslationsConfig(translations, languageCode, direction);
   }
 }
 

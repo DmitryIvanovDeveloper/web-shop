@@ -26,8 +26,7 @@ export class PatchNotesLocalizationLoadedEventHandler implements IAsyncEventHand
       translationsCount: Object.keys(event.translations).length
     });
 
-    // Update the patch notes presenter with the loaded translations
-    this._patchNotesPresenter.updateLabelsFromTranslations(event.translations);
+        this._patchNotesPresenter.updateLabelsFromTranslations(event.translations);
 
     this._logger.debug('[PatchNotesLocalizationLoadedEventHandler] Patch notes presenter labels updated');
   }

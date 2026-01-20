@@ -54,28 +54,24 @@ export class LoadProductsUseCase {
 
       products = this._cachedAllProducts;
 
-      // If appId is empty - return all products (user is not authorized)
-      if (!request.appId) {
+            if (!request.appId) {
         this._logger.info('[LoadProductsUseCase] No appId provided, returning all products', {
           total: products.length,
         });
         return products;
       }
 
-      // Filter by appId
-      const filteredProducts = products.filter(product => {
+            const filteredProducts = products.filter(product => {
         const matches = product.appid === request.appId;
         return matches;
       });
 
-      // Calculate limitedOffer for products that have player_limit
-      const productsWithLimits = filteredProducts.filter(p => p.playerLimit && p.playerLimit > 0);
+            const productsWithLimits = filteredProducts.filter(p => p.playerLimit && p.playerLimit > 0);
       if (productsWithLimits.length > 0 && request.appId) {
         try {
           const purchaseCounts = await this._purchaseRepository.getProductPurchaseCounts(request.appId);
 
-          // Calculate limitedOffer for each filtered product
-          const enrichedProducts = filteredProducts.map(product => {
+                    const enrichedProducts = filteredProducts.map(product => {
             if (product.playerLimit && product.playerLimit > 0) {
               const purchasedCount = purchaseCounts.get(product.id.value) || 0;
               const limitedOffer = Math.max(0, product.playerLimit - purchasedCount);
@@ -88,8 +84,7 @@ export class LoadProductsUseCase {
                 limitedOffer: limitedOffer > 0 ? limitedOffer : undefined
               });
 
-              // Return new product object with calculated limitedOffer
-              return {
+                            return {
                 ...product,
                 limitedOffer: limitedOffer > 0 ? limitedOffer : undefined
               };
@@ -110,8 +105,7 @@ export class LoadProductsUseCase {
             error: error instanceof Error ? error.message : 'Unknown error',
             productsWithLimits: productsWithLimits.length
           });
-          // Continue without limitedOffer calculation
-        }
+                  }
       }
 
       this._logger.info('[LoadProductsUseCase] Products loaded', {

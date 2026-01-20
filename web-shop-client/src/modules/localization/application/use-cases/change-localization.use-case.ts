@@ -36,15 +36,13 @@ export class ChangeLocalizationUseCase {
 
       const { languageCode } = request;
 
-      // Validate language code format
-      if (!/^[a-z]{2,3}$/.test(languageCode)) {
+            if (!/^[a-z]{2,3}$/.test(languageCode)) {
         return Failure.fail(new Error(`Invalid language code format: ${languageCode}`));
       }
 
       this._logger.info('[ChangeLocalizationUseCase] Loading translations for new language', { languageCode });
 
-      // Load translations for the new language
-      const translationsResult = await this._translationRepository.getTranslationsByLanguage(languageCode);
+            const translationsResult = await this._translationRepository.getTranslationsByLanguage(languageCode);
 
       if (isFailure(translationsResult)) {
         this._logger.error('[ChangeLocalizationUseCase] Failed to load translations', {
@@ -56,14 +54,12 @@ export class ChangeLocalizationUseCase {
 
       const translationEntities = translationsResult.data;
 
-      // Convert Translation[] to Record<string, string>
-      const translations: Record<string, string> = {};
+            const translations: Record<string, string> = {};
       for (const translation of translationEntities) {
         translations[translation.key] = translation.value;
       }
 
-      // Логируем все nav.* ключи для отладки
-      const navKeys = Object.keys(translations).filter(key => key.startsWith('nav.'));
+            const navKeys = Object.keys(translations).filter(key => key.startsWith('nav.'));
       this._logger.info('[ChangeLocalizationUseCase] All nav.* keys in translations', {
         navKeys,
         navKeysCount: navKeys.length,
@@ -83,8 +79,7 @@ export class ChangeLocalizationUseCase {
         direction
       };
 
-      // Publish event for all modules to receive the language change
-      await this._eventBus.publishAsync(new LocalizationChangedEvent(
+            await this._eventBus.publishAsync(new LocalizationChangedEvent(
         translations,
         languageCode,
         direction

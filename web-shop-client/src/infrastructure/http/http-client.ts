@@ -12,12 +12,7 @@ export class AxiosHttpClient implements HttpClient {
   async request<T>(request: HttpRequest): Promise<HttpResponse<T>> {
     try {
       const url = `${this.baseURL}${request.url}`;
-      console.log('[AxiosHttpClient] Making request to:', url);
-      console.log('[AxiosHttpClient] Request method:', request.method);
-      console.log('[AxiosHttpClient] Request body:', request.body);
-
-      // Simulate HTTP request
-      const response = await fetch(url, {
+                              const response = await fetch(url, {
         method: request.method,
         headers: {
           'Content-Type': 'application/json',
@@ -26,37 +21,27 @@ export class AxiosHttpClient implements HttpClient {
         body: request.body ? JSON.stringify(request.body) : undefined
       });
 
-      console.log('[AxiosHttpClient] Fetch response status:', response.status);
-      console.log('[AxiosHttpClient] Fetch response ok:', response.ok);
-
-      const data = await response.json();
-      console.log('[AxiosHttpClient] Parsed JSON data:', data);
-
-      const result = {
+                  const data = await response.json();
+            const result = {
         data,
         status: response.status,
         statusText: response.statusText,
         headers: this.extractHeaders(response)
       };
 
-      console.log('[AxiosHttpClient] Final response object:', result);
-      return result;
+            return result;
     } catch (error) {
-      console.error('[AxiosHttpClient] Request failed:', error);
-      throw new Error(`HTTP request failed: ${error}`);
+            throw new Error(`HTTP request failed: ${error}`);
     }
   }
 
   async get<T>(url: string, headers?: Record<string, string>): Promise<HttpResponse<T>> {
-    console.log('[AxiosHttpClient] GET request to:', url);
-    const response = await this.request<T>({ url, method: 'GET', headers });
-    console.log('[AxiosHttpClient] GET response:', response);
-    return response;
+        const response = await this.request<T>({ url, method: 'GET', headers });
+        return response;
   }
 
   async post<T>(url: string, body?: any, headers?: Record<string, string>): Promise<HttpResponse<T>> {
-    console.log('[AxiosHttpClient] POST request to:', url, 'with body:', body);
-    return this.request<T>({ url, method: 'POST', body, headers });
+        return this.request<T>({ url, method: 'POST', body, headers });
   }
 
   async put<T>(url: string, body?: any, headers?: Record<string, string>): Promise<HttpResponse<T>> {

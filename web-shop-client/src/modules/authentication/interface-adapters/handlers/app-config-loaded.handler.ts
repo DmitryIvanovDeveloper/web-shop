@@ -1,8 +1,4 @@
-/**
- * App Config Loaded Handler
- * Обрабатывает событие загрузки app-config и передаёт данные в AuthPresenter
- * Событие: AppConfigLoadedEvent
- */
+
 
 import { injectable, inject } from 'inversify';
 import type { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';

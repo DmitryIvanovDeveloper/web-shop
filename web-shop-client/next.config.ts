@@ -8,13 +8,14 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self' http://localhost:* https://*.vercel.app",
+            // Allow embedding from local hosts used by sibling apps
+            value: "frame-ancestors 'self' http://localhost:3000 http://localhost:3001;",
           },
         ],
       },
     ];
   },
-  /* config options here */
+  
 };
 
 

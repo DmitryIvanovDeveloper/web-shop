@@ -1,6 +1,4 @@
-/**
- * UI Renderer Service - exports
- */
+
 
 export { UIRendererService } from './ui-renderer.service';
 export { UIComponentRegistry } from './component-registry.service';

@@ -20,23 +20,17 @@ export class UIRendererLanguageChangedHandler implements IAsyncEventHandler<Lang
   }
 
   public async handleAsync(event: LanguageChangedEvent): Promise<void> {
-    console.log('[UIRendererLanguageChangedHandler] ===== HANDLER CALLED =====', event.type);
-    this._logger.info('[UIRendererLanguageChangedHandler] Language changed event received, updating sidebar presenter', {
+        this._logger.info('[UIRendererLanguageChangedHandler] Language changed event received, updating sidebar presenter', {
       languageCode: event.languageCode.value,
       direction: event.direction.value,
       previousLanguageCode: event.previousLanguageCode?.value
     });
 
-    console.log('[UIRendererLanguageChangedHandler] Presenter available:', !!this._sidebarRendererPresenter);
-
-    // Pass language change data to sidebar presenter
-    // This will update language info and force re-render
-    this._sidebarRendererPresenter.onLanguageChanged(
+                this._sidebarRendererPresenter.onLanguageChanged(
       event.languageCode.value,
       event.direction.value
     );
 
     this._logger.info('[UIRendererLanguageChangedHandler] Sidebar presenter updated successfully');
-    console.log('[UIRendererLanguageChangedHandler] ===== HANDLER FINISHED =====');
-  }
+      }
 }

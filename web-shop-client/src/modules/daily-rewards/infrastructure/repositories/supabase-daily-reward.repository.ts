@@ -47,8 +47,7 @@ export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort 
       const url = `/api/daily-rewards?appId=${appId}`;
       this._logger.info('[SupabaseDailyRewardRepository] Making request to:', url);
 
-      // Use HttpClient with proper base URL handling
-      const response = await this._httpClient.get<DailyRewardsListApiResponseDto | DailyRewardApiDto[]>(url);
+            const response = await this._httpClient.get<DailyRewardsListApiResponseDto | DailyRewardApiDto[]>(url);
 
       if (response.status >= 400) {
         this._logger.error('[SupabaseDailyRewardRepository] Failed to find rewards via API', {
@@ -81,8 +80,7 @@ export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort 
       const url = `/api/daily-rewards/active?appId=${appId}`;
       this._logger.info('[SupabaseDailyRewardRepository] Making request to:', url);
 
-      // Use HttpClient with proper base URL handling
-      const response = await this._httpClient.get<DailyRewardApiDto>(url);
+            const response = await this._httpClient.get<DailyRewardApiDto>(url);
 
       if (response.status === 404) {
         this._logger.info('[SupabaseDailyRewardRepository] No active daily reward found', { appId });
@@ -113,8 +111,7 @@ export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort 
 
   private mapApiDtoToEntity(dto: DailyRewardApiDto): DailyReward {
     try {
-      // Валидация и парсинг дат с fallback
-      const createdAt = this.parseDate(dto.created_at, 'created_at');
+            const createdAt = this.parseDate(dto.created_at, 'created_at');
       const updatedAt = this.parseDate(dto.updated_at, 'updated_at');
 
       return DailyReward.fromDatabase(

@@ -1,10 +1,7 @@
 import { injectable } from 'inversify';
 import type { AppContextPort } from '../../application/ports/app-context.port';
 
-/**
- * URL-based implementation of AppContextPort
- * Reads app context information from URL search parameters
- */
+
 @injectable()
 export class UrlAppContextService implements AppContextPort {
   getAppId(): string {

@@ -13,8 +13,7 @@ import { LocalizationChangedEvent } from '../../../localization/domain/events/lo
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
 
 export function bindPatchNotes(container: Container): void {
-  // Repositories
-  container
+    container
     .bind(PATCH_NOTES_TYPES.PatchNoteRepository)
     .to(SupabasePatchNoteRepository)
     .inSingletonScope();
@@ -24,8 +23,7 @@ export function bindPatchNotes(container: Container): void {
     .to(PatchNoteSchedulerService)
     .inSingletonScope();
 
-  // Use Cases
-  container
+    container
     .bind(PATCH_NOTES_TYPES.CreatePatchNoteUseCase)
     .to(CreatePatchNoteUseCase);
 
@@ -37,14 +35,12 @@ export function bindPatchNotes(container: Container): void {
     .bind(PATCH_NOTES_TYPES.GetPublishedPatchNotesUseCase)
     .to(GetPublishedPatchNotesUseCase);
 
-  // Presenters
-  container
+    container
     .bind(PATCH_NOTES_TYPES.PatchNotesPublicPresenter)
     .to(PatchNotesPublicPresenter)
     .inSingletonScope();
 
-  // Event Handlers (Interface Adapters) - автоматически подхватываются EventBus
-  container
+    container
     .bind<IAsyncEventHandler<LocalizationLoadedEvent>>(PATCH_NOTES_TYPES.LocalizationLoadedEventHandler)
     .to(PatchNotesLocalizationLoadedEventHandler)
     .inTransientScope();

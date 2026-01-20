@@ -26,8 +26,7 @@ export class AppLayoutLocalizationChangedEventHandler implements IAsyncEventHand
       translationsCount: Object.keys(event.translations).length
     });
 
-    // Update the sidebar presenter with the new translations
-    this._sidebarPresenter.onTranslationsConfig(
+        this._sidebarPresenter.onTranslationsConfig(
       event.translations,
       event.languageCode,
       event.direction

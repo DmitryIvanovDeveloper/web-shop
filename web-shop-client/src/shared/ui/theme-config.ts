@@ -1,7 +1,4 @@
-/**
- * ThemeConfig - конфигурация темы приложения
- * Содержит цвета, отступы, типографику
- */
+
 
 export interface ColorConfig {
 	readonly primary: string;

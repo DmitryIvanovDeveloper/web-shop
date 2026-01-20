@@ -45,8 +45,7 @@ export function AuthPopup({
 			return;
 		}
 
-		// Load UI descriptor asynchronously (will use fallback if config not ready)
-		const loadDescriptor = async () => {
+				const loadDescriptor = async () => {
 			setIsLoading(true);
 			setError(null);
 			try {
@@ -58,8 +57,7 @@ export function AuthPopup({
 				);
 				setDescriptor(uiDescriptor);
 			} catch (err) {
-				console.error('[AuthPopup] Error creating popup UI:', err);
-				setError(err instanceof Error ? err.message : 'Failed to create popup UI');
+								setError(err instanceof Error ? err.message : 'Failed to create popup UI');
 			} finally {
 				setIsLoading(false);
 			}
@@ -105,8 +103,7 @@ export function AuthPopup({
 	}
 
 	try {
-		// Добавляем реальные handlers в context
-		const contextWithHandlers = {
+				const contextWithHandlers = {
 			...descriptor.context,
 			handleAppIdChange: (value: string) => {
 				onAppIdChange(value);
@@ -122,14 +119,12 @@ export function AuthPopup({
 			}
 		};
 
-		// Рендерим через UI Renderer Service
-		return uiRenderer.renderUI({
+				return uiRenderer.renderUI({
 			...descriptor,
 			context: contextWithHandlers
 		});
 	} catch (err) {
-		console.error('[AuthPopup] Error rendering popup:', err);
-		return (
+				return (
 			<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 				<div className="bg-gray-800 p-6 rounded-lg">
 					<p className="text-red-500">Failed to render authentication popup</p>

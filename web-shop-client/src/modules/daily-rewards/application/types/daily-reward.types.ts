@@ -29,9 +29,7 @@ export interface ClaimDailyRewardOutput {
   pointsAwarded: number;
   claimId: string;
   message: string;
-  nextRewardId?: string | null; // ID следующей награды
-  nextClaimDate?: Date | null; // Дата следующего claim'а (завтра в полночь)
-}
+  nextRewardId?: string | null;   nextClaimDate?: Date | null; }
 
 export interface LoadDailyRewardsOutput {
   rewards: DailyRewardOutput[];

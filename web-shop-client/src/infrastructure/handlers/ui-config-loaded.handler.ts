@@ -4,10 +4,7 @@ import { AppConfigLoadedEvent } from '../../shared/events/app-config-events';
 import type { Logger } from '../../application/ports/logger.port';
 import { ROOT_TYPES } from '../bootstrap/types';
 
-/**
- * UI Handler for AppConfigLoadedEvent
- * Dispatches window event to signal UI components that config has been loaded
- */
+
 @injectable()
 export class UIConfigLoadedHandler implements IAsyncEventHandler<AppConfigLoadedEvent> {
 	constructor(
@@ -23,8 +20,7 @@ export class UIConfigLoadedHandler implements IAsyncEventHandler<AppConfigLoaded
 		this._logger.info('[UIConfigLoadedHandler] Processing AppConfigLoadedEvent');
 
 		try {
-			// Dispatch window event for UI components (e.g., to hide loading spinner)
-			if (typeof window !== 'undefined') {
+						if (typeof window !== 'undefined') {
 				window.dispatchEvent(new CustomEvent('appConfigLoaded'));
 				this._logger.info('[UIConfigLoadedHandler] appConfigLoaded window event dispatched');
 			}

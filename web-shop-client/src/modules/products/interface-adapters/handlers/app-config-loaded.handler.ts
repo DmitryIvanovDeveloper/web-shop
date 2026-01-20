@@ -1,7 +1,4 @@
-/**
- * App Config Loaded Handler for Products Module
- * Обрабатывает событие загрузки app-config и передаёт shared стили для ProductCard
- */
+
 
 import { injectable, inject } from 'inversify';
 import type { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';

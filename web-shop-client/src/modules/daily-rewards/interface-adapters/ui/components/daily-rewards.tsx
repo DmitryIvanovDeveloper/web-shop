@@ -8,12 +8,10 @@ import { useAppId } from '../../../../../shared/hooks/use-app-context';
 
 interface DailyRewardsProps {
   userId: string;
-  // appId теперь получается автоматически из контекста приложения
-}
+  }
 
 export function DailyRewards({ userId }: DailyRewardsProps): JSX.Element {
-  // Always call ALL hooks first, in the same order, BEFORE any conditions
-  const appId = useAppId();
+    const appId = useAppId();
   const [presenter, setPresenter] = useState<DailyRewardsPresenter | null>(null);
   const [updateCounter, setUpdateCounter] = useState(0);
   const [currentViewModel, setCurrentViewModel] = useState<any>(null);
@@ -22,20 +20,14 @@ export function DailyRewards({ userId }: DailyRewardsProps): JSX.Element {
     setUpdateCounter(prev => prev + 1);
   }, []);
 
-  // Initialize presenter from DI container - this useEffect must come AFTER all other hooks
-  useEffect(() => {
+    useEffect(() => {
     if (!presenter && appId) {
       try {
-        console.log('DailyRewards: Attempting to get presenter from container...');
-        const presenterInstance = container.get<DailyRewardsPresenter>(DAILY_REWARDS_TYPES.DailyRewardsPresenter);
-        console.log('DailyRewards: Presenter instance:', presenterInstance);
-        if (presenterInstance) {
+                const presenterInstance = container.get<DailyRewardsPresenter>(DAILY_REWARDS_TYPES.DailyRewardsPresenter);
+                if (presenterInstance) {
           setPresenter(presenterInstance);
-          console.log('DailyRewards: Presenter successfully initialized');
-        } else {
-          console.error('DailyRewards: Presenter instance is null/undefined');
-          // Show error state
-          setCurrentViewModel({
+                  } else {
+                              setCurrentViewModel({
             status: 'error',
             canClaim: false,
             reward: null,
@@ -47,9 +39,7 @@ export function DailyRewards({ userId }: DailyRewardsProps): JSX.Element {
           });
         }
       } catch (error) {
-        console.error('DailyRewards: Failed to initialize presenter:', error);
-        // Show error state
-        setCurrentViewModel({
+                        setCurrentViewModel({
           status: 'error',
           canClaim: false,
           reward: null,
@@ -63,24 +53,16 @@ export function DailyRewards({ userId }: DailyRewardsProps): JSX.Element {
     }
   }, [presenter, appId]);
 
-  // Load reward availability
-  useEffect(() => {
-    console.log('[DailyRewards Component] useEffect triggered', { hasPresenter: !!presenter, userId, appId });
-    if (presenter && appId) {
-      console.log('[DailyRewards Component] Setting up presenter and loading rewards');
-      presenter.setOnViewModelChanged(forceUpdate);
+    useEffect(() => {
+        if (presenter && appId) {
+            presenter.setOnViewModelChanged(forceUpdate);
       presenter.loadRewardAvailability(userId, appId);
     } else {
-      console.log('[DailyRewards Component] Presenter or appId not available yet', { hasPresenter: !!presenter, hasAppId: !!appId });
-    }
+          }
   }, [presenter, userId, appId, forceUpdate]);
 
-  console.log('[DailyRewards] Component rendered', { userId, appId, hasAppId: !!appId });
-
-  // If appId is not loaded yet, show loading state
-  if (!appId) {
-    console.log('[DailyRewards] Showing loading state - appId not available');
-    return (
+      if (!appId) {
+        return (
       <div className="daily-rewards-card bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-6 text-white">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
@@ -243,10 +225,8 @@ export function DailyRewards({ userId }: DailyRewardsProps): JSX.Element {
             </button>
             <button
               onClick={() => {
-                console.log('[TEST BUTTON] Presenter available:', !!presenter);
-                if (presenter) {
-                  console.log('[TEST BUTTON] Calling loadRewardAvailability');
-                  presenter.loadRewardAvailability(userId, appId);
+                                if (presenter) {
+                                    presenter.loadRewardAvailability(userId, appId);
                 }
               }}
               className="bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-gray-700 transition-colors"

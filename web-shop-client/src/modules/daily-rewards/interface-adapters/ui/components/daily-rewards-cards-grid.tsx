@@ -30,8 +30,7 @@ export function DailyRewardsCardsGrid({ rewards, isLoading = false, onClaimRewar
     padding: '0',
   };
 
-  // Адаптивное количество колонок на основе ширины экрана
-  const getColumns = (width: number): number => {
+    const getColumns = (width: number): number => {
     if (width >= 1536) return 6;
     if (width >= 1280) return 3;
     if (width >= 1024) return 3;
@@ -44,8 +43,7 @@ export function DailyRewardsCardsGrid({ rewards, isLoading = false, onClaimRewar
     if (typeof window !== 'undefined') {
       const width = window.innerWidth;
       const columns = getColumns(width);
-      // На широких экранах ограничиваем максимальную ширину карточек
-      const maxCardWidth = width >= 1920 ? '380px' : width >= 1536 ? '360px' : 'none';
+            const maxCardWidth = width >= 1920 ? '380px' : width >= 1536 ? '360px' : 'none';
       const gridTemplate = maxCardWidth 
         ? `repeat(${columns}, minmax(0, ${maxCardWidth}))`
         : `repeat(${columns}, minmax(0, 1fr))`;
@@ -70,8 +68,7 @@ export function DailyRewardsCardsGrid({ rewards, isLoading = false, onClaimRewar
     const updateGridStyle = () => {
       const width = window.innerWidth;
       const columns = getColumns(width);
-      // На широких экранах ограничиваем максимальную ширину карточек
-      const maxCardWidth = width >= 1920 ? '380px' : width >= 1536 ? '360px' : 'none';
+            const maxCardWidth = width >= 1920 ? '380px' : width >= 1536 ? '360px' : 'none';
       const gridTemplate = maxCardWidth 
         ? `repeat(${columns}, minmax(0, ${maxCardWidth}))`
         : `repeat(${columns}, minmax(0, 1fr))`;
@@ -90,14 +87,10 @@ export function DailyRewardsCardsGrid({ rewards, isLoading = false, onClaimRewar
     return () => window.removeEventListener('resize', updateGridStyle);
   }, []);
 
-  // Показываем skeleton только если isLoading и нет наград (первая загрузка)
-  // Если есть награда в процессе claim, показываем карточки со spinner на кнопке
-  // Если награды уже загружены (rewards.length > 0), не показываем skeleton даже если isLoading
-  const hasClaiming = rewards.some(r => r.isClaiming);
+        const hasClaiming = rewards.some(r => r.isClaiming);
   const hasRewards = rewards.length > 0;
   
-  // Skeleton показываем только при первой загрузке (isLoading && нет наград)
-  if (isLoading && !hasClaiming && !hasRewards) {
+    if (isLoading && !hasClaiming && !hasRewards) {
     return (
       <div style={containerStyle}>
         <div style={gridStyle} className="daily-rewards-grid">
@@ -109,10 +102,8 @@ export function DailyRewardsCardsGrid({ rewards, isLoading = false, onClaimRewar
     );
   }
 
-  // Sort rewards by dayNumber before rendering
-  const sortedRewards = [...rewards].sort((a, b) => {
-    // Handle null dayNumber - put them at the end
-    if (a.dayNumber === null && b.dayNumber === null) return 0;
+    const sortedRewards = [...rewards].sort((a, b) => {
+        if (a.dayNumber === null && b.dayNumber === null) return 0;
     if (a.dayNumber === null) return 1;
     if (b.dayNumber === null) return -1;
     return (a.dayNumber ?? 0) - (b.dayNumber ?? 0);

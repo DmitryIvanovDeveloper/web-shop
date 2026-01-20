@@ -8,9 +8,7 @@ import type { Logger } from '../../../../application/ports/logger.port';
 import { ComponentNode } from '../../../app-layout/domain/value-objects/component-node.value-object';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 
-/**
- * Преобразует plain JSON object из БД в Value Object ComponentNode
- */
+
 function convertToComponentNode(json: any): ComponentNode | null {
   if (!json || !json.id || !json.type) {
     return null;
@@ -28,8 +26,7 @@ function convertToComponentNode(json: any): ComponentNode | null {
   });
   
   if (result.isFailure()) {
-    console.error(`[SupabasePageConfigRepository] Failed to convert component node: ${result.error.message}`);
-    return null;
+        return null;
   }
   
   return result.data || null;
@@ -60,8 +57,7 @@ export class SupabasePageConfigRepository implements PageConfigRepositoryPort {
         .limit(1)
         .single();
       
-      // PGRST116 = no rows found
-      if (error && error.code === 'PGRST116') {
+            if (error && error.code === 'PGRST116') {
         this._logger.info('[SupabasePageConfigRepository] No config found');
         return Result.ok(null);
       }
@@ -71,8 +67,7 @@ export class SupabasePageConfigRepository implements PageConfigRepositoryPort {
         return Result.error(new Error(error.message));
       }
       
-      // Преобразуем JSON sections в Domain Objects с ComponentNode Value Objects
-      const sections: PageSection[] = (data.sections || []).map((sectionJson: any) => ({
+            const sections: PageSection[] = (data.sections || []).map((sectionJson: any) => ({
         id: sectionJson.id,
         type: sectionJson.type,
         layout: sectionJson.layout || {

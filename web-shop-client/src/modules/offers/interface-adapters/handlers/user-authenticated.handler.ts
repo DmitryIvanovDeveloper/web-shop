@@ -26,8 +26,7 @@ export class OffersUserAuthenticatedHandler implements IAsyncEventHandler<UserAu
     });
 
     try {
-      // Загрузка offers by rules для авторизованного пользователя
-      const offers = await this.evaluateOffersUseCase.execute({
+            const offers = await this.evaluateOffersUseCase.execute({
         appId: event.appId,
         userId: event.userId,
         contextCache: new Map()
@@ -36,8 +35,7 @@ export class OffersUserAuthenticatedHandler implements IAsyncEventHandler<UserAu
       this.logger.info('[OffersHandler] Offers evaluated successfully', {
         offersCount: offers.length
       });
-      // TODO: Обновить presenter с офферами
-    } catch (error) {
+          } catch (error) {
       this.logger.error('[OffersHandler] Exception during offers evaluation', error);
     }
   }

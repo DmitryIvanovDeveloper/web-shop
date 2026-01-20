@@ -26,8 +26,7 @@ export class PatchNotesLocalizationChangedEventHandler implements IAsyncEventHan
       translationsCount: Object.keys(event.translations).length
     });
 
-    // Update the patch notes presenter with the new translations
-    this._patchNotesPresenter.updateLabelsFromTranslations(event.translations);
+        this._patchNotesPresenter.updateLabelsFromTranslations(event.translations);
 
     this._logger.debug('[PatchNotesLocalizationChangedEventHandler] Patch notes presenter labels updated after language change');
   }

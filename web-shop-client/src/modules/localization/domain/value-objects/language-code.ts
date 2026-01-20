@@ -1,9 +1,6 @@
 import { InvalidArgumentError } from '../../../../shared/domain/errors/invalid-argument.error';
 
-/**
- * LanguageCode Value Object
- * Represents a valid ISO language code (e.g., 'en', 'ar', 'he', 'fr')
- */
+
 export class LanguageCode {
   private constructor(private readonly _value: string) {}
 
@@ -27,8 +24,7 @@ export class LanguageCode {
       return false;
     }
 
-    // Basic ISO 639-1 validation (2-3 letter codes)
-    const normalized = value.toLowerCase().trim();
+        const normalized = value.toLowerCase().trim();
     return /^[a-z]{2,3}$/.test(normalized);
   }
 

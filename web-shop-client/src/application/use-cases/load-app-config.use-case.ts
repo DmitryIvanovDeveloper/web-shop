@@ -9,8 +9,7 @@ import type { SupabaseConfigLoader } from '../../infrastructure/config/supabase-
 @injectable()
 export class LoadAppConfigUseCase {
 	constructor(
-    // HTTP fallback удалён: конфиг загружаем только из Supabase
-		@inject(TYPES.EventBus)
+    		@inject(TYPES.EventBus)
 		private readonly _eventBus: EventBus,
 		@inject(TYPES.Logger)
 		private readonly _logger: Logger,
@@ -23,14 +22,10 @@ export class LoadAppConfigUseCase {
 			? isDraft
 			: this._shouldLoadDraftFromEnvironment();
 
-		// Check if we're in UI Builder iframe mode
-		const isUIBuilderMode = this._isUIBuilderMode();
+				const isUIBuilderMode = this._isUIBuilderMode();
 		if (isUIBuilderMode) {
-			// In UI Builder mode, still load active config as fallback
-			// The CONFIG_UPDATE message from parent will override it when it arrives
-			this._logger.info('[LoadAppConfigUseCase] UI Builder iframe mode detected - loading active config as fallback (will be overridden by CONFIG_UPDATE)');
-			// Continue to load config below, but force isDraft=false to load active config
-		}
+									this._logger.info('[LoadAppConfigUseCase] UI Builder iframe mode detected - loading active config as fallback (will be overridden by CONFIG_UPDATE)');
+					}
 
 		this._logger.info('[LoadAppConfigUseCase] Loading app configuration', {
 			isDraft: shouldLoadDraft,
@@ -43,8 +38,7 @@ export class LoadAppConfigUseCase {
         throw new Error('[LoadAppConfigUseCase] appId is required but was not provided');
       }
 
-			// Use shouldLoadDraft to determine which config to load
-			let config: AppConfig | null = null;
+						let config: AppConfig | null = null;
 
 			if (shouldLoadDraft) {
 				config = await this._supabaseLoader.loadDraftConfig(resolvedAppId);
@@ -55,15 +49,13 @@ export class LoadAppConfigUseCase {
 			} else {
 				config = await this._supabaseLoader.loadConfig(resolvedAppId);
 
-				// If active config not found, try to load draft as fallback (for UI Builder preview mode)
-				if (!config) {
+								if (!config) {
 					this._logger.warn('[LoadAppConfigUseCase] Active config not found, trying draft as fallback', { appId: resolvedAppId });
 					config = await this._supabaseLoader.loadDraftConfig(resolvedAppId);
 				}
 			}
 
-      // If no config found, create empty config to ensure modules can still initialize
-      if (!config) {
+            if (!config) {
 				const configType = shouldLoadDraft ? 'draft' : 'active';
         this._logger.warn(`[LoadAppConfigUseCase] ${configType} config not found for appId: ${resolvedAppId}, using empty config`);
         config = {
@@ -244,8 +236,7 @@ export class LoadAppConfigUseCase {
 				sidebarChildrenCount: config.modules?.uiRenderer?.sidebar?.layout?.children?.length || 0
       });
 
-			// Publish event for all modules to consume
-      await this._eventBus.publishAsync(new AppConfigLoadedEvent(config as AppConfig));
+			      await this._eventBus.publishAsync(new AppConfigLoadedEvent(config as AppConfig));
 
 			this._logger.info('[LoadAppConfigUseCase] AppConfigLoadedEvent published');
 		} catch (error) {
@@ -258,8 +249,7 @@ export class LoadAppConfigUseCase {
     if (typeof window !== 'undefined') {
       try {
         const url = new URL(window.location.href);
-        // Support both 'appId' and 'app' query parameters
-        const fromQuery = url.searchParams.get('appId') || url.searchParams.get('app');
+                const fromQuery = url.searchParams.get('appId') || url.searchParams.get('app');
         if (fromQuery) return fromQuery;
       } catch {}
     }

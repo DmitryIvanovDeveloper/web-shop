@@ -1,36 +1,25 @@
 import { Product } from '../types';
 import { ProductId } from '../value-objects/product-id.value-object';
 
-/**
- * Product Payment Domain Service
- * 
- * Encapsulates business logic for product payment operations
- * Pure domain logic without external dependencies
- */
+
 export class ProductPaymentService {
-  /**
-   * Create product snapshot for payment
-   */
+  
   static createProductSnapshot(product: Product): ProductPaymentSnapshot {
     if (!product) {
       throw new Error('Product is required for payment');
     }
 
-    // Extract price and currency from Value Object
-    const price = product.price?.amount || 0;
+        const price = product.price?.amount || 0;
     const currency = product.price?.currency || 'USD';
     
     return {
-      id: product.id.value, // Convert ProductId to string
-      title: product.title || 'Unknown Product',
+      id: product.id.value,       title: product.title || 'Unknown Product',
       price: price,
       currency: currency
     };
   }
 
-  /**
-   * Validate product for payment
-   */
+  
   static validateProductForPayment(product: Product): ValidationResult {
     const errors: string[] = [];
 
@@ -57,9 +46,7 @@ export class ProductPaymentService {
     };
   }
 
-  /**
-   * Get user context for payment
-   */
+  
   static createUserContext(
     currentUser: CurrentUser | null,
     appConfig: AppConfig
@@ -72,10 +59,7 @@ export class ProductPaymentService {
       };
     }
     
-    // In the current business rules we do not support anonymous purchases.
-    // If this method is called without an authenticated user, we still
-    // return a context, but upstream use cases must block the flow earlier.
-    return {
+                return {
       userId: '',
       appId: appConfig.appId,
       isAuthenticated: false
@@ -83,9 +67,7 @@ export class ProductPaymentService {
   }
 }
 
-/**
- * Product payment snapshot
- */
+
 export interface ProductPaymentSnapshot {
   readonly id: string;
   readonly title: string;
@@ -93,34 +75,26 @@ export interface ProductPaymentSnapshot {
   readonly currency: string;
 }
 
-/**
- * Validation result
- */
+
 export interface ValidationResult {
   readonly isValid: boolean;
   readonly errors: readonly string[];
 }
 
-/**
- * Current user data
- */
+
 export interface CurrentUser {
   readonly userId: string;
   readonly username: string;
   readonly appId: string;
 }
 
-/**
- * Application configuration
- */
+
 export interface AppConfig {
   readonly paymentServiceUrl: string;
   readonly appId: string;
 }
 
-/**
- * User payment context
- */
+
 export interface UserPaymentContext {
   readonly userId: string;
   readonly appId: string;

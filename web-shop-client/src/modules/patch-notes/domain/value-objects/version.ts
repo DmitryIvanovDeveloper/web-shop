@@ -6,8 +6,7 @@ export class Version {
       throw new Error('Version cannot be empty');
     }
 
-    // Basic semver validation (x.y.z format)
-    const semverRegex = /^\d+\.\d+\.\d+$/;
+        const semverRegex = /^\d+\.\d+\.\d+$/;
     if (!semverRegex.test(value)) {
       throw new Error('Version must follow semantic versioning format (x.y.z)');
     }
@@ -27,8 +26,7 @@ export class Version {
     return this._value === other._value;
   }
 
-  // Compare versions (simple implementation)
-  isGreaterThan(other: Version): boolean {
+    isGreaterThan(other: Version): boolean {
     const [major1, minor1, patch1] = this._value.split('.').map(Number);
     const [major2, minor2, patch2] = other._value.split('.').map(Number);
 

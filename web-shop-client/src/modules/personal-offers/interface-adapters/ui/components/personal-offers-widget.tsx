@@ -15,10 +15,7 @@ export function PersonalOffersWidget(): JSX.Element | null {
       forceUpdate({});
     });
 
-    // Don't call showOffers here - let PersonalOffersUserAuthenticatedHandler
-    // handle it via UserAuthenticatedEvent with proper scenarioSlugs for new users
-    // This ensures welcome-offer is shown for new users via the event handler
-  }, [presenter]);
+              }, [presenter]);
 
   const viewModel = presenter.getViewModel();
 

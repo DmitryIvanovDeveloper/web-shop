@@ -1,12 +1,8 @@
-/**
- * UI Component Registry Service
- * Универсальный реестр UI компонентов для динамического рендеринга
- */
+
 
 import { injectable } from 'inversify';
 import type { ComponentType } from 'react';
 
-// Import UI components
 import { UniversalContainer } from '../../../shared/components/atoms/container';
 import { UniversalButton } from '../../../shared/components/atoms/button';
 import { UniversalText } from '../../../shared/components/atoms/text';
@@ -30,47 +26,34 @@ export class UIComponentRegistry {
 		this._registerDefaultComponents();
 	}
 
-	/**
-	 * Регистрирует компонент
-	 */
+	
 	public register(type: string, component: ComponentType<any>): void {
 		this._components.set(type, component);
 	}
 
-	/**
-	 * Alias for register (backward compatibility)
-	 */
+	
 	public registerComponent(type: string, component: ComponentType<any>): void {
 		this.register(type, component);
 	}
 
-	/**
-	 * Получает компонент по типу
-	 */
+	
 	public getComponent(type: string): ComponentType<any> | null {
 		return this._components.get(type) || null;
 	}
 
-	/**
-	 * Проверяет, зарегистрирован ли компонент
-	 */
+	
 	public hasComponent(type: string): boolean {
 		return this._components.has(type);
 	}
 
-	/**
-	 * Возвращает массив зарегистрированных типов компонентов
-	 */
+	
 	public getRegisteredTypes(): string[] {
 		return Array.from(this._components.keys());
 	}
 
-	/**
-	 * Регистрирует стандартные компоненты
-	 */
+	
 	private _registerDefaultComponents(): void {
-		// Atoms
-		this.registerComponent('Container', UniversalContainer);
+				this.registerComponent('Container', UniversalContainer);
 		this.registerComponent('Button', UniversalButton);
 		this.registerComponent('Text', UniversalText);
 		this.registerComponent('Input', Input);
@@ -79,8 +62,7 @@ export class UIComponentRegistry {
 		this.registerComponent('Video', UniversalVideo);
 		this.registerComponent('Badge', Badge);
 
-		// Molecules
-		this.registerComponent('Grid', Grid);
+				this.registerComponent('Grid', Grid);
 		this.registerComponent('DataGrid', DataGrid);
 		this.registerComponent('UniversalInput', UniversalInput);
 		this.registerComponent('OfferCard', OfferCard);

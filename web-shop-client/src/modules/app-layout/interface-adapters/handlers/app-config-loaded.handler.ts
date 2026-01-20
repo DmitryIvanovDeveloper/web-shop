@@ -23,8 +23,7 @@ export class AppLayoutConfigLoadedHandler implements IAsyncEventHandler<AppConfi
 		this._logger.info('[AppLayoutConfigLoadedHandler] Processing AppConfigLoadedEvent');
 
 		try {
-			// Extract uiRenderer config, defaulting to empty object if modules don't exist
-			const appLayoutConfig = event.config?.modules?.uiRenderer || {};
+						const appLayoutConfig = event.config?.modules?.uiRenderer || {};
 
 			this._logger.info('[AppLayoutConfigLoadedHandler] Extracted uiRenderer config', {
 				hasConfig: !!appLayoutConfig,
@@ -32,8 +31,7 @@ export class AppLayoutConfigLoadedHandler implements IAsyncEventHandler<AppConfi
 				sidebarChildrenCount: (appLayoutConfig as any)?.sidebar?.layout?.children?.length || 0
 			});
 
-			// Always set configs, even if empty - this marks presenter as "ready"
-			this._logger.info('[AppLayoutConfigLoadedHandler] Setting App Layout configs in presenter');
+						this._logger.info('[AppLayoutConfigLoadedHandler] Setting App Layout configs in presenter');
 			this._presenter.setConfigs(appLayoutConfig as any);
 
 			this._logger.info('[AppLayoutConfigLoadedHandler] App Layout configs successfully applied');
@@ -43,5 +41,4 @@ export class AppLayoutConfigLoadedHandler implements IAsyncEventHandler<AppConfi
 	}
 }
 
-// Legacy export for backward compatibility
 export const UIRendererAppConfigLoadedHandler = AppLayoutConfigLoadedHandler;

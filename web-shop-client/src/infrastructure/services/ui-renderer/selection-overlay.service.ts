@@ -8,11 +8,7 @@ export interface SelectionRect {
   borderRadius?: number;
 }
 
-/**
- * SelectionOverlay
- * Lightweight DOM-based overlay for highlighting selected elements in preview.
- * Does NOT modify component styles; draws a spotlight rectangle on top.
- */
+
 export class SelectionOverlay {
   private _overlay: HTMLDivElement | null = null;
   private _highlight: HTMLDivElement | null = null;
@@ -46,16 +42,11 @@ export class SelectionOverlay {
     const scrollX = window.scrollX || window.pageXOffset;
     const scrollY = window.scrollY || window.pageYOffset;
 
-    // Draw spotlight slightly ВНУТРИ элемента:
-    // уменьшаем прямоугольник на несколько пикселей,
-    // чтобы рамка визуально была внутри, а не снаружи.
-    const inset = 3;
+                const inset = 3;
     const insetWidth = Math.max(rect.width - inset * 2, 0);
     const insetHeight = Math.max(rect.height - inset * 2, 0);
 
-    // If element is not visible in the current viewport (e.g. sidebar is closed in mobile),
-    // do not show the overlay at all.
-    const rectRight = rect.right ?? (rect.left + rect.width);
+            const rectRight = rect.right ?? (rect.left + rect.width);
     const rectBottom = rect.bottom ?? (rect.top + rect.height);
     const isOffscreen =
       rect.width <= 0 ||
@@ -68,14 +59,10 @@ export class SelectionOverlay {
     if (isOffscreen) {
       this._overlay.style.display = 'none';
       this._currentHoveredElementId = null;
-      // keep selected state logically, but do not draw anything
-      return;
+            return;
     }
 
-    // If a sidebar is visible (e.g. slide-out sidebar on mobile) and we are trying
-    // to draw selection for the full page (page-*), do not show the page outline
-    // behind the sidebar.
-    if (isSelected && elementId && elementId.startsWith('page-')) {
+                if (isSelected && elementId && elementId.startsWith('page-')) {
       const sidebarNodeList = document.querySelectorAll('[data-element-id*="sidebar"]') as NodeListOf<HTMLElement>;
       const hasVisibleSidebar = Array.from(sidebarNodeList).some((el) => {
         const sidebarRect = el.getBoundingClientRect();
@@ -93,32 +80,23 @@ export class SelectionOverlay {
 
       if (hasVisibleSidebar) {
         this._overlay.style.display = 'none';
-        // Remove CSS-based selection class from page to avoid ::before outlines,
-        // but keep the logical selected state (used by the builder).
-        const pageElement = document.querySelector<HTMLElement>(`[data-element-id="${elementId}"]`);
+                        const pageElement = document.querySelector<HTMLElement>(`[data-element-id="${elementId}"]`);
         if (pageElement) {
           pageElement.classList.remove('preview-selected');
         }
-        // Keep selected state logically, but do not render any visual outline
-        // while sidebar is open.
-        return;
+                        return;
       }
     }
 
-    // Hover всегда имеет визуальный приоритет над selected
-    if (isSelected) {
-      // Сохраняем selected элемент (но не показываем, если есть активный hover)
-      this._currentSelectedElementId = elementId || null;
+        if (isSelected) {
+            this._currentSelectedElementId = elementId || null;
       this._selectedRect = rect;
       
-      // Показываем selected только если нет активного hover
-      if (this._currentHoveredElementId) {
-        console.log('[SelectionOverlay] Selected element saved, but hover is active - not showing selected');
-        return;
+            if (this._currentHoveredElementId) {
+                return;
       }
     } else {
-      // Hover всегда показывается (даже если есть selected)
-      this._currentHoveredElementId = elementId || null;
+            this._currentHoveredElementId = elementId || null;
     }
 
     this._overlay.style.display = 'block';
@@ -130,14 +108,11 @@ export class SelectionOverlay {
     this._highlight.style.borderRadius =
       rect.borderRadius !== undefined ? `${Math.max(rect.borderRadius - inset, 0)}px` : '12px';
 
-    // Different styles for hover vs selected (всё внутри контура элемента)
-    if (isSelected) {
-      // Selected: яркая внутренняя рамка
-      this._highlight.style.boxShadow =
+        if (isSelected) {
+            this._highlight.style.boxShadow =
         '0 0 0 2px rgba(59,130,246,1)';
     } else {
-      // Hover: более мягкая внутренняя рамка
-      this._highlight.style.boxShadow =
+            this._highlight.style.boxShadow =
         '0 0 0 2px rgba(59,130,246,0.5)';
     }
 
@@ -162,8 +137,7 @@ export class SelectionOverlay {
       return;
     }
 
-    // Explicit hide (e.g. clear selection) – always hide and reset state
-    if (!elementId) {
+        if (!elementId) {
       this._overlay.style.display = 'none';
       this._currentHoveredElementId = null;
       this._currentSelectedElementId = null;
@@ -171,40 +145,31 @@ export class SelectionOverlay {
       return;
     }
 
-    // If hiding hovered element
-    if (this._currentHoveredElementId === elementId) {
+        if (this._currentHoveredElementId === elementId) {
       this._currentHoveredElementId = null;
       
-      // If there's a selected element, restore its spotlight
-      if (this._currentSelectedElementId && this._selectedRect) {
-        console.log('[SelectionOverlay] Hover ended, restoring selected element spotlight');
-        this._showRect(this._selectedRect, true);
+            if (this._currentSelectedElementId && this._selectedRect) {
+                this._showRect(this._selectedRect, true);
         return;
       }
       
-      // No selected element, hide overlay
-      this._overlay.style.display = 'none';
+            this._overlay.style.display = 'none';
       return;
     }
 
-    // If hiding selected element
-    if (this._currentSelectedElementId === elementId) {
+        if (this._currentSelectedElementId === elementId) {
       this._currentSelectedElementId = null;
       this._selectedRect = null;
       
-      // If there's a hovered element, keep showing it
-      if (this._currentHoveredElementId) {
-        console.log('[SelectionOverlay] Selected cleared, but hover is active - keeping hover');
-        return;
+            if (this._currentHoveredElementId) {
+                return;
       }
       
-      // No hover, hide overlay
-      this._overlay.style.display = 'none';
+            this._overlay.style.display = 'none';
       return;
     }
 
-    // If it's some other element, nothing to do
-  }
+      }
 
   private _showRect(rect: SelectionRect, isSelected: boolean): void {
     if (!this._overlay || !this._highlight) {
@@ -280,8 +245,7 @@ export class SelectionOverlay {
     highlight.style.position = 'absolute';
     highlight.style.boxSizing = 'border-box';
     highlight.style.boxShadow =
-      '0 0 0 2px rgba(59,130,246,0.7), 0 0 0 15px rgba(59,130,246,0.2)'; // Default hover style
-    highlight.style.background = 'transparent';
+      '0 0 0 2px rgba(59,130,246,0.7), 0 0 0 15px rgba(59,130,246,0.2)';     highlight.style.background = 'transparent';
 
     overlay.appendChild(highlight);
     document.body.appendChild(overlay);

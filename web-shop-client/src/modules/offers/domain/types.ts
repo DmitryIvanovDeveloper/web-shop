@@ -9,8 +9,7 @@ export interface Condition {
   readonly conditionType: 'eq' | 'gte' | 'lte' | 'and' | 'or';
   readonly value1?: ValueDescriptor;
   readonly value2?: ValueDescriptor;
-  readonly conditions?: readonly Condition[]; // For 'and'/'or'
-}
+  readonly conditions?: readonly Condition[]; }
 
 export interface Action {
   readonly actionType: 'showOffer';
@@ -25,8 +24,7 @@ export interface Operation {
   readonly condition?: Condition;
   readonly action?: Action;
   readonly nextOperation?: Operation;
-  readonly elseOperation?: Operation; // For 'condition' type
-}
+  readonly elseOperation?: Operation; }
 
 export interface RuleSet extends Operation {}
 

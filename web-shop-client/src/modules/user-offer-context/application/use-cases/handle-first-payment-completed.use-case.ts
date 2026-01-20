@@ -14,8 +14,7 @@ export class HandleFirstPaymentCompletedUseCase {
     const { appId, userId, totalSpend, purchaseCount } = event.payload;
     await this.writer.upsert(appId, userId, {
       'user.flags.isFirstPayment': true,
-      'user.flags.isNew': false, // User who made a payment is no longer new
-      'user.purchases.length': purchaseCount,
+      'user.flags.isNew': false,       'user.purchases.length': purchaseCount,
       'user.metrics.totalSpend': totalSpend,
     });
   }

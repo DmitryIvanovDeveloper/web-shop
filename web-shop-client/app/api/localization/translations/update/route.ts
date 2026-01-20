@@ -18,30 +18,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[API] Updating translations', { languageCode, count: translations.length });
-
-    // Process each translation update
-    const results = [];
+            const results = [];
     for (const translation of translations) {
       const { key, value, context } = translation;
 
       if (!key || typeof value !== 'string') {
-        console.error('[API] Invalid translation data', { key, value, context });
-        continue;
+                continue;
       }
 
       try {
-        // Check if translation already exists
-        const { data: existing, error: fetchError } = await supabase
+                const { data: existing, error: fetchError } = await supabase
           .from('translations')
           .select('id')
           .eq('key', key)
           .eq('language_code', languageCode)
           .single();
 
-        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = not found
-          console.error('[API] Error checking existing translation', { key, languageCode, error: fetchError });
-          continue;
+        if (fetchError && fetchError.code !== 'PGRST116') {                     continue;
         }
 
         const translationData = {
@@ -55,40 +48,33 @@ export async function POST(request: NextRequest) {
 
         let result;
         if (existing) {
-          // Update existing translation
-          result = await supabase
+                    result = await supabase
             .from('translations')
             .update(translationData)
             .eq('key', key)
             .eq('language_code', languageCode);
         } else {
-          // Insert new translation
-          result = await supabase
+                    result = await supabase
             .from('translations')
             .insert(translationData);
         }
 
         if (result.error) {
-          console.error('[API] Error saving translation', { key, languageCode, error: result.error });
-        } else {
+                  } else {
           results.push({ key, success: true });
           console.log('[API] Translation saved', { key, languageCode, value: value.substring(0, 50) + '...' });
         }
       } catch (error) {
-        console.error('[API] Unexpected error processing translation', { key, languageCode, error });
-      }
+              }
     }
 
-    console.log('[API] Translation update completed', { processed: results.length, total: translations.length });
-
-    return NextResponse.json({
+        return NextResponse.json({
       success: true,
       updated: results.length,
       total: translations.length
     });
   } catch (error) {
-    console.error('[API] Unexpected error in translations update', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );

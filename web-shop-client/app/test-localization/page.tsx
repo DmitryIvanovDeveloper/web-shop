@@ -11,8 +11,7 @@ export default function TestLocalizationPage() {
       const results: any = {};
 
       try {
-        // Test active language
-        const activeResponse = await fetch('/api/localization/active-language');
+                const activeResponse = await fetch('/api/localization/active-language');
         results.activeLanguage = {
           status: activeResponse.status,
           data: activeResponse.ok ? await activeResponse.json() : null
@@ -22,8 +21,7 @@ export default function TestLocalizationPage() {
       }
 
       try {
-        // Test languages list
-        const languagesResponse = await fetch('/api/localization/languages');
+                const languagesResponse = await fetch('/api/localization/languages');
         results.languages = {
           status: languagesResponse.status,
           data: languagesResponse.ok ? await languagesResponse.json() : null
@@ -33,8 +31,7 @@ export default function TestLocalizationPage() {
       }
 
       try {
-        // Test English translations
-        const enResponse = await fetch('/api/localization/translations?lang=en');
+                const enResponse = await fetch('/api/localization/translations?lang=en');
         const enData = enResponse.ok ? await enResponse.json() : null;
         results.enTranslations = {
           status: enResponse.status,
@@ -46,8 +43,7 @@ export default function TestLocalizationPage() {
       }
 
       try {
-        // Test Arabic translations
-        const arResponse = await fetch('/api/localization/translations?lang=ar');
+                const arResponse = await fetch('/api/localization/translations?lang=ar');
         const arData = arResponse.ok ? await arResponse.json() : null;
         results.arTranslations = {
           status: arResponse.status,
@@ -79,7 +75,7 @@ export default function TestLocalizationPage() {
         <h1 className="text-3xl font-bold text-center mb-8">Localization Module Test</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Active Language */}
+          {}
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold mb-4 text-blue-600">Active Language</h2>
             <div className="bg-gray-50 p-4 rounded">
@@ -95,7 +91,7 @@ export default function TestLocalizationPage() {
             </div>
           </div>
 
-          {/* Languages List */}
+          {}
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold mb-4 text-green-600">Languages List</h2>
             <div className="bg-gray-50 p-4 rounded">
@@ -111,7 +107,7 @@ export default function TestLocalizationPage() {
             </div>
           </div>
 
-          {/* English Translations */}
+          {}
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold mb-4 text-purple-600">English Translations</h2>
             <div className="bg-gray-50 p-4 rounded">
@@ -128,7 +124,7 @@ export default function TestLocalizationPage() {
             </div>
           </div>
 
-          {/* Arabic Translations */}
+          {}
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold mb-4 text-orange-600">Arabic Translations</h2>
             <div className="bg-gray-50 p-4 rounded">
@@ -146,7 +142,7 @@ export default function TestLocalizationPage() {
           </div>
         </div>
 
-        {/* Summary */}
+        {}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-2xl font-bold text-center mb-4">Test Summary</h2>
           <div className="text-center">

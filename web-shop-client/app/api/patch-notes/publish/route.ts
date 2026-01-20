@@ -22,8 +22,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const result = await useCase.execute({ id });
 
     if (!result.success) {
-      console.error('[POST /api/patch-notes/publish] Use case failed', result.error);
-      return NextResponse.json(
+            return NextResponse.json(
         { error: result.error.message },
         { status: 400 }
       );
@@ -32,8 +31,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json(result.data);
 
   } catch (error) {
-    console.error('[POST /api/patch-notes/publish] Unexpected error', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Unexpected error while publishing patch note' },
       { status: 500 }
     );

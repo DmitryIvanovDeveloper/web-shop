@@ -42,36 +42,30 @@ export class SelectProductForPaymentUseCase {
     });
 
     try {
-      // 1. CHECK AUTHENTICATION (UseCase координирует бизнес-логику)
-      if (!this._authService.isUserAuthenticated()) {
+            if (!this._authService.isUserAuthenticated()) {
         this._logger.warn('[SelectProductForPaymentUseCase] User not authenticated', {
           productId: request.productId
         });
         
-        // Публикуем событие для показа AuthPopup (межмодульное общение)
-        await this._eventBus.publishAsync(
+                await this._eventBus.publishAsync(
           new AuthenticationRequiredEvent('products', 'purchase', request.productId)
         );
         
-        // Выбрасываем ошибку для остановки выполнения
-        throw new UnauthenticatedUserError(request.productId);
+                throw new UnauthenticatedUserError(request.productId);
       }
 
-      // 2. Load product data from repository
-      const product = await this._productRepository.getById(request.productId);
+            const product = await this._productRepository.getById(request.productId);
       
       if (!product) {
         throw new Error(`Product with id ${request.productId} not found`);
       }
 
-      // 2. Validate product for payment using Domain Service
-      const validation = ProductPaymentService.validateProductForPayment(product);
+            const validation = ProductPaymentService.validateProductForPayment(product);
       if (!validation.isValid) {
         throw new Error(`Product validation failed: ${validation.errors.join(', ')}`);
       }
 
-      // 3. Create product snapshot using Domain Service
-      const productSnapshot = ProductPaymentService.createProductSnapshot(product);
+            const productSnapshot = ProductPaymentService.createProductSnapshot(product);
 
       this._logger.info('[SelectProductForPaymentUseCase] Product data loaded and validated', {
         productId: request.productId,
@@ -79,16 +73,14 @@ export class SelectProductForPaymentUseCase {
         productPrice: productSnapshot.price
       });
 
-      // 4. Handle payment redirection
-      if (this._browser.isBrowser()) {
+            if (this._browser.isBrowser()) {
         await this._handleBrowserPayment(productSnapshot);
       } else {
         await this._handleServerPayment(request.productId, productSnapshot);
       }
     } catch (error) {
       if (error instanceof UnauthenticatedUserError) {
-        // Authentication is handled via AuthenticationRequiredEvent; do not break UI flow.
-        this._logger.warn('[SelectProductForPaymentUseCase] Payment blocked for unauthenticated user', {
+                this._logger.warn('[SelectProductForPaymentUseCase] Payment blocked for unauthenticated user', {
           productId: request.productId,
           error: error.message,
         });
@@ -103,40 +95,31 @@ export class SelectProductForPaymentUseCase {
     }
   }
 
-  /**
-   * Handle payment in browser environment
-   */
+  
   private async _handleBrowserPayment(productSnapshot: ProductPaymentSnapshot): Promise<void> {
-    // Get user context from AuthService and app configuration
-    const currentUser = this._authService.getCurrentUser();
+        const currentUser = this._authService.getCurrentUser();
     const appConfig = this._browser.getAppConfig();
 
-    // Create user context using Domain Service
-    const userContext = ProductPaymentService.createUserContext(
+        const userContext = ProductPaymentService.createUserContext(
       currentUser,
       appConfig
     );
 
-    // Build payment URL through Payment Redirect Port
-    const paymentUrl = this._paymentRedirect.buildPaymentUrl({
+        const paymentUrl = this._paymentRedirect.buildPaymentUrl({
         productId: productSnapshot.id,
         userId: userContext.userId,
         appId: userContext.appId
       });
 
-    // Redirect through Payment Redirect Port
-    this._paymentRedirect.redirectToPayment(paymentUrl);
+        this._paymentRedirect.redirectToPayment(paymentUrl);
   }
 
-  /**
-   * Handle payment in server environment
-   */
+  
   private async _handleServerPayment(
     productId: string,
     productSnapshot: ProductPaymentSnapshot
   ): Promise<void> {
-    // Publish domain event for server-side processing
-    await this._eventBus.publishAsync(
+        await this._eventBus.publishAsync(
       new ProductSelectedForPaymentEvent(productId, productSnapshot)
     );
 

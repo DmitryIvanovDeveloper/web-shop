@@ -10,13 +10,13 @@ import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
 
 interface AuthPopupProps {
   onClose: () => void;
-  /** Кастомные CSS классы для popup */
+  
   className?: string;
-  /** Callback при успешной авторизации */
+  
   onAuthSuccess?: (user: AppUser) => void;
-  /** Callback при ошибке авторизации */
+  
   onAuthError?: (error: string) => void;
-  /** Задержка перед закрытием popup при успехе (по умолчанию 1500ms) */
+  
   closeDelay?: number;
 }
 
@@ -43,20 +43,14 @@ export function AuthPopup({
         const viewModel = presenter.present(result.data);
         setViewModel(viewModel);
         
-        // Use Case уже сохранил в localStorage и опубликовал событие в EventBus
-        // Обработчики автоматически выполнятся (скрыть Login, загрузить Offers)
+                        
+                onAuthSuccess?.(result.data);
         
-        // Вызываем callback успешной авторизации
-        onAuthSuccess?.(result.data);
-        
-        // Закрываем popup через задержку для UX
-        setTimeout(() => {
+                setTimeout(() => {
           onClose();
-          // НЕ делаем редирект - пользователь остаётся на текущей странице
-        }, closeDelay);
+                  }, closeDelay);
       } else {
-        // При ошибке
-        setViewModel({
+                setViewModel({
           status: 'error',
           error: result.error?.message || 'Authentication failed',
           labels: presenter.labels
@@ -76,8 +70,7 @@ export function AuthPopup({
 
   function handleManualAuth() {
     if (manualAppId.trim()) {
-      // Без userId аутентификация невозможна, показываем ошибку
-      setViewModel({
+            setViewModel({
         status: 'error',
         error: 'User ID is required',
         labels: presenter.labels
@@ -91,9 +84,9 @@ export function AuthPopup({
 
   return (
     <div className={finalClassName}>
-      {/* Pixel Gun 3D Style Popup */}
+      {}
       <div className={popupClassName}>
-        {/* Close Button */}
+        {}
         <button
           onClick={onClose}
           className="absolute top-2 right-2 w-6 h-6 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center text-white text-sm font-bold transition-colors"
@@ -101,7 +94,7 @@ export function AuthPopup({
           ×
         </button>
 
-        {/* Logo */}
+        {}
         <div className="text-center mb-3">
           <div className="inline-block bg-gradient-to-br from-gray-900 to-black dark:from-black dark:to-gray-900 p-1.5 rounded mb-1.5 border-2 border-yellow-400">
             <div className="text-yellow-400 font-bold text-lg" style={{ fontFamily: 'monospace' }}>
@@ -113,7 +106,7 @@ export function AuthPopup({
           <h1 className="text-gray-900 dark:text-white text-xs font-bold">{viewModel.labels.welcomeSubtitle}</h1>
         </div>
 
-        {/* Loading State */}
+        {}
         {viewModel.status === 'loading' && (
           <div className="text-center mb-3">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-400 mx-auto"></div>
@@ -121,7 +114,7 @@ export function AuthPopup({
           </div>
         )}
 
-        {/* Success State */}
+        {}
         {viewModel.status === 'success' && (
           <div className="text-center mb-3">
             <div className="text-green-400 text-3xl mb-1.5">✓</div>
@@ -131,7 +124,7 @@ export function AuthPopup({
           </div>
         )}
 
-        {/* Error State */}
+        {}
         {viewModel.status === 'error' && (
           <div className="text-center mb-3">
             <div className="text-red-400 text-3xl mb-1.5">✗</div>
@@ -140,15 +133,15 @@ export function AuthPopup({
           </div>
         )}
 
-        {/* Input Form (only show when not loading or success) */}
+        {}
         {viewModel.status !== 'loading' && viewModel.status !== 'success' && (
           <>
-            {/* Instruction */}
+            {}
             <p className="text-gray-900 dark:text-white text-center text-xs mb-2">
               Введите ваш App ID, чтобы продолжить
             </p>
 
-            {/* Input Field */}
+            {}
             <div className="mb-2">
               <input
                 type="text"
@@ -161,7 +154,7 @@ export function AuthPopup({
               />
             </div>
 
-            {/* Legal Agreement */}
+            {}
             <div className="mb-2">
               <label className="flex items-start gap-1.5 text-gray-900 dark:text-white text-xs cursor-pointer">
                 <input
@@ -180,7 +173,7 @@ export function AuthPopup({
             </div>
 
 
-            {/* Help Section */}
+            {}
             <div className="mt-2 bg-gray-700 dark:bg-gray-600 border border-gray-600 rounded-lg p-1.5">
               <div className="flex items-center gap-1.5 text-gray-900 dark:text-white text-xs">
                 <div className="w-3 h-3 bg-gray-600 rounded-full flex items-center justify-center text-xs">

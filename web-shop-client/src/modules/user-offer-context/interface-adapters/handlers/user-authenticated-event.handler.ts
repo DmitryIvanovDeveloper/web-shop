@@ -41,10 +41,7 @@ export class UserAuthenticatedEventHandler
       return;
     }
 
-    // For returning users, use lastActiveAt from event metadata (old value before update)
-    // This ensures we use the real last active time, not the current timestamp
-    // If not provided in metadata, fallback to current timestamp
-    const lastActiveAt = event.metadata?.lastActiveAt ?? new Date().toISOString();
+                const lastActiveAt = event.metadata?.lastActiveAt ?? new Date().toISOString();
     
     if (event.metadata?.lastActiveAt) {
       this.logger.info('[UserAuthenticatedEventHandler] Using lastActiveAt from event metadata', {

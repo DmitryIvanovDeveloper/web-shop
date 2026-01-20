@@ -31,8 +31,7 @@ export function DailyRewardCardSkeleton({
     ...style
   };
 
-  // Shimmer animation
-  const shimmerStyle: React.CSSProperties = {
+    const shimmerStyle: React.CSSProperties = {
     position: 'absolute',
     top: 0,
     left: '-100%',
@@ -52,7 +51,7 @@ export function DailyRewardCardSkeleton({
 
   return (
     <>
-      <style jsx>{`
+      <style>{`
         @keyframes shimmer {
           0% { transform: translateX(-100%); }
           100% { transform: translateX(100%); }
@@ -63,10 +62,10 @@ export function DailyRewardCardSkeleton({
         }
       `}</style>
       <div style={cardStyle} className={className}>
-        {/* Shimmer overlay */}
+        {}
         <div style={shimmerStyle} />
 
-        {/* Day label skeleton */}
+        {}
         <div
           style={{
             position: 'absolute',
@@ -79,7 +78,7 @@ export function DailyRewardCardSkeleton({
         />
 
         <div>
-          {/* Badge skeleton */}
+          {}
           <div
             style={{
               ...skeletonBaseStyle,
@@ -90,7 +89,7 @@ export function DailyRewardCardSkeleton({
             }}
           />
 
-          {/* Title skeleton */}
+          {}
           <div
             style={{
               ...skeletonBaseStyle,
@@ -100,7 +99,7 @@ export function DailyRewardCardSkeleton({
             }}
           />
 
-          {/* Description skeleton */}
+          {}
           <div
             style={{
               ...skeletonBaseStyle,
@@ -119,7 +118,7 @@ export function DailyRewardCardSkeleton({
           />
         </div>
 
-        {/* Points row skeleton */}
+        {}
         <div
           style={{
             marginTop: '14px',
@@ -129,7 +128,7 @@ export function DailyRewardCardSkeleton({
             gap: '10px',
           }}
         >
-          {/* Points skeleton */}
+          {}
           <div
             style={{
               ...skeletonBaseStyle,
@@ -138,7 +137,7 @@ export function DailyRewardCardSkeleton({
             }}
           />
 
-          {/* Active pill skeleton */}
+          {}
           <div
             style={{
               ...skeletonBaseStyle,
@@ -149,7 +148,7 @@ export function DailyRewardCardSkeleton({
           />
         </div>
 
-        {/* Button skeleton */}
+        {}
         <div
           style={{
             ...skeletonBaseStyle,

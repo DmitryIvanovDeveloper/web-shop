@@ -1,7 +1,4 @@
-/**
- * ActionsConfig - конфигурация обработчиков событий
- * Discriminated union для типобезопасности
- */
+
 
 export type ActionConfig =
 	| { readonly type: 'loadPopup'; readonly config: string }

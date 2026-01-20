@@ -26,8 +26,7 @@ export class DailyRewardsLocalizationChangedEventHandler implements IAsyncEventH
       translationsCount: Object.keys(event.translations).length
     });
 
-    // Update the daily rewards presenter with the new translations
-    this._dailyRewardsPresenter.updateLabelsFromTranslations(event.translations);
+        this._dailyRewardsPresenter.updateLabelsFromTranslations(event.translations);
 
     this._logger.debug('[DailyRewardsLocalizationChangedEventHandler] Daily rewards presenter labels updated after language change');
   }

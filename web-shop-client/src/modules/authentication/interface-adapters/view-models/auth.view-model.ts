@@ -1,7 +1,4 @@
-/**
- * ViewModel для Authentication
- * Изменяемые свойства (НЕ readonly)
- */
+
 
 import { AppUser } from '../../domain/types';
 import type { AuthLabels } from '../../../../shared/config/app-config.types';

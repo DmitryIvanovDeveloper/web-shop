@@ -35,9 +35,7 @@ export class PersonalOffersUserAuthenticatedHandler
     });
 
     try {
-      // Load context once at the beginning (no waiting loops - use defaults if not ready)
-      // This context will be reused in SelectOffersInteractor to avoid double loading
-      const context = await this.contextReader.load(event.appId, event.userId);
+                  const context = await this.contextReader.load(event.appId, event.userId);
       
       this.logger.info('[PersonalOffersHandler] Context loaded', {
         userId: event.userId,
@@ -47,9 +45,7 @@ export class PersonalOffersUserAuthenticatedHandler
         isNewUserFromEvent,
       });
       
-      // Determine if user is new from event metadata or context
-      // Use event metadata as primary source, fallback to context if available
-      let isNewUser = isNewUserFromEvent;
+                  let isNewUser = isNewUserFromEvent;
       if (!isNewUser && context?.data?.['user.flags.isNew'] === true) {
         isNewUser = true;
         this.logger.info('[PersonalOffersHandler] User is new according to offer context', {
@@ -58,9 +54,7 @@ export class PersonalOffersUserAuthenticatedHandler
         });
       }
 
-      // For new users, show welcome-new-user scenario
-      // For returning users, show all matching offers (no scenario filter)
-      const scenarioSlugs = isNewUser ? ['welcome-new-user'] : undefined;
+                  const scenarioSlugs = isNewUser ? ['welcome-new-user'] : undefined;
 
       this.logger.info('[PersonalOffersHandler] Showing offers', {
         appId: event.appId,
@@ -70,18 +64,13 @@ export class PersonalOffersUserAuthenticatedHandler
         willShowAllOffers: !scenarioSlugs,
       });
 
-      // Pass user flags via overrides to ensure condition evaluation works
-      // Use context values if available, otherwise use defaults (handled by PropertyReadersService)
-      // This avoids race conditions and eliminates the need for waiting loops
-      const overrides: Record<string, any> = {};
+                        const overrides: Record<string, any> = {};
       if (isNewUser) {
         overrides['user.flags.isNew'] = true;
       } else {
-        // For returning users, set isNew flag to false directly via overrides
-        overrides['user.flags.isNew'] = false;
+                overrides['user.flags.isNew'] = false;
         
-        // Use context value if available, otherwise PropertyReadersService will use default (0)
-        const purchasesLength = context?.data?.['user.purchases.length'];
+                const purchasesLength = context?.data?.['user.purchases.length'];
         if (purchasesLength !== undefined) {
           overrides['user.purchases.length'] = purchasesLength;
         }
@@ -99,8 +88,7 @@ export class PersonalOffersUserAuthenticatedHandler
         userId: event.userId,
         scenarioSlugs,
         overrides: Object.keys(overrides).length > 0 ? overrides : undefined,
-        contextSnapshot: context ?? undefined, // Pass context to avoid reloading
-      });
+        contextSnapshot: context ?? undefined,       });
 
       this.logger.info('[PersonalOffersHandler] Personal offers handled successfully.');
     } catch (error) {

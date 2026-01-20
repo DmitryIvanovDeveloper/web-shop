@@ -62,8 +62,7 @@ export class LocalizationPresenter {
         throw result.error;
       }
 
-      // View model will be updated by the event handler
-      this._logger.info('[LocalizationPresenter] Localization load completed');
+            this._logger.info('[LocalizationPresenter] Localization load completed');
     } catch (error) {
       this._logger.error('[LocalizationPresenter] Failed to load localization', { error });
       this._updateViewModel({
@@ -74,14 +73,12 @@ export class LocalizationPresenter {
   }
 
   async changeLocalization(languageCode: string): Promise<void> {
-    // Validate input
-    if (!languageCode || typeof languageCode !== 'string') {
+        if (!languageCode || typeof languageCode !== 'string') {
       this._logger.error('[LocalizationPresenter] Invalid language code: must be a non-empty string', { languageCode });
       return;
     }
 
-    // Validate language code format (ISO 639-1: 2-3 lowercase letters)
-    if (!/^[a-z]{2,3}$/.test(languageCode)) {
+        if (!/^[a-z]{2,3}$/.test(languageCode)) {
       this._logger.error('[LocalizationPresenter] Invalid language code format: must be 2-3 lowercase letters', { languageCode });
       return;
     }
@@ -97,8 +94,7 @@ export class LocalizationPresenter {
         throw result.error;
       }
 
-      // View model will be updated by the event handler
-      this._logger.info('[LocalizationPresenter] Localization change completed');
+            this._logger.info('[LocalizationPresenter] Localization change completed');
     } catch (error) {
       this._logger.error('[LocalizationPresenter] Failed to change localization', { error });
       this._updateViewModel({
@@ -108,9 +104,7 @@ export class LocalizationPresenter {
     }
   }
 
-  /**
-   * Backwards-compatible alias for changeLocalization used by layout actionContext
-   */
+  
   async changeLanguage(languageCode: string): Promise<void> {
     this._logger.info('[LocalizationPresenter] changeLanguage called (alias)', { languageCode });
     await this.changeLocalization(languageCode);
@@ -128,8 +122,7 @@ export class LocalizationPresenter {
       isLoading: false,
       currentLanguage: {
         code: languageCode,
-        name: '', // Not needed for client side
-        nativeName: '',
+        name: '',         nativeName: '',
         direction,
         isActive: true
       },
@@ -137,8 +130,7 @@ export class LocalizationPresenter {
       direction
     });
 
-    // Apply direction to document
-    if (typeof document !== 'undefined' && document.documentElement) {
+        if (typeof document !== 'undefined' && document.documentElement) {
       document.documentElement.dir = direction;
       document.documentElement.lang = languageCode;
     }

@@ -4,12 +4,7 @@ import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
 import type { OfferCardTemplate } from '../../../../shared/config/app-config.types';
 
-/**
- * Product Style Service
- * 
- * Infrastructure service for loading product styles from JSON
- * Handles button styles and other UI-related configurations
- */
+
 @injectable()
 export class ProductStyleService {
   private _offerCardTemplate: OfferCardTemplate | null = null;
@@ -45,9 +40,7 @@ export class ProductStyleService {
     }
   }
 
-  /**
-   * Load button style from app config or products.json
-   */
+  
   async getButtonStyle(): Promise<BuyButtonStyle> {
     const buyButton = this._offerCardTemplate?.styles?.buyButton;
     if (buyButton) {
@@ -74,18 +67,14 @@ export class ProductStyleService {
 
       const data = await response.json();
 
-      // Return the button style from the JSON
-      return data.buyButton?.style || this._getDefaultButtonStyle();
+            return data.buyButton?.style || this._getDefaultButtonStyle();
     } catch (error) {
       this._logger.error('[ProductStyleService] Failed to load button style from JSON, using default', error);
-      // Return default style on error
-      return this._getDefaultButtonStyle();
+            return this._getDefaultButtonStyle();
     }
   }
 
-  /**
-   * Load badge styles from app config or products.json
-   */
+  
   async getBadgeStyles(): Promise<Record<string, { bg: string; text: string; skew: string }>> {
     const styles = this._offerCardTemplate?.styles;
 
@@ -134,18 +123,14 @@ export class ProductStyleService {
 
       const data = await response.json();
 
-      // Return the badge styles from the JSON
-      return data.badges || this._getDefaultBadgeStyles();
+            return data.badges || this._getDefaultBadgeStyles();
     } catch (error) {
       this._logger.error('[ProductStyleService] Failed to load badge styles from JSON, using default', error);
-      // Return default styles on error
-      return this._getDefaultBadgeStyles();
+            return this._getDefaultBadgeStyles();
     }
   }
 
-  /**
-   * Get default button style as fallback
-   */
+  
   private _getDefaultButtonStyle(): BuyButtonStyle {
     return {
       backgroundColor: 'rgb(255, 215, 0)',
@@ -156,9 +141,7 @@ export class ProductStyleService {
     };
   }
 
-  /**
-   * Get default badge styles as fallback
-   */
+  
   private _getDefaultBadgeStyles(): Record<string, { bg: string; text: string; skew: string }> {
     return {
       discount: { 

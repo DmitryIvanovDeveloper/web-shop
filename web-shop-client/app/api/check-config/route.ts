@@ -19,8 +19,7 @@ export async function GET(request: Request) {
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-    // Check app_configs table
-    const { data: configs, error: configError } = await supabase
+        const { data: configs, error: configError } = await supabase
       .from('app_configs')
       .select('*')
       .eq('app_id', appId);
@@ -29,8 +28,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Failed to query app_configs', details: configError }, { status: 500 });
     }
 
-    // Check patch_notes table
-    const { data: patchNotes, error: patchNotesError } = await supabase
+        const { data: patchNotes, error: patchNotesError } = await supabase
       .from('patch_notes')
       .select('*')
       .eq('app_id', appId);
@@ -39,8 +37,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Failed to query patch_notes', details: patchNotesError }, { status: 500 });
     }
 
-    // Analyze patch notes by status
-    const patchNotesByStatus = {
+        const patchNotesByStatus = {
       total: patchNotes?.length || 0,
       published: patchNotes?.filter(p => p.status === 'published').length || 0,
       draft: patchNotes?.filter(p => p.status === 'draft').length || 0,

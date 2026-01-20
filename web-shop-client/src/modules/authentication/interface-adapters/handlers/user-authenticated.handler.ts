@@ -20,21 +20,13 @@ export class AuthUserAuthenticatedHandler implements IAsyncEventHandler<UserAuth
   }
 
   public async handleAsync(event: UserAuthenticatedEvent): Promise<void> {
-    console.log('[AuthHandler] User authenticated event received', {
-      userId: event.userId,
-      username: event.username,
-      appId: event.appId
-    });
-    console.log('[AuthHandler] EventBus working correctly - handler is being called');
-    
-    this._logger.info('[AuthHandler] User authenticated event received', {
+            this._logger.info('[AuthHandler] User authenticated event received', {
       userId: event.userId,
       username: event.username,
       appId: event.appId
     });
     
-    // Обновляем состояние презентера - устанавливаем авторизацию
-    const user = {
+        const user = {
       userId: event.userId,
       username: event.username,
       appId: event.appId

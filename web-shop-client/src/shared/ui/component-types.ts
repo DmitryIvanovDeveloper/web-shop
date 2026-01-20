@@ -1,29 +1,22 @@
-/**
- * Component Types - каталог доступных UI компонентов
- * Type-safe константы для использования в модулях
- */
+
 
 export const UIComponents = {
-	// Layout Components
-	Container: 'Container',
+		Container: 'Container',
 	Grid: 'Grid',
 	DataGrid: 'DataGrid',
 	
-	// Atom Components
-	Button: 'Button',
+		Button: 'Button',
 	Text: 'Text',
 	Input: 'Input',
 	InputText: 'InputText',
 	Image: 'Image',
 	Badge: 'Badge',
 	
-	// Molecule Components
-	UniversalInput: 'UniversalInput',
+		UniversalInput: 'UniversalInput',
 	OfferCard: 'OfferCard',
 	Popup: 'Popup',
 	
-	// Module-specific Components
-	OffersList: 'OffersList',
+		OffersList: 'OffersList',
 	ProductsList: 'ProductsList',
 } as const;
 

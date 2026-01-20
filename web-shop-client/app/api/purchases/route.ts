@@ -21,9 +21,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .in('payment_status', ['succeeded', 'completed']);
 
     if (error) {
-      // eslint-disable-next-line no-console
-      console.error('[GET /api/purchases] Supabase error', error);
-      return NextResponse.json({ error: 'Failed to load purchases' }, { status: 500 });
+                  return NextResponse.json({ error: 'Failed to load purchases' }, { status: 500 });
     }
 
     const productIds =
@@ -34,9 +32,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({ productIds });
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('[GET /api/purchases] Unexpected error', error);
-    return NextResponse.json(
+            return NextResponse.json(
       { error: 'Unexpected error while loading purchases' },
       { status: 500 }
     );

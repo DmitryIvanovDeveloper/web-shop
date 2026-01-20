@@ -26,8 +26,7 @@ export class OffersLocalizationLoadedEventHandler implements IAsyncEventHandler<
       translationsCount: Object.keys(event.translations).length
     });
 
-    // Update the offers presenter with the loaded translations
-    this._offersPresenter.updateLabelsFromTranslations(event.translations);
+        this._offersPresenter.updateLabelsFromTranslations(event.translations);
 
     this._logger.debug('[OffersLocalizationLoadedEventHandler] Offers presenter labels updated');
   }

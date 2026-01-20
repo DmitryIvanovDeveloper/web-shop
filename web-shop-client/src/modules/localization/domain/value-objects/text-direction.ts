@@ -1,9 +1,6 @@
 import { InvalidArgumentError } from '../../../../shared/domain/errors/invalid-argument.error';
 
-/**
- * TextDirection Value Object
- * Represents text direction for languages (LTR or RTL)
- */
+
 export class TextDirection {
   public static readonly LTR = new TextDirection('ltr');
   public static readonly RTL = new TextDirection('rtl');

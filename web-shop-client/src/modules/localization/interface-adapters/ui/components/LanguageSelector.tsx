@@ -8,10 +8,7 @@ interface LanguageSelectorProps {
   disabled?: boolean;
 }
 
-/**
- * LanguageSelector component for admin panel
- * Allows selecting the active language
- */
+
 export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   languages,
   activeLanguageCode,

@@ -27,13 +27,7 @@ export class SupabaseRewardClaimRepository implements RewardClaimRepositoryPort 
 
   async save(claim: DailyRewardClaim): Promise<Result<DailyRewardClaim, Error>> {
     try {
-      console.log('[DEBUG] save method called with claim:', {
-        id: claim.id.value,
-        userId: claim.userId,
-        rewardId: claim.rewardId.value,
-        points: claim.pointsAwarded
-      });
-      this._logger.info('[SupabaseRewardClaimRepository] Saving reward claim via API', {
+            this._logger.info('[SupabaseRewardClaimRepository] Saving reward claim via API', {
         claimId: claim.id.value,
         userId: claim.userId
       });
@@ -51,14 +45,12 @@ export class SupabaseRewardClaimRepository implements RewardClaimRepositoryPort 
       this._logger.info('[SupabaseRewardClaimRepository] Sending request data:', { requestData });
       console.log('REQUEST DATA:', JSON.stringify(requestData, null, 2));
 
-      // Use absolute URL for browser compatibility
-      const isBrowser = typeof window !== 'undefined';
+            const isBrowser = typeof window !== 'undefined';
       const url = isBrowser
         ? `${window.location.origin}/api/daily-rewards/claim`
         : '/api/daily-rewards/claim';
 
-      console.log('About to call httpClient.post with url:', url, 'and data:', requestData);
-      const response = await this._httpClient.post<RewardClaimApiDto>(
+            const response = await this._httpClient.post<RewardClaimApiDto>(
         url,
         requestData
       );
@@ -86,8 +78,7 @@ export class SupabaseRewardClaimRepository implements RewardClaimRepositoryPort 
     try {
       this._logger.info('[SupabaseRewardClaimRepository] Finding last claim by user via API', { userId });
 
-      // Use absolute URL for browser compatibility
-      const isBrowser = typeof window !== 'undefined';
+            const isBrowser = typeof window !== 'undefined';
       const url = isBrowser
         ? `${window.location.origin}/api/daily-rewards/claims/last?userId=${userId}`
         : `/api/daily-rewards/claims/last?userId=${userId}`;
@@ -114,8 +105,7 @@ export class SupabaseRewardClaimRepository implements RewardClaimRepositoryPort 
         return Success.ok(null);
       }
 
-      // API already returns the most recent claim (sorted by claimed_at DESC, limit 1)
-      const claim = this.mapApiDtoToEntity(claims[0]);
+            const claim = this.mapApiDtoToEntity(claims[0]);
       this._logger.info('[SupabaseRewardClaimRepository] Found last claim for user', {
         userId,
         claimId: claim.id.value,
@@ -131,9 +121,7 @@ export class SupabaseRewardClaimRepository implements RewardClaimRepositoryPort 
 
   private mapApiDtoToEntity(dto: RewardClaimApiDto): DailyRewardClaim {
     try {
-      // Валидация и парсинг даты с fallback
-      // API возвращает данные в snake_case из Supabase, но интерфейс использует camelCase
-      const claimedAt = this.parseDate((dto as any).claimed_at || dto.claimedAt, 'claimed_at');
+                  const claimedAt = this.parseDate((dto as any).claimed_at || dto.claimedAt, 'claimed_at');
 
       return DailyRewardClaim.fromDatabase(
         ClaimId.fromString(dto.id),

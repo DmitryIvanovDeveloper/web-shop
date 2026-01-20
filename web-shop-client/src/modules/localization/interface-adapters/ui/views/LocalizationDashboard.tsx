@@ -8,9 +8,7 @@ import { Language, Translation } from '../../../domain';
 import { LanguageSelector } from '../components/LanguageSelector';
 import { TranslationEditor } from '../components/TranslationEditor';
 
-/**
- * LocalizationDashboard - Main localization management page for admin
- */
+
 export const LocalizationDashboard: React.FC = () => {
   const [languages, setLanguages] = useState<Language[]>([]);
   const [activeLanguage, setActiveLanguage] = useState<Language | null>(null);
@@ -19,8 +17,7 @@ export const LocalizationDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Get use cases from DI container
-  const changeActiveLanguageUseCase = container.get<ChangeActiveLanguageUseCase>(
+    const changeActiveLanguageUseCase = container.get<ChangeActiveLanguageUseCase>(
     LOCALIZATION_TYPES.ChangeActiveLanguageUseCase
   );
 
@@ -32,19 +29,16 @@ export const LocalizationDashboard: React.FC = () => {
       LOCALIZATION_TYPES.UpdateTranslationsUseCase
     );
   } catch (error) {
-    console.warn('UpdateTranslationsUseCase not available, using mock functionality');
-  }
+      }
 
   try {
     getLocalizationStatusUseCase = container.get<GetLocalizationStatusUseCase>(
       LOCALIZATION_TYPES.GetLocalizationStatusUseCase
     );
   } catch (error) {
-    console.warn('GetLocalizationStatusUseCase not available, using mock data');
-  }
+      }
 
-  // Load localization status on mount
-  useEffect(() => {
+    useEffect(() => {
     loadLocalizationStatus();
   }, []);
 
@@ -54,27 +48,18 @@ export const LocalizationDashboard: React.FC = () => {
       setError(null);
 
       if (getLocalizationStatusUseCase) {
-        console.log('Loading localization status from database...');
-
-        const result = await getLocalizationStatusUseCase.execute();
+                const result = await getLocalizationStatusUseCase.execute();
 
         if (result.isSuccess) {
           const { languages: loadedLanguages, activeLanguage: loadedActiveLanguage } = result.data;
 
-          console.log('Loaded languages:', loadedLanguages.length);
-          console.log('Active language:', loadedActiveLanguage?.code.value);
-
-          setLanguages(loadedLanguages);
+                              setLanguages(loadedLanguages);
           setActiveLanguage(loadedActiveLanguage);
         } else {
-          console.error('Error loading localization status:', result.error);
-          setError(result.error.message);
+                    setError(result.error.message);
         }
       } else {
-        // Fallback to mock data
-        console.log('Using mock localization data...');
-
-        const mockLanguages = [
+                        const mockLanguages = [
           {
             id: 'en',
             code: { value: 'en' },
@@ -110,8 +95,7 @@ export const LocalizationDashboard: React.FC = () => {
       }
 
     } catch (err) {
-      console.error('Localization status exception:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
+            setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
@@ -119,10 +103,7 @@ export const LocalizationDashboard: React.FC = () => {
 
   const loadTranslationsForLanguage = async (languageCode: string) => {
     try {
-      console.log('Loading translations for language:', languageCode);
-
-      // Load mock translations for demo
-      const mockTranslations = [
+                  const mockTranslations = [
         {
           id: '1',
           key: { value: 'products.buyButton' },
@@ -145,11 +126,9 @@ export const LocalizationDashboard: React.FC = () => {
         }
       ];
 
-      console.log('Setting translations:', mockTranslations);
-      setTranslations(mockTranslations);
+            setTranslations(mockTranslations);
     } catch (err) {
-      console.error('Failed to load translations:', err);
-      setTranslations([]);
+            setTranslations([]);
     }
   };
 
@@ -165,8 +144,7 @@ export const LocalizationDashboard: React.FC = () => {
         setActiveLanguage(result.data.language);
         await loadTranslationsForLanguage(languageCode);
 
-        // Update the active status in languages list
-        setLanguages(prev => prev.map(lang =>
+                setLanguages(prev => prev.map(lang =>
           lang.code.value === languageCode
             ? { ...lang, isActive: true }
             : { ...lang, isActive: false }
@@ -196,18 +174,14 @@ export const LocalizationDashboard: React.FC = () => {
         });
 
         if (result.isSuccess) {
-          // Reload translations to reflect changes
-          if (activeLanguage) {
+                    if (activeLanguage) {
             await loadTranslationsForLanguage(activeLanguage.code.value);
           }
         } else {
           setError(result.error.message);
         }
       } else {
-        // Mock save - just show success message
-        console.log('Mock saving translations:', translationsToSave);
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
-      }
+                        await new Promise(resolve => setTimeout(resolve, 1000));       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -245,7 +219,7 @@ export const LocalizationDashboard: React.FC = () => {
           Localization Management
         </h1>
 
-        {/* Language Selector */}
+        {}
         <div className="mb-8">
           <LanguageSelector
             languages={languages}
@@ -255,7 +229,7 @@ export const LocalizationDashboard: React.FC = () => {
           />
         </div>
 
-        {/* Translation Statistics */}
+        {}
         {activeLanguage && (
           <div className="mb-6 bg-gray-50 rounded-lg p-4">
             <h2 className="text-lg font-semibold mb-2">
@@ -292,7 +266,7 @@ export const LocalizationDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Translation Editor */}
+        {}
         {activeLanguage && (
           <TranslationEditor
             language={activeLanguage}

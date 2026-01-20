@@ -13,11 +13,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const supabase = getSupabaseServerClient();
 
-    // If userId is provided, query purchases for that specific user
-    if (rawUserId) {
-      // Note: user_id in transaction_log is stored as string, not UUID
-      // SupabasePurchaseRepository uses userId directly as string, so we do the same here
-      const userId = rawUserId;
+        if (rawUserId) {
+                  const userId = rawUserId;
       
       const { data, error } = await supabase
         .from('transaction_log')
@@ -27,18 +24,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         .in('payment_status', ['succeeded', 'completed']);
 
       if (error) {
-        console.error('[GET /api/user/purchases] Supabase error', error);
-        return NextResponse.json({ error: 'Failed to load purchases' }, { status: 500 });
+                return NextResponse.json({ error: 'Failed to load purchases' }, { status: 500 });
       }
 
       return NextResponse.json(data ?? []);
     }
 
-    // If no userId provided, return empty array (for backward compatibility)
-    return NextResponse.json([]);
+        return NextResponse.json([]);
   } catch (error) {
-    console.error('[GET /api/user/purchases] Unexpected error:', error);
-    return NextResponse.json({ error: 'Unexpected error while loading purchases' }, { status: 500 });
+        return NextResponse.json({ error: 'Unexpected error while loading purchases' }, { status: 500 });
   }
 }
 

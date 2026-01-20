@@ -1,6 +1,4 @@
-/**
- * Input/Output types for Localization module
- */
+
 
 export interface LanguageResponse {
   code: string;

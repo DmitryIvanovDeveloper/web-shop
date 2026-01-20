@@ -18,18 +18,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .in('id', ids);
 
     if (error) {
-      console.error('[POST /api/products/batch] Supabase error', error);
-      return NextResponse.json({ error: 'Failed to load products' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to load products' }, { status: 500 });
     }
 
     if (!data || data.length === 0) {
       return NextResponse.json([]);
     }
 
-    // Map database fields to Offer format
-    const offers = data.map((product) => {
-      // Handle timer: convert Date/string to ISO string if needed
-      let timer: string | undefined = undefined;
+        const offers = data.map((product) => {
+            let timer: string | undefined = undefined;
       if (product.expires_at) {
         if (typeof product.expires_at === 'string') {
           timer = product.expires_at;
@@ -38,8 +35,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         }
       }
 
-      // Handle includedItems: ensure it's an array
-      let includedItems: string[] | undefined = undefined;
+            let includedItems: string[] | undefined = undefined;
       if (product.included_items) {
         if (Array.isArray(product.included_items)) {
           includedItems = product.included_items;
@@ -86,8 +82,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(offers);
   } catch (error) {
-    console.error('[POST /api/products/batch] Unexpected error:', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Unexpected error while loading products' },
       { status: 500 }
     );

@@ -1,17 +1,15 @@
-/**
- * Хук для управления состоянием popup авторизации
- */
+
 
 import { useState, useCallback } from 'react';
 
 export interface UseAuthPopupReturn {
-  /** Показан ли popup */
+  
   isOpen: boolean;
-  /** Открыть popup */
+  
   openPopup: () => void;
-  /** Закрыть popup */
+  
   closePopup: () => void;
-  /** Переключить состояние popup */
+  
   togglePopup: () => void;
 }
 

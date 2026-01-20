@@ -13,15 +13,10 @@ interface DynamicRendererProps {
   readonly actionContext?: ActionContext;
 }
 
-/**
- * DynamicRenderer - wrapper для UIRendererService
- * Преобразует ComponentNode + ThemeConfig + ActionContext в UIDescriptor
- * и делегирует рендеринг UIRendererService
- */
+
 export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererProps): JSX.Element | null {
   if (!node) {
-    console.error('[DynamicRenderer] Node is undefined or null');
-    return null;
+        return null;
   }
   
   console.log('[DynamicRenderer] Rendering node', {
@@ -32,23 +27,14 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
     hasChildren: !!(node as any).children
   });
   
-  // Получаем UIRendererService из DI контейнера
-  const uiRenderer = container.get<UIRendererPort>(ROOT_TYPES.UIRenderer);
+    const uiRenderer = container.get<UIRendererPort>(ROOT_TYPES.UIRenderer);
   
-  // Преобразуем в UIDescriptor и рендерим
-  const result = uiRenderer.renderUI({
+    const result = uiRenderer.renderUI({
     layout: node,
     theme,
     context: actionContext || {}
   });
   
-  console.log('[DynamicRenderer] Render result', {
-    nodeId: node.id,
-    nodeType: node.type,
-    hasResult: !!result,
-    resultType: typeof result
-  });
-  
-  return result;
+    return result;
 }
 

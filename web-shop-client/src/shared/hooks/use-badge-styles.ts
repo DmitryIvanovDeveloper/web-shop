@@ -10,9 +10,7 @@ interface BadgeStyles {
   [key: string]: BadgeStyle;
 }
 
-/**
- * Hook for loading badge styles from products.json
- */
+
 export function useBadgeStyles(): BadgeStyles {
   const [badgeStyles, setBadgeStyles] = useState<BadgeStyles>({
     discount: { 

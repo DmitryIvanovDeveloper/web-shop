@@ -4,13 +4,7 @@ export interface TranslationMap {
   [key: string]: string;
 }
 
-/**
- * Event: Localization Loaded
- * Published by: LoadLocalizationUseCase
- * Consumed by: Modules that need localization data
- *
- * Triggered when localization data (translations, language, direction) is loaded at app startup
- */
+
 export class LocalizationLoadedEvent implements IEvent {
   public readonly type = 'LocalizationLoadedEvent';
 

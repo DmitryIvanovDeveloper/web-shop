@@ -15,9 +15,7 @@ export class OffersListPresenter {
     expiredBadge: 'Expired'
   };
 
-  /**
-   * Обновляет labels на основе полученных переводов
-   */
+  
   public updateLabelsFromTranslations(translations: Record<string, string>): void {
     this._labels = {
       offersTitle: translations['offers.title'] || 'Offers',

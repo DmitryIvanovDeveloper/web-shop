@@ -4,29 +4,23 @@ import * as path from 'path';
 
 export async function GET() {
   try {
-    // Проверяем разные возможные пути к файлу
-    const possiblePaths = [
+        const possiblePaths = [
       path.join(process.cwd(), 'src', 'modules', 'authentication', 'infrastructure', 'configs', 'auth-ui.config.json'),
       path.join(process.cwd(), 'webshops-specs', 'web-shop-client', 'src', 'modules', 'authentication', 'infrastructure', 'configs', 'auth-ui.config.json'),
       path.join(__dirname, '..', '..', '..', '..', 'src', 'modules', 'authentication', 'infrastructure', 'configs', 'auth-ui.config.json')
     ];
 
     console.log('Current working directory:', process.cwd());
-    console.log('Looking for auth UI config in paths:', possiblePaths);
-
-    let filePath = '';
+        let filePath = '';
     let fileContents = '';
 
     for (const testPath of possiblePaths) {
       try {
-        console.log('Trying path:', testPath);
-        fileContents = fs.readFileSync(testPath, 'utf8');
+                fileContents = fs.readFileSync(testPath, 'utf8');
         filePath = testPath;
-        console.log('Found file at:', filePath);
-        break;
+                break;
       } catch (err) {
-        console.log('Path not found:', testPath);
-        continue;
+                continue;
       }
     }
 
@@ -35,10 +29,8 @@ export async function GET() {
     }
 
     const authUIConfig = JSON.parse(fileContents);
-    console.log('Auth UI config loaded successfully from:', filePath);
-    return NextResponse.json(authUIConfig);
+        return NextResponse.json(authUIConfig);
   } catch (error) {
-    console.error('Error loading auth UI config:', error);
-    return NextResponse.json({ error: 'Failed to load auth UI configuration' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to load auth UI configuration' }, { status: 500 });
   }
 }

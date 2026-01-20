@@ -26,8 +26,7 @@ export class LocalizationLoadedEventHandler implements IAsyncEventHandler<Locali
       translationsCount: Object.keys(event.translations).length
     });
 
-    // Update the localization presenter with the loaded data
-    this._localizationPresenter.updateFromEvent(
+        this._localizationPresenter.updateFromEvent(
       event.translations,
       event.languageCode,
       event.direction

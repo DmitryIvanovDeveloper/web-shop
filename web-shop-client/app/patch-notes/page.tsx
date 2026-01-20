@@ -19,31 +19,26 @@ import { PatchNotesPublic } from '../../src/modules/patch-notes/interface-adapte
 import type { AppConfig } from '../../src/shared/config/app-config.types';
 
 export default function PatchNotesPage(): JSX.Element {
-  console.log('PatchNotesPage function called');
-  const router = useRouter();
+    const router = useRouter();
   const searchParams = useSearchParams();
   const sidebarPresenter = container.get<SidebarRendererPresenter>(
     APP_LAYOUT_TYPES.SidebarRendererPresenter
   );
 
-  // Check if we're in preview mode
-  const [previewMode, setPreviewMode] = useState(false);
+    const [previewMode, setPreviewMode] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
 
-  // Get appId from URL initially
-  const getAppIdFromUrl = () => {
+    const getAppIdFromUrl = () => {
     if (typeof window !== 'undefined') {
       try {
         const url = new URL(window.location.href);
         const appId = url.searchParams.get('appId') || url.searchParams.get('app');
         if (!appId) {
-          console.error('[PatchNotesPage] App ID is required. Please specify ?appId=YOUR_APP_ID in the URL.');
-          return '';
+                    return '';
         }
         return appId;
       } catch (err) {
-        console.error('[PatchNotesPage] Failed to parse URL for appId:', err);
-        return '';
+                return '';
       }
     }
     return '';
@@ -51,8 +46,7 @@ export default function PatchNotesPage(): JSX.Element {
 
   const [currentAppId, setCurrentAppId] = useState<string>('');
 
-  // Initialize appId from URL
-  useEffect(() => {
+    useEffect(() => {
     const appId = getAppIdFromUrl();
     setCurrentAppId(appId);
   }, []);
@@ -84,13 +78,10 @@ export default function PatchNotesPage(): JSX.Element {
     offerCards: []
   });
 
-  // ActionContext для обработки действий
-  // Helper function to preserve query parameters
-  const navigateWithQuery = (path: string) => {
+      const navigateWithQuery = (path: string) => {
     const currentSearch = searchParams.toString();
     const newUrl = currentSearch ? `${path}?${currentSearch}` : path;
-    console.log('[PatchNotesPage] Navigating to:', newUrl);
-    router.push(newUrl);
+        router.push(newUrl);
   };
 
   const actionContext: ActionContext = {
@@ -102,114 +93,77 @@ export default function PatchNotesPage(): JSX.Element {
       }
     },
     navigateToPatchNotes: () => {
-      console.log('[PatchNotesPage] Navigating to patch notes section');
-      // Scroll to patch notes section or navigate to it
-      const patchNotesElement = document.getElementById('patch-notes-section');
+                  const patchNotesElement = document.getElementById('patch-notes-section');
       if (patchNotesElement) {
         patchNotesElement.scrollIntoView({ behavior: 'smooth' });
       } else {
-        // Navigate to patch notes page if element not found
-        navigateWithQuery('/patch-notes');
+                navigateWithQuery('/patch-notes');
       }
     },
     navigateToDailyRewards: () => {
-      console.log('[PatchNotesPage] Navigating to daily rewards page');
-      navigateWithQuery('/daily-rewards');
+            navigateWithQuery('/daily-rewards');
     },
   };
 
-  // Check previewMode from URL
-  useEffect(() => {
+    useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
         const url = new URL(window.location.href);
         const isPreview = url.searchParams.get('previewMode') === 'true';
         setPreviewMode(isPreview);
-        console.log('[PatchNotesPage] Preview mode:', isPreview);
-      } catch (err) {
-        console.error('[PatchNotesPage] Failed to parse URL for previewMode:', err);
-      }
+              } catch (err) {
+              }
     }
   }, []);
 
-  // Update currentAppId when searchParams change
-  useEffect(() => {
+    useEffect(() => {
     const appId = getAppIdFromUrl();
     setCurrentAppId(appId);
-    console.log('[PatchNotesPage] Updated appId from URL:', appId);
-  }, [searchParams]);
+      }, [searchParams]);
 
-  // Load app config on mount if appId is available (for iframe Builder preview)
-  // Make it non-blocking for navigation by deferring the async operation
-  useEffect(() => {
+      useEffect(() => {
     const loadAppConfig = async () => {
       try {
-        // Get appId from URL (support both 'appId' and 'app' parameters)
-        const appId = getAppIdFromUrl();
+                const appId = getAppIdFromUrl();
 
-        // Set current appId for patch notes
-        setCurrentAppId(appId);
+                setCurrentAppId(appId);
 
-        // Check if we're in an iframe (likely Builder preview)
-        const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
+                const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
 
         if (appId) {
-          // Try to load config from Supabase if not loaded yet
-          const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
+                    const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
 
           if (previewMode || isInIframe) {
-            // Load draft config for preview mode
-            await loadAppConfigUseCase.execute(true);
-            console.log('[PatchNotesPage] Draft app config loaded from Supabase for preview mode', { appId, isInIframe });
-          } else {
-            // Load active config for regular client usage
-            await loadAppConfigUseCase.execute(false);
-            console.log('[PatchNotesPage] Active app config loaded from Supabase for regular client', { appId });
-          }
+                        await loadAppConfigUseCase.execute(true);
+                      } else {
+                        await loadAppConfigUseCase.execute(false);
+                      }
         }
       } catch (error) {
-        console.warn('[PatchNotesPage] Failed to load app config on mount, will wait for CONFIG_UPDATE message', error);
-      }
+              }
     };
 
-    // Defer config loading to avoid blocking navigation
-    // Use requestIdleCallback if available, otherwise setTimeout
-    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+            if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
       requestIdleCallback(() => loadAppConfig());
     } else {
       setTimeout(() => loadAppConfig(), 0);
     }
   }, [previewMode]);
 
-  // Subscribe to PageRendererPresenter for offer card updates (only in preview mode)
-  useEffect(() => {
+    useEffect(() => {
     if (!previewMode) return;
 
     const presenter = container.get<PageRendererPresenter>(PAGE_RENDERER_TYPES.PageRendererPresenter);
     const loadAppConfigFromMessageUseCase = container.get<LoadAppConfigFromMessageUseCase>(TYPES.LoadAppConfigFromMessage);
 
-    // Subscribe to ViewModel changes
-    const unsubscribe = presenter.subscribe((newVm) => {
+        const unsubscribe = presenter.subscribe((newVm) => {
       setOfferCardVm(newVm);
-      console.log('[PatchNotesPage] Offer card VM updated', {
-        selectedOfferCardId: newVm.selectedOfferCardId,
-        offerCardsCount: newVm.offerCards.length
-      });
-    });
-
-    // Listen for CONFIG_UPDATE messages from parent window
-    const handleMessage = async (event: MessageEvent) => {
-      if (event.data?.type === 'CONFIG_UPDATE') {
-        try {
-          console.log('[PatchNotesPage] Received CONFIG_UPDATE', {
-            hasConfig: !!event.data.payload?.config,
-            hasOfferCards: !!event.data.payload?.offerCards,
-            offerCardsCount: event.data.payload?.offerCards?.length || 0,
-            selectedOfferCardId: event.data.payload?.selectedOfferCardId
           });
 
-          // Load app-config (this will publish AppConfigLoadedEvent)
-          if (event.data.payload?.config) {
+        const handleMessage = async (event: MessageEvent) => {
+      if (event.data?.type === 'CONFIG_UPDATE') {
+        try {
+                              if (event.data.payload?.config) {
             const configPayload = event.data.payload.config as AppConfig;
             await loadAppConfigFromMessageUseCase.execute(configPayload);
             const selectionModeValue =
@@ -221,47 +175,32 @@ export default function PatchNotesPage(): JSX.Element {
             applyElementSelectionMode(false);
           }
 
-          // Set offer cards and selected offer card ID in presenter
-          if (event.data.payload?.offerCards) {
-            console.log('[PatchNotesPage] Setting offer cards', { count: event.data.payload.offerCards.length });
-            presenter.setOfferCards(event.data.payload.offerCards);
+                    if (event.data.payload?.offerCards) {
+                        presenter.setOfferCards(event.data.payload.offerCards);
           }
-          // Only update selectedOfferCardId if explicitly provided in payload (preserve current value if not provided)
-          if (event.data.payload?.selectedOfferCardId !== undefined) {
+                    if (event.data.payload?.selectedOfferCardId !== undefined) {
             if (event.data.payload.selectedOfferCardId !== null) {
-              console.log('[PatchNotesPage] Setting selected offer card ID', { cardId: event.data.payload.selectedOfferCardId });
-              presenter.setSelectedOfferCardId(event.data.payload.selectedOfferCardId);
+                            presenter.setSelectedOfferCardId(event.data.payload.selectedOfferCardId);
             } else {
-              // Explicitly clear when null is provided
-              console.log('[PatchNotesPage] Clearing selected offer card ID (explicit null)');
+                            console.log('[PatchNotesPage] Clearing selected offer card ID (explicit null)');
               presenter.setSelectedOfferCardId(null);
             }
           }
-          // If selectedOfferCardId is not in payload, keep current value (don't clear it)
-        } catch (error) {
-          console.error('[PatchNotesPage] Failed to process app config update from message', error);
-        }
+                  } catch (error) {
+                  }
       } else if (event.data?.type === 'SHOW_AUTH_POPUP') {
         const visible = event.data.payload?.visible ?? false;
-        console.log('[PatchNotesPage] Received SHOW_AUTH_POPUP', { visible });
-
-        if (visible) {
-          // Ensure config is loaded before showing popup
-          // If config is in the message, load it first
-          if (event.data.payload?.config) {
+                if (visible) {
+                              if (event.data.payload?.config) {
             try {
               await loadAppConfigFromMessageUseCase.execute(event.data.payload.config);
-              console.log('[PatchNotesPage] Config loaded before showing auth popup');
-            } catch (error) {
-              console.error('[PatchNotesPage] Failed to load config before showing popup', error);
-            }
+                          } catch (error) {
+                          }
           }
 
-          // Dispatch showAuthPopup event to trigger AuthModule popup
-          window.dispatchEvent(new CustomEvent('showAuthPopup'));
+                    window.dispatchEvent(new CustomEvent('showAuthPopup'));
         } else {
-          // Dispatch close event if needed (AuthModule should handle closing)
-          window.dispatchEvent(new CustomEvent('closeAuthPopup'));
+                    window.dispatchEvent(new CustomEvent('closeAuthPopup'));
         }
       }
     };
@@ -274,13 +213,11 @@ export default function PatchNotesPage(): JSX.Element {
     };
   }, [previewMode, applyElementSelectionMode]);
 
-  // Find selected offer card for demo section
-  const selectedOfferCard = offerCardVm.selectedOfferCardId && offerCardVm.offerCards.length > 0
+    const selectedOfferCard = offerCardVm.selectedOfferCardId && offerCardVm.offerCards.length > 0
     ? offerCardVm.offerCards.find(card => card.id === offerCardVm.selectedOfferCardId)
     : null;
 
-  // Debug logging for demo section
-  useEffect(() => {
+    useEffect(() => {
     if (previewMode) {
       console.log('[PatchNotesPage] Demo section debug:', {
         previewMode,
@@ -292,22 +229,17 @@ export default function PatchNotesPage(): JSX.Element {
     }
   }, [previewMode, offerCardVm.selectedOfferCardId, offerCardVm.offerCards, selectedOfferCard]);
 
-  // Set styles for demo section when selectedOfferCard changes
-  useEffect(() => {
+    useEffect(() => {
     if (previewMode && selectedOfferCard && typeof window !== 'undefined') {
-      // Save current styles
-      const currentStyles = (window as any).__offerCardStyles;
+            const currentStyles = (window as any).__offerCardStyles;
 
-      // Set styles from selected offer card
-      (window as any).__offerCardStyles = {
+            (window as any).__offerCardStyles = {
         styles: selectedOfferCard.styles || {}
       };
 
-      // Dispatch event to notify OfferCard components
-      window.dispatchEvent(new Event('appConfigLoaded'));
+            window.dispatchEvent(new Event('appConfigLoaded'));
 
-      // Restore previous styles on cleanup (optional, for demo section we might want to keep them)
-      return () => {
+            return () => {
         if (currentStyles !== undefined) {
           (window as any).__offerCardStyles = currentStyles;
         }
@@ -321,15 +253,15 @@ export default function PatchNotesPage(): JSX.Element {
     }
 
     if (window.parent && window.parent !== window) {
-      const targetOrigin = process.env.NEXT_PUBLIC_UI_BUILDER_URL || '*';
+      const targetOrigin =
+        (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_UI_BUILDER_URL) || '*';
       window.parent.postMessage({ type: 'PREVIEW_READY' }, targetOrigin);
-      console.log('[PatchNotesPage] Sent PREVIEW_READY to parent');
     }
   }, []);
 
   return (
     <main className="flex-1 overflow-y-auto w-full mx-auto px-4 md:px-8" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>
-      {/* Demo section for selected offer card (only in preview mode) */}
+      {}
       {previewMode && selectedOfferCard && (
         <div key="offer-card-demo-section" className="offer-card-demo-section" style={{ padding: '20px', marginBottom: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <h2 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: 'bold', width: '100%', textAlign: 'left' }}>
@@ -343,23 +275,23 @@ export default function PatchNotesPage(): JSX.Element {
                 (selectedOfferCard.styles as any)?.purchasedBadge?.enabled === true ||
                 false;
               return (
-            <OfferCard
-              id={selectedOfferCard.id}
-              topLabel="Limited Offer🎁"
-              title="Offer #1"
-              description="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-              mainImage={selectedOfferCard.media?.mainImage ?? 'https://via.placeholder.com/400x274/374151/ffffff?text=Dragon+Slayer+Sword'}
-              mainImageAlt={selectedOfferCard.media?.mainImageAlt ?? 'Offer card image'}
-              discount="80%"
-              isPurchased={isPurchased}
-            />
+                <OfferCard
+                  id={selectedOfferCard.id}
+                  topLabel="Limited Offer🎁"
+                  title="Offer #1"
+                  description="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+                  mainImage={selectedOfferCard.media?.mainImage ?? 'https://via.placeholder.com/400x200'}
+                  mainImageAlt={selectedOfferCard.media?.mainImageAlt ?? 'Offer card image'}
+                  discount="80%"
+                  isPurchased={isPurchased}
+                />
               );
             })()}
           </div>
         </div>
       )}
 
-      {/* Patch Notes Section */}
+      {}
       <section id="patch-notes-section" className="mt-12">
         <PatchNotesPublic appId={currentAppId} />
       </section>

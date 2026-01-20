@@ -2,10 +2,7 @@ import { LanguageCode } from '../value-objects/language-code';
 import { TextDirection } from '../value-objects/text-direction';
 import { InvalidLanguageDirectionError } from '../errors/language.error';
 
-/**
- * Language Entity
- * Represents a language configuration in the system
- */
+
 export class Language {
   public readonly id: string;
   public readonly createdAt: Date;
@@ -21,8 +18,7 @@ export class Language {
     createdAt: Date,
     updatedAt: Date,
     public readonly fallbackCode?: LanguageCode,
-    public readonly flag?: string // emoji flag
-  ) {
+    public readonly flag?: string   ) {
     this.id = id;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
@@ -45,8 +41,7 @@ export class Language {
       name.trim(),
       nativeName.trim(),
       direction,
-      false, // new languages start as inactive
-      new Date(),
+      false,       new Date(),
       new Date(),
       fallbackCode,
       flag

@@ -1,6 +1,4 @@
-/**
- * Domain Errors для Authentication
- */
+
 
 export class AuthenticationError extends Error {
   constructor(message: string) {

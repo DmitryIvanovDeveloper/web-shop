@@ -26,8 +26,7 @@ export class ProductsLocalizationLoadedEventHandler implements IAsyncEventHandle
       translationsCount: Object.keys(event.translations).length
     });
 
-    // Update the products presenter with the loaded translations
-    this._productsPresenter.updateLabelsFromTranslations(event.translations);
+        this._productsPresenter.updateLabelsFromTranslations(event.translations);
 
     this._logger.debug('[ProductsLocalizationLoadedEventHandler] Products presenter labels updated');
   }

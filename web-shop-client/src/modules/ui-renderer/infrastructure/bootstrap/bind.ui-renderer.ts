@@ -13,14 +13,12 @@ import { LanguageChangedEvent } from '../../../localization/domain/events/langua
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
 
 export function bindUIRenderer(container: Container): void {
-  // Presenter
-  container
+    container
     .bind(UI_RENDERER_TYPES.SidebarRendererPresenter)
     .to(SidebarRendererPresenter)
     .inSingletonScope();
 
-  // Module-specific Services (для DynamicRenderer модуля)
-  container
+    container
     .bind(UI_RENDERER_TYPES.ComponentRegistry)
     .to(ComponentRegistry)
     .inSingletonScope();
@@ -35,24 +33,21 @@ export function bindUIRenderer(container: Container): void {
     .to(ActionHandler)
     .inSingletonScope();
 
-  // Event Handler для AppConfigLoadedEvent (получение конфига при старте)
-  container
+    container
     .bind<IAsyncEventHandler<AppConfigLoadedEvent>>(
       UI_RENDERER_TYPES.AppConfigLoadedEventHandler
     )
     .to(UIRendererAppConfigLoadedHandler)
     .inTransientScope();
 
-  // Event Handler для TranslationsConfigEvent (перевод интерфейса при смене языка)
-  container
+    container
     .bind<IAsyncEventHandler<TranslationsConfigEvent>>(
       UI_RENDERER_TYPES.TranslationsConfigEventHandler
     )
     .to(UIRendererTranslationsConfigHandler)
     .inTransientScope();
 
-  // Event Handler для LanguageChangedEvent (форсированный re-render sidebar при смене языка)
-  container
+    container
     .bind<IAsyncEventHandler<LanguageChangedEvent>>(
       UI_RENDERER_TYPES.LanguageChangedEventHandler
     )

@@ -9,7 +9,6 @@ import { ChangeItem, type ChangeType } from '../../domain/entities/change-item';
 import { PatchNoteId } from '../../domain/value-objects/patch-note-id';
 import { Version } from '../../domain/value-objects/version';
 
-// DTO for API response
 interface PatchNoteApiDto {
   id: string;
   app_id: string;

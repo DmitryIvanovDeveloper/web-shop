@@ -16,8 +16,7 @@ export class TranslationHttpRepository implements TranslationRepositoryPort {
 
   async getTranslationsByLanguage(languageCode: string): Promise<Result<Translation[], Error>> {
     const maxRetries = 3;
-    const retryDelay = 1000; // 1 second
-
+    const retryDelay = 1000; 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         this._logger.info('[TranslationHttpRepository] Getting translations for language via HTTP', {
@@ -28,8 +27,7 @@ export class TranslationHttpRepository implements TranslationRepositoryPort {
         const response = await this._httpClient.get(`/api/localization/translations?lang=${languageCode}`);
 
         if (response.status !== 200) {
-          // Check if it's a retryable error (5xx, network errors)
-          const isRetryable = response.status >= 500 || response.status === 0;
+                    const isRetryable = response.status >= 500 || response.status === 0;
           const isLastAttempt = attempt === maxRetries;
 
           if (isRetryable && !isLastAttempt) {
@@ -89,8 +87,7 @@ export class TranslationHttpRepository implements TranslationRepositoryPort {
       }
     }
 
-    // This should never be reached, but just in case
-    return Failure.fail(new Error('Maximum retry attempts exceeded'));
+        return Failure.fail(new Error('Maximum retry attempts exceeded'));
   }
 
   private async _delay(ms: number): Promise<void> {
@@ -142,8 +139,7 @@ export class TranslationHttpRepository implements TranslationRepositoryPort {
 
   private _isNetworkError(error: unknown): boolean {
     if (error instanceof Error) {
-      // Check for common network error patterns
-      const message = error.message.toLowerCase();
+            const message = error.message.toLowerCase();
       return message.includes('network') ||
              message.includes('timeout') ||
              message.includes('connection') ||

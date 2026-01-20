@@ -1,7 +1,6 @@
 
 'use client';
 
-// Test DailyRewards popup without app config dependency
 import React, { useState, useEffect } from 'react';
 import { useAppId } from '../../src/shared/hooks/use-app-context';
 
@@ -10,12 +9,10 @@ export default function TestDailyRewardsPage() {
   const appId = useAppId();
 
   useEffect(() => {
-    console.log('[TestPage] appId:', appId);
-    if (appId) {
+        if (appId) {
       const timer = setTimeout(() => {
         setShowPopup(true);
-        console.log('Test popup should be visible now');
-      }, 3000);
+              }, 3000);
 
       return () => clearTimeout(timer);
     }

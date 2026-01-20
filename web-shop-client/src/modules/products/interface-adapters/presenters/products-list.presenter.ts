@@ -46,9 +46,7 @@ export class ProductsListPresenter {
     private readonly _logger: Logger
   ) {}
 
-  /**
-   * Обновляет labels на основе полученных переводов
-   */
+  
   public updateLabelsFromTranslations(translations: Record<string, string>): void {
     this._labels = {
       buyButton: translations['products.buyButton'] || 'Buy Now',
@@ -59,8 +57,7 @@ export class ProductsListPresenter {
       productsTitle: translations['products.productsTitle'] || 'Products'
     };
 
-    // Обновляем viewModel с новыми labels
-    this.updateViewModel({
+        this.updateViewModel({
       ...this._viewModel,
       labels: this._labels
     });
@@ -149,8 +146,7 @@ export class ProductsListPresenter {
     this._logger.info('[ProductsListPresenter] Presenting products list...', { options });
     
     try {
-      // 1. Get current user context from options (passed from event)
-      const userId = options?.userId || '';
+            const userId = options?.userId || '';
       const appId = options?.appId || '';
       
       this._logger.info('[ProductsListPresenter] User context', { 
@@ -158,13 +154,11 @@ export class ProductsListPresenter {
         appId: appId || 'all-products'
       });
       
-      // 2. Load products once and cache them (all products without limit)
-      let products: Product[];
+            let products: Product[];
       if (!this._cachedProducts) {
         const productsStart = typeof performance !== 'undefined' ? performance.now() : Date.now();
         this._logger.info('[ProductsListPresenter] No cached products, loading from use case...');
-        // Reset products list (show loading state only on first load)
-        this.updateViewModel({
+                this.updateViewModel({
           status: 'loading',
           products: [],
           message: 'Loading products...',
@@ -185,8 +179,7 @@ export class ProductsListPresenter {
         products = this._cachedProducts;
       }
       
-      // 3. Load purchased product IDs (returns empty array if no userId)
-      const purchasedStart = typeof performance !== 'undefined' ? performance.now() : Date.now();
+            const purchasedStart = typeof performance !== 'undefined' ? performance.now() : Date.now();
       const purchasedIds = await this.getPurchasedProductsUseCase.execute(userId, appId);
       const purchasedEnd = typeof performance !== 'undefined' ? performance.now() : Date.now();
       this._logger.info('[ProductsListPresenter] Purchase check completed', { 
@@ -197,23 +190,20 @@ export class ProductsListPresenter {
         durationMs: Math.round(purchasedEnd - purchasedStart)
       });
       
-      // 4. Load button style (app-config overrides JSON)
-      const styleStart = typeof performance !== 'undefined' ? performance.now() : Date.now();
+            const styleStart = typeof performance !== 'undefined' ? performance.now() : Date.now();
       const buttonStyle = await this.productStyleService.getButtonStyle();
       const styleEnd = typeof performance !== 'undefined' ? performance.now() : Date.now();
       this._logger.info('[ProductsListPresenter] Button style loaded', {
         durationMs: Math.round(styleEnd - styleStart)
       });
       
-      // 5. Enrich products with isPurchased and buyButton
-      const enrichedProducts = products.map(product => {
+            const enrichedProducts = products.map(product => {
         const isPurchased = purchasedIds.includes(product.id.value);
         
         return {
           ...product,
           isPurchased,
-          // Убираем скидки и таймер для купленных продуктов
-          discount: isPurchased ? undefined : product.discount,
+                    discount: isPurchased ? undefined : product.discount,
           timer: isPurchased ? undefined : product.timer,
           buyButton: {
             enabled: !isPurchased,
@@ -257,18 +247,14 @@ export class ProductsListPresenter {
     }
   }
 
-  /**
-   * Handle product buy button click
-   * Delegates to Use Case for business logic
-   */
+  
   async onBuyProduct(productId: string): Promise<void> {
     this._logger.info('[ProductsListPresenter] Product buy clicked', {
       productId
     });
 
     try {
-      // Delegate to Use Case for business logic (only pass productId)
-      await this.selectProductForPaymentUseCase.execute({
+            await this.selectProductForPaymentUseCase.execute({
         productId
       });
 

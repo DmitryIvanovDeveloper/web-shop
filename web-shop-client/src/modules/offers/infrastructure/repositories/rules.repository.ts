@@ -11,7 +11,6 @@ interface CachedRuleTree {
   readonly cachedAt: number;
 }
 
-// Cache TTL: 5 minutes (300000 ms)
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
 @injectable()
@@ -27,21 +26,17 @@ export class RulesRepository implements RulesRepositoryPort {
       throw new Error('App ID is required to load offer rules');
     }
 
-    // Check cache first
-    const cached = this.cache.get(targetAppId);
+        const cached = this.cache.get(targetAppId);
     if (cached) {
       const age = Date.now() - cached.cachedAt;
       if (age < CACHE_TTL_MS) {
-        // Cache is still valid
-        return cached.ruleTree;
+                return cached.ruleTree;
       } else {
-        // Cache expired, remove it
-        this.cache.delete(targetAppId);
+                this.cache.delete(targetAppId);
       }
     }
 
-    // Load from API
-    const url = `/api/offers/rules?appId=${encodeURIComponent(targetAppId)}`;
+        const url = `/api/offers/rules?appId=${encodeURIComponent(targetAppId)}`;
 
     try {
       const response = await this.http.get(url);
@@ -51,8 +46,7 @@ export class RulesRepository implements RulesRepositoryPort {
 
       const ruleTree = response.data as OfferRuleTree;
       
-      // Cache the result
-      this.cache.set(targetAppId, {
+            this.cache.set(targetAppId, {
         ruleTree,
         cachedAt: Date.now(),
       });

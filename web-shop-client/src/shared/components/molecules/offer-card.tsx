@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import type { CSSProperties } from "react";
 import { Badge } from "../atoms/badge";
 import { ClipLoader } from "react-spinners";
-// import type { OfferCardUIConfig } from "../../config/app-config.types";
 
 export interface BuyButtonStyle {
   readonly backgroundColor?: string;
@@ -65,29 +64,23 @@ export function OfferCard({
   onClick
 }: OfferCardProps): JSX.Element {
 
-  // State for dynamic styles from config
-  const [cardStyles, setCardStyles] = useState<any>(null);
-  // State for image error handling
-  const [imageError, setImageError] = useState(false);
+    const [cardStyles, setCardStyles] = useState<any>(null);
+    const [imageError, setImageError] = useState(false);
 
-  // Load styles from window.__offerCardStyles when component mounts or config updates
-  useEffect(() => {
+    useEffect(() => {
     const updateStyles = () => {
       if (typeof window !== 'undefined' && (window as any).__offerCardStyles?.styles) {
         setCardStyles((window as any).__offerCardStyles.styles);
       }
     };
 
-    // Initial load
-    updateStyles();
+        updateStyles();
 
-    // Listen for config updates
-    window.addEventListener('appConfigLoaded', updateStyles);
+        window.addEventListener('appConfigLoaded', updateStyles);
     return () => window.removeEventListener('appConfigLoaded', updateStyles);
   }, []);
 
-  // Reset image error when mainImage changes
-  useEffect(() => {
+    useEffect(() => {
     setImageError(false);
   }, [mainImage]);
 
@@ -98,15 +91,13 @@ export function OfferCard({
       style={{
         backgroundColor: cardStyles?.container?.backgroundColor,
         borderRadius: cardStyles?.container?.borderRadius,
-        height: '100%', // Фиксированная высота как у skeleton
-        display: 'flex',
+        height: '100%',         display: 'flex',
         flexDirection: 'column',
-        containerType: 'inline-size', // Для container queries
-        ...style
+        containerType: 'inline-size',         ...style
       }}
       onClick={onClick}
     >
-      {/* Discount Badge */}
+      {}
       {discount && (
         <Badge
           text={discount}
@@ -119,7 +110,7 @@ export function OfferCard({
         />
       )}
 
-      {/* Player Limit Badge */}
+      {}
       {playerLimit && (
         <Badge
           text={playerLimit}
@@ -132,7 +123,7 @@ export function OfferCard({
         />
       )}
 
-      {/* Timer Badge */}
+      {}
       {timer && (
         <Badge
           text={typeof timer === 'string' ? timer : String(timer)}
@@ -145,7 +136,7 @@ export function OfferCard({
         />
       )}
 
-      {/* Main Image Section */}
+      {}
       <div
         className="relative w-full h-48 bg-gray-700 flex items-center justify-center"
         style={{
@@ -183,23 +174,19 @@ export function OfferCard({
         ) : null}
       </div>
 
-      {/* Content Section - CSS Grid как у skeleton */}
+      {}
       <div
         className="p-2 sm:p-3 md:p-4 grid w-full"
         style={{
           display: 'grid',
-          gridTemplateRows: 'auto auto 1fr auto', // Row 1: title, Row 2: rarity space, Row 3: spacer, Row 4: button
-          gap: '8px',
-          height: '100%', // Использовать всю доступную высоту
-          alignContent: 'start'
+          gridTemplateRows: 'auto auto 1fr auto',           gap: '8px',
+          height: '100%',           alignContent: 'start'
         }}
       >
-        {/* Row 1: Title - фиксированная высота как у skeleton */}
+        {}
         <div className="flex flex-col" style={{
           minHeight: '44px',
-          maxHeight: '44px', // Ограничить максимальную высоту
-          overflow: 'hidden' // Скрыть переполнение
-        }}>
+          maxHeight: '44px',           overflow: 'hidden'         }}>
           {topLabel && (
             <div className="text-white text-xs font-medium mb-1 opacity-90">
               {topLabel}
@@ -212,10 +199,8 @@ export function OfferCard({
                 fontSize: cardStyles?.title?.fontSize,
                 fontWeight: cardStyles?.title?.fontWeight,
                 color: cardStyles?.title?.color,
-                lineHeight: '1.2', // Фиксированная высота строки
-                display: '-webkit-box',
-                WebkitLineClamp: 2, // Максимум 2 строки
-                WebkitBoxOrient: 'vertical',
+                lineHeight: '1.2',                 display: '-webkit-box',
+                WebkitLineClamp: 2,                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden'
               }}
             >
@@ -229,21 +214,19 @@ export function OfferCard({
           )}
         </div>
 
-        {/* Row 2: Rarity space - пустое пространство как у skeleton */}
+        {}
         <div className="flex flex-col" style={{
-          minHeight: '36px' // Фиксированная высота как у skeleton
-        }}>
-          {/* Пустое пространство для будущих rarity бейджей */}
+          minHeight: '36px'         }}>
+          {}
         </div>
 
-        {/* Row 3: Spacer - растягивается автоматически */}
+        {}
         <div></div>
 
-        {/* Row 4: Buy Button или Purchased Badge - всегда внизу */}
+        {}
         <div>
           {isPurchased ? (
-            // PURCHASED Badge (использует те же стили что и кнопка, кроме backgroundColor)
-            <div
+                        <div
               className="w-full py-3 px-4 text-white font-bold rounded-lg text-center"
               style={{
                 backgroundColor: cardStyles?.purchasedBadge?.backgroundColor || "#10B981",
@@ -261,8 +244,7 @@ export function OfferCard({
               {cardStyles?.purchasedBadge?.text || 'PURCHASED'}
             </div>
           ) : (
-            // BUY Button
-            buyButton && buyButton.enabled && (
+                        buyButton && buyButton.enabled && (
               <button
                 className="w-full py-3 px-4 text-white font-bold rounded-lg transition-colors hover:opacity-90 disabled:opacity-50"
                 style={{
@@ -277,8 +259,7 @@ export function OfferCard({
                 onClick={(e) => {
                   e.stopPropagation();
                   if (onClick) {
-                    onClick(); // Вызываем переданный onClick обработчик
-                  }
+                    onClick();                   }
                 }}
               >
                 {isLoading ? (

@@ -24,9 +24,7 @@ export class UIRendererTranslationsConfigHandler implements IAsyncEventHandler<T
       languageCode: event.languageCode.value
     });
 
-    // Force sidebar to re-render by notifying listeners
-    // This will trigger DynamicRenderer to re-evaluate translations
-    this._sidebarRendererPresenter.notifyListeners();
+            this._sidebarRendererPresenter.notifyListeners();
 
     this._logger.info('[UIRendererTranslationsConfigHandler] Sidebar listeners notified successfully');
   }

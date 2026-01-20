@@ -1,7 +1,4 @@
-/**
- * ComponentNode - узел в дереве UI компонентов
- * Описывает структуру UI без привязки к React/Vue
- */
+
 
 import type { StyleConfig } from './style-config';
 import type { ActionsConfig } from './actions-config';

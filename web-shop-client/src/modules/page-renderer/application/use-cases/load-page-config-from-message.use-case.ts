@@ -5,15 +5,7 @@ import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import { PageConfigLoadedEvent } from '../../domain/events/page-config-loaded.event';
 import type { PageConfig } from '../../domain/entities/page-config.entity';
 
-/**
- * Load Page Config From Message Use Case
- * Handles PageConfig loaded from UI Builder via postMessage
- * 
- * Flow:
- * 1. Receives config from UI Builder (via postMessage)
- * 2. Publishes PageConfigLoadedEvent through EventBus
- * 3. Handler receives event and updates presenter
- */
+
 @injectable()
 export class LoadPageConfigFromMessageUseCase {
   constructor(
@@ -36,8 +28,7 @@ export class LoadPageConfigFromMessageUseCase {
     });
 
     try {
-      // Publish event for handler to consume -> presenter
-      const event = new PageConfigLoadedEvent(pageConfig, appId, pageSlug);
+            const event = new PageConfigLoadedEvent(pageConfig, appId, pageSlug);
       this._logger.info('[LoadPageConfigFromMessageUseCase] Publishing PageConfigLoadedEvent', {
         eventName: event.eventName,
         sectionsCount: pageConfig?.sections?.length || 0

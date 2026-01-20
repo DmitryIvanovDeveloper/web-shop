@@ -14,8 +14,7 @@ export class AppLayoutTranslationsConfigHandler extends TranslationsConfigHandle
     private readonly _sidebarPresenter: SidebarRendererPresenter
   ) {
     super(logger);
-    console.log('[AppLayoutTranslationsConfigHandler] Created with sidebar presenter:', !!this._sidebarPresenter);
-  }
+      }
 
   protected async onTranslationsConfig(
     translations: Record<string, string>,
@@ -29,11 +28,7 @@ export class AppLayoutTranslationsConfigHandler extends TranslationsConfigHandle
       navKeys: Object.keys(translations).filter(key => key.startsWith('nav.'))
     });
 
-    // Pass translations config to sidebar presenter for button text updates
-    // Note: Currently sidebar buttons are hardcoded, but this provides infrastructure
-    // for future dynamic translation of sidebar elements
-    this._sidebarPresenter.onTranslationsConfig(translations, languageCode, direction);
+                this._sidebarPresenter.onTranslationsConfig(translations, languageCode, direction);
 
-    console.log('[AppLayoutTranslationsConfigHandler] Translations config passed to sidebar presenter');
-  }
+      }
 }

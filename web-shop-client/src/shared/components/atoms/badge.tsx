@@ -22,8 +22,7 @@ export function Badge({
   height = 24,
   withSkew = false
 }: BadgeProps): JSX.Element {
-  // Load badge styles from products.json
-  const variantStyles = useBadgeStyles();
+    const variantStyles = useBadgeStyles();
 
   const currentVariant = variantStyles[variant];
   const heightClass = `h-[${height}px]`;
@@ -56,8 +55,7 @@ export function Badge({
     );
   }
 
-  // Regular badge without skew
-  return (
+    return (
     <div className={`inline-flex items-center px-2 py-1 rounded-sm text-xs font-bold ${currentVariant.text} ${className}`} 
          style={{ backgroundColor: currentVariant.bg, ...style }}>
       {icon && <span className="mr-1">{icon}</span>}

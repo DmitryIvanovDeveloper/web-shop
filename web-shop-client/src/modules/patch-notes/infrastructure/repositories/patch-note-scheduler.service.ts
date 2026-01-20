@@ -7,9 +7,7 @@ import type { PatchNoteId } from '../../domain/value-objects/patch-note-id';
 
 @injectable()
 export class PatchNoteSchedulerService implements PatchNoteSchedulerPort {
-  // Simple in-memory storage for scheduled publications
-  // In production, this should be stored in database and processed by cron jobs
-  private readonly scheduledPublications = new Map<string, {
+      private readonly scheduledPublications = new Map<string, {
     patchNoteId: string;
     publishDate: Date;
     timeoutId?: NodeJS.Timeout;
@@ -27,28 +25,22 @@ export class PatchNoteSchedulerService implements PatchNoteSchedulerPort {
         publishDate: publishDate.toISOString()
       });
 
-      // Cancel any existing scheduled publication for this patch note
-      await this.cancelScheduledPublication(patchNoteId);
+            await this.cancelScheduledPublication(patchNoteId);
 
-      // Calculate delay until publication
-      const now = new Date();
+            const now = new Date();
       const delay = publishDate.getTime() - now.getTime();
 
       if (delay <= 0) {
         return Failure.fail(new Error('Publish date must be in the future'));
       }
 
-      // Schedule the publication
-      const timeoutId = setTimeout(async () => {
+            const timeoutId = setTimeout(async () => {
         try {
-          // TODO: Publish the patch note automatically
-          // This would typically involve calling PublishPatchNoteUseCase
-          this._logger.info('[PatchNoteSchedulerService] Auto-publishing patch note', {
+                              this._logger.info('[PatchNoteSchedulerService] Auto-publishing patch note', {
             patchNoteId: patchNoteId.value
           });
 
-          // Remove from scheduled list
-          this.scheduledPublications.delete(patchNoteId.value);
+                    this.scheduledPublications.delete(patchNoteId.value);
 
         } catch (error) {
           this._logger.error('[PatchNoteSchedulerService] Failed to auto-publish patch note', {
@@ -58,8 +50,7 @@ export class PatchNoteSchedulerService implements PatchNoteSchedulerPort {
         }
       }, delay);
 
-      // Store the scheduled publication
-      this.scheduledPublications.set(patchNoteId.value, {
+            this.scheduledPublications.set(patchNoteId.value, {
         patchNoteId: patchNoteId.value,
         publishDate,
         timeoutId
@@ -79,13 +70,11 @@ export class PatchNoteSchedulerService implements PatchNoteSchedulerPort {
       const scheduled = this.scheduledPublications.get(patchNoteId.value);
 
       if (scheduled) {
-        // Clear the timeout
-        if (scheduled.timeoutId) {
+                if (scheduled.timeoutId) {
           clearTimeout(scheduled.timeoutId);
         }
 
-        // Remove from scheduled list
-        this.scheduledPublications.delete(patchNoteId.value);
+                this.scheduledPublications.delete(patchNoteId.value);
 
         this._logger.info('[PatchNoteSchedulerService] Scheduled publication cancelled', {
           patchNoteId: patchNoteId.value
@@ -100,8 +89,7 @@ export class PatchNoteSchedulerService implements PatchNoteSchedulerPort {
     }
   }
 
-  // Utility method to get all scheduled publications (for debugging)
-  getScheduledPublications(): Array<{ patchNoteId: string; publishDate: Date }> {
+    getScheduledPublications(): Array<{ patchNoteId: string; publishDate: Date }> {
     return Array.from(this.scheduledPublications.values()).map(item => ({
       patchNoteId: item.patchNoteId,
       publishDate: item.publishDate

@@ -23,9 +23,7 @@ export class PageRendererPresenter {
     @inject(ROOT_TYPES.Logger) private readonly _logger: Logger
   ) {}
 
-  /**
-   * Deep clone component node to avoid shared references between editor elements.
-   */
+  
   private _cloneComponentNode(node: any): any {
     if (!node) {
       return node;
@@ -41,9 +39,7 @@ export class PageRendererPresenter {
     };
   }
 
-  /**
-   * Deep clone sections to ensure style updates of one element do not mutate others via shared refs.
-   */
+  
   private _cloneSections(sections: any[] | undefined) {
     if (!Array.isArray(sections)) {
       return [];
@@ -85,12 +81,10 @@ export class PageRendererPresenter {
   }
 
   setPageConfig(pageConfig: PageConfig | null): void {
-    // Log component styles for debugging
-    const allComponents = pageConfig?.sections?.flatMap(s => s.components) || [];
+        const allComponents = pageConfig?.sections?.flatMap(s => s.components) || [];
     const textComponents = allComponents.filter(c => c.type === 'Text');
     
-    // Log text components styles in detail
-    if (textComponents.length > 0) {
+        if (textComponents.length > 0) {
       this._logger.info('[PageRendererPresenter] Text components styles received:', {
         textComponentsCount: textComponents.length,
         textComponents: textComponents.map(c => ({
@@ -140,8 +134,7 @@ export class PageRendererPresenter {
       selectedCardId: this._vm.selectedOfferCardId,
       selectedCardBuyButtonBg: offerCards.find(c => c.id === this._vm.selectedOfferCardId)?.styles?.buyButton?.backgroundColor
     });
-    // Create deep copy to ensure React detects changes
-    this._vm = {
+        this._vm = {
       ...this._vm,
       offerCards: offerCards.map(card => ({
         ...card,

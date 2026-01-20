@@ -38,15 +38,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('[API] Failed to create translation:', error);
-      return NextResponse.json(
+            return NextResponse.json(
         { error: error.message },
         { status: 500 }
       );
     }
 
-    // Map to API response format
-    const apiTranslation = {
+        const apiTranslation = {
       key: data.key,
       languageCode: data.language_code,
       value: data.value,
@@ -57,8 +55,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(apiTranslation);
   } catch (error) {
-    console.error('[API] Unexpected error creating translation:', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );

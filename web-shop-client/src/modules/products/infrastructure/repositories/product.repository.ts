@@ -88,8 +88,7 @@ export class ProductRepository implements ProductRepositoryPort {
       rarity: dto.rarity ?? undefined,
       discount: dto.discount ?? undefined,
       playerLimit: dto.playerLimit ?? undefined,
-      limitedOffer: undefined, // Will be calculated later in LoadProductsUseCase
-      timer: dto.timer ? new Date(dto.timer) : undefined,
+      limitedOffer: undefined,       timer: dto.timer ? new Date(dto.timer) : undefined,
       price: price,
       rpBonus: dto.rpBonus ?? undefined,
       lpBonus: dto.lpBonus ?? undefined,

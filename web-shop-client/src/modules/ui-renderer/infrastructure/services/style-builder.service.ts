@@ -12,27 +12,22 @@ export class StyleBuilder {
       classes.push(`p-${styles.padding}`);
     }
 
-    // Обрабатываем w-full для width: 100%
-    if (styles.width === '100%') {
+        if (styles.width === '100%') {
       classes.push('w-full');
     }
 
-    // Добавляем пользовательские классы
-    if (styles.className) {
+        if (styles.className) {
       classes.push(styles.className);
     }
     
-    // Для цветов используем inline стили через theme, а не Tailwind классы
-    // Tailwind классы остаются для других стилей
-    
+            
     return classes.join(' ');
   }
 
   public buildInlineStyles(styles: Readonly<StyleConfig>, theme?: ThemeConfig, componentType?: string): CSSProperties {
     const inlineStyles: CSSProperties = {};
     
-    // Debug logging for textColor, fontSize, fontWeight
-    if (componentType === 'Text') {
+        if (componentType === 'Text') {
       console.log('[StyleBuilder] Building inline styles for Text component', {
         textColor: styles.textColor,
         fontSize: styles.fontSize,
@@ -44,12 +39,10 @@ export class StyleBuilder {
     }
 
     if (styles.backgroundColor) {
-      // Если это hex-код (начинается с #), используем напрямую
-      if (typeof styles.backgroundColor === 'string' && styles.backgroundColor.startsWith('#')) {
+            if (typeof styles.backgroundColor === 'string' && styles.backgroundColor.startsWith('#')) {
         inlineStyles.backgroundColor = styles.backgroundColor;
       } else if (theme?.colors) {
-        // Иначе ищем в теме
-        const color = (theme.colors as any)[styles.backgroundColor];
+                const color = (theme.colors as any)[styles.backgroundColor];
         if (color) {
           inlineStyles.backgroundColor = color;
         }
@@ -57,26 +50,21 @@ export class StyleBuilder {
     }
 
     if (styles.textColor) {
-      // Если это hex-код (начинается с #), используем напрямую
-      if (typeof styles.textColor === 'string' && styles.textColor.startsWith('#')) {
+            if (typeof styles.textColor === 'string' && styles.textColor.startsWith('#')) {
         inlineStyles.color = styles.textColor;
       } else if (theme?.colors) {
-        // Иначе ищем в теме
-        const color = (theme.colors as any)[styles.textColor];
+                const color = (theme.colors as any)[styles.textColor];
         if (color) {
           inlineStyles.color = color;
         } else {
-          // Если не найден в теме, используем значение как есть (может быть CSS color name или другой формат)
-          inlineStyles.color = styles.textColor as string;
+                    inlineStyles.color = styles.textColor as string;
         }
       } else {
-        // Если нет темы, используем значение как есть
-        inlineStyles.color = styles.textColor as string;
+                inlineStyles.color = styles.textColor as string;
       }
     }
 
-    // Обрабатываем width как inline стиль (кроме 100%)
-    if (styles.width !== undefined && styles.width !== '100%') {
+        if (styles.width !== undefined && styles.width !== '100%') {
       inlineStyles.width = styles.width;
     }
 
@@ -84,8 +72,7 @@ export class StyleBuilder {
       inlineStyles.minHeight = styles.minHeight;
     }
 
-    // Обрабатываем фоновые свойства
-    if (styles.backgroundImage !== undefined) {
+        if (styles.backgroundImage !== undefined) {
       inlineStyles.backgroundImage = styles.backgroundImage;
     }
 
@@ -101,28 +88,23 @@ export class StyleBuilder {
       inlineStyles.backgroundRepeat = styles.backgroundRepeat;
     }
 
-    // Обрабатываем padding как inline стиль
-    if (styles.padding !== undefined) {
+        if (styles.padding !== undefined) {
       inlineStyles.padding = typeof styles.padding === 'number' ? `${styles.padding * 4}px` : styles.padding;
     }
 
-    // Обрабатываем margin как inline стиль (для строковых значений)
-    if (typeof styles.margin === 'string') {
+        if (typeof styles.margin === 'string') {
       inlineStyles.margin = styles.margin;
     }
 
-    // Обрабатываем marginBottom как inline стиль
-    if (styles.marginBottom !== undefined) {
+        if (styles.marginBottom !== undefined) {
       inlineStyles.marginBottom = typeof styles.marginBottom === 'number' ? `${styles.marginBottom * 4}px` : styles.marginBottom;
     }
 
-    // Обрабатываем borderRadius как inline стиль
-    if (styles.borderRadius !== undefined) {
+        if (styles.borderRadius !== undefined) {
       inlineStyles.borderRadius = typeof styles.borderRadius === 'number' ? `${styles.borderRadius}px` : styles.borderRadius;
     }
 
-    // Обрабатываем fontSize как inline стиль
-    if (styles.fontSize !== undefined) {
+        if (styles.fontSize !== undefined) {
       const fontSizeMap: Record<string, string> = {
         'xs': '12px',
         'sm': '14px', 
@@ -136,8 +118,7 @@ export class StyleBuilder {
       inlineStyles.fontSize = fontSizeMap[styles.fontSize] || styles.fontSize;
     }
 
-    // Обрабатываем fontWeight как inline стиль
-    if (styles.fontWeight !== undefined) {
+        if (styles.fontWeight !== undefined) {
       const fontWeightMap: Record<string, string> = {
         'normal': '400',
         'medium': '500',
@@ -152,24 +133,19 @@ export class StyleBuilder {
       inlineStyles.fontFamily = styles.fontFamily;
     }
 
-    // Обрабатываем height как inline стиль
-    if (styles.height !== undefined) {
+        if (styles.height !== undefined) {
       inlineStyles.height = styles.height;
     }
 
-    // Обрабатываем maxWidth как inline стиль
-    if (styles.maxWidth !== undefined) {
+        if (styles.maxWidth !== undefined) {
       inlineStyles.maxWidth = styles.maxWidth;
     }
 
-    // Обрабатываем maxHeight как inline стиль
-    if (styles.maxHeight !== undefined) {
+        if (styles.maxHeight !== undefined) {
       inlineStyles.maxHeight = styles.maxHeight;
     }
 
-    // Обрабатываем textAlign как inline стиль
-    // Для кнопок преобразуем textAlign в justifyContent, так как кнопки используют flexbox
-    if (styles.textAlign !== undefined) {
+            if (styles.textAlign !== undefined) {
       if (componentType === 'Button') {
         const justifyContentMap: Record<string, string> = {
           'left': 'flex-start',
@@ -182,91 +158,72 @@ export class StyleBuilder {
       }
     }
 
-    // Обрабатываем textDecoration как inline стиль
-    if (styles.textDecoration !== undefined) {
+        if (styles.textDecoration !== undefined) {
       inlineStyles.textDecoration = styles.textDecoration;
     }
 
-    // Обрабатываем justifyContent как inline стиль
-    if (styles.justifyContent !== undefined) {
+        if (styles.justifyContent !== undefined) {
       inlineStyles.justifyContent = styles.justifyContent;
     }
 
-    // Обрабатываем flex как inline стиль
-    if (styles.flex !== undefined) {
+        if (styles.flex !== undefined) {
       inlineStyles.flex = styles.flex;
     }
 
-    // Обрабатываем borderColor как inline стиль
-    // borderColor должен обрабатываться до border, чтобы можно было установить border с правильным цветом
-    let borderColorValue: string | undefined;
+            let borderColorValue: string | undefined;
     if (styles.borderColor !== undefined) {
-      // Если это hex-код (начинается с #), используем напрямую
-      if (typeof styles.borderColor === 'string' && styles.borderColor.startsWith('#')) {
+            if (typeof styles.borderColor === 'string' && styles.borderColor.startsWith('#')) {
         borderColorValue = styles.borderColor;
         inlineStyles.borderColor = borderColorValue;
       } else if (theme?.colors) {
-        // Иначе ищем в теме
-        const color = (theme.colors as any)[styles.borderColor];
+                const color = (theme.colors as any)[styles.borderColor];
         if (color) {
           borderColorValue = color;
           inlineStyles.borderColor = borderColorValue;
         }
       } else {
-        // Если не hex и нет темы, используем как есть
-        borderColorValue = styles.borderColor as string;
+                borderColorValue = styles.borderColor as string;
         inlineStyles.borderColor = borderColorValue;
       }
     }
 
-    // Обрабатываем border
-    if (styles.border !== undefined) {
+        if (styles.border !== undefined) {
       inlineStyles.border = styles.border;
     } else if (borderColorValue && !inlineStyles.border) {
-      // Если border не установлен, но есть borderColor, устанавливаем border по умолчанию
-      // Это необходимо, чтобы borderColor работал (CSS требует border для применения borderColor)
-      const borderWidth = styles.borderWidth || '1px';
+                  const borderWidth = styles.borderWidth || '1px';
       const borderStyle = styles.borderStyle || 'solid';
       inlineStyles.border = `${borderWidth} ${borderStyle} ${borderColorValue}`;
     }
 
-    // Обрабатываем position как inline стиль
-    if (styles.position !== undefined) {
+        if (styles.position !== undefined) {
       inlineStyles.position = styles.position as any;
     }
 
-    // Обрабатываем top как inline стиль
-    if (styles.top !== undefined) {
+        if (styles.top !== undefined) {
       inlineStyles.top = styles.top;
     }
 
-    // Обрабатываем left как inline стиль
-    if (styles.left !== undefined) {
+        if (styles.left !== undefined) {
       inlineStyles.left = styles.left;
     }
 
-    // Обрабатываем right как inline стиль
-    if (styles.right !== undefined) {
+        if (styles.right !== undefined) {
       inlineStyles.right = styles.right;
     }
 
-    // Обрабатываем bottom как inline стиль
-    if (styles.bottom !== undefined) {
+        if (styles.bottom !== undefined) {
       inlineStyles.bottom = styles.bottom;
     }
 
-    // Обрабатываем transform как inline стиль
-    if (styles.transform !== undefined) {
+        if (styles.transform !== undefined) {
       inlineStyles.transform = styles.transform;
     }
 
-    // Обрабатываем zIndex как inline стиль
-    if (styles.zIndex !== undefined) {
+        if (styles.zIndex !== undefined) {
       inlineStyles.zIndex = styles.zIndex;
     }
 
-    // Обрабатываем boxShadow как inline стиль
-    if (styles.boxShadow !== undefined) {
+        if (styles.boxShadow !== undefined) {
       inlineStyles.boxShadow = styles.boxShadow;
     }
 

@@ -96,9 +96,7 @@ export class DailyRewardsPresenter {
     };
   }
 
-  /**
-   * Обновляет labels на основе полученных переводов
-   */
+  
   public updateLabelsFromTranslations(translations: Record<string, string>): void {
     this._labels = {
       pageTitle: translations['dailyRewards.pageTitle'] || translations['dailyRewards.title'] || 'Daily Rewards',
@@ -150,19 +148,16 @@ export class DailyRewardsPresenter {
 
     let rewards = result.data?.rewards ?? [];
 
-    // Check claim status for the active reward if userId is provided
-    if (input.userId) {
+        if (input.userId) {
       try {
       rewards = await this.enrichRewardsWithClaimStatus(rewards, input.userId, input.appId);
       } catch (error) {
         this._logger.warn('[DailyRewardsPresenter] Failed to enrich rewards with claim status, using defaults', { error });
-        // Если не удалось обогатить статусом, используем награды как есть (все неактивные)
-        rewards = rewards.map(r => ({ ...r, isActive: false, isClaimedToday: false }));
+                rewards = rewards.map(r => ({ ...r, isActive: false, isClaimedToday: false }));
       }
     }
 
-    // Создаем ViewModel из DailyRewardOutput
-    const viewModels = rewards.map(reward => {
+        const viewModels = rewards.map(reward => {
       const viewModel = DailyRewardCardViewModelImpl.create({
         id: reward.id,
         type: reward.type as 'points' | 'currency' | 'item',
@@ -176,15 +171,13 @@ export class DailyRewardsPresenter {
         isClaimedToday: reward.isClaimedToday || false,
         isClaiming: false
       });
-      // Устанавливаем callback для обновления UI при изменении countdown
-      viewModel.setOnCountdownUpdate(() => {
+            viewModel.setOnCountdownUpdate(() => {
         this._notifySubscribers();
       });
       return viewModel;
     });
 
-    // Устанавливаем nextClaimDate для неактивных наград, у которых должен быть таймер
-    if (input.userId) {
+        if (input.userId) {
       try {
         const availabilityResult = await this._checkDailyRewardAvailabilityUseCase.execute({
           userId: input.userId,
@@ -194,8 +187,7 @@ export class DailyRewardsPresenter {
         if (!isFailure(availabilityResult)) {
           const availability = availabilityResult.data;
           if (availability.nextClaimDate && !availability.canClaim && availability.reward) {
-            // Находим ViewModel следующей награды и устанавливаем таймер
-            const nextRewardViewModel = viewModels.find(vm => vm.id === availability.reward?.id);
+                        const nextRewardViewModel = viewModels.find(vm => vm.id === availability.reward?.id);
             if (nextRewardViewModel && nextRewardViewModel instanceof DailyRewardCardViewModelImpl) {
               this._logger.info('[DailyRewardsPresenter] Setting nextClaimDate during load:', {
                 rewardId: availability.reward.id,
@@ -210,8 +202,7 @@ export class DailyRewardsPresenter {
       }
     }
 
-    // Всегда устанавливаем isLoading в false после завершения загрузки
-    this._viewModel = {
+        this._viewModel = {
       ...this._viewModel,
       isLoading: false,
       rewards: viewModels,
@@ -260,8 +251,7 @@ export class DailyRewardsPresenter {
             const isNextReward = reward.id === nextReward.id;
             const isLastClaimedReward = lastClaimRewardId && reward.id === lastClaimRewardId;
 
-            // Награда активна только если она следующая И ее можно получить прямо сейчас
-            const isActive = isNextReward && availability.canClaim;
+                        const isActive = isNextReward && availability.canClaim;
 
             const isClaimedToday = isLastClaimedReward && isLastClaimToday ? true : false;
 
@@ -295,16 +285,14 @@ export class DailyRewardsPresenter {
             isLastClaimToday
           });
           
-          // Если нет следующей награды, но есть награды, делаем первую активной для новых пользователей
-          const hasNoClaims = !lastClaimRewardId && !lastClaimDate;
+                    const hasNoClaims = !lastClaimRewardId && !lastClaimDate;
           const firstReward = rewards.find(r => r.dayNumber === 1);
           
           return rewards.map(reward => {
             const isLastClaimedReward = lastClaimRewardId && reward.id === lastClaimRewardId;
             const isFirstReward = firstReward && reward.id === firstReward.id;
             
-            // Для новых пользователей делаем первую награду активной
-            const isActive = !!(hasNoClaims && isFirstReward && availability.canClaim);
+                        const isActive = !!(hasNoClaims && isFirstReward && availability.canClaim);
             
             return {
               ...reward,
@@ -321,16 +309,13 @@ export class DailyRewardsPresenter {
     } catch (error) {
       this._logger.warn('[DailyRewardsPresenter] Failed to check claim status', { error });
 
-      // Fallback: if availability check fails, make Day 1 active for new users
-      return rewards.map(reward => ({
+            return rewards.map(reward => ({
         ...reward,
-        isActive: reward.dayNumber === 1, // Day 1 is always active for new users
-        isClaimedToday: false
+        isActive: reward.dayNumber === 1,         isClaimedToday: false
       }));
     }
 
-    // Fallback: если ничего не вернулось, возвращаем награды как неактивные
-    return rewards.map(reward => ({
+        return rewards.map(reward => ({
       ...reward,
       isActive: false,
       isClaimedToday: false
@@ -344,8 +329,7 @@ export class DailyRewardsPresenter {
       rewardId: input.rewardId 
     });
 
-    // Если rewardId не передан, определяем его через availability check
-    let rewardId = input.rewardId;
+        let rewardId = input.rewardId;
     if (!rewardId) {
       try {
         const availabilityResult = await this._checkDailyRewardAvailabilityUseCase.execute({
@@ -361,8 +345,7 @@ export class DailyRewardsPresenter {
       }
     }
 
-    // Находим ViewModel и обновляем его состояние
-    if (rewardId) {
+        if (rewardId) {
       const rewardViewModel = this._viewModel.rewards.find(r => r.id === rewardId);
       if (rewardViewModel && rewardViewModel instanceof DailyRewardCardViewModelImpl) {
         rewardViewModel.setIsClaiming(true);
@@ -381,13 +364,7 @@ export class DailyRewardsPresenter {
       const result = await this._claimDailyRewardUseCase.execute(input);
 
       if (isFailure(result)) {
-        console.error('[DailyRewardsPresenter] Claim failed:', {
-          error: result.error.message,
-          errorName: result.error.name,
-          userId: input.userId,
-          appId: input.appId
-        });
-        this._logger.error('[DailyRewardsPresenter] Failed to claim reward', { 
+                this._logger.error('[DailyRewardsPresenter] Failed to claim reward', { 
           error: result.error,
           userId: input.userId,
           appId: input.appId
@@ -397,8 +374,7 @@ export class DailyRewardsPresenter {
                                      result.error.message.includes('has already claimed') ||
                                      result.error.name === 'RewardAlreadyClaimedTodayError';
 
-        // Сбрасываем isClaiming для всех наград
-        this._viewModel.rewards.forEach(reward => {
+                this._viewModel.rewards.forEach(reward => {
           if (reward instanceof DailyRewardCardViewModelImpl) {
             reward.setIsClaiming(false);
           }
@@ -425,47 +401,27 @@ export class DailyRewardsPresenter {
           this._notifySubscribers();
         }
       } else {
-        console.log('[DailyRewardsPresenter] Claim successful:', {
-          pointsAwarded: result.data.pointsAwarded,
-          claimId: result.data.claimId,
-          message: result.data.message,
-          nextRewardId: result.data.nextRewardId,
-          nextClaimDate: result.data.nextClaimDate
-        });
-        this._logger.info('[DailyRewardsPresenter] Successfully claimed reward', result.data);
+                this._logger.info('[DailyRewardsPresenter] Successfully claimed reward', result.data);
         
-        // Сбрасываем isClaiming перед перезагрузкой
-        this._viewModel.rewards.forEach(reward => {
+                this._viewModel.rewards.forEach(reward => {
           if (reward instanceof DailyRewardCardViewModelImpl) {
             reward.setIsClaiming(false);
           }
         });
         
-        // Обновляем nextClaimDate для следующей награды
-        if (result.data.nextRewardId && result.data.nextClaimDate) {
-          console.log('[DailyRewardsPresenter] Setting nextClaimDate', {
-            nextRewardId: result.data.nextRewardId,
-            nextClaimDate: result.data.nextClaimDate
-          });
-
-          const nextRewardViewModel = this._viewModel.rewards.find(r => r.id === result.data.nextRewardId);
+                if (result.data.nextRewardId && result.data.nextClaimDate) {
+                    const nextRewardViewModel = this._viewModel.rewards.find(r => r.id === result.data.nextRewardId);
           if (nextRewardViewModel && nextRewardViewModel instanceof DailyRewardCardViewModelImpl) {
             const nextClaimDate = new Date(result.data.nextClaimDate);
             nextRewardViewModel.setNextClaimDate(nextClaimDate);
 
-            console.log('[DailyRewardsPresenter] nextClaimDate set for reward:', result.data.nextRewardId);
-
-            // Устанавливаем callback для обновления UI при изменении countdown
-            nextRewardViewModel.setOnCountdownUpdate(() => {
-              console.log('[DailyRewardsPresenter] Countdown update triggered');
-              this._notifySubscribers();
+                                    nextRewardViewModel.setOnCountdownUpdate(() => {
+                            this._notifySubscribers();
             });
 
-            // Немедленно уведомляем подписчиков
-            this._notifySubscribers();
+                        this._notifySubscribers();
           } else {
-            console.log('[DailyRewardsPresenter] Next reward ViewModel not found or not correct type');
-          }
+                      }
         }
         
         this._viewModel = {
@@ -475,8 +431,7 @@ export class DailyRewardsPresenter {
         await this.loadRewards({ appId: input.appId, userId: input.userId });
       }
     } catch (error) {
-      // Сбрасываем isClaiming при ошибке
-      this._viewModel.rewards.forEach(reward => {
+            this._viewModel.rewards.forEach(reward => {
         if (reward instanceof DailyRewardCardViewModelImpl) {
           reward.setIsClaiming(false);
         }
@@ -492,8 +447,7 @@ export class DailyRewardsPresenter {
     }
   }
 
-  // Legacy methods for backward compatibility
-  public setOnViewModelChanged(callback: () => void): void {
+    public setOnViewModelChanged(callback: () => void): void {
     this.subscribe(callback);
   }
 

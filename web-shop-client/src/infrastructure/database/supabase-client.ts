@@ -4,12 +4,7 @@ import type { DatabaseClientPort } from '../../application/ports/database-client
 import { ROOT_TYPES } from '../bootstrap/types';
 import type { Logger } from '../../application/ports/logger.port';
 
-/**
- * Supabase Client Implementation
- * 
- * Infrastructure implementation of DatabaseClientPort using Supabase
- * Singleton pattern - one instance shared across all modules
- */
+
 @injectable()
 export class SupabaseClient implements DatabaseClientPort {
   private static instance: SupabaseClientType | null = null;

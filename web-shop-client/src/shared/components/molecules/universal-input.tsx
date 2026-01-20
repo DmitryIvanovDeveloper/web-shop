@@ -27,14 +27,12 @@ export function UniversalInput({
   defaultValue, 
   error, 
   label, 
-  onChange = () => {}, // Дефолтный обработчик
-  isRequired, 
+  onChange = () => {},   isRequired, 
   disabled, 
   type = 'text', 
   bg, 
   errorlink, 
-  placeholder = 'Enter value', // Дефолтный placeholder
-  readonly, 
+  placeholder = 'Enter value',   readonly, 
   className = '',
   style,
   onErrorLinkPress 

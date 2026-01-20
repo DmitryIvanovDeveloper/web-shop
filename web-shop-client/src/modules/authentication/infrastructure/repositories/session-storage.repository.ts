@@ -1,6 +1,4 @@
-/**
- * Реализация SessionStoragePort для работы с localStorage
- */
+
 
 import { injectable } from 'inversify';
 import { Result } from '../../../../shared/domain/result/result';
@@ -43,10 +41,8 @@ export class SessionStorageRepository implements SessionStoragePort {
 
       const user = JSON.parse(storedUser);
       
-      // Валидация данных
-      if (!user?.userId || !user?.appId || !user?.username) {
-        // Очищаем некорректные данные
-        localStorage.removeItem(STORAGE_KEY);
+            if (!user?.userId || !user?.appId || !user?.username) {
+                localStorage.removeItem(STORAGE_KEY);
         return Result.ok(null);
       }
 
@@ -58,8 +54,7 @@ export class SessionStorageRepository implements SessionStoragePort {
 
       return Result.ok(appUser);
     } catch (error) {
-      // При ошибке парсинга очищаем некорректные данные
-      if (typeof window !== 'undefined') {
+            if (typeof window !== 'undefined') {
         localStorage.removeItem(STORAGE_KEY);
       }
       return Result.error(error instanceof Error ? error : new Error(String(error)));

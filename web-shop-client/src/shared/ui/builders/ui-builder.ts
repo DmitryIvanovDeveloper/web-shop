@@ -1,7 +1,4 @@
-/**
- * UI Builder - Fluent API для создания ComponentNode
- * Упрощает создание UI структур в модулях
- */
+
 
 import type { ComponentNode } from '../component-node';
 import type { StyleConfig } from '../style-config';

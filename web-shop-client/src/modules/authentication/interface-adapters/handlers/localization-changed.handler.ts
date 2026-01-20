@@ -26,8 +26,7 @@ export class AuthLocalizationChangedEventHandler implements IAsyncEventHandler<L
       translationsCount: Object.keys(event.translations).length
     });
 
-    // Update the auth presenter with the new translations
-    this._authPresenter.updateLabelsFromTranslations(event.translations);
+        this._authPresenter.updateLabelsFromTranslations(event.translations);
 
     this._logger.debug('[AuthLocalizationChangedEventHandler] Auth presenter labels updated after language change');
   }

@@ -1,8 +1,7 @@
 export const USER_OFFER_CONTEXT_TYPES = {
   ContextReader: Symbol.for('UserOfferContext.ContextReader'),
   ContextWriter: Symbol.for('UserOfferContext.ContextWriter'),
-  // Use Cases
-  HandleUserRegisteredUseCase: Symbol.for('UserOfferContext.HandleUserRegisteredUseCase'),
+    HandleUserRegisteredUseCase: Symbol.for('UserOfferContext.HandleUserRegisteredUseCase'),
   HandleUserReturnedUseCase: Symbol.for('UserOfferContext.HandleUserReturnedUseCase'),
   HandleFirstPaymentCompletedUseCase: Symbol.for('UserOfferContext.HandleFirstPaymentCompletedUseCase'),
   HandleMbcLinkStatusChangedUseCase: Symbol.for('UserOfferContext.HandleMbcLinkStatusChangedUseCase'),
@@ -23,8 +22,7 @@ export const USER_OFFER_CONTEXT_TYPES = {
   HandleUserGeoSegmentResolvedUseCase: Symbol.for('UserOfferContext.HandleUserGeoSegmentResolvedUseCase'),
   HandleSubscriptionStatusChangedUseCase: Symbol.for('UserOfferContext.HandleSubscriptionStatusChangedUseCase'),
   HandleSubscriptionPlanChangedUseCase: Symbol.for('UserOfferContext.HandleSubscriptionPlanChangedUseCase'),
-  // Handlers
-  UserOfferContextEventHandler: Symbol.for('UserOfferContext.EventHandler'),
+    UserOfferContextEventHandler: Symbol.for('UserOfferContext.EventHandler'),
   UserOfferContextAuthenticatedHandler: Symbol.for('UserOfferContext.AuthenticatedEventHandler'),
   UserAuthenticatedEventHandler: Symbol.for('IAsyncEventHandler<UserAuthenticatedEvent>'),
 } as const;

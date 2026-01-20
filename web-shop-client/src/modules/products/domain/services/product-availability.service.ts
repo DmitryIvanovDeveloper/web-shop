@@ -1,15 +1,8 @@
 import { ProductId } from '../value-objects/product-id.value-object';
 
-/**
- * Product Availability Domain Service
- * 
- * Encapsulates business logic for product availability
- * Pure domain logic without external dependencies
- */
+
 export class ProductAvailabilityService {
-  /**
-   * Check if product is available for purchase
-   */
+  
   static isProductAvailable(
     isPurchased: boolean,
     playerLimit?: string,
@@ -17,18 +10,15 @@ export class ProductAvailabilityService {
   ): AvailabilityResult {
     const errors: string[] = [];
 
-    // Check if already purchased
-    if (isPurchased) {
+        if (isPurchased) {
       errors.push('Product has already been purchased');
     }
 
-    // Check player limit
-    if (playerLimit && !this._isPlayerLimitValid(playerLimit)) {
+        if (playerLimit && !this._isPlayerLimitValid(playerLimit)) {
       errors.push('Product is not available due to player limit restrictions');
     }
 
-    // Check timer availability
-    if (timer && !this._isTimerValid(timer)) {
+        if (timer && !this._isTimerValid(timer)) {
       errors.push('Product is not available due to time restrictions');
     }
 
@@ -39,9 +29,7 @@ export class ProductAvailabilityService {
     };
   }
 
-  /**
-   * Calculate remaining time for time-limited products
-   */
+  
   static calculateRemainingTime(timer: string): TimeRemaining | null {
     if (!timer) return null;
 
@@ -66,19 +54,14 @@ export class ProductAvailabilityService {
     }
   }
 
-  /**
-   * Check if product is in high demand
-   */
+  
   static isHighDemandProduct(playerLimit?: string): boolean {
     if (!playerLimit) return false;
 
     const limit = this._parsePlayerLimit(playerLimit);
-    return limit !== null && limit <= 10; // High demand if 10 or fewer spots
-  }
+    return limit !== null && limit <= 10;   }
 
-  /**
-   * Get availability status message
-   */
+  
   static getAvailabilityMessage(
     isPurchased: boolean,
     playerLimit?: string,
@@ -108,14 +91,11 @@ export class ProductAvailabilityService {
     return 'Available';
   }
 
-  /**
-   * Validate player limit format
-   */
+  
   private static _isPlayerLimitValid(playerLimit: string): boolean {
     if (!playerLimit) return true;
 
-    // Check if it's a number or "unlimited"
-    const cleanLimit = playerLimit.toLowerCase().trim();
+        const cleanLimit = playerLimit.toLowerCase().trim();
     if (cleanLimit === 'unlimited' || cleanLimit === '∞') {
       return true;
     }
@@ -124,9 +104,7 @@ export class ProductAvailabilityService {
     return !isNaN(limit) && limit > 0;
   }
 
-  /**
-   * Validate timer format
-   */
+  
   private static _isTimerValid(timer: string): boolean {
     if (!timer) return true;
 
@@ -139,24 +117,19 @@ export class ProductAvailabilityService {
     }
   }
 
-  /**
-   * Parse player limit to number
-   */
+  
   private static _parsePlayerLimit(playerLimit: string): number | null {
     if (!playerLimit) return null;
 
     const cleanLimit = playerLimit.toLowerCase().trim();
     if (cleanLimit === 'unlimited' || cleanLimit === '∞') {
-      return null; // No limit
-    }
+      return null;     }
 
     const limit = parseInt(cleanLimit, 10);
     return isNaN(limit) ? null : limit;
   }
 
-  /**
-   * Get current restrictions
-   */
+  
   private static _getRestrictions(playerLimit?: string, timer?: string): ProductRestrictions {
     return {
       hasPlayerLimit: !!playerLimit,
@@ -167,18 +140,14 @@ export class ProductAvailabilityService {
   }
 }
 
-/**
- * Availability check result
- */
+
 export interface AvailabilityResult {
   readonly isAvailable: boolean;
   readonly errors: readonly string[];
   readonly restrictions: ProductRestrictions;
 }
 
-/**
- * Time remaining information
- */
+
 export interface TimeRemaining {
   readonly expired: boolean;
   readonly remainingMs: number;
@@ -187,9 +156,7 @@ export interface TimeRemaining {
   readonly remainingSeconds?: number;
 }
 
-/**
- * Product restrictions
- */
+
 export interface ProductRestrictions {
   readonly hasPlayerLimit: boolean;
   readonly hasTimeLimit: boolean;

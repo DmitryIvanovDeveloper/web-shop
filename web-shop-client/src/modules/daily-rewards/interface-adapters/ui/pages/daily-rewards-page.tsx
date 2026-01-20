@@ -10,8 +10,7 @@ import { useAppId } from '../../../../../shared/hooks/use-app-context';
 import { DailyRewardsPresenter } from '../../presenters/daily-rewards-presenter';
 
 export interface DailyRewardsPageProps {
-  // appId будет получен автоматически через useAppId()
-}
+  }
 
 export function DailyRewardsPage({}: DailyRewardsPageProps): JSX.Element {
   const appId = useAppId();
@@ -23,33 +22,28 @@ export function DailyRewardsPage({}: DailyRewardsPageProps): JSX.Element {
     []
   );
 
-  // Reactive state from presenter
-  const [rewards, setRewards] = useState<DailyRewardViewModel[]>([]);
+    const [rewards, setRewards] = useState<DailyRewardViewModel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [labels, setLabels] = useState(presenter.labels);
 
   useEffect(() => {
-    // Set userId in presenter
-    if (userId) {
+        if (userId) {
       presenter.setUserId(userId);
     }
 
-    // Subscribe to presenter changes
-    const unsubscribe = presenter.subscribe(() => {
+        const unsubscribe = presenter.subscribe(() => {
       setRewards(presenter.rewards);
       setIsLoading(presenter.isLoading);
       setError(presenter.error);
       setLabels(presenter.labels);
     });
 
-    // Initial load
-    if (appId) {
+        if (appId) {
       loadRewards();
     }
 
-    // Cleanup subscription
-    return unsubscribe;
+        return unsubscribe;
   }, [appId, userId, presenter]);
 
   const loadRewards = async (): Promise<void> => {
@@ -60,8 +54,7 @@ export function DailyRewardsPage({}: DailyRewardsPageProps): JSX.Element {
   const handleClaimReward = async (rewardId: string): Promise<void> => {
     if (!appId) return;
     
-    // presenter сам управляет isClaiming через ViewModel
-    await presenter.claimReward({ userId, appId, rewardId });
+        await presenter.claimReward({ userId, appId, rewardId });
   };
 
   const containerStyle: React.CSSProperties = {

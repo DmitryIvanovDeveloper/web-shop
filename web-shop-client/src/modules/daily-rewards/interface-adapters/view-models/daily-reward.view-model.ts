@@ -1,7 +1,4 @@
-/**
- * ViewModel для отдельной карточки daily reward.
- * Каждый элемент сам знает свое состояние (активный/полученный/не активный).
- */
+
 export type DailyRewardStatus = 'active' | 'claimed' | 'inactive' | 'claiming';
 
 export interface DailyRewardViewModel {
@@ -14,26 +11,21 @@ export interface DailyRewardViewModel {
   readonly createdAt: string;
   readonly updatedAt: string;
   
-  // Состояние награды
-  readonly status: DailyRewardStatus;
+    readonly status: DailyRewardStatus;
   readonly isActive: boolean;
   readonly isClaimedToday: boolean;
   readonly isClaiming: boolean;
   
-  // UI свойства
-  readonly typeIcon: string;
+    readonly typeIcon: string;
   readonly statusBadge: {
     text: string;
     backgroundColor: string;
     color: string;
   };
   
-  // Обратный отсчет
-  readonly nextClaimDate: Date | null;
-  readonly timeUntilNextClaim: string | null; // Форматированное время "23:45:12"
-  
-  // Методы для определения состояния
-  canClaim(): boolean;
+    readonly nextClaimDate: Date | null;
+  readonly timeUntilNextClaim: string | null;   
+    canClaim(): boolean;
   shouldShowPadlock(): boolean;
   shouldShowClaimed(): boolean;
   shouldShowClaimButton(): boolean;
@@ -125,46 +117,36 @@ export class DailyRewardCardViewModelImpl implements DailyRewardViewModel {
     this._statusBadge = this.getStatusBadge();
   }
 
-  /**
-   * Обновляет состояние isClaiming и пересчитывает статус и бейдж
-   */
+  
   setIsClaiming(value: boolean): void {
     this._isClaiming = value;
     this._status = this.determineStatus();
     this._statusBadge = this.getStatusBadge();
   }
 
-  /**
-   * Устанавливает дату следующего claim'а и запускает обратный отсчет
-   */
+  
   setNextClaimDate(date: Date | null): void {
     this._nextClaimDate = date;
     this.updateCountdown();
     
-    // Очищаем предыдущий интервал
-    if (this._countdownInterval) {
+        if (this._countdownInterval) {
       clearInterval(this._countdownInterval);
       this._countdownInterval = null;
     }
     
-    // Запускаем обновление каждую секунду
-    if (date) {
+        if (date) {
       this._countdownInterval = setInterval(() => {
         this.updateCountdown();
       }, 1000);
     }
   }
 
-  /**
-   * Устанавливает callback для уведомления об обновлении обратного отсчета
-   */
+  
   setOnCountdownUpdate(callback: () => void): void {
     this._onCountdownUpdate = callback;
   }
 
-  /**
-   * Обновляет обратный отсчет времени
-   */
+  
   private updateCountdown(): void {
     if (!this._nextClaimDate) {
       this._timeUntilNextClaim = null;
@@ -193,16 +175,12 @@ export class DailyRewardCardViewModelImpl implements DailyRewardViewModel {
     this._onCountdownUpdate?.();
   }
 
-  /**
-   * Получает форматированное время до следующего claim'а
-   */
+  
   getTimeUntilNextClaim(): string | null {
     return this._timeUntilNextClaim;
   }
 
-  /**
-   * Определяет статус награды на основе текущего состояния
-   */
+  
   private determineStatus(): DailyRewardStatus {
     if (this._isClaiming) {
       return 'claiming';
@@ -216,45 +194,32 @@ export class DailyRewardCardViewModelImpl implements DailyRewardViewModel {
     return 'inactive';
   }
 
-  /**
-   * Может ли пользователь claimнуть эту награду
-   */
+  
   canClaim(): boolean {
     return this.isActive && !this.isClaimedToday && !this._isClaiming;
   }
 
-  /**
-   * Нужно ли показывать замок (награда не активна, не имеет таймера, но еще не получена)
-   */
+  
   shouldShowPadlock(): boolean {
     return !this.isActive && !this.isClaimedToday && !this._isClaiming && !this.hasTimer();
   }
 
-  /**
-   * Есть ли у награды таймер обратного отсчета
-   */
+  
   hasTimer(): boolean {
     return !!this._nextClaimDate;
   }
 
-  /**
-   * Нужно ли показывать статус "Claimed"
-   */
+  
   shouldShowClaimed(): boolean {
     return this.isClaimedToday;
   }
 
-  /**
-   * Нужно ли показывать кнопку "Claim Reward"
-   * Кнопка показывается если награда активна (даже если в процессе claim)
-   */
+  
   shouldShowClaimButton(): boolean {
     return this.isActive && !this.isClaimedToday;
   }
 
-  /**
-   * Получает иконку типа награды
-   */
+  
   private getTypeIcon(): string {
     switch (this.type) {
       case 'points':
@@ -268,9 +233,7 @@ export class DailyRewardCardViewModelImpl implements DailyRewardViewModel {
     }
   }
 
-  /**
-   * Получает бейдж статуса
-   */
+  
   private getStatusBadge(): {
     text: string;
     backgroundColor: string;
@@ -305,9 +268,7 @@ export class DailyRewardCardViewModelImpl implements DailyRewardViewModel {
     }
   }
 
-  /**
-   * Создает ViewModel из данных
-   */
+  
   static create(data: {
     id: string;
     type: 'points' | 'currency' | 'item';

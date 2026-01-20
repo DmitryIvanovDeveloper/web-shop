@@ -28,8 +28,7 @@ export function PatchNoteCardSkeleton({
     ...style
   };
 
-  // Shimmer animation
-  const shimmerStyle: React.CSSProperties = {
+    const shimmerStyle: React.CSSProperties = {
     position: 'absolute',
     top: 0,
     left: '-100%',
@@ -60,11 +59,11 @@ export function PatchNoteCardSkeleton({
         }
       `}</style>
       <div style={cardStyle} className={className}>
-        {/* Shimmer overlay */}
+        {}
         <div style={shimmerStyle} />
 
         <div>
-          {/* Version badge skeleton */}
+          {}
           <div
             style={{
               ...skeletonBaseStyle,
@@ -74,7 +73,7 @@ export function PatchNoteCardSkeleton({
             }}
           />
 
-          {/* Title skeleton */}
+          {}
           <div
             style={{
               ...skeletonBaseStyle,
@@ -84,7 +83,7 @@ export function PatchNoteCardSkeleton({
             }}
           />
 
-          {/* Description skeleton */}
+          {}
           <div
             style={{
               ...skeletonBaseStyle,
@@ -111,7 +110,7 @@ export function PatchNoteCardSkeleton({
         </div>
 
         <div style={{ marginTop: '16px' }}>
-          {/* Changes skeleton */}
+          {}
           <div
             style={{
               ...skeletonBaseStyle,

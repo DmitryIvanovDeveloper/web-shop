@@ -32,8 +32,7 @@ export class SelectOffersInteractor implements SelectOffersUseCase {
       hasContextSnapshot: !!input.contextSnapshot,
     });
 
-    // Use provided context snapshot if available, otherwise load it
-    const snapshot = input.contextSnapshot ?? await this.contextRepository.load(input.appId, input.userId);
+        const snapshot = input.contextSnapshot ?? await this.contextRepository.load(input.appId, input.userId);
     const contextCache = this.createCache(snapshot?.data ?? {});
     
     this.logger.info('[SelectOffersInteractor] Context prepared', {

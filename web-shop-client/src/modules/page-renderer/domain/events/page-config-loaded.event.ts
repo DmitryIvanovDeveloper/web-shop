@@ -2,9 +2,7 @@ import type { IEvent } from '../../../../infrastructure/events/event';
 import type { Event } from '../../../../application/ports/event-bus.port';
 import type { PageConfig } from '../entities/page-config.entity';
 
-/**
- * Event published when page configuration is loaded
- */
+
 export class PageConfigLoadedEvent implements IEvent, Event {
   public readonly eventName = 'PageConfigLoadedEvent';
   public readonly type = 'PageConfigLoadedEvent';

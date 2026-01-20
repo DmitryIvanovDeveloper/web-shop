@@ -6,7 +6,6 @@ export const APP_LAYOUT_TYPES = {
   LocalizationChangedEventHandler: Symbol.for('IAsyncEventHandler<LocalizationChangedEvent>'),
 };
 
-// Legacy export for backward compatibility
 export const UI_RENDERER_TYPES = APP_LAYOUT_TYPES;
 
 

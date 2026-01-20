@@ -1,7 +1,4 @@
-/**
- * Shared UI Types
- * Экспорт всех типов для UI Renderer Service
- */
+
 
 export * from './ui-descriptor';
 export * from './component-node';

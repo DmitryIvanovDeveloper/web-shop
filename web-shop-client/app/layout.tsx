@@ -1,6 +1,5 @@
 "use client";
-import '../src/env'; // Load environment variables first
-import 'reflect-metadata';
+import '../src/env'; import 'reflect-metadata';
 import { container } from '../src/infrastructure/bootstrap/container';
 import "./output.css";
 import { AuthModule } from '../src/modules/authentication/interface-adapters/ui/auth-module';
@@ -147,20 +146,15 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isConfigLoading, setIsConfigLoading] = useState(true);
-  // Initialize isUIBuilderMode to false to match SSR, then update in useEffect
-  const [isUIBuilderMode, setIsUIBuilderMode] = useState(false);
+    const [isUIBuilderMode, setIsUIBuilderMode] = useState(false);
   
-  // Viewport mode from UI Builder (mobile/tablet/desktop)
-  const [viewportMode, setViewportMode] = useState<'mobile' | 'tablet' | 'desktop' | null>(null);
+    const [viewportMode, setViewportMode] = useState<'mobile' | 'tablet' | 'desktop' | null>(null);
 
-  // Available languages for sidebar selector
-  const [availableLanguages, setAvailableLanguages] = useState<SelectOption[]>([]);
+    const [availableLanguages, setAvailableLanguages] = useState<SelectOption[]>([]);
 
-  // Navigation loading state
-  const [isNavigating, setIsNavigating] = useState(false);
+    const [isNavigating, setIsNavigating] = useState(false);
 
-  // Get localization translations for app-level keys
-  const getAppTranslations = () => {
+    const getAppTranslations = () => {
     try {
       const presenter = container.get(LOCALIZATION_TYPES.LocalizationPresenter) as any;
       const vm = presenter.viewModel;
@@ -192,16 +186,14 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     }
   }, []);
 
-  // Initialize isUIBuilderMode on client side to avoid hydration mismatch
-  useEffect(() => {
+    useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
         const url = new URL(window.location.href);
         const isUIBuilder = url.searchParams.get('uibuilder') === 'true';
         setIsUIBuilderMode(isUIBuilder);
       } catch (err) {
-        console.error('[RootLayout] Failed to parse URL for uibuilder param:', err);
-      }
+              }
     }
   }, []);
 
@@ -223,8 +215,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         setRightSidebarRootStyles(rightSidebar.styles);
         setSidebarMenuIcon(leftSidebar.icon);
       } catch (error) {
-        console.error('[RootLayout] Failed to resolve sidebar root styles:', error);
-        setSidebarRootStyles({});
+                setSidebarRootStyles({});
         setRightSidebarRootStyles({});
         setSidebarMenuIcon(null);
       }
@@ -238,8 +229,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     };
   }, [sidebarPresenter]);
 
-  // Apply theme background to body when app_config is loaded
-  useEffect(() => {
+    useEffect(() => {
     const applyThemeBackground = (): void => {
       try {
         const sidebar = sidebarPresenter.getSidebar();
@@ -256,32 +246,25 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
             ? applyOpacityToColor(backgroundColor, backgroundOpacity)
             : backgroundColor;
           
-          // Use setProperty with !important to override CSS styles from globals.css
-          document.body.style.setProperty('background-color', finalColor, 'important');
-          console.log('[RootLayout] Applied theme background to body', { backgroundColor: finalColor });
-        }
+                    document.body.style.setProperty('background-color', finalColor, 'important');
+                  }
       } catch (error) {
-        console.error('[RootLayout] Failed to apply theme background to body:', error);
-      }
+              }
     };
 
-    // Apply immediately if config is already loaded, with a small delay to ensure CSS is loaded
-    setTimeout(() => {
+        setTimeout(() => {
       applyThemeBackground();
     }, 0);
 
-    // Also listen for appConfigLoaded event to re-apply when config updates
-    const handleAppConfigLoaded = (): void => {
-      // Use setTimeout to ensure this runs after any CSS updates
-      setTimeout(() => {
+        const handleAppConfigLoaded = (): void => {
+            setTimeout(() => {
         applyThemeBackground();
       }, 0);
     };
 
     window.addEventListener('appConfigLoaded', handleAppConfigLoaded);
     
-    // Subscribe to sidebar updates to re-apply theme background
-    const unsubscribe = sidebarPresenter.subscribe(() => {
+        const unsubscribe = sidebarPresenter.subscribe(() => {
       applyThemeBackground();
     });
 
@@ -291,34 +274,27 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     };
   }, [sidebarPresenter]);
 
-  // Helper function to preserve query parameters with required appId and userId
-  const navigateWithQuery = (path: string) => {
+    const navigateWithQuery = (path: string) => {
     const url = new URL(window.location.href);
     const currentParams = new URLSearchParams(searchParams.toString());
 
-    // Always ensure appId is present
-    const appId = currentParams.get('appId') || currentParams.get('app') || url.searchParams.get('appId') || url.searchParams.get('app');
+        const appId = currentParams.get('appId') || currentParams.get('app') || url.searchParams.get('appId') || url.searchParams.get('app');
     if (appId) {
       currentParams.set('appId', appId);
     }
 
-    // Always ensure userId is present
-    const userId = currentParams.get('userId') || url.searchParams.get('userId');
+        const userId = currentParams.get('userId') || url.searchParams.get('userId');
     if (userId) {
       currentParams.set('userId', userId);
     }
 
     const queryString = currentParams.toString();
     const newUrl = queryString ? `${path}?${queryString}` : path;
-    console.log('[RootLayout] Navigating to:', newUrl, { appId, userId });
-
-    // Set navigation state
-    setIsNavigating(true);
+            setIsNavigating(true);
     router.push(newUrl);
   };
 
-  // Reset navigation state when route changes
-  useEffect(() => {
+    useEffect(() => {
     setIsNavigating(false);
   }, [searchParams]);
 
@@ -331,53 +307,38 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       }
     },
     navigateToHome: () => {
-      console.log('[RootLayout] Navigating to home page');
-      setIsNavigating(true);
+            setIsNavigating(true);
       navigateWithQuery('/');
     },
     navigateToPatchNotes: () => {
-      console.log('[RootLayout] Navigating to patch notes page');
-      setIsNavigating(true);
+            setIsNavigating(true);
       navigateWithQuery('/patch-notes');
     },
     navigateToStore: () => {
-      console.log('[RootLayout] Navigating to store page with query preservation');
-      setIsNavigating(true);
+            setIsNavigating(true);
       navigateWithQuery('/store');
     },
     navigateToDailyRewards: () => {
-      console.log('[RootLayout] Navigating to daily rewards page');
-      setIsNavigating(true);
+            setIsNavigating(true);
       navigateWithQuery('/daily-rewards');
     },
-    // Localization support
-    availableLanguages,
+        availableLanguages,
     changeLanguage: async (languageCode: string) => {
       try {
-        console.log('[RootLayout] Changing language to:', languageCode);
-
-        // Validate language code
-        if (!languageCode || typeof languageCode !== 'string' || !/^[a-z]{2,3}$/.test(languageCode)) {
-          console.error('[RootLayout] Invalid language code:', languageCode);
-          return;
+                        if (!languageCode || typeof languageCode !== 'string' || !/^[a-z]{2,3}$/.test(languageCode)) {
+                    return;
         }
 
-        // Get localization presenter from container
-        const localizationPresenter = container.get(LOCALIZATION_TYPES.LocalizationPresenter) as any;
+                const localizationPresenter = container.get(LOCALIZATION_TYPES.LocalizationPresenter) as any;
 
-        // Call change language
-        await localizationPresenter.changeLanguage(languageCode);
+                await localizationPresenter.changeLanguage(languageCode);
 
-        console.log('[RootLayout] Language changed successfully to:', languageCode);
-      } catch (error) {
-        console.error('[RootLayout] Failed to change language:', error);
-        // TODO: Show error toast to user
-      }
+              } catch (error) {
+                      }
     },
   };
 
-  // Load app-config при старте приложения и подписка на real-time обновления
-  useEffect(() => {
+    useEffect(() => {
     const initializeConfig = async () => {
       try {
         setIsConfigLoading(true);
@@ -385,38 +346,27 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
         const shouldLoadDraft = resolveShouldLoadDraft();
         const appId = getAppIdFromEnvironment();
-        console.log('[RootLayout] Resolved appId:', appId, 'URL:', window.location.href);
-        await loadAppConfigUseCase.execute(shouldLoadDraft, appId || undefined);
-        console.log('[RootLayout] App config loaded and distributed via EventBus');
-
-        // Load localization at app startup
-        const localizationPresenter = container.get(LOCALIZATION_TYPES.LocalizationPresenter) as any;
+                await loadAppConfigUseCase.execute(shouldLoadDraft, appId || undefined);
+                        const localizationPresenter = container.get(LOCALIZATION_TYPES.LocalizationPresenter) as any;
         await localizationPresenter.loadLocalization();
-        console.log('[RootLayout] Localization loaded at app startup');
-        
-        // 2. Subscribe to real-time config updates (only if not in UI Builder preview mode)
-        const isUIBuilderPreview = getIsUIBuilderFromQuery();
+                        const isUIBuilderPreview = getIsUIBuilderFromQuery();
         if (!isUIBuilderPreview) {
           const appId = getAppIdFromEnvironment();
           if (appId) {
             const subscribeToUpdatesUseCase = container.get<SubscribeToConfigUpdatesUseCase>(TYPES.SubscribeToConfigUpdates);
             await subscribeToUpdatesUseCase.execute(appId);
-            console.log('[RootLayout] Subscribed to real-time config updates');
-          }
+                      }
         } else {
-          console.log('[RootLayout] Skipping Realtime subscription - in UI Builder preview mode');
-        }
+                  }
         
-        // Ожидаем событие применения конфига, как только модули его обработают
-        const safety = setTimeout(() => setIsConfigLoading(false), 2000);
+                const safety = setTimeout(() => setIsConfigLoading(false), 2000);
         const onAppConfigLoaded = () => {
           clearTimeout(safety);
           setIsConfigLoading(false);
         };
         window.addEventListener('appConfigLoaded', onAppConfigLoaded, { once: true });
       } catch (err) {
-        console.error('[RootLayout] Failed to initialize config:', err);
-        setIsConfigLoading(false);
+                setIsConfigLoading(false);
       }
     };
 
@@ -434,14 +384,10 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       if (typeof window !== 'undefined') {
         try {
           const url = new URL(window.location.href);
-          console.log('[getAppIdFromEnvironment] URL:', url.href, 'search:', url.search);
-          // Support both 'appId' and 'app' query parameters
-          const fromQuery = url.searchParams.get('appId') || url.searchParams.get('app');
-          console.log('[getAppIdFromEnvironment] appId from query:', fromQuery);
-          if (fromQuery) return fromQuery;
+                              const fromQuery = url.searchParams.get('appId') || url.searchParams.get('app');
+                    if (fromQuery) return fromQuery;
         } catch (e) {
-          console.error('[getAppIdFromEnvironment] Error parsing URL:', e);
-        }
+                  }
       }
       return process.env.NEXT_PUBLIC_APP_ID || null;
     };
@@ -462,34 +408,25 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
 
     initializeConfig();
 
-    // Cleanup subscription on unmount
-    return () => {
+        return () => {
       try {
         const subscribeUseCase = container.get<SubscribeToConfigUpdatesUseCase>(TYPES.SubscribeToConfigUpdates);
         subscribeUseCase.cleanup();
-        console.log('[RootLayout] Unsubscribed from config updates');
-      } catch (err) {
-        console.error('[RootLayout] Failed to unsubscribe from config updates:', err);
-      }
+              } catch (err) {
+              }
     };
   }, []);
 
   useEffect(() => {
     const checkMobile = () => {
       if (isUIBuilderMode) {
-        // In UI Builder preview: use viewportMode from parent if available, otherwise use window width
-        if (viewportMode) {
-          // For tablet (1024px), match real app behavior: isMobile = true (sidebars hidden)
-          // For mobile: isMobile = true (sidebars hidden)
-          // For desktop: isMobile = false (sidebars visible)
-          setIsMobile(viewportMode === 'mobile' || viewportMode === 'tablet');
+                if (viewportMode) {
+                                        setIsMobile(viewportMode === 'mobile' || viewportMode === 'tablet');
         } else {
-          // Fallback: use window width (iframe width)
-          setIsMobile(window.innerWidth <= 1024);
+                    setIsMobile(window.innerWidth <= 1024);
         }
       } else {
-        // Normal mode: use window width
-        setIsMobile(window.innerWidth <= 1024);
+                setIsMobile(window.innerWidth <= 1024);
       }
     };
     checkMobile();
@@ -497,12 +434,10 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     return () => window.removeEventListener('resize', checkMobile);
   }, [isUIBuilderMode, viewportMode]);
 
-  // Load available languages
-  useEffect(() => {
+    useEffect(() => {
     const loadLanguages = async () => {
       try {
-        console.log('[RootLayout] Loading available languages');
-        const response = await fetch('/api/localization/languages');
+                const response = await fetch('/api/localization/languages');
         if (response.ok) {
           const languages = await response.json();
           const options: SelectOption[] = languages.map((lang: any) => ({
@@ -510,53 +445,38 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
             label: `${lang.name} (${lang.nativeName})`
           }));
           setAvailableLanguages(options);
-          console.log('[RootLayout] Languages loaded:', options.length);
-        } else {
-          console.error('[RootLayout] Failed to load languages:', response.status);
-        }
+                  } else {
+                  }
       } catch (error) {
-        console.error('[RootLayout] Error loading languages:', error);
-      }
+              }
     };
 
     loadLanguages();
   }, []);
 
-  // Listen for config updates from UI Builder via postMessage
-  useEffect(() => {
+    useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const handleConfigUpdate = async (event: MessageEvent) => {
-      // Verify origin - allow localhost in development
-      const isLocalhost = event.origin.startsWith('http://localhost:');
       const builderOrigin = process.env.NEXT_PUBLIC_BUILDER_URL;
-      const isDevelopment = !builderOrigin || builderOrigin.startsWith('http://localhost:');
-      
+      const isDevelopment =
+        !builderOrigin || builderOrigin.startsWith('http://localhost');
+      const isLocalhost = event.origin.startsWith('http://localhost');
       if (!isDevelopment && event.origin !== builderOrigin) {
-        console.warn('[RootLayout] Message from untrusted origin:', event.origin);
         return;
       }
 
       if (isDevelopment && !isLocalhost) {
-        console.warn('[RootLayout] Message from non-localhost origin in dev mode:', event.origin);
         return;
       }
 
-      // Handle CONFIG_UPDATE message
-      // Note: CONFIG_UPDATE is also handled in PageRenderer for offerCards and selectedOfferCardId
-      // This handler only processes the app-config part for AppConfigLoadedEvent
       if (event.data.type === 'CONFIG_UPDATE') {
         const config = event.data.payload?.config;
         if (!config) {
-          console.warn('[RootLayout] Received CONFIG_UPDATE without config payload');
           return;
         }
 
-        console.log('[RootLayout] Received CONFIG_UPDATE from UI Builder');
-        
         try {
-          // Use LoadAppConfigFromMessageUseCase to publish AppConfigLoadedEvent
-          // This is needed for other modules that listen to AppConfigLoadedEvent
           const loadConfigFromMessageUseCase = container.get<LoadAppConfigFromMessageUseCase>(TYPES.LoadAppConfigFromMessage);
           await loadConfigFromMessageUseCase.execute(config);
           const selectionModeValue =
@@ -564,27 +484,21 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
               ? (config as { elementSelectionMode?: boolean }).elementSelectionMode
               : Boolean((config as { elementSelectionMode?: unknown }).elementSelectionMode);
           applyElementSelectionMode(selectionModeValue ?? false);
-          
-          console.log('[RootLayout] Config processed from postMessage');
         } catch (error) {
-          console.error('[RootLayout] Failed to process CONFIG_UPDATE:', error);
+          // ignore config errors from builder messages
         }
       }
 
-      // Handle VIEWPORT_MODE_UPDATE message from UI Builder
       if (event.data.type === 'VIEWPORT_MODE_UPDATE') {
         const mode = event.data.payload?.viewportMode;
         if (mode && (mode === 'mobile' || mode === 'tablet' || mode === 'desktop')) {
-          console.log('[RootLayout] Received VIEWPORT_MODE_UPDATE:', mode);
           setViewportMode(mode);
         }
       }
     };
 
     window.addEventListener('message', handleConfigUpdate);
-    console.log('[RootLayout] Listening for CONFIG_UPDATE messages from UI Builder');
-
-    return () => {
+        return () => {
       window.removeEventListener('message', handleConfigUpdate);
     };
   }, [applyElementSelectionMode]);
@@ -592,7 +506,14 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
   const renderSidebarMenuIcon = (): ReactNode => {
     if (!sidebarMenuIcon) {
       return (
-        <svg className="w-6 h-6" fill="none" stroke="#ffffff" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <svg
+          className="w-6 h-6"
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       );
@@ -635,7 +556,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       </head>
       <body className="m-0 p-0 overflow-hidden">
         <>
-            {/* Global Loader - показывается пока загружается app-config.json */}
+            {}
             {isConfigLoading && (
           <div 
             style={{
@@ -652,7 +573,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
               zIndex: 9999
             }}
           >
-            {/* Spinner */}
+            {}
             <div 
               style={{
                 width: '64px',
@@ -663,7 +584,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                 animation: 'spin 1s linear infinite'
               }}
             />
-            {/* Loading Text */}
+            {}
             <p 
               style={{
                 marginTop: '24px',
@@ -678,13 +599,13 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
           </div>
           )}
 
-            {/* AuthModule - управляет авторизацией и рендерит popup */}
+            {}
             <AuthModule renderSidebarButton={false} renderPopupConfig={true} />
 
-            {/* Personal Offers popup */}
+            {}
             <PersonalOffersWidget />
 
-            {/* Mobile Header - показывается только на мобилке */}
+            {}
             {isMobile && (
               <header
                 className="px-4 flex items-center justify-between relative"
@@ -726,14 +647,25 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                   onClick={() => setIsRightDrawerOpen(true)}
                   style={{ minWidth: '40px', minHeight: '40px' }}
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="#ffffff" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="#ffffff"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
                   </svg>
                 </button>
               </header>
             )}
 
-            {/* Navigation Loading Bar */}
+            {}
             {isNavigating && (
               <div
                 style={{
@@ -750,15 +682,14 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
             )}
 
             <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex relative h-screen md:h-screen" style={{ height: isMobile ? 'calc(100vh - 56px)' : '100vh' }}>
-              {/* Left Sidebar - скрывается на экранах < 1280px (xl breakpoint), но всегда показывается в UI Builder */}
+              {}
               {!isMobile && (
                 <aside
                   data-element-id="left-sidebar"
                   className={(() => {
                     const baseClasses = isUIBuilderMode ? "block w-64 border-r border-gray-700 flex-shrink-0" : "hidden xl:block w-64 border-r border-gray-700 flex-shrink-0";
 
-                    // Add fallback classes when Supabase data is not available (sidebarRootStyles is empty)
-                    const hasSupabaseStyles = Object.keys(sidebarRootStyles).length > 0;
+                                        const hasSupabaseStyles = Object.keys(sidebarRootStyles).length > 0;
                     if (!hasSupabaseStyles) {
                       return `${baseClasses} flex min-h-full min-w-15 flex-col gap-4 px-6 py-3`;
                     }
@@ -766,20 +697,16 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                     return baseClasses;
                   })()}
                   style={(() => {
-                    // Don't mix shorthand (borderLeft) and non-shorthand (borderColor, borderWidth, borderStyle) properties
-                    const { borderLeft, borderColor, borderWidth, borderStyle, ...otherStyles } = sidebarRootStyles;
+                                        const { borderLeft, borderColor, borderWidth, borderStyle, ...otherStyles } = sidebarRootStyles;
                     const style: CSSProperties = { ...otherStyles };
                     
                     if (borderLeft) {
-                      // Use shorthand borderLeft from config - don't set individual border properties
-                      style.borderLeft = borderLeft as CSSProperties['borderLeft'];
+                                            style.borderLeft = borderLeft as CSSProperties['borderLeft'];
                     } else {
-                      // Use individual border properties if borderLeft is not set
-                      if (borderColor) style.borderColor = borderColor as CSSProperties['borderColor'];
+                                            if (borderColor) style.borderColor = borderColor as CSSProperties['borderColor'];
                       if (borderWidth) style.borderWidth = borderWidth as CSSProperties['borderWidth'];
                       if (borderStyle) style.borderStyle = borderStyle as CSSProperties['borderStyle'];
-                      // Fallback: if no borderLeft and no individual properties, use default
-                      if (!borderColor && !borderWidth && !borderStyle) {
+                                            if (!borderColor && !borderWidth && !borderStyle) {
                         style.borderLeft = '2px solid rgba(251, 191, 36, 0.3)';
                       }
                     }
@@ -791,34 +718,30 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                 </aside>
               )}
 
-              {/* Main Content - занимает всю ширину на < xl, иначе между sidebar'ами */}
+              {}
               <main className="flex-1 overflow-y-auto w-full px-4 md:px-8">
                 {children}
               </main>
 
-              {/* Right Sidebar - скрывается на экранах < 1280px (xl breakpoint), но всегда показывается в UI Builder */}
+              {}
               {!isMobile && (
                 <aside
                   data-element-id="right-sidebar"
                   className={isUIBuilderMode ? "block w-64 border-l border-yellow-400/30 flex-shrink-0" : "hidden xl:block w-64 border-l border-yellow-400/30 flex-shrink-0"}
                   style={(() => {
-                    // Don't mix shorthand (borderLeft) and non-shorthand (borderColor, borderWidth, borderStyle) properties
-                    const { borderLeft, borderColor, borderWidth, borderStyle, ...otherStyles } = rightSidebarRootStyles;
+                                        const { borderLeft, borderColor, borderWidth, borderStyle, ...otherStyles } = rightSidebarRootStyles;
                     const style: CSSProperties = {
                       backgroundColor: 'rgba(0, 0, 0, 0.1)',
                       ...otherStyles
                     };
                     
                     if (borderLeft) {
-                      // Use shorthand borderLeft from config - don't set individual border properties
-                      style.borderLeft = borderLeft as CSSProperties['borderLeft'];
+                                            style.borderLeft = borderLeft as CSSProperties['borderLeft'];
                     } else {
-                      // Use individual border properties if borderLeft is not set
-                      if (borderColor) style.borderColor = borderColor as CSSProperties['borderColor'];
+                                            if (borderColor) style.borderColor = borderColor as CSSProperties['borderColor'];
                       if (borderWidth) style.borderWidth = borderWidth as CSSProperties['borderWidth'];
                       if (borderStyle) style.borderStyle = borderStyle as CSSProperties['borderStyle'];
-                      // Fallback: if no borderLeft and no individual properties, use default
-                      if (!borderColor && !borderWidth && !borderStyle) {
+                                            if (!borderColor && !borderWidth && !borderStyle) {
                         style.borderLeft = '0.5px solid rgba(156, 163, 175, 0.5)';
                       }
                     }
@@ -842,7 +765,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
               )}
             </div>
 
-            {/* Left Drawer Overlay */}
+            {}
             {isLeftDrawerOpen && (
               <>
                 <div 
@@ -882,7 +805,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
               </>
             )}
 
-            {/* Right Drawer Overlay */}
+            {}
             {isRightDrawerOpen && (
               <>
                 <div 
@@ -920,18 +843,13 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
 
                   if (borderValue) style.border = borderValue as CSSProperties['border'];
 
-                  // Don't mix shorthand (borderLeft) and non-shorthand (borderColor, borderWidth, borderStyle) properties
-                  // Priority: if borderLeft exists, use it; otherwise use individual properties
-                  if (borderLeft) {
-                    // Use shorthand borderLeft - don't set individual border properties
-                    style.borderLeft = borderLeft as CSSProperties['borderLeft'];
+                                                      if (borderLeft) {
+                                        style.borderLeft = borderLeft as CSSProperties['borderLeft'];
                   } else {
-                    // Use individual border properties if borderLeft is not set
-                    if (borderColor) style.borderColor = borderColor as CSSProperties['borderColor'];
+                                        if (borderColor) style.borderColor = borderColor as CSSProperties['borderColor'];
                     if (borderWidth) style.borderWidth = borderWidth as CSSProperties['borderWidth'];
                     if (borderStyle) style.borderStyle = borderStyle as CSSProperties['borderStyle'];
-                    // Fallback: if no borderLeft and no individual properties, use default
-                    if (!borderColor && !borderWidth && !borderStyle) {
+                                        if (!borderColor && !borderWidth && !borderStyle) {
                       style.borderLeft = '0.5px solid rgba(156, 163, 175, 0.5)';
                     }
                   }

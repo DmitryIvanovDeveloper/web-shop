@@ -10,30 +10,26 @@ import { LocalizationChangedEvent } from '../../../localization/domain/events/lo
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
 
 export function bindAppLayout(container: Container): void {
-  // Presenter
-  container
+    container
     .bind(APP_LAYOUT_TYPES.SidebarRendererPresenter)
     .to(SidebarRendererPresenter)
     .inSingletonScope();
 
-  // Event Handler для AppConfigLoadedEvent (получение конфига при старте)
-  container
+    container
     .bind<IAsyncEventHandler<AppConfigLoadedEvent>>(
       APP_LAYOUT_TYPES.AppConfigLoadedEventHandler
     )
     .to(AppLayoutConfigLoadedHandler)
     .inTransientScope();
 
-  // Event Handler для LocalizationLoadedEvent (первая загрузка локализации)
-  container
+    container
     .bind<IAsyncEventHandler<LocalizationLoadedEvent>>(
       APP_LAYOUT_TYPES.LocalizationLoadedEventHandler
     )
     .to(AppLayoutLocalizationLoadedEventHandler)
     .inTransientScope();
 
-  // Event Handler для LocalizationChangedEvent (изменение языка)
-  container
+    container
     .bind<IAsyncEventHandler<LocalizationChangedEvent>>(
       APP_LAYOUT_TYPES.LocalizationChangedEventHandler
     )
@@ -41,7 +37,6 @@ export function bindAppLayout(container: Container): void {
     .inTransientScope();
 }
 
-// Legacy export for backward compatibility
 export const bindUIRenderer = bindAppLayout;
 
 

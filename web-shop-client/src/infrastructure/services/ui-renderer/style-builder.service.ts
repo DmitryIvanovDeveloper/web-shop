@@ -1,32 +1,24 @@
-/**
- * UI Style Builder Service
- * Универсальный сервис для построения стилей из StyleConfig
- */
+
 
 import { injectable } from 'inversify';
 import type { ThemeConfig, StyleConfig } from '../../../shared/ui';
 
 @injectable()
 export class UIStyleBuilder {
-	/**
-	 * Строит className из StyleConfig и ThemeConfig
-	 */
+	
 	public buildClassName(styles: StyleConfig | undefined, theme: ThemeConfig): string {
 		if (!styles) return '';
 
 		const classes: string[] = [];
 
-		// Используем className если есть
-		if (styles.className) {
+				if (styles.className) {
 			classes.push(styles.className);
 		}
 
 		return classes.join(' ');
 	}
 
-	/**
-	 * Строит inline styles из StyleConfig и ThemeConfig
-	 */
+	
 	public buildInlineStyles(
 		styles: StyleConfig | undefined,
 		theme: ThemeConfig
@@ -50,8 +42,7 @@ export class UIStyleBuilder {
 
 		const inlineStyles: React.CSSProperties = {};
 
-		// Layout
-		if (styles.display) inlineStyles.display = styles.display;
+				if (styles.display) inlineStyles.display = styles.display;
 		if (styles.flexDirection) inlineStyles.flexDirection = styles.flexDirection;
 		if (styles.justifyContent) inlineStyles.justifyContent = styles.justifyContent;
 		if (styles.alignItems) inlineStyles.alignItems = styles.alignItems;
@@ -64,11 +55,9 @@ export class UIStyleBuilder {
 			inlineStyles.gap = styles.gap;
 		}
 
-		// Grid
-		if (styles.gridTemplateColumns) inlineStyles.gridTemplateColumns = styles.gridTemplateColumns;
+				if (styles.gridTemplateColumns) inlineStyles.gridTemplateColumns = styles.gridTemplateColumns;
 
-		// Spacing
-		if (typeof styles.padding === 'number') {
+				if (typeof styles.padding === 'number') {
 			if (theme?.spacing) {
 				inlineStyles.padding = `${theme.spacing[styles.padding]}px`;
 			}
@@ -105,8 +94,7 @@ export class UIStyleBuilder {
 			}
 		}
 
-		// Colors
-		let resolvedBackgroundColor: string | undefined;
+				let resolvedBackgroundColor: string | undefined;
 		if (styles.backgroundColor) {
 			resolvedBackgroundColor = this._resolveColor(styles.backgroundColor, theme);
 			inlineStyles.backgroundColor = resolvedBackgroundColor;
@@ -122,22 +110,17 @@ export class UIStyleBuilder {
 				}
 			}
 		}
-		// Support both 'color' (direct CSS property) and 'textColor' (theme-based)
-		// textColor has priority over color for Text components
-		if (styles.textColor) {
-			// Если это hex-код (начинается с #), используем напрямую
-			if (typeof styles.textColor === 'string' && styles.textColor.startsWith('#')) {
+						if (styles.textColor) {
+						if (typeof styles.textColor === 'string' && styles.textColor.startsWith('#')) {
 				inlineStyles.color = styles.textColor;
 			} else {
-				// Иначе пытаемся разрешить через тему или используем как есть
-				inlineStyles.color = this._resolveColor(styles.textColor, theme);
+								inlineStyles.color = this._resolveColor(styles.textColor, theme);
 			}
 		} else if (styles.color) {
 			inlineStyles.color = this._resolveColor(styles.color as string, theme);
 		}
 
-		// Typography
-		if (styles.fontSize) {
+				if (styles.fontSize) {
 			const fontSizeMap: Record<string, string> = {
 				'xs': '12px',
 				'sm': '14px', 
@@ -164,15 +147,13 @@ export class UIStyleBuilder {
 		if (styles.textAlign) inlineStyles.textAlign = styles.textAlign;
 		if (styles.textDecoration) inlineStyles.textDecoration = styles.textDecoration;
 
-		// Size
-		if (styles.width) inlineStyles.width = styles.width;
+				if (styles.width) inlineStyles.width = styles.width;
 		if (styles.height) inlineStyles.height = styles.height;
 		if (styles.minHeight) inlineStyles.minHeight = styles.minHeight;
 		if (styles.maxWidth) inlineStyles.maxWidth = styles.maxWidth;
 		if (styles.maxHeight) inlineStyles.maxHeight = styles.maxHeight;
 
-		// Position
-		if (styles.position) inlineStyles.position = styles.position;
+				if (styles.position) inlineStyles.position = styles.position;
 		if (typeof styles.top === 'number') {
 			if (theme?.spacing) {
 				inlineStyles.top = `${theme.spacing[styles.top]}px`;
@@ -197,8 +178,7 @@ export class UIStyleBuilder {
 			inlineStyles.zIndex = styles.zIndex;
 		}
 
-		// Visual
-		if (typeof styles.borderRadius === 'number') {
+				if (typeof styles.borderRadius === 'number') {
 			if (theme?.spacing) {
 				inlineStyles.borderRadius = `${theme.spacing[styles.borderRadius]}px`;
 			}
@@ -213,14 +193,12 @@ export class UIStyleBuilder {
 		if (styles.objectFit) inlineStyles.objectFit = styles.objectFit;
         if (styles.filter) inlineStyles.filter = styles.filter;
 
-		// Background
-		if (styles.backgroundImage) inlineStyles.backgroundImage = styles.backgroundImage;
+				if (styles.backgroundImage) inlineStyles.backgroundImage = styles.backgroundImage;
 		if (styles.backgroundSize) inlineStyles.backgroundSize = styles.backgroundSize;
 		if (styles.backgroundPosition) inlineStyles.backgroundPosition = styles.backgroundPosition;
 		if (styles.backgroundRepeat) inlineStyles.backgroundRepeat = styles.backgroundRepeat;
 
-		// Hover properties (stored as CSS variables for hover handlers to use)
-		if (styles.hoverBackgroundColor) {
+				if (styles.hoverBackgroundColor) {
 			const hoverBgColor = this._resolveColor(styles.hoverBackgroundColor, theme);
 			(inlineStyles as any)['--hover-background-color'] = hoverBgColor;
 		}
@@ -257,19 +235,15 @@ export class UIStyleBuilder {
 		return inlineStyles;
 	}
 
-	/**
-	 * Resolve color from theme or use as-is
-	 */
+	
 	private _resolveColor(color: string, theme: ThemeConfig): string {
-		// If it's a theme color reference, resolve it
-		if (theme?.colors) {
+				if (theme?.colors) {
 			const colors = theme.colors as Record<string, string>;
 			if (colors && colors[color]) {
 				return colors[color];
 			}
 		}
-		// Otherwise use as-is (hex, rgb, etc.)
-		return color;
+				return color;
 	}
 
 	private _applyOpacityToColor(color: string, opacity: number): string {

@@ -1,8 +1,4 @@
-/**
- * Repository для Authentication
- * Загружает данные через HttpClient (mock или real API)
- * Работает с Supabase для реальных пользователей
- */
+
 
 import { injectable, inject } from 'inversify';
 import { Result } from '../../../../shared/domain/result/result';
@@ -25,11 +21,7 @@ export class AuthRepository implements AuthRepositoryPort {
     private readonly _logger: Logger
   ) {}
 
-  /**
-   * Проверить существует ли пользователь в Supabase, если нет - создать
-   * @param appId - ID приложения
-   * @param userId - ID пользователя (строка, будет конвертирована в UUID)
-   */
+  
   public async ensureUserExists(
     appId: string,
     userId: string
@@ -43,16 +35,14 @@ export class AuthRepository implements AuthRepositoryPort {
         userUuid: userUuid 
       });
 
-      // 1. Проверяем существует ли пользователь
-      const { data: existingUser, error: selectError } = await this._supabase
+            const { data: existingUser, error: selectError } = await this._supabase
         .from('users')
         .select('*')
         .eq('app_id', appId)
         .eq('user_id', userUuid)
         .maybeSingle();
 
-      // Логируем результат запроса для отладки
-      this._logger.info('[AuthRepository] Supabase query result', {
+            this._logger.info('[AuthRepository] Supabase query result', {
         hasData: !!existingUser,
         hasError: !!selectError,
         errorCode: selectError?.code,
@@ -60,22 +50,10 @@ export class AuthRepository implements AuthRepositoryPort {
         userId,
         userUuid
       });
-      console.log('[AuthRepository] Supabase query result', {
-        hasData: !!existingUser,
-        hasError: !!selectError,
-        errorCode: selectError?.code,
-        errorMessage: selectError?.message,
-        existingUser,
-        selectError
-      });
-
-      // 2. Если пользователь существует - обновляем last_active_at и возвращаем
-      if (existingUser && !selectError) {
-        // Store old last_active_at before updating (needed for calculating daysSinceLastActive)
-        const oldLastActiveAt = existingUser.last_active_at;
+                  if (existingUser && !selectError) {
+                const oldLastActiveAt = existingUser.last_active_at;
         
-        // Update last_active_at to track user activity
-        await this._supabase
+                await this._supabase
           .from('users')
           .update({ last_active_at: new Date().toISOString() })
           .eq('app_id', appId)
@@ -89,26 +67,19 @@ export class AuthRepository implements AuthRepositoryPort {
           oldLastActiveAt,
         });
         
-        // Convert oldLastActiveAt to ISO string if it exists
-        const lastActiveAt = oldLastActiveAt 
+                const lastActiveAt = oldLastActiveAt 
           ? (oldLastActiveAt instanceof Date ? oldLastActiveAt.toISOString() : String(oldLastActiveAt))
           : undefined;
 
         return Result.ok({
           user: {
-            userId: userId, // Возвращаем оригинальный userId (строку)
-            appId: existingUser.app_id,
-            username: userId // Используем полный userId как username
-          },
+            userId: userId,             appId: existingUser.app_id,
+            username: userId           },
           isNew: false,
-          lastActiveAt, // Return old last_active_at before update
-        });
+          lastActiveAt,         });
       }
 
-      // 3. Если пользователь не найден (existingUser === null) - автоматически создаем его
-      // Это может быть как нормальный случай (пользователь действительно не существует),
-      // так и ошибка запроса (таймаут и т.д.) - в любом случае пытаемся создать пользователя
-      this._logger.info('[AuthRepository] User not found (existingUser is null), automatically creating new user in Supabase', { 
+                        this._logger.info('[AuthRepository] User not found (existingUser is null), automatically creating new user in Supabase', { 
         appId, 
         userId,
         userUuid,
@@ -121,16 +92,12 @@ export class AuthRepository implements AuthRepositoryPort {
         .from('users')
         .insert({
           app_id: appId,
-          user_id: userUuid, // Используем UUID вместо строки
-          last_active_at: new Date().toISOString() // Set last_active_at for new users
-        })
+          user_id: userUuid,           last_active_at: new Date().toISOString()         })
         .select()
         .single();
 
       if (insertError) {
-        // Handle race condition: if user was created by another request (409 conflict or duplicate key)
-        // Also handle other errors - возможно пользователь уже создан, проверяем еще раз
-        this._logger.warn('[AuthRepository] Insert error occurred, checking if user was created anyway (race condition or retry)', {
+                        this._logger.warn('[AuthRepository] Insert error occurred, checking if user was created anyway (race condition or retry)', {
           error: insertError,
           errorCode: insertError.code,
           errorMessage: insertError.message,
@@ -141,9 +108,7 @@ export class AuthRepository implements AuthRepositoryPort {
           userUuid,
         });
 
-        // Проверяем, может быть пользователь уже создан (race condition или повторная попытка)
-        // Это может быть как конфликт (23505, PGRST116), так и другие ошибки (таймаут и т.д.)
-        const isConflictError = insertError.code === '23505' || 
+                        const isConflictError = insertError.code === '23505' || 
                                 insertError.code === 'PGRST116' || 
                                 insertError.message?.includes('duplicate') || 
                                 insertError.message?.includes('already exists');
@@ -166,8 +131,7 @@ export class AuthRepository implements AuthRepositoryPort {
           });
         }
         
-        // В любом случае пытаемся получить пользователя - возможно он уже создан
-        const { data: existingUserAfterError, error: fetchError } = await this._supabase
+                const { data: existingUserAfterError, error: fetchError } = await this._supabase
           .from('users')
           .select('*')
           .eq('app_id', appId)
@@ -175,9 +139,7 @@ export class AuthRepository implements AuthRepositoryPort {
           .maybeSingle();
         
         if (existingUserAfterError && !fetchError) {
-          // Пользователь найден после ошибки - значит он был создан (race condition или успешная повторная попытка)
-          // Update last_active_at for user found after error
-          await this._supabase
+                              await this._supabase
             .from('users')
             .update({ last_active_at: new Date().toISOString() })
             .eq('app_id', appId)
@@ -192,8 +154,7 @@ export class AuthRepository implements AuthRepositoryPort {
             originalErrorMessage: insertError.message
           });
           
-          // Get old last_active_at before update
-          const oldLastActiveAt = existingUserAfterError.last_active_at;
+                    const oldLastActiveAt = existingUserAfterError.last_active_at;
           const lastActiveAt = oldLastActiveAt 
             ? (oldLastActiveAt instanceof Date ? oldLastActiveAt.toISOString() : String(oldLastActiveAt))
             : undefined;
@@ -202,15 +163,11 @@ export class AuthRepository implements AuthRepositoryPort {
             user: {
               userId: userId,
               appId: existingUserAfterError.app_id,
-              username: userId // Используем полный userId как username
-            },
-            isNew: false, // User already exists, not new
-            lastActiveAt, // Return old last_active_at before update
-          });
+              username: userId             },
+            isNew: false,             lastActiveAt,           });
         }
         
-        // Если пользователь все еще не найден после ошибки - возвращаем ошибку
-        this._logger.error('[AuthRepository] Failed to create user in Supabase and user still not found after retry', { 
+                this._logger.error('[AuthRepository] Failed to create user in Supabase and user still not found after retry', { 
           error: insertError,
           errorCode: insertError.code,
           errorMessage: insertError.message,
@@ -233,17 +190,13 @@ export class AuthRepository implements AuthRepositoryPort {
 
       return Result.ok({
         user: {
-          userId: userId, // Возвращаем оригинальный userId (строку), не UUID
-          appId: newUser.app_id,
-          username: userId // Используем полный userId как username
-        },
+          userId: userId,           appId: newUser.app_id,
+          username: userId         },
         isNew: true,
-        lastActiveAt: undefined, // New users don't have old last_active_at
-      });
+        lastActiveAt: undefined,       });
 
     } catch (error) {
-      console.error('[AuthRepository] Error in ensureUserExists:', error);
-      console.error('[AuthRepository] Error details:', {
+            console.error('[AuthRepository] Error details:', {
         message: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         name: error instanceof Error ? error.name : typeof error,

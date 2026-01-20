@@ -1,8 +1,6 @@
 import { Language, Translation } from '../../domain';
 
-/**
- * Input/Output types for use cases
- */
+
 
 export interface ChangeActiveLanguageInput {
   languageCode: string;
@@ -52,8 +50,7 @@ export interface DetectUserLanguageOutput {
 
 export interface GetTranslationsInput {
   languageCode: string;
-  keys?: string[]; // optional filter by keys
-}
+  keys?: string[]; }
 
 export interface GetTranslationsOutput {
   language: Language;

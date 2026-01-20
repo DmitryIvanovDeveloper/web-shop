@@ -6,12 +6,7 @@ import { ProductsListPresenter } from '../presenters/products-list.presenter';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
 
-/**
- * Products User Authenticated Handler
- * 
- * Handles UserAuthenticatedEvent by reloading products with user context
- * Ensures purchased status updates after authentication
- */
+
 @injectable()
 export class ProductsUserAuthenticatedHandler implements IAsyncEventHandler<UserAuthenticatedEvent> {
   constructor(
@@ -32,9 +27,7 @@ export class ProductsUserAuthenticatedHandler implements IAsyncEventHandler<User
     });
 
     try {
-      // Reload products with user context from event.
-      // ProductsListPresenter will use cached products and only refresh purchased state.
-      await this.productsListPresenter.present({
+                  await this.productsListPresenter.present({
         userId: event.userId,
         appId: event.appId
       });

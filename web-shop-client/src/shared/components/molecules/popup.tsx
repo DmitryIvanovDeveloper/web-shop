@@ -12,8 +12,7 @@ export interface PopupProps {
   readonly showCloseButton?: boolean;
   readonly overlayClassName?: string;
   readonly overlayStyle?: CSSProperties;
-  readonly onClick?: () => void; // Для закрытия через actionContext
-}
+  readonly onClick?: () => void; }
 
 export function Popup({
   isOpen = true,
@@ -37,8 +36,7 @@ export function Popup({
     return null;
   }
 
-  // Если в style есть position: fixed, используем его напрямую без overlay
-  const useDirectPositioning = style?.position === 'fixed';
+    const useDirectPositioning = style?.position === 'fixed';
 
   const defaultOverlayStyle: CSSProperties = useDirectPositioning ? {} : {
     position: 'fixed',
@@ -71,12 +69,11 @@ export function Popup({
     ...style,
   };
 
-  // Используем onClose если есть, иначе onClick (из actionContext)
-  const handleClose = onClose || onClick;
+    const handleClose = onClose || onClick;
 
   const popupContent = useDirectPositioning ? (
     <>
-      {/* Backdrop для fixed positioning */}
+      {}
       <div 
         style={{
           position: 'fixed',
@@ -87,9 +84,9 @@ export function Popup({
         onClick={handleClose}
       />
       
-      {/* Popup с fixed positioning */}
+      {}
       <div className={className} style={defaultPopupStyle}>
-        {/* Close Button */}
+        {}
         {showCloseButton && handleClose && (
           <button
             onClick={handleClose}
@@ -122,7 +119,7 @@ export function Popup({
   ) : (
     <div className={overlayClassName} style={defaultOverlayStyle}>
       <div className={className} style={defaultPopupStyle}>
-        {/* Close Button */}
+        {}
         {showCloseButton && handleClose && (
           <button
             onClick={handleClose}
@@ -154,7 +151,6 @@ export function Popup({
     </div>
   );
 
-  // Рендерим popup через портал, чтобы он был поверх всего
-  return createPortal(popupContent, document.body);
+    return createPortal(popupContent, document.body);
 }
 

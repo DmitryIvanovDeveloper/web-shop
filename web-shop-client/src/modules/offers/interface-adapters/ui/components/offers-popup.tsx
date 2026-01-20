@@ -46,12 +46,12 @@ export function OffersPopup({
       }}
     >
       <div className="!flex !flex-col h-full !justify-center !items-center">
-        {/* Header */}
+        {}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-white text-2xl font-bold">🎁 Special Offers</h2>
         </div>
 
-        {/* Offers Grid */}
+        {}
         <div className="flex-1 overflow-y-auto">
           <Grid className="justify-center" style={{ width: '100%', maxWidth: '100%', margin: '0 auto' }}>
             {offers.map((offer, index) => (

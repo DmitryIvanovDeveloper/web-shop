@@ -12,9 +12,7 @@ interface PatchNotesPublicProps {
 }
 
 export function PatchNotesPublic({ appId }: PatchNotesPublicProps): JSX.Element | null {
-  console.log('PatchNotesPublic component rendered with appId:', appId);
-
-  const [updateCounter, setUpdateCounter] = useState(0);
+    const [updateCounter, setUpdateCounter] = useState(0);
   const [presenter, setPresenter] = useState<PatchNotesPublicPresenter | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,8 +20,7 @@ export function PatchNotesPublic({ appId }: PatchNotesPublicProps): JSX.Element 
     setUpdateCounter(prev => prev + 1);
   }, []);
 
-  // Try to get presenter synchronously
-  if (!presenter && !error) {
+    if (!presenter && !error) {
     try {
       const presenterInstance = container.get<PatchNotesPublicPresenter>(PATCH_NOTES_TYPES.PatchNotesPublicPresenter);
       setPresenter(presenterInstance);
@@ -35,17 +32,13 @@ export function PatchNotesPublic({ appId }: PatchNotesPublicProps): JSX.Element 
   useEffect(() => {
     if (presenter) {
       try {
-        console.log('Loading patch notes for appId:', appId);
-        presenter.setOnViewModelChanged(forceUpdate);
+                presenter.setOnViewModelChanged(forceUpdate);
         presenter.loadPublishedNotes(appId);
-        console.log('Load method called');
-      } catch (error) {
-        console.error('Failed to load notes:', error);
-        setError('Failed to load notes');
+              } catch (error) {
+                setError('Failed to load notes');
       }
     } else {
-      console.log('Presenter not available');
-    }
+          }
   }, [presenter, appId]);
 
   if (error) {
@@ -60,8 +53,7 @@ export function PatchNotesPublic({ appId }: PatchNotesPublicProps): JSX.Element 
     );
   }
 
-  // Don't render anything until presenter is initialized
-  if (!presenter) {
+    if (!presenter) {
     const defaultLabels = {
       title: 'Changelog',
       initializing: 'Initializing...'

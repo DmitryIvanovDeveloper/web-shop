@@ -67,11 +67,21 @@ export function UniversalVideo({
   const usePreview = false;
   
   let embedUrl: URL;
-  
+
   if (isShorts) {
-    embedUrl = new URL(`https://www.youtube.com/embed/${id}`);
+    // YouTube Shorts embed URL
+    embedUrl = new URL(
+      url?.replace('/shorts/', '/embed/') ?? 'https://www.youtube.com/embed',
+    );
   } else {
-    embedUrl = new URL(`https://www.youtube.com/embed/${id}`);
+    // Regular YouTube watch URL → embed URL
+    if (url && url.includes('watch')) {
+      const parsed = new URL(url);
+      const videoId = parsed.searchParams.get('v');
+      embedUrl = new URL(`https://www.youtube.com/embed/${videoId ?? ''}`);
+    } else {
+      embedUrl = new URL(url ?? 'https://www.youtube.com/embed');
+    }
   }
   
   const params = new URLSearchParams();
@@ -109,9 +119,28 @@ export function UniversalVideo({
     border: 'none',
   };
 
-  const thumbnailUrl = `https://img.youtube.com/vi/${id}/maxresdefault.jpg`;
-  const videoUrl = url || (isShorts ? `https://www.youtube.com/shorts/${id}` : `https://www.youtube.com/watch?v=${id}`);
-
+  const videoUrl =
+    url || (isShorts ? embedUrl.toString() : 'https://www.youtube.com');
+  const thumbnailVideoId = (() => {
+    try {
+      const parsed = new URL(videoUrl);
+      if (parsed.hostname.includes('youtube.com') || parsed.hostname.includes('youtu.be')) {
+        if (parsed.hostname === 'youtu.be') {
+          return parsed.pathname.slice(1);
+        }
+        const id = parsed.searchParams.get('v');
+        if (id) return id;
+        const parts = parsed.pathname.split('/');
+        return parts[parts.length - 1] || '';
+      }
+    } catch {
+      // ignore parse errors
+    }
+    return '';
+  })();
+  const thumbnailUrl = thumbnailVideoId
+    ? `https://img.youtube.com/vi/${thumbnailVideoId}/hqdefault.jpg`
+    : '';
   if (usePreview || iframeError) {
     return (
       <>

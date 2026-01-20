@@ -17,10 +17,7 @@ interface AppConfigRow {
 	updated_at?: string;
 }
 
-/**
- * Supabase Config Subscription Adapter
- * Infrastructure implementation of ConfigSubscriptionPort using Supabase Realtime
- */
+
 @injectable()
 export class SupabaseConfigSubscriptionAdapter implements ConfigSubscriptionPort {
 	private activeChannel: any = null;
@@ -36,8 +33,7 @@ export class SupabaseConfigSubscriptionAdapter implements ConfigSubscriptionPort
 	public subscribe(appId: string, callback: (config: AppConfig) => void): UnsubscribeFn {
 		this._logger.info('[SupabaseConfigSubscriptionAdapter] Subscribing to config updates', { appId });
 
-		// Store callback for cleanup
-		this.activeSubscriptions.set(appId, callback);
+				this.activeSubscriptions.set(appId, callback);
 
 		try {
 			const supabaseClient = this._db.getClient();
@@ -46,17 +42,14 @@ export class SupabaseConfigSubscriptionAdapter implements ConfigSubscriptionPort
 				return () => {};
 			}
 			
-			// Create channel name unique to this app
-			const channelName = `app_configs:${appId}`;
+						const channelName = `app_configs:${appId}`;
 			
-			// Create and subscribe to channel
-			const channel = supabaseClient
+						const channel = supabaseClient
 			.channel(channelName)
 			.on(
 				'postgres_changes',
 				{
-					event: '*', // Listen to all changes (INSERT, UPDATE, DELETE)
-					schema: 'public',
+					event: '*', 					schema: 'public',
 					table: 'app_configs',
 					filter: `app_id=eq.${appId}`,
 				},
@@ -66,18 +59,15 @@ export class SupabaseConfigSubscriptionAdapter implements ConfigSubscriptionPort
 						appId,
 					});
 
-					// Check if in preview mode to determine which configs to load
-					const isPreview = this._isPreviewMode();
+										const isPreview = this._isPreviewMode();
 					
-					// In preview mode, process draft configs; otherwise process active configs
-					const shouldProcess = isPreview 
+										const shouldProcess = isPreview 
 						? payload.new && payload.new.is_draft === true
 						: payload.new && payload.new.is_active === true;
 
 					if (shouldProcess) {
 						try {
-							// Load the latest config based on mode
-							const config = await (isPreview ? this._loadDraftConfig(appId) : this._loadActiveConfig(appId));
+														const config = await (isPreview ? this._loadDraftConfig(appId) : this._loadActiveConfig(appId));
 							if (config) {
 								callback(config);
 							}
@@ -86,8 +76,7 @@ export class SupabaseConfigSubscriptionAdapter implements ConfigSubscriptionPort
 						}
 					} else if (payload.eventType === 'DELETE') {
 						this._logger.warn('[SupabaseConfigSubscriptionAdapter] Config deleted', { appId });
-						// Optionally notify with null or keep previous config
-					}
+											}
 				}
 			)
 			.subscribe((status: string) => {
@@ -100,8 +89,7 @@ export class SupabaseConfigSubscriptionAdapter implements ConfigSubscriptionPort
 					this._logger.info('[SupabaseConfigSubscriptionAdapter] Successfully subscribed to updates');
 				} else if (status === 'CLOSED') {
 					this._logger.warn('[SupabaseConfigSubscriptionAdapter] Channel closed');
-					// Attempt to reconnect after delay
-					setTimeout(() => {
+										setTimeout(() => {
 						this._logger.info('[SupabaseConfigSubscriptionAdapter] Attempting to resubscribe');
 						this.subscribe(appId, callback);
 					}, 3000);
@@ -110,8 +98,7 @@ export class SupabaseConfigSubscriptionAdapter implements ConfigSubscriptionPort
 
 			this.activeChannel = channel;
 
-			// Return unsubscribe function
-			return () => {
+						return () => {
 				this._logger.info('[SupabaseConfigSubscriptionAdapter] Unsubscribing', { appId });
 				this.activeSubscriptions.delete(appId);
 				if (this.activeChannel) {
@@ -121,8 +108,7 @@ export class SupabaseConfigSubscriptionAdapter implements ConfigSubscriptionPort
 			};
 		} catch (error) {
 			this._logger.error('[SupabaseConfigSubscriptionAdapter] Failed to subscribe to config updates', error);
-			// Return empty unsubscribe function to prevent errors
-			return () => {};
+						return () => {};
 		}
 	}
 
