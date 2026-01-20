@@ -12,6 +12,7 @@ import { PostMessagePreviewAdapter } from '../messaging/postmessage-preview.adap
 import { SupabasePageConfigStorage } from '../storage/supabase-page-config.storage';
 import { SupabaseTemplateRepository } from '../storage/supabase-template.repository';
 import { SupabaseUserAppConfigRepository } from '../storage/supabase-user-app-config.repository';
+import { UiBuilderConfigApiRepository } from '../storage/ui-builder-config-api.repository';
 
 import { LoadConfigUseCase } from '../../application/use-cases/load-config.use-case';
 import { SaveConfigUseCase } from '../../application/use-cases/save-config.use-case';
@@ -44,12 +45,12 @@ export function bindUIBuilder(container: Container): void {
   
   container
     .bind<ConfigStoragePort>(UI_BUILDER_TYPES.ConfigStorage)
-    .to(SupabaseConfigStorage)
+    .to(UiBuilderConfigApiRepository)
     .inSingletonScope();
 
   container
     .bind<ConfigStoragePort>(UI_BUILDER_TYPES.ConfigStoragePort)
-    .to(SupabaseConfigStorage)
+    .to(UiBuilderConfigApiRepository)
     .inSingletonScope();
 
   container

@@ -146,7 +146,7 @@
           { "key": "submitButton", "type": "string", "required": true, "default": "Submit" },
           { "key": "welcomeTitle", "type": "string", "required": true, "default": "PG3D HUB" },
           { "key": "welcomeMessage", "type": "string", "required": true, "default": "Welcome to" },
-          { "key": "welcomeSubtitle", "type": "string", "required": true, "default": "WebShop Game Hub" },
+          { "key": "welcomeSubtitle", "type": "string", "required": true, "default": "" },
           { "key": "enterAppId", "type": "string", "required": true, "default": "Enter your App ID" },
           { "key": "enterUserId", "type": "string", "required": true, "default": "Enter your User ID" },
           { "key": "successMessage", "type": "string", "required": true, "default": "Success!" },

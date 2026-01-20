@@ -24,6 +24,7 @@ interface ViewModel {
   validationErrors: any[];
   config: Record<string, unknown> | null;
   selectedElement: SelectedElement | null;
+  selectedElementIds: Set<string>;
   pages: string[];
   isLoadingPages: boolean;
   elementSelectionMode: boolean;
@@ -44,6 +45,7 @@ export class UIBuilderPresenter {
     isSaving: false,
     error: null,
     validationErrors: [],
+    selectedElementIds: new Set(),
     config: {
       theme: {
         colors: { primary: '#1d4ed8', background: '#ffffff', text: '#111827' },
@@ -499,11 +501,13 @@ export class UIBuilderPresenter {
     this.saveConfigToSupabaseDebounced();
   }
 
-  public selectElement(elementId: string): void {
+  private lastSelectedIndex: number | null = null;
+
+  public selectElement(elementId: string, shiftKey = false, area?: 'sidebar' | 'rightSidebar'): void {
     if (!elementId) {
       this.selectedElementArea = null;
-      this.vm = { ...this.vm, selectedElement: null };
-      
+      this.vm = { ...this.vm, selectedElement: null, selectedElementIds: new Set() };
+      this.lastSelectedIndex = null;
       this.preview.selectElement(null);
       this.notify();
       return;
@@ -512,7 +516,8 @@ export class UIBuilderPresenter {
     const located = this.locateElement(elementId);
     if (!located) {
       this.selectedElementArea = null;
-      this.vm = { ...this.vm, selectedElement: null };
+      this.vm = { ...this.vm, selectedElement: null, selectedElementIds: new Set() };
+      this.lastSelectedIndex = null;
       this.notify();
       return;
     }
@@ -520,6 +525,60 @@ export class UIBuilderPresenter {
     const { node, layout } = located;
     const colors = this.readColorsFromNode(node);
     this.selectedElementArea = layout;
+
+    // Use layout from located instead of area parameter to ensure consistency
+    const effectiveArea: 'sidebar' | 'rightSidebar' | undefined = (layout || area) as 'sidebar' | 'rightSidebar' | undefined;
+    
+    // Get all button elements in the same area for index calculation
+    const config = this.vm.config as any;
+    const sectionConfig = effectiveArea ? config?.modules?.uiRenderer?.[effectiveArea] : null;
+    const children = sectionConfig?.layout?.children || [];
+    const currentIndex = children.findIndex((child: any) => child.id === elementId);
+
+    // Handle multiple selection with Shift+click
+    let newSelectedIds = new Set<string>();
+    
+    console.log('[UIBuilderPresenter] selectElement:', { 
+      elementId, 
+      shiftKey, 
+      area, 
+      layout,
+      effectiveArea,
+      lastSelectedIndex: this.lastSelectedIndex, 
+      currentIndex,
+      childrenCount: children.length 
+    });
+    
+    if (shiftKey && effectiveArea && this.lastSelectedIndex !== null && currentIndex !== -1) {
+      // Range selection: select all elements between lastSelectedIndex and currentIndex
+      const startIndex = Math.min(this.lastSelectedIndex, currentIndex);
+      const endIndex = Math.max(this.lastSelectedIndex, currentIndex);
+      
+      console.log('[UIBuilderPresenter] Range selection:', { startIndex, endIndex });
+      
+      // Select all elements in range
+      for (let i = startIndex; i <= endIndex; i++) {
+        if (children[i]?.id) {
+          newSelectedIds.add(children[i].id);
+        }
+      }
+      
+      console.log('[UIBuilderPresenter] Selected IDs:', Array.from(newSelectedIds));
+      
+      // Keep lastSelectedIndex for next range selection
+      // Don't update it, so next Shift+click continues from the same anchor
+    } else {
+      // Single selection - clear previous and select new
+      newSelectedIds = new Set([elementId]);
+      
+      // Update lastSelectedIndex for future range selections
+      if (effectiveArea && currentIndex !== -1) {
+        this.lastSelectedIndex = currentIndex;
+        console.log('[UIBuilderPresenter] Updated lastSelectedIndex:', this.lastSelectedIndex);
+      } else {
+        this.lastSelectedIndex = null;
+      }
+    }
 
     this.vm = {
       ...this.vm,
@@ -536,10 +595,13 @@ export class UIBuilderPresenter {
         label: node?.props?.text || node?.props?.children,
         textAlign: node?.styles?.textAlign,
         icon: node?.props?.icon,
+        iconSize: node?.styles?.iconSize,
+        iconGap: node?.styles?.iconGap,
         area: layout,
         backgroundOpacity: node?.styles?.backgroundOpacity,
         pageSlug: node?.props?.pageSlug,
       },
+      selectedElementIds: newSelectedIds,
     };
 
     this.preview.selectElement(elementId);
@@ -547,8 +609,30 @@ export class UIBuilderPresenter {
     this.notify();
   }
 
+  public getSelectedElementIds(): Set<string> {
+    return this.vm.selectedElementIds;
+  }
+
+  private applyToSelectedElements(callback: (elementId: string) => void): void {
+    const selectedIds = this.vm.selectedElementIds;
+    if (selectedIds.size > 1) {
+      // Apply to all selected elements
+      selectedIds.forEach((elementId) => {
+        callback(elementId);
+      });
+    } else {
+      // Apply to single selected element
+      const elementId = this.vm.selectedElement?.id;
+      if (elementId) {
+        callback(elementId);
+      }
+    }
+  }
+
   public updateElementColors(elementId: string, colors: Record<string, string>): void {
-    this.applyColorsToConfig(elementId, colors);
+    this.applyToSelectedElements((id) => {
+      this.applyColorsToConfig(id, colors);
+    });
     this.vm = { ...this.vm, lastModified: Date.now() };
     this.selectElement(elementId);
     this.sendConfigToIframe();
@@ -596,6 +680,39 @@ export class UIBuilderPresenter {
     }
     node.styles.padding = padding;
     
+    this.selectElement(elementId);
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
+  }
+
+  public updateContainerFlexDirection(elementId: string, flexDirection: string): void {
+    // For containers, apply only to the selected container
+    const node = this.findNode(elementId);
+    if (!node) return;
+
+    if (!node.styles) {
+      node.styles = {};
+    }
+
+    node.styles.flexDirection = flexDirection;
+
+    this.selectElement(elementId);
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
+  }
+
+  public updateButtonFlexDirection(elementId: string, flexDirection: string): void {
+    this.applyToSelectedElements((id) => {
+      const node = this.findNode(id);
+      if (!node) return;
+
+      if (!node.styles) {
+        node.styles = {};
+      }
+
+      node.styles.flexDirection = flexDirection;
+    });
+
     this.selectElement(elementId);
     this.sendConfigToIframe();
     this.saveConfigToSupabaseDebounced();
@@ -673,20 +790,66 @@ export class UIBuilderPresenter {
   }
 
   public updateButtonIcon(elementId: string, icon: string | null): void {
+    this.applyToSelectedElements((id) => {
+      const node = this.findNode(id);
+      if (!node) {
+        return;
+      }
+
+      if (!node.props) {
+        node.props = {};
+      }
+
+      if (icon && icon.trim() !== '') {
+        node.props.icon = icon;
+      } else {
+        delete node.props.icon;
+      }
+    });
+
+    this.selectElement(elementId);
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
+  }
+
+  public updateButtonIconSize(elementId: string, iconSize: string): void {
     const node = this.findNode(elementId);
     if (!node) {
       return;
     }
 
-    if (!node.props) {
-      node.props = {};
+    if (!node.styles) {
+      node.styles = {};
     }
 
-    if (icon && icon.trim() !== '') {
-      node.props.icon = icon;
+    if (iconSize && iconSize.trim() !== '') {
+      node.styles.iconSize = iconSize;
     } else {
-      delete node.props.icon;
+      delete node.styles.iconSize;
     }
+
+    this.selectElement(elementId);
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
+  }
+
+  public updateButtonIconGap(elementId: string, iconGap: string): void {
+    this.applyToSelectedElements((id) => {
+      const node = this.findNode(id);
+      if (!node) {
+        return;
+      }
+
+      if (!node.styles) {
+        node.styles = {};
+      }
+
+      if (iconGap && iconGap.trim() !== '') {
+        node.styles.iconGap = iconGap;
+      } else {
+        delete node.styles.iconGap;
+      }
+    });
 
     this.selectElement(elementId);
     this.sendConfigToIframe();
@@ -778,6 +941,60 @@ export class UIBuilderPresenter {
       this.selectedElementArea = null;
       this.vm = { ...this.vm, selectedElement: null };
     }
+
+    this.notify();
+    this.sendConfigToIframe();
+    this.saveConfigToSupabaseDebounced();
+  }
+
+  public reorderSidebarButtons(fromIndex: number, toIndex: number, area: 'sidebar' | 'rightSidebar' = 'sidebar'): void {
+    console.log('[UiBuilderPresenter] reorderSidebarButtons called:', { fromIndex, toIndex, area });
+    
+    if (!this.vm.config) {
+      console.warn('[UiBuilderPresenter] No config available');
+      return;
+    }
+
+    const currentConfig = this.vm.config as Record<string, any>;
+    const modules = currentConfig.modules ? { ...currentConfig.modules } : {};
+    const uiRenderer = modules.uiRenderer ? { ...modules.uiRenderer } : {};
+    const sectionConfig = uiRenderer[area];
+    
+    if (!sectionConfig?.layout || !Array.isArray(sectionConfig.layout.children)) {
+      console.warn('[UiBuilderPresenter] Invalid section config or layout:', { sectionConfig, hasLayout: !!sectionConfig?.layout, hasChildren: Array.isArray(sectionConfig?.layout?.children) });
+      return;
+    }
+
+    const children = [...sectionConfig.layout.children];
+    console.log('[UiBuilderPresenter] Before reorder:', children.map((c: any) => ({ id: c.id, text: c.props?.text })));
+    const [movedItem] = children.splice(fromIndex, 1);
+    children.splice(toIndex, 0, movedItem);
+    console.log('[UiBuilderPresenter] After reorder:', children.map((c: any) => ({ id: c.id, text: c.props?.text })));
+
+    const updatedSectionConfig = {
+      ...sectionConfig,
+      layout: {
+        ...sectionConfig.layout,
+        children: children,
+      },
+    };
+
+    const updatedConfig = {
+      ...currentConfig,
+      modules: {
+        ...modules,
+        uiRenderer: {
+          ...uiRenderer,
+          [area]: updatedSectionConfig,
+        },
+      },
+    };
+
+    this.vm = {
+      ...this.vm,
+      config: updatedConfig,
+      lastModified: Date.now(),
+    };
 
     this.notify();
     this.sendConfigToIframe();

@@ -49,7 +49,7 @@ export function LocalizationExample(): JSX.Element {
           {t('auth.welcomeTitle', 'Welcome')}
         </h1>
         <p className="text-gray-600">
-          {t('auth.welcomeMessage', 'Welcome to')} {t('auth.welcomeSubtitle', 'WebShop Game Hub')}
+          {t('auth.welcomeMessage', '')} {t('auth.welcomeSubtitle', '')}
         </p>
       </div>
 

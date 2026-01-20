@@ -9,7 +9,7 @@ interface PageProps {
 
 export default async function MerchantAdminOffersPage({ searchParams }: PageProps): Promise<JSX.Element> {
   const params = await searchParams;
-  const appId = params.appId ?? process.env.NEXT_PUBLIC_APP_ID;
+  const appId = params.appId;
 
   if (!appId) {
     redirect('/projects');

@@ -39,10 +39,6 @@ export function ProductsList({ className, style }: ProductsListProps): JSX.Eleme
       }
     }
 
-    const envAppId = process.env.NEXT_PUBLIC_APP_ID || null;
-    if (envAppId) {
-      return envAppId;
-    }
     return null;
   };
 

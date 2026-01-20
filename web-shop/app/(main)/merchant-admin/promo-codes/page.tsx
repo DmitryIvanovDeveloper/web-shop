@@ -11,7 +11,7 @@ export default async function MerchantAdminPromoCodesPage(
   props: PageProps
 ): Promise<JSX.Element> {
   const params = await props.searchParams;
-  const appId = params.appId ?? process.env.NEXT_PUBLIC_APP_ID;
+  const appId = params.appId;
 
   if (!appId) {
     redirect('/projects');

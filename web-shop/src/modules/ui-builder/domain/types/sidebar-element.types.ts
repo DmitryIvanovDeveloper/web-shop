@@ -21,6 +21,8 @@ export interface SelectedElement {
   textAlign?: string;
   flexDirection?: string;
   icon?: string;
+  iconSize?: string;
+  iconGap?: string;
   area?: 'sidebar' | 'rightSidebar';
   backgroundOpacity?: string;
   pageSlug?: string;

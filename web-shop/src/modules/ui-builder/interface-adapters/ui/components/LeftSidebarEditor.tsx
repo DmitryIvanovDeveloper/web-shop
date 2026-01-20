@@ -5,7 +5,7 @@ import type { SelectedElement } from '../../../domain/types/sidebar-element.type
 import { ButtonEditor } from './ButtonEditor';
 import { ColorInput } from './ColorInput';
 
-interface SidebarColorEditorProps {
+interface LeftSidebarEditorProps {
   element: SelectedElement | null;
   onChange: (elementId: string, colors: Record<string, string>) => void;
   onGapChange?: (elementId: string, gap: string) => void;
@@ -17,12 +17,14 @@ interface SidebarColorEditorProps {
   onTextAlignChange?: (elementId: string, textAlign: string) => void;
   onFlexDirectionChange?: (elementId: string, flexDirection: string) => void;
   onIconChange?: (elementId: string, icon: string | null) => void;
+  onIconSizeChange?: (elementId: string, iconSize: string) => void;
+  onIconGapChange?: (elementId: string, iconGap: string) => void;
   onBackgroundOpacityChange?: (elementId: string, opacity: string) => void;
   onPageSlugChange?: (elementId: string, pageSlug: string | null) => void;
   pages?: string[];
 }
 
-export function SidebarColorEditor({
+export function LeftSidebarEditor({
   element,
   onChange,
   onGapChange,
@@ -34,10 +36,12 @@ export function SidebarColorEditor({
   onTextAlignChange,
   onFlexDirectionChange,
   onIconChange,
+  onIconSizeChange,
+  onIconGapChange,
   onBackgroundOpacityChange,
   onPageSlugChange,
   pages = [],
-}: SidebarColorEditorProps): JSX.Element {
+}: LeftSidebarEditorProps): JSX.Element {
   if (!element) {
     return (
       <div className="bg-white rounded-lg shadow p-4">
@@ -88,6 +92,10 @@ export function SidebarColorEditor({
             onLabelChange={(value) => onLabelChange?.(element.id, value)}
             icon={element.icon || null}
             onIconChange={(value) => onIconChange?.(element.id, value)}
+            iconSize={element.iconSize}
+            onIconSizeChange={(value) => onIconSizeChange?.(element.id, value)}
+            iconGap={element.iconGap}
+            onIconGapChange={(value) => onIconGapChange?.(element.id, value)}
             pageSlug={(element as any).pageSlug || null}
             onPageSlugChange={(value) => onPageSlugChange?.(element.id, value)}
             pages={pages}
@@ -101,6 +109,8 @@ export function SidebarColorEditor({
             onMaxHeightChange={(value) => onMaxHeightChange?.(element.id, value)}
             textAlign={element.textAlign}
             onTextAlignChange={(value) => onTextAlignChange?.(element.id, value)}
+            flexDirection={element.flexDirection}
+            onFlexDirectionChange={(value) => onFlexDirectionChange?.(element.id, value)}
           />
         )}
 
@@ -123,13 +133,74 @@ export function SidebarColorEditor({
           </div>
         )}
 
-        {/* Layout for container-like elements */}
+        {/* Layout for container-like elements (sidebar containers) */}
         {isContainer &&
-          (onGapChange || onPaddingChange || onFlexDirectionChange || onBackgroundOpacityChange) && (
+          (onGapChange || onPaddingChange || onFlexDirectionChange || onBackgroundOpacityChange || onWidthChange) && (
             <div className="space-y-3">
               <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
                 Layout
               </h4>
+
+              {onGapChange && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                    Gap between items
+                  </label>
+                  <input
+                    type="text"
+                    value={element.gap ?? ''}
+                    onChange={(e) => onGapChange(element.id, e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                    placeholder="e.g. 1rem or 16px"
+                  />
+                </div>
+              )}
+
+              {onPaddingChange && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                    Padding
+                  </label>
+                  <input
+                    type="text"
+                    value={element.padding ?? ''}
+                    onChange={(e) => onPaddingChange(element.id, e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                    placeholder="e.g. 24px or 1.5rem"
+                  />
+                </div>
+              )}
+
+              {onWidthChange && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                    Sidebar Width
+                  </label>
+                  <input
+                    type="text"
+                    value={element.width ?? ''}
+                    onChange={(e) => onWidthChange(element.id, e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                    placeholder="e.g. 280px or 20%"
+                  />
+                </div>
+              )}
+
+              {onFlexDirectionChange && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
+                    Direction
+                  </label>
+                  <select
+                    value={element.flexDirection ?? 'column'}
+                    onChange={(e) => onFlexDirectionChange(element.id, e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs bg-white"
+                  >
+                    <option value="column">Vertical (column)</option>
+                    <option value="row">Horizontal (row)</option>
+                  </select>
+                </div>
+              )}
 
               {onBackgroundOpacityChange && (
                 <div className="space-y-1.5">
@@ -151,4 +222,3 @@ export function SidebarColorEditor({
     </div>
   );
 }
-

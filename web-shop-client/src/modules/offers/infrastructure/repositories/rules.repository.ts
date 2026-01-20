@@ -4,8 +4,6 @@ import { TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { OfferRuleTree } from '../../domain/types';
 import type { RulesRepositoryPort } from '../../application/ports/rules-repository.port';
 
-const DEFAULT_APP_ID = process.env.NEXT_PUBLIC_APP_ID;
-
 interface CachedRuleTree {
   readonly ruleTree: OfferRuleTree;
   readonly cachedAt: number;
@@ -20,7 +18,7 @@ export class RulesRepository implements RulesRepositoryPort {
   public constructor(@inject(TYPES.HttpClient) private readonly http: HttpClient) {}
 
   public async loadRules(appId?: string): Promise<OfferRuleTree> {
-    const targetAppId = appId ?? DEFAULT_APP_ID;
+    const targetAppId = appId;
 
     if (!targetAppId) {
       throw new Error('App ID is required to load offer rules');

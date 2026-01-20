@@ -138,7 +138,7 @@ const resolveRootStylesFromConfig = (config: PageConfig | null): { styles: CSSPr
   return { styles, icon };
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -146,15 +146,15 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isConfigLoading, setIsConfigLoading] = useState(true);
-    const [isUIBuilderMode, setIsUIBuilderMode] = useState(false);
-  
-    const [viewportMode, setViewportMode] = useState<'mobile' | 'tablet' | 'desktop' | null>(null);
+  const [isUIBuilderMode, setIsUIBuilderMode] = useState(false);
 
-    const [availableLanguages, setAvailableLanguages] = useState<SelectOption[]>([]);
+  const [viewportMode, setViewportMode] = useState<'mobile' | 'tablet' | 'desktop' | null>(null);
 
-    const [isNavigating, setIsNavigating] = useState(false);
+  const [availableLanguages, setAvailableLanguages] = useState<SelectOption[]>([]);
 
-    const getAppTranslations = () => {
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  const getAppTranslations = () => {
     try {
       const presenter = container.get(LOCALIZATION_TYPES.LocalizationPresenter) as any;
       const vm = presenter.viewModel;
@@ -186,14 +186,14 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     }
   }, []);
 
-    useEffect(() => {
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
         const url = new URL(window.location.href);
         const isUIBuilder = url.searchParams.get('uibuilder') === 'true';
         setIsUIBuilderMode(isUIBuilder);
       } catch (err) {
-              }
+      }
     }
   }, []);
 
@@ -215,7 +215,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         setRightSidebarRootStyles(rightSidebar.styles);
         setSidebarMenuIcon(leftSidebar.icon);
       } catch (error) {
-                setSidebarRootStyles({});
+        setSidebarRootStyles({});
         setRightSidebarRootStyles({});
         setSidebarMenuIcon(null);
       }
@@ -229,7 +229,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     };
   }, [sidebarPresenter]);
 
-    useEffect(() => {
+  useEffect(() => {
     const applyThemeBackground = (): void => {
       try {
         const sidebar = sidebarPresenter.getSidebar();
@@ -237,34 +237,34 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
 
         const palette = (sidebar.theme?.colors ?? {}) as unknown as Record<string, string>;
         const layoutStyles = (sidebar.layout?.styles ?? {}) as Partial<StyleConfig>;
-        
+
         const backgroundColor = resolveColorToken(layoutStyles.backgroundColor, palette);
         const backgroundOpacity = parseOpacityValue(layoutStyles.backgroundOpacity);
-        
+
         if (backgroundColor && typeof document !== 'undefined' && document.body) {
           const finalColor = backgroundOpacity !== undefined
             ? applyOpacityToColor(backgroundColor, backgroundOpacity)
             : backgroundColor;
-          
-                    document.body.style.setProperty('background-color', finalColor, 'important');
-                  }
+
+          document.body.style.setProperty('background-color', finalColor, 'important');
+        }
       } catch (error) {
-              }
+      }
     };
 
-        setTimeout(() => {
+    setTimeout(() => {
       applyThemeBackground();
     }, 0);
 
-        const handleAppConfigLoaded = (): void => {
-            setTimeout(() => {
+    const handleAppConfigLoaded = (): void => {
+      setTimeout(() => {
         applyThemeBackground();
       }, 0);
     };
 
     window.addEventListener('appConfigLoaded', handleAppConfigLoaded);
-    
-        const unsubscribe = sidebarPresenter.subscribe(() => {
+
+    const unsubscribe = sidebarPresenter.subscribe(() => {
       applyThemeBackground();
     });
 
@@ -274,99 +274,99 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     };
   }, [sidebarPresenter]);
 
-    const navigateWithQuery = (path: string) => {
+  const navigateWithQuery = (path: string) => {
     const url = new URL(window.location.href);
     const currentParams = new URLSearchParams(searchParams.toString());
 
-        const appId = currentParams.get('appId') || currentParams.get('app') || url.searchParams.get('appId') || url.searchParams.get('app');
+    const appId = currentParams.get('appId') || currentParams.get('app') || url.searchParams.get('appId') || url.searchParams.get('app');
     if (appId) {
       currentParams.set('appId', appId);
     }
 
-        const userId = currentParams.get('userId') || url.searchParams.get('userId');
+    const userId = currentParams.get('userId') || url.searchParams.get('userId');
     if (userId) {
       currentParams.set('userId', userId);
     }
 
     const queryString = currentParams.toString();
     const newUrl = queryString ? `${path}?${queryString}` : path;
-            setIsNavigating(true);
+    setIsNavigating(true);
     router.push(newUrl);
   };
 
-    useEffect(() => {
+  useEffect(() => {
     setIsNavigating(false);
   }, [searchParams]);
 
   const actionContext: ActionContext = {
-    onPopupOpen: () => {},
-    onPopupClose: () => {},
+    onPopupOpen: () => { },
+    onPopupClose: () => { },
     navigate: (url: string) => {
       if (typeof url === 'string') {
         navigateWithQuery(url);
       }
     },
     navigateToHome: () => {
-            setIsNavigating(true);
+      setIsNavigating(true);
       navigateWithQuery('/');
     },
     navigateToPatchNotes: () => {
-            setIsNavigating(true);
+      setIsNavigating(true);
       navigateWithQuery('/patch-notes');
     },
     navigateToStore: () => {
-            setIsNavigating(true);
+      setIsNavigating(true);
       navigateWithQuery('/store');
     },
     navigateToDailyRewards: () => {
-            setIsNavigating(true);
+      setIsNavigating(true);
       navigateWithQuery('/daily-rewards');
     },
-        availableLanguages,
+    availableLanguages,
     changeLanguage: async (languageCode: string) => {
       try {
-                        if (!languageCode || typeof languageCode !== 'string' || !/^[a-z]{2,3}$/.test(languageCode)) {
-                    return;
+        if (!languageCode || typeof languageCode !== 'string' || !/^[a-z]{2,3}$/.test(languageCode)) {
+          return;
         }
 
-                const localizationPresenter = container.get(LOCALIZATION_TYPES.LocalizationPresenter) as any;
+        const localizationPresenter = container.get(LOCALIZATION_TYPES.LocalizationPresenter) as any;
 
-                await localizationPresenter.changeLanguage(languageCode);
+        await localizationPresenter.changeLanguage(languageCode);
 
-              } catch (error) {
-                      }
+      } catch (error) {
+      }
     },
   };
 
-    useEffect(() => {
+  useEffect(() => {
     const initializeConfig = async () => {
       try {
         setIsConfigLoading(true);
-        
+
         const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
         const shouldLoadDraft = resolveShouldLoadDraft();
         const appId = getAppIdFromEnvironment();
-                await loadAppConfigUseCase.execute(shouldLoadDraft, appId || undefined);
-                        const localizationPresenter = container.get(LOCALIZATION_TYPES.LocalizationPresenter) as any;
+        await loadAppConfigUseCase.execute(shouldLoadDraft, appId || undefined);
+        const localizationPresenter = container.get(LOCALIZATION_TYPES.LocalizationPresenter) as any;
         await localizationPresenter.loadLocalization();
-                        const isUIBuilderPreview = getIsUIBuilderFromQuery();
+        const isUIBuilderPreview = getIsUIBuilderFromQuery();
         if (!isUIBuilderPreview) {
           const appId = getAppIdFromEnvironment();
           if (appId) {
             const subscribeToUpdatesUseCase = container.get<SubscribeToConfigUpdatesUseCase>(TYPES.SubscribeToConfigUpdates);
             await subscribeToUpdatesUseCase.execute(appId);
-                      }
+          }
         } else {
-                  }
-        
-                const safety = setTimeout(() => setIsConfigLoading(false), 2000);
+        }
+
+        const safety = setTimeout(() => setIsConfigLoading(false), 2000);
         const onAppConfigLoaded = () => {
           clearTimeout(safety);
           setIsConfigLoading(false);
         };
         window.addEventListener('appConfigLoaded', onAppConfigLoaded, { once: true });
       } catch (err) {
-                setIsConfigLoading(false);
+        setIsConfigLoading(false);
       }
     };
 
@@ -375,21 +375,23 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
         try {
           const url = new URL(window.location.href);
           return url.searchParams.get('uibuilder') === 'true';
-        } catch {}
+        } catch { }
       }
       return false;
     };
 
     const getAppIdFromEnvironment = (): string | null => {
-      if (typeof window !== 'undefined') {
-        try {
-          const url = new URL(window.location.href);
-                              const fromQuery = url.searchParams.get('appId') || url.searchParams.get('app');
-                    if (fromQuery) return fromQuery;
-        } catch (e) {
-                  }
+      if (typeof window === 'undefined') {
+        return null;
       }
-      return process.env.NEXT_PUBLIC_APP_ID || null;
+
+      try {
+        const url = new URL(window.location.href);
+        const fromQuery = url.searchParams.get('appId') || url.searchParams.get('app');
+        return fromQuery || null;
+      } catch {
+        return null;
+      }
     };
 
     const resolveShouldLoadDraft = (): boolean => {
@@ -408,25 +410,25 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
 
     initializeConfig();
 
-        return () => {
+    return () => {
       try {
         const subscribeUseCase = container.get<SubscribeToConfigUpdatesUseCase>(TYPES.SubscribeToConfigUpdates);
         subscribeUseCase.cleanup();
-              } catch (err) {
-              }
+      } catch (err) {
+      }
     };
   }, []);
 
   useEffect(() => {
     const checkMobile = () => {
       if (isUIBuilderMode) {
-                if (viewportMode) {
-                                        setIsMobile(viewportMode === 'mobile' || viewportMode === 'tablet');
+        if (viewportMode) {
+          setIsMobile(viewportMode === 'mobile' || viewportMode === 'tablet');
         } else {
-                    setIsMobile(window.innerWidth <= 1024);
+          setIsMobile(window.innerWidth <= 1024);
         }
       } else {
-                setIsMobile(window.innerWidth <= 1024);
+        setIsMobile(window.innerWidth <= 1024);
       }
     };
     checkMobile();
@@ -434,10 +436,10 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     return () => window.removeEventListener('resize', checkMobile);
   }, [isUIBuilderMode, viewportMode]);
 
-    useEffect(() => {
+  useEffect(() => {
     const loadLanguages = async () => {
       try {
-                const response = await fetch('/api/localization/languages');
+        const response = await fetch('/api/localization/languages');
         if (response.ok) {
           const languages = await response.json();
           const options: SelectOption[] = languages.map((lang: any) => ({
@@ -445,28 +447,21 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
             label: `${lang.name} (${lang.nativeName})`
           }));
           setAvailableLanguages(options);
-                  } else {
-                  }
+        } else {
+        }
       } catch (error) {
-              }
+      }
     };
 
     loadLanguages();
   }, []);
 
-    useEffect(() => {
+  useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const handleConfigUpdate = async (event: MessageEvent) => {
-      const builderOrigin = process.env.NEXT_PUBLIC_BUILDER_URL;
-      const isDevelopment =
-        !builderOrigin || builderOrigin.startsWith('http://localhost');
       const isLocalhost = event.origin.startsWith('http://localhost');
-      if (!isDevelopment && event.origin !== builderOrigin) {
-        return;
-      }
-
-      if (isDevelopment && !isLocalhost) {
+      if (!isLocalhost) {
         return;
       }
 
@@ -498,7 +493,7 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
     };
 
     window.addEventListener('message', handleConfigUpdate);
-        return () => {
+    return () => {
       window.removeEventListener('message', handleConfigUpdate);
     };
   }, [applyElementSelectionMode]);
@@ -556,59 +551,225 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
       </head>
       <body className="m-0 p-0 overflow-hidden">
         <>
-            {}
-            {isConfigLoading && (
-          <div 
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: '#0D1117',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 9999
-            }}
-          >
-            {}
-            <div 
+          { }
+          {isConfigLoading && (
+            <div
               style={{
-                width: '64px',
-                height: '64px',
-                border: '4px solid rgba(251, 191, 36, 0.2)',
-                borderTop: '4px solid #FBBF24',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite'
-              }}
-            />
-            {}
-            <p 
-              style={{
-                marginTop: '24px',
-                color: '#FFFFFF',
-                fontSize: '18px',
-                fontWeight: 'bold',
-                textAlign: 'center'
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: '#0D1117',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 9999
               }}
             >
-              {appTranslations.loading}
-            </p>
-          </div>
+              { }
+              <div
+                style={{
+                  width: '64px',
+                  height: '64px',
+                  border: '4px solid rgba(251, 191, 36, 0.2)',
+                  borderTop: '4px solid #FBBF24',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }}
+              />
+              { }
+              <p
+                style={{
+                  marginTop: '24px',
+                  color: '#FFFFFF',
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  textAlign: 'center'
+                }}
+              >
+                {appTranslations.loading}
+              </p>
+            </div>
           )}
 
-            {}
-            <AuthModule renderSidebarButton={false} renderPopupConfig={true} />
+          { }
+          <AuthModule renderSidebarButton={false} renderPopupConfig={true} />
 
-            {}
-            <PersonalOffersWidget />
+          { }
+          <PersonalOffersWidget />
 
-            {}
-            {isMobile && (
-              <header
-                className="px-4 flex items-center justify-between relative"
+          { }
+          {isMobile && (
+            <header
+              className="px-4 flex items-center justify-between relative"
+              style={(() => {
+                const {
+                  backgroundColor,
+                  backgroundImage,
+                  backgroundSize,
+                  backgroundPosition,
+                  backgroundRepeat
+                } = sidebarRootStyles;
+
+                const style: CSSProperties = {
+                  height: '56px',
+                  minHeight: '56px',
+                  zIndex: 100,
+                  backgroundColor: backgroundColor ?? '#2c3e50'
+                };
+
+                if (backgroundImage) style.backgroundImage = backgroundImage;
+                if (backgroundSize) style.backgroundSize = backgroundSize;
+                if (backgroundPosition) style.backgroundPosition = backgroundPosition;
+                if (backgroundRepeat) style.backgroundRepeat = backgroundRepeat;
+
+                return style;
+              })()}
+            >
+              <button
+                className="p-2 hover:bg-[#34495e] rounded transition-colors bg-[#34495e] flex items-center justify-center"
+                aria-label="Menu"
+                onClick={() => setIsLeftDrawerOpen(true)}
+                style={{ minWidth: '40px', minHeight: '40px' }}
+              >
+                {renderSidebarMenuIcon()}
+              </button>
+              <button
+                className="p-2 hover:bg-[#34495e] rounded transition-colors bg-[#34495e]"
+                aria-label="Profile"
+                onClick={() => setIsRightDrawerOpen(true)}
+                style={{ minWidth: '40px', minHeight: '40px' }}
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              </button>
+            </header>
+          )}
+
+          { }
+          {isNavigating && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '3px',
+                backgroundColor: '#3B82F6',
+                zIndex: 1000,
+                animation: 'loading-bar 0.3s ease-out'
+              }}
+            />
+          )}
+
+          <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex relative h-screen md:h-screen" style={{ height: isMobile ? 'calc(100vh - 56px)' : '100vh' }}>
+            { }
+            {!isMobile && (
+              <aside
+                data-element-id="left-sidebar"
+                className={(() => {
+                  const baseClasses = isUIBuilderMode ? "block w-64 border-r border-gray-700 flex-shrink-0" : "hidden xl:block w-64 border-r border-gray-700 flex-shrink-0";
+
+                  const hasSupabaseStyles = Object.keys(sidebarRootStyles).length > 0;
+                  if (!hasSupabaseStyles) {
+                    return `${baseClasses} flex min-h-full min-w-15 flex-col gap-4 px-6 py-3`;
+                  }
+
+                  return baseClasses;
+                })()}
+                style={(() => {
+                  const { borderLeft, borderColor, borderWidth, borderStyle, ...otherStyles } = sidebarRootStyles;
+                  const style: CSSProperties = { ...otherStyles };
+
+                  if (borderLeft) {
+                    style.borderLeft = borderLeft as CSSProperties['borderLeft'];
+                  } else {
+                    if (borderColor) style.borderColor = borderColor as CSSProperties['borderColor'];
+                    if (borderWidth) style.borderWidth = borderWidth as CSSProperties['borderWidth'];
+                    if (borderStyle) style.borderStyle = borderStyle as CSSProperties['borderStyle'];
+                    if (!borderColor && !borderWidth && !borderStyle) {
+                      style.borderLeft = '2px solid rgba(251, 191, 36, 0.3)';
+                    }
+                  }
+
+                  return style;
+                })()}
+              >
+                <SidebarRenderer presenter={sidebarPresenter} actionContext={actionContext} currentPathname={pathname} />
+              </aside>
+            )}
+
+            { }
+            <main className="flex-1 overflow-y-auto w-full px-4 md:px-8">
+              {children}
+            </main>
+
+            { }
+            {!isMobile && (
+              <aside
+                data-element-id="right-sidebar"
+                className={isUIBuilderMode ? "block w-64 border-l border-yellow-400/30 flex-shrink-0" : "hidden xl:block w-64 border-l border-yellow-400/30 flex-shrink-0"}
+                style={(() => {
+                  const { borderLeft, borderColor, borderWidth, borderStyle, ...otherStyles } = rightSidebarRootStyles;
+                  const style: CSSProperties = {
+                    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                    ...otherStyles
+                  };
+
+                  if (borderLeft) {
+                    style.borderLeft = borderLeft as CSSProperties['borderLeft'];
+                  } else {
+                    if (borderColor) style.borderColor = borderColor as CSSProperties['borderColor'];
+                    if (borderWidth) style.borderWidth = borderWidth as CSSProperties['borderWidth'];
+                    if (borderStyle) style.borderStyle = borderStyle as CSSProperties['borderStyle'];
+                    if (!borderColor && !borderWidth && !borderStyle) {
+                      style.borderLeft = '0.5px solid rgba(156, 163, 175, 0.5)';
+                    }
+                  }
+
+                  return style;
+                })()}
+              >
+                <div className="p-4">
+                  <div className="mb-4">
+                    <AuthModule renderSidebarButton={true} renderPopupConfig={true} />
+                  </div>
+
+                  <SidebarRenderer
+                    presenter={sidebarPresenter}
+                    layoutType="rightSidebar"
+                    currentPathname={pathname}
+                    actionContext={actionContext}
+                  />
+                </div>
+              </aside>
+            )}
+          </div>
+
+          { }
+          {isLeftDrawerOpen && (
+            <>
+              <div
+                className="fixed inset-0 bg-black bg-opacity-50"
+                style={{ zIndex: 9998 }}
+                onClick={() => setIsLeftDrawerOpen(false)}
+              />
+              <div
+                className="fixed left-0 top-0 bottom-0 shadow-2xl animate-slide-in-left overflow-y-auto w-full"
                 style={(() => {
                   const {
                     backgroundColor,
@@ -619,10 +780,9 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                   } = sidebarRootStyles;
 
                   const style: CSSProperties = {
-                    height: '56px',
-                    minHeight: '56px',
-                    zIndex: 100,
-                    backgroundColor: backgroundColor ?? '#2c3e50'
+                    zIndex: 9999,
+                    width: '85%',
+                    backgroundColor: backgroundColor ?? '#1f2937'
                   };
 
                   if (backgroundImage) style.backgroundImage = backgroundImage;
@@ -633,248 +793,83 @@ export default function RootLayout({ children }: { children: React.ReactNode}) {
                   return style;
                 })()}
               >
-                <button 
-                  className="p-2 hover:bg-[#34495e] rounded transition-colors bg-[#34495e] flex items-center justify-center" 
-                  aria-label="Menu"
-                  onClick={() => setIsLeftDrawerOpen(true)}
-                  style={{ minWidth: '40px', minHeight: '40px' }}
-                >
-                  {renderSidebarMenuIcon()}
-                </button>
-                <button 
-                  className="p-2 hover:bg-[#34495e] rounded transition-colors bg-[#34495e]" 
-                  aria-label="Profile"
-                  onClick={() => setIsRightDrawerOpen(true)}
-                  style={{ minWidth: '40px', minHeight: '40px' }}
-                >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="#ffffff"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
-                </button>
-              </header>
-            )}
-
-            {}
-            {isNavigating && (
-              <div
-                style={{
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: '3px',
-                  backgroundColor: '#3B82F6',
-                  zIndex: 1000,
-                  animation: 'loading-bar 0.3s ease-out'
-                }}
-              />
-            )}
-
-            <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex relative h-screen md:h-screen" style={{ height: isMobile ? 'calc(100vh - 56px)' : '100vh' }}>
-              {}
-              {!isMobile && (
-                <aside
-                  data-element-id="left-sidebar"
-                  className={(() => {
-                    const baseClasses = isUIBuilderMode ? "block w-64 border-r border-gray-700 flex-shrink-0" : "hidden xl:block w-64 border-r border-gray-700 flex-shrink-0";
-
-                                        const hasSupabaseStyles = Object.keys(sidebarRootStyles).length > 0;
-                    if (!hasSupabaseStyles) {
-                      return `${baseClasses} flex min-h-full min-w-15 flex-col gap-4 px-6 py-3`;
-                    }
-
-                    return baseClasses;
-                  })()}
-                  style={(() => {
-                                        const { borderLeft, borderColor, borderWidth, borderStyle, ...otherStyles } = sidebarRootStyles;
-                    const style: CSSProperties = { ...otherStyles };
-                    
-                    if (borderLeft) {
-                                            style.borderLeft = borderLeft as CSSProperties['borderLeft'];
-                    } else {
-                                            if (borderColor) style.borderColor = borderColor as CSSProperties['borderColor'];
-                      if (borderWidth) style.borderWidth = borderWidth as CSSProperties['borderWidth'];
-                      if (borderStyle) style.borderStyle = borderStyle as CSSProperties['borderStyle'];
-                                            if (!borderColor && !borderWidth && !borderStyle) {
-                        style.borderLeft = '2px solid rgba(251, 191, 36, 0.3)';
-                      }
-                    }
-                    
-                    return style;
-                  })()}
-                >
+                <div className="w-full h-full">
                   <SidebarRenderer presenter={sidebarPresenter} actionContext={actionContext} currentPathname={pathname} />
-                </aside>
-              )}
-
-              {}
-              <main className="flex-1 overflow-y-auto w-full px-4 md:px-8">
-                {children}
-              </main>
-
-              {}
-              {!isMobile && (
-                <aside
-                  data-element-id="right-sidebar"
-                  className={isUIBuilderMode ? "block w-64 border-l border-yellow-400/30 flex-shrink-0" : "hidden xl:block w-64 border-l border-yellow-400/30 flex-shrink-0"}
-                  style={(() => {
-                                        const { borderLeft, borderColor, borderWidth, borderStyle, ...otherStyles } = rightSidebarRootStyles;
-                    const style: CSSProperties = {
-                      backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                      ...otherStyles
-                    };
-                    
-                    if (borderLeft) {
-                                            style.borderLeft = borderLeft as CSSProperties['borderLeft'];
-                    } else {
-                                            if (borderColor) style.borderColor = borderColor as CSSProperties['borderColor'];
-                      if (borderWidth) style.borderWidth = borderWidth as CSSProperties['borderWidth'];
-                      if (borderStyle) style.borderStyle = borderStyle as CSSProperties['borderStyle'];
-                                            if (!borderColor && !borderWidth && !borderStyle) {
-                        style.borderLeft = '0.5px solid rgba(156, 163, 175, 0.5)';
-                      }
-                    }
-                    
-                    return style;
-                  })()}
-                >
-                  <div className="p-4">
-                    <div className="mb-4">
-                      <AuthModule renderSidebarButton={true} renderPopupConfig={true} />
-                    </div>
-                
-                    <SidebarRenderer
-                      presenter={sidebarPresenter}
-                      layoutType="rightSidebar"
-                      currentPathname={pathname}
-                      actionContext={actionContext}
-                    />
-                  </div>
-                </aside>
-              )}
-            </div>
-
-            {}
-            {isLeftDrawerOpen && (
-              <>
-                <div 
-                  className="fixed inset-0 bg-black bg-opacity-50"
-                  style={{ zIndex: 9998 }}
-                  onClick={() => setIsLeftDrawerOpen(false)}
-                />
-                <div
-                  className="fixed left-0 top-0 bottom-0 shadow-2xl animate-slide-in-left overflow-y-auto w-full"
-                  style={(() => {
-                    const {
-                      backgroundColor,
-                      backgroundImage,
-                      backgroundSize,
-                      backgroundPosition,
-                      backgroundRepeat
-                    } = sidebarRootStyles;
-
-                    const style: CSSProperties = {
-                      zIndex: 9999,
-                      width: '85%',
-                      backgroundColor: backgroundColor ?? '#1f2937'
-                    };
-
-                    if (backgroundImage) style.backgroundImage = backgroundImage;
-                    if (backgroundSize) style.backgroundSize = backgroundSize;
-                    if (backgroundPosition) style.backgroundPosition = backgroundPosition;
-                    if (backgroundRepeat) style.backgroundRepeat = backgroundRepeat;
-
-                    return style;
-                  })()}
-                >
-                  <div className="w-full h-full">
-                    <SidebarRenderer presenter={sidebarPresenter} actionContext={actionContext} currentPathname={pathname} />
-                  </div>
                 </div>
-              </>
-            )}
+              </div>
+            </>
+          )}
 
-            {}
-            {isRightDrawerOpen && (
-              <>
-                <div 
-                  className="fixed inset-0 bg-black bg-opacity-50"
-                  style={{ zIndex: 9998 }}
-                  onClick={() => setIsRightDrawerOpen(false)}
-                />
-                <div className="fixed right-0 top-0 bottom-0 shadow-2xl animate-slide-in-right overflow-y-auto border-l border-yellow-400/30" style={(() => {
-                  const {
-                    backgroundColor,
-                    backgroundImage,
-                    backgroundSize,
-                    backgroundPosition,
-                    backgroundRepeat,
-                    border: borderValue,
-                    borderLeft,
-                    borderColor,
-                    borderWidth,
-                    borderStyle,
-                    boxShadow,
-                    backdropFilter,
-                    filter
-                  } = rightSidebarRootStyles;
+          { }
+          {isRightDrawerOpen && (
+            <>
+              <div
+                className="fixed inset-0 bg-black bg-opacity-50"
+                style={{ zIndex: 9998 }}
+                onClick={() => setIsRightDrawerOpen(false)}
+              />
+              <div className="fixed right-0 top-0 bottom-0 shadow-2xl animate-slide-in-right overflow-y-auto border-l border-yellow-400/30" style={(() => {
+                const {
+                  backgroundColor,
+                  backgroundImage,
+                  backgroundSize,
+                  backgroundPosition,
+                  backgroundRepeat,
+                  border: borderValue,
+                  borderLeft,
+                  borderColor,
+                  borderWidth,
+                  borderStyle,
+                  boxShadow,
+                  backdropFilter,
+                  filter
+                } = rightSidebarRootStyles;
 
-                  const style: CSSProperties = {
-                    zIndex: 9999,
-                    width: '85%',
-                    backgroundColor: (backgroundColor as string | undefined) ?? '#1f2937'
-                  };
+                const style: CSSProperties = {
+                  zIndex: 9999,
+                  width: '85%',
+                  backgroundColor: (backgroundColor as string | undefined) ?? '#1f2937'
+                };
 
-                  if (backgroundImage) style.backgroundImage = backgroundImage as string;
-                  if (backgroundSize) style.backgroundSize = backgroundSize as CSSProperties['backgroundSize'];
-                  if (backgroundPosition) style.backgroundPosition = backgroundPosition as CSSProperties['backgroundPosition'];
-                  if (backgroundRepeat) style.backgroundRepeat = backgroundRepeat as CSSProperties['backgroundRepeat'];
+                if (backgroundImage) style.backgroundImage = backgroundImage as string;
+                if (backgroundSize) style.backgroundSize = backgroundSize as CSSProperties['backgroundSize'];
+                if (backgroundPosition) style.backgroundPosition = backgroundPosition as CSSProperties['backgroundPosition'];
+                if (backgroundRepeat) style.backgroundRepeat = backgroundRepeat as CSSProperties['backgroundRepeat'];
 
-                  if (borderValue) style.border = borderValue as CSSProperties['border'];
+                if (borderValue) style.border = borderValue as CSSProperties['border'];
 
-                                                      if (borderLeft) {
-                                        style.borderLeft = borderLeft as CSSProperties['borderLeft'];
-                  } else {
-                                        if (borderColor) style.borderColor = borderColor as CSSProperties['borderColor'];
-                    if (borderWidth) style.borderWidth = borderWidth as CSSProperties['borderWidth'];
-                    if (borderStyle) style.borderStyle = borderStyle as CSSProperties['borderStyle'];
-                                        if (!borderColor && !borderWidth && !borderStyle) {
-                      style.borderLeft = '0.5px solid rgba(156, 163, 175, 0.5)';
-                    }
+                if (borderLeft) {
+                  style.borderLeft = borderLeft as CSSProperties['borderLeft'];
+                } else {
+                  if (borderColor) style.borderColor = borderColor as CSSProperties['borderColor'];
+                  if (borderWidth) style.borderWidth = borderWidth as CSSProperties['borderWidth'];
+                  if (borderStyle) style.borderStyle = borderStyle as CSSProperties['borderStyle'];
+                  if (!borderColor && !borderWidth && !borderStyle) {
+                    style.borderLeft = '0.5px solid rgba(156, 163, 175, 0.5)';
                   }
+                }
 
-                  if (boxShadow) style.boxShadow = boxShadow as CSSProperties['boxShadow'];
-                  if (backdropFilter) style.backdropFilter = backdropFilter as CSSProperties['backdropFilter'];
-                  if (filter) style.filter = filter as CSSProperties['filter'];
+                if (boxShadow) style.boxShadow = boxShadow as CSSProperties['boxShadow'];
+                if (backdropFilter) style.backdropFilter = backdropFilter as CSSProperties['backdropFilter'];
+                if (filter) style.filter = filter as CSSProperties['filter'];
 
-                  return style;
-                })()}>
-                  <div className="p-4">
-                    <div className="mb-4">
-                      <AuthModule renderSidebarButton={true} renderPopupConfig={true} />
-                    </div>
-                
-                    <SidebarRenderer
-                      presenter={sidebarPresenter}
-                      layoutType="rightSidebar"
-                      currentPathname={pathname}
-                      actionContext={actionContext}
-                    />
+                return style;
+              })()}>
+                <div className="p-4">
+                  <div className="mb-4">
+                    <AuthModule renderSidebarButton={true} renderPopupConfig={true} />
                   </div>
+
+                  <SidebarRenderer
+                    presenter={sidebarPresenter}
+                    layoutType="rightSidebar"
+                    currentPathname={pathname}
+                    actionContext={actionContext}
+                  />
                 </div>
-              </>
-            )}
+              </div>
+            </>
+          )}
         </>
       </body>
     </html>

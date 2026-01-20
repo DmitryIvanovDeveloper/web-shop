@@ -4,6 +4,7 @@ import { Result } from '@/shared/result/result';
 import type { PageConfig } from '../../domain/entities/page-config.entity';
 import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import type { DatabaseClientPort } from '@/application/ports/database-client.port';
+import type { HttpClient } from '@/application/ports/http-client.port';
 
 interface PageConfigRow {
   id: string;
@@ -22,7 +23,8 @@ interface PageConfigRow {
 @injectable()
 export class SupabasePageConfigStorage implements PageConfigStoragePort {
   constructor(
-    @inject(ROOT_TYPES.DatabaseClient) private readonly _db: DatabaseClientPort
+    @inject(ROOT_TYPES.DatabaseClient) private readonly _db: DatabaseClientPort,
+    @inject(ROOT_TYPES.HttpClient) private readonly _http: HttpClient
   ) {}
 
   async loadDraft(appId: string, pageSlug: string): Promise<Result<PageConfig | null, Error>> {
@@ -220,22 +222,25 @@ export class SupabasePageConfigStorage implements PageConfigStoragePort {
 
   async listPages(appId: string): Promise<Result<string[], Error>> {
     try {
-      const { data, error } = await this._db
-        .from('page_configs')
-        .select('page_slug')
-        .eq('app_id', appId);
+      const response = await this._http.get<{ pages: string[] }>(
+        `/api/ui-builder/pages?appId=${encodeURIComponent(appId)}`
+      );
 
-      if (error) {
-        return Result.fail(new Error(`Failed to list pages: ${error.message}`));
+      if (response.status !== 200) {
+        return Result.fail(
+          new Error(`Failed to list pages: ${response.statusText}`)
+        );
       }
 
-      const pageSlugs: string[] = Array.from(new Set(
-        (data || []).map((row: { page_slug: string }) => row.page_slug as string)
-      ));
+      const pages = Array.isArray(response.data?.pages)
+        ? response.data.pages
+        : [];
 
-      return Result.ok<string[], Error>(pageSlugs);
+      return Result.ok<string[], Error>(pages);
     } catch (error) {
-      return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.fail(
+        error instanceof Error ? error : new Error('Unknown error')
+      );
     }
   }
 }

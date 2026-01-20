@@ -44,15 +44,19 @@ export class BrowserService implements BrowserPort {
   
   getAppConfig(): AppConfig {
     const paymentServiceUrl =
-      process.env.NEXT_PUBLIC_PAYMENT_SERVICE_URL || 'http://localhost:3002';
-    const appId = process.env.NEXT_PUBLIC_APP_ID || 'web-shop-client';
+      typeof window !== 'undefined'
+        ? (new URLSearchParams(window.location.search).get('paymentServiceUrl') || 'http://localhost:3002')
+        : 'http://localhost:3002';
 
-    const config = {
+    const appId =
+      typeof window !== 'undefined'
+        ? (new URLSearchParams(window.location.search).get('appId') || 'web-shop-client')
+        : 'web-shop-client';
+
+    return {
       paymentServiceUrl,
-      appId
+      appId,
     };
-
-    return config;
   }
 
   

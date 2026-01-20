@@ -80,9 +80,10 @@ export function ComponentEditor({
         const backgroundColor = buttonStyles.backgroundColor || '#ffc629';
         const buttonTextColor = buttonStyles.textColor || '#ffffff';
         const borderColor = buttonStyles.borderColor || '#ffffff';
+        const hoverBackgroundColor = buttonStyles.hoverBackgroundColor || undefined;
 
         const handleColorChange = (
-          colorKey: 'backgroundColor' | 'textColor' | 'borderColor',
+          colorKey: 'backgroundColor' | 'textColor' | 'borderColor' | 'hoverBackgroundColor',
           newColor: string,
         ) => {
           const updatedStyles = { ...buttonStyles, [colorKey]: newColor };
@@ -129,16 +130,36 @@ export function ComponentEditor({
           onUpdate(component.props || {}, updatedStyles);
         };
 
+        const handleFlexDirectionChange = (value: string) => {
+          const updatedStyles = { ...buttonStyles, flexDirection: value };
+          onUpdate(component.props || {}, updatedStyles);
+        };
+
+        const handleIconSizeChange = (value: string) => {
+          const updatedStyles = { ...buttonStyles, iconSize: value };
+          onUpdate(component.props || {}, updatedStyles);
+        };
+
+        const handleIconGapChange = (value: string) => {
+          const updatedStyles = { ...buttonStyles, iconGap: value };
+          onUpdate(component.props || {}, updatedStyles);
+        };
+
         return (
           <ButtonEditor
             backgroundColor={backgroundColor}
             textColor={buttonTextColor}
             borderColor={borderColor}
+            hoverBackgroundColor={hoverBackgroundColor}
             onColorChange={handleColorChange}
             label={(component.props?.text as string) || ''}
             onLabelChange={handleLabelChange}
             icon={(component.props?.icon as string) || null}
             onIconChange={handleIconChange}
+            iconSize={(buttonStyles.iconSize as string) || undefined}
+            onIconSizeChange={handleIconSizeChange}
+            iconGap={(buttonStyles.iconGap as string) || undefined}
+            onIconGapChange={handleIconGapChange}
             pageSlug={(component.props?.pageSlug as string) || null}
             onPageSlugChange={handlePageSlugChange}
             pages={pages}
@@ -153,6 +174,8 @@ export function ComponentEditor({
             onBorderRadiusChange={handleBorderRadiusChange}
             textAlign={(buttonStyles.textAlign as string) || undefined}
             onTextAlignChange={handleTextAlignChange}
+            flexDirection={(buttonStyles.flexDirection as string) || undefined}
+            onFlexDirectionChange={handleFlexDirectionChange}
           />
         );
       }

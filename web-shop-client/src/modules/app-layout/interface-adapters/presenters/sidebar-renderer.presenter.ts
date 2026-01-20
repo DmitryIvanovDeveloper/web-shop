@@ -105,67 +105,32 @@ export class SidebarRendererPresenter {
 
   
   public getSidebar(): PageConfig | null {
-    console.log('[SidebarRendererPresenter] getSidebar called, currentPathname:', this._currentPathname, '_configs exists:', !!this._configs, '_configs.sidebar exists:', !!(this._configs?.sidebar));
-        const defaultConfig = this._getDefaultSidebarConfig();
-        if (!this._configs || !this._configs.sidebar) {
-                  return defaultConfig;
+    console.log(
+      '[SidebarRendererPresenter] getSidebar called, currentPathname:',
+      this._currentPathname,
+      '_configs exists:',
+      !!this._configs,
+      '_configs.sidebar exists:',
+      !!(this._configs?.sidebar),
+    );
+
+    const sidebarConfig = this._configs?.sidebar;
+
+    // Если конфиг для sidebar отсутствует -- используем жёсткий дефолт
+    if (!sidebarConfig) {
+      return this._getDefaultSidebarConfig();
     }
 
-            const mergedConfig = this._mergeSidebarConfigs(defaultConfig, this._configs.sidebar);
-        return mergedConfig;
+    // Если конфиг есть — рендерим его целиком, но гарантируем,
+    // что селектор локализации присутствует внизу сайдбара.
+    const enhancedConfig = this._ensureLanguageSelectorInSidebarConfig(sidebarConfig);
+    return this._convertToPageConfig(enhancedConfig, 'sidebar');
   }
 
   
-  private _mergeSidebarConfigs(defaultConfig: any, supabaseConfig: any): PageConfig | null {
-    try {
-                  const mergedLayout = { ...defaultConfig };
-
-            if (supabaseConfig.theme) {
-        mergedLayout.theme = { ...mergedLayout.theme, ...supabaseConfig.theme };
-              }
-
-            if (supabaseConfig.layout && supabaseConfig.layout.styles) {
-        mergedLayout.layout = {
-          ...mergedLayout.layout,
-          styles: { ...mergedLayout.layout.styles, ...supabaseConfig.layout.styles }
-        };
-              }
-
-                        const mergedChildren = defaultConfig.layout.children.map((defaultChild: any) => {
-                const supabaseChild = supabaseConfig.layout?.children?.find(
-          (sc: any) => sc.id === defaultChild.id
-        );
-
-        if (supabaseChild && supabaseChild.styles) {
-                              const mergedStyles = { ...defaultChild.styles, ...supabaseChild.styles };
-
-                    const buttonType = this._getButtonTypeFromId(defaultChild.id);
-          if (buttonType && !this._isButtonActive(buttonType)) {
-                        mergedStyles.backgroundColor = undefined;
-                      }
-
-          return {
-            ...defaultChild,
-            styles: mergedStyles,
-                        props: {
-              ...defaultChild.props,
-              ...(supabaseChild.props || {}),
-                            text: defaultChild.props?.text
-            }
-          };
-        } else {
-                  }
-
-                return defaultChild;
-      });
-
-      mergedLayout.layout.children = mergedChildren;
-                  const result = this._convertToPageConfig(mergedLayout, 'sidebar');
-            return result;
-    } catch (error) {
-                  return this._getDefaultSidebarConfig();
-    }
-  }
+  // NOTE: _mergeSidebarConfigs is kept for backwards compatibility but no longer used in getSidebar.
+  // External configs coming from app_configs should fully control the sidebar layout and styles
+  // whenever they are present.
 
   
   private _getDefaultSidebarConfig(): PageConfig | null {
@@ -213,7 +178,6 @@ export class SidebarRendererPresenter {
                 alignItems: "center",
                 gap: "8px",
                 padding: "12px 16px",
-                backgroundColor: this._isButtonActive('home') ? "primary" : undefined,
                 textColor: "#FFFFFF",
                 justifyContent: "flex-start",
                 hoverBackgroundColor: "#5C6BC0",                 hoverOpacity: 0.95,                 hoverShadow: "0 4px 12px rgba(59, 90, 254, 0.15)",                 borderRadius: "8px",
@@ -241,7 +205,6 @@ export class SidebarRendererPresenter {
                 alignItems: "center",
                 gap: "8px",
                 padding: "12px 16px",
-                backgroundColor: this._isButtonActive('store') ? "primary" : undefined,
                 textColor: "#FFFFFF",
                 justifyContent: "flex-start",
                 hoverBackgroundColor: "#5C6BC0",                 hoverOpacity: 0.95,                 hoverShadow: "0 4px 12px rgba(59, 90, 254, 0.15)",                 borderRadius: "8px",
@@ -269,7 +232,6 @@ export class SidebarRendererPresenter {
                 alignItems: "center",
                 gap: "8px",
                 padding: "12px 16px",
-                backgroundColor: this._isButtonActive('patch-notes') ? "primary" : undefined,
                 textColor: "#FFFFFF",
                 justifyContent: "flex-start",
                 hoverBackgroundColor: "#5C6BC0",                 hoverOpacity: 0.95,                 hoverShadow: "0 4px 12px rgba(59, 90, 254, 0.15)",                 borderRadius: "8px",
@@ -288,7 +250,7 @@ export class SidebarRendererPresenter {
               type: "Button",
               props: {
                 text: this.getTranslation("nav.dailyRewards", "Daily Rewards"),
-                icon: "🎯",
+                icon: "🎁",
                 fullWidth: true
               },
               styles: {
@@ -297,7 +259,6 @@ export class SidebarRendererPresenter {
                 alignItems: "center",
                 gap: "8px",
                 padding: "12px 16px",
-                backgroundColor: this._isButtonActive('daily-rewards') ? "primary" : undefined,
                 textColor: "#FFFFFF",
                 justifyContent: "flex-start",
                 hoverBackgroundColor: "#5C6BC0",
@@ -329,7 +290,6 @@ export class SidebarRendererPresenter {
                 alignItems: "center",
                 gap: "8px",
                 padding: "12px 16px",
-                backgroundColor: this._isButtonActive('loyalty-program') ? "primary" : undefined,
                 textColor: "#FFFFFF",
                 justifyContent: "flex-start",
                 hoverBackgroundColor: "#5C6BC0",
@@ -361,7 +321,6 @@ export class SidebarRendererPresenter {
                 alignItems: "center",
                 gap: "8px",
                 padding: "12px 16px",
-                backgroundColor: this._isButtonActive('news') ? "primary" : undefined,
                 textColor: "#FFFFFF",
                 justifyContent: "flex-start",
                 hoverBackgroundColor: "#5C6BC0",
@@ -393,7 +352,6 @@ export class SidebarRendererPresenter {
                 alignItems: "center",
                 gap: "8px",
                 padding: "12px 16px",
-                backgroundColor: this._isButtonActive('updates') ? "primary" : undefined,
                 textColor: "#FFFFFF",
                 justifyContent: "flex-start",
                 hoverBackgroundColor: "#5C6BC0",
@@ -425,7 +383,6 @@ export class SidebarRendererPresenter {
                 alignItems: "center",
                 gap: "8px",
                 padding: "12px 16px",
-                backgroundColor: this._isButtonActive('events') ? "primary" : undefined,
                 textColor: "#FFFFFF",
                 justifyContent: "flex-start",
                 hoverBackgroundColor: "#5C6BC0",
@@ -518,6 +475,84 @@ export class SidebarRendererPresenter {
   }
 
   
+  /**
+   * Гарантирует наличие узла селектора языка (`language-selector`)
+   * в layout конфигурации sidebar, не ломая пользовательский layout.
+   */
+  private _ensureLanguageSelectorInSidebarConfig(config: any): any {
+    try {
+      if (!config || !config.layout) {
+        return config;
+      }
+
+      const layout = config.layout;
+
+      // Если уже есть узел с id "language-selector" — ничего не делаем
+      if (this._hasNodeWithId(layout, 'language-selector')) {
+        return config;
+      }
+
+      const languageSelectorNode = {
+        id: 'language-selector',
+        type: 'Select',
+        props: {
+          // options будут переопределены из ActionContext.availableLanguages,
+          // но оставим дефолт как fallback
+          options: [
+            { value: 'en', label: 'English (English)' },
+            { value: 'ar', label: 'Arabic (العربية)' },
+          ],
+          placeholder: '🌐 Language',
+          value: this._languageCode,
+        },
+        styles: {
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '12px 16px',
+          marginTop: 'auto',
+          backgroundColor: 'surface',
+          textColor: '#FFFFFF',
+          borderRadius: '8px',
+          marginBottom: '4px',
+          className:
+            'group/select-trigger flex min-h-9 w-full min-w-48 cursor-pointer items-center justify-between rounded-input border border-sem-border-br-base-secondary-invert bg-sem-surface-sf-base-secondary px-3 py-2 text-left font-medium text-caption-lg text-sem-text-tx-quaternary shadow-sm transition-colors hover:cursor-pointer hover:border-sem-border-br-base-secondary-invert-hover hover:bg-sem-surface-sf-base-secondary-hover aria-expanded:border-sem-border-br-brand-b-primary aria-expanded:bg-sem-surface-sf-base-secondary-accent',
+        },
+        actions: {
+          onChange: {
+            type: 'custom',
+            handler: 'changeLanguage',
+          },
+        },
+      };
+
+      // Если у корня уже есть children — добавляем селектор в конец
+      if (Array.isArray(layout.children)) {
+        return {
+          ...config,
+          layout: {
+            ...layout,
+            children: [...layout.children, languageSelectorNode],
+          },
+        };
+      }
+
+      // Иначе не рискуем ломать структуру, возвращаем как есть
+      return config;
+    } catch {
+      // В случае любых неожиданностей не трогаем исходный конфиг
+      return config;
+    }
+  }
+
+  private _hasNodeWithId(node: any, id: string): boolean {
+    if (!node) return false;
+    if (node.id === id) return true;
+    if (!Array.isArray(node.children)) return false;
+    return node.children.some((child: any) => this._hasNodeWithId(child, id));
+  }
+
+  
   private _convertToPageConfig(layoutConfig: any, type: string): PageConfig | null {
     try {
       console.log('[SidebarRendererPresenter] _convertToPageConfig called for', type, 'with config:', {
@@ -582,11 +617,194 @@ export class SidebarRendererPresenter {
 
         const normalizedType = this._normalizeComponentType(nodeData.type);
 
+    // Apply active-state aware styling for sidebar buttons:
+    // backgroundColor from external config should only be visible when
+    // the corresponding button is "active" for the current URL.
+    let processedStyles = (nodeData.styles || {}) as any;
+
+    if (normalizedType === 'Button') {
+      // Определяем активность кнопки по нескольким признакам:
+      // 1) pageSlug в props (основной путь для конфигов из UI‑builder)
+      // 2) onClick.url (navigate-экшен)
+      // 3) fallback: тип кнопки по id + _isButtonActive
+      let isActiveForPath = false;
+
+      // 1) pageSlug => путь вида "/store"
+      if (nodeData.props && typeof nodeData.props.pageSlug === 'string') {
+        const slug: string = nodeData.props.pageSlug;
+        const rawSlugPath = slug.split('?')[0].split('#')[0];
+        // Нормализуем: гарантируем ровно один ведущий "/"
+        const slugPath =
+          '/' +
+          rawSlugPath
+            .replace(/^\/+/, '') // убираем все ведущие "/"
+            .trim();
+
+        if (slugPath === this._currentPathname) {
+          isActiveForPath = true;
+        }
+      }
+
+      // 2) onClick.url navigate
+      if (
+        !isActiveForPath &&
+        nodeData.actions?.onClick?.type === 'navigate' &&
+        typeof nodeData.actions.onClick.url === 'string'
+      ) {
+        const rawUrl: string = nodeData.actions.onClick.url;
+        const pathOnly = rawUrl.startsWith('http')
+          ? new URL(rawUrl).pathname
+          : `/${rawUrl.replace(/^\//, '').split('?')[0].split('#')[0]}`;
+        if (pathOnly === this._currentPathname) {
+          isActiveForPath = true;
+        }
+      }
+
+      // 2b) onClick.handler custom (navigateToXxx)
+      if (
+        !isActiveForPath &&
+        nodeData.actions?.onClick?.type === 'custom' &&
+        typeof nodeData.actions.onClick.handler === 'string'
+      ) {
+        const handlerName: string = nodeData.actions.onClick.handler;
+        let handlerPath: string | null = null;
+
+        switch (handlerName) {
+          case 'navigateToHome':
+            handlerPath = '/';
+            break;
+          case 'navigateToStore':
+            handlerPath = '/store';
+            break;
+          case 'navigateToPatchNotes':
+            handlerPath = '/patch-notes';
+            break;
+          case 'navigateToDailyRewards':
+            handlerPath = '/daily-rewards';
+            break;
+          case 'navigateToLoyaltyProgram':
+            handlerPath = '/loyalty-program';
+            break;
+          case 'navigateToNews':
+            handlerPath = '/news';
+            break;
+          case 'navigateToUpdates':
+            handlerPath = '/updates';
+            break;
+          case 'navigateToEvents':
+            handlerPath = '/events';
+            break;
+          default:
+            handlerPath = null;
+            break;
+        }
+
+        if (handlerPath && handlerPath === this._currentPathname) {
+          isActiveForPath = true;
+        }
+      }
+
+      // 3) fallback: сопоставление по id как раньше
+      if (!isActiveForPath) {
+        let buttonType = this._getButtonTypeFromId(nodeData.id);
+
+        // Доп. fallback: попытка вывести тип из pageSlug
+        if (!buttonType && nodeData.props && typeof nodeData.props.pageSlug === 'string') {
+          const slug: string = nodeData.props.pageSlug;
+          switch (slug) {
+            case 'home':
+              buttonType = 'home';
+              break;
+            case 'store':
+              buttonType = 'store';
+              break;
+            case 'patch-notes':
+              buttonType = 'patch-notes';
+              break;
+            case 'daily-rewards':
+              buttonType = 'daily-rewards';
+              break;
+            case 'loyalty-program':
+              buttonType = 'loyalty-program';
+              break;
+            case 'news':
+              buttonType = 'news';
+              break;
+            case 'updates':
+              buttonType = 'updates';
+              break;
+            case 'events':
+              buttonType = 'events';
+              break;
+            default:
+              break;
+          }
+        }
+
+        if (buttonType) {
+          isActiveForPath = this._isButtonActive(buttonType);
+        }
+      }
+
+      if (!isActiveForPath) {
+        // Для неактивных кнопок убираем backgroundColor, чтобы
+        // визуально "selected" был только у текущего маршрута.
+        const { backgroundColor, ...rest } = processedStyles;
+        processedStyles = { ...rest };
+      } else {
+        // Для активной кнопки гарантируем фон:
+        // 1) если в конфиге есть backgroundColor — используем его;
+        // 2) иначе используем hoverBackgroundColor как selected‑фон;
+        // 3) иначе дефолтный "primary".
+        if (!processedStyles.backgroundColor) {
+          if (processedStyles.hoverBackgroundColor) {
+            processedStyles = {
+              ...processedStyles,
+              backgroundColor: processedStyles.hoverBackgroundColor,
+            };
+          } else {
+            processedStyles = {
+              ...processedStyles,
+              backgroundColor: 'primary',
+            };
+          }
+        }
+
+        // Чтобы hover‑эффект был виден даже для активной кнопки,
+        // прокидываем hoverBackgroundColor в CSS custom property,
+        // которую UI renderer использует в _createButtonHoverHandlers.
+        if (processedStyles.hoverBackgroundColor) {
+          const hoverColor =
+            typeof processedStyles.hoverBackgroundColor === 'string'
+              ? processedStyles.hoverBackgroundColor
+              : String(processedStyles.hoverBackgroundColor);
+
+          processedStyles = {
+            ...processedStyles,
+            // Interpret in StyleBuilder as backgroundColor,
+            // но дублируем в custom property для JS‑hover.
+            '--hover-background-color': hoverColor,
+          } as any;
+        }
+      }
+    }
+
+    // Apply localization to text props when using i18n-style keys, e.g. "i18n:nav.store"
+    let processedProps = (nodeData.props || {}) as any;
+    if (processedProps && typeof processedProps.text === 'string') {
+      const rawText: string = processedProps.text;
+      if (rawText.startsWith('i18n:')) {
+        const key = rawText.substring('i18n:'.length);
+        const translated = this.getTranslation(key, rawText);
+        processedProps = { ...processedProps, text: translated };
+      }
+    }
+
     return ComponentNode.create({
       id: nodeData.id,
       type: normalizedType,
-      props: nodeData.props || {},
-      styles: nodeData.styles || {},
+      props: processedProps,
+      styles: processedStyles,
       children,
       actions: nodeData.actions,
     });

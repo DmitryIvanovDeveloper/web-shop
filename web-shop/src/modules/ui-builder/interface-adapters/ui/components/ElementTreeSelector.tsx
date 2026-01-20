@@ -6,20 +6,34 @@ import type { SidebarElement } from '../../../domain/types/sidebar-element.types
 interface ElementTreeSelectorProps {
   elements: SidebarElement[];
   selectedId: string | null;
-  onSelect: (elementId: string) => void;
+  selectedIds?: Set<string>;
+  onSelect: (elementId: string, shiftKey?: boolean) => void;
   onDelete?: (elementId: string) => void;
+  onReorder?: (fromIndex: number, toIndex: number) => void;
 }
 
 interface ElementTreeProps {
   elements: SidebarElement[];
   selectedId: string | null;
-  onSelect: (elementId: string) => void;
+  selectedIds?: Set<string>;
+  onSelect: (elementId: string, shiftKey?: boolean) => void;
   onDelete?: (elementId: string) => void;
+  onReorder?: (fromIndex: number, toIndex: number) => void;
   level?: number;
 }
 
-function ElementTree({ elements, selectedId, onSelect, onDelete, level = 0 }: ElementTreeProps): JSX.Element {
+function ElementTree({ 
+  elements, 
+  selectedId, 
+  selectedIds = new Set(), 
+  onSelect, 
+  onDelete, 
+  onReorder, 
+  level = 0
+}: ElementTreeProps): JSX.Element {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const toggleExpand = (elementId: string) => {
     setExpandedIds((prev) => {
@@ -33,20 +47,102 @@ function ElementTree({ elements, selectedId, onSelect, onDelete, level = 0 }: El
     });
   };
 
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    console.log('[ElementTreeSelector] Drag start:', index);
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', index.toString());
+    const target = e.currentTarget as HTMLElement;
+    if (target) {
+      target.style.opacity = '0.5';
+    }
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    const target = e.currentTarget as HTMLElement;
+    if (target) {
+      target.style.opacity = '1';
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    if (draggedIndex !== null && draggedIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (draggedIndex !== null && draggedIndex !== dropIndex && onReorder) {
+      console.log('[ElementTreeSelector] Reordering:', { fromIndex: draggedIndex, toIndex: dropIndex });
+      onReorder(draggedIndex, dropIndex);
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
   return (
-    <div className="space-y-0.5">
-      {elements.map((element) => {
+    <div 
+      className="space-y-0.5"
+      onDragOver={(e) => {
+        if (level === 0 && onReorder && draggedIndex !== null) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+        }
+      }}
+    >
+      {elements.map((element, index) => {
         const hasChildren = element.children && element.children.length > 0;
         const isExpanded = expandedIds.has(element.id);
-        const isSelected = selectedId === element.id;
+        const isSelected = selectedId === element.id || selectedIds.has(element.id);
+        const isDraggable = level === 0 && element.type === 'Button' && !!onReorder;
+        const isDragging = draggedIndex === index;
+        const isDragOver = dragOverIndex === index;
 
         return (
-          <div key={element.id}>
+          <div 
+            key={element.id}
+            draggable={isDraggable}
+            onDragStart={isDraggable ? (e) => {
+              const target = e.target as HTMLElement;
+              // Only prevent drag if started from delete button
+              const deleteButton = target.closest('button[title="Delete button"]');
+              if (deleteButton) {
+                e.preventDefault();
+                return;
+              }
+              handleDragStart(e, index);
+            } : undefined}
+            onDragEnd={isDraggable ? handleDragEnd : undefined}
+            onDragOver={level === 0 && element.type === 'Button' && onReorder ? (e) => handleDragOver(e, index) : undefined}
+            onDragLeave={level === 0 && element.type === 'Button' && onReorder ? handleDragLeave : undefined}
+            onDrop={level === 0 && element.type === 'Button' && onReorder ? (e) => handleDrop(e, index) : undefined}
+            className={`transition-all ${
+              isDragging ? 'opacity-50' : ''
+            } ${
+              isDragOver ? 'translate-y-1' : ''
+            } ${isDraggable ? 'cursor-move' : ''}`}
+            style={{
+              ...(isDraggable ? { userSelect: 'none' } : {}),
+            }}
+          >
             <div className={`flex items-center gap-1 rounded text-xs transition-colors ${
               isSelected
-                ? 'bg-blue-500'
+                ? selectedIds.has(element.id) && selectedId !== element.id
+                  ? 'bg-blue-300'
+                  : 'bg-blue-500'
                 : ''
-            }`}>
+            } ${isDragOver ? 'border-t-2 border-blue-400' : ''}`}>
               {hasChildren && (
                 <button
                   onClick={(e) => {
@@ -63,9 +159,24 @@ function ElementTree({ elements, selectedId, onSelect, onDelete, level = 0 }: El
                   </svg>
                 </button>
               )}
-              {!hasChildren && <div className="w-4" />}
+              {!hasChildren && level === 0 && element.type === 'Button' && onReorder && (
+                <div 
+                  className="w-4 flex items-center justify-center cursor-move select-none" 
+                  title="Drag to reorder"
+                  onMouseDown={(e) => e.stopPropagation()}
+                >
+                  <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                  </svg>
+                </div>
+              )}
+              {!hasChildren && (!onReorder || level > 0 || element.type !== 'Button') && <div className="w-4" />}
               <button
-                onClick={() => onSelect(element.id)}
+                onClick={(e) => {
+                  console.log('[ElementTreeSelector] Button click:', { elementId: element.id, shiftKey: e.shiftKey });
+                  onSelect(element.id, e.shiftKey);
+                }}
+                draggable={false}
                 className={`flex-1 text-left px-2 py-1.5 rounded transition-colors ${
                   isSelected
                     ? 'text-white font-medium'
@@ -74,25 +185,9 @@ function ElementTree({ elements, selectedId, onSelect, onDelete, level = 0 }: El
                 style={{ paddingLeft: `${level * 10}px` }}
               >
                 {element.type === 'Button' ? (
-                  
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-medium border transition-colors ${
-                        isSelected
-                          ? 'bg-white text-blue-600 border-blue-200'
-                          : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
-                      }`}
-                      style={{
-                        backgroundColor: element.colors?.backgroundColor || '#f3f4f6',
-                        color: element.colors?.textColor || '#374151',
-                        borderColor: element.colors?.borderColor || '#d1d5db',
-                        minWidth: '60px',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      {element.label || element.name || 'Button'}
-                    </div>
-                  </div>
+                  <span className="text-sm">
+                    {element.label || element.name || 'Button'}
+                  </span>
                 ) : (
                   
                   <div className="flex items-center gap-1.5">
@@ -111,6 +206,8 @@ function ElementTree({ elements, selectedId, onSelect, onDelete, level = 0 }: El
                       onDelete(element.id);
                     }
                   }}
+                  draggable={false}
+                  onMouseDown={(e) => e.stopPropagation()}
                   className="px-2 py-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
                   title="Delete button"
                 >
@@ -120,12 +217,14 @@ function ElementTree({ elements, selectedId, onSelect, onDelete, level = 0 }: El
                 </button>
               )}
             </div>
-            {hasChildren && isExpanded && (
+            {hasChildren && isExpanded && element.children && (
               <ElementTree
                 elements={element.children}
                 selectedId={selectedId}
+                selectedIds={selectedIds}
                 onSelect={onSelect}
                 onDelete={onDelete}
+                onReorder={onReorder}
                 level={level + 1}
               />
             )}
@@ -136,14 +235,27 @@ function ElementTree({ elements, selectedId, onSelect, onDelete, level = 0 }: El
   );
 }
 
-export function ElementTreeSelector({ elements, selectedId, onSelect, onDelete }: ElementTreeSelectorProps): JSX.Element {
-  
+export function ElementTreeSelector({ 
+  elements, 
+  selectedId, 
+  selectedIds, 
+  onSelect, 
+  onDelete, 
+  onReorder 
+}: ElementTreeSelectorProps): JSX.Element {
   const visibleElements = elements.length > 0 && elements[0].children ? elements[0].children : [];
 
   return (
     <div>
       {visibleElements.length > 0 ? (
-        <ElementTree elements={visibleElements} selectedId={selectedId} onSelect={onSelect} onDelete={onDelete} />
+        <ElementTree 
+          elements={visibleElements} 
+          selectedId={selectedId}
+          selectedIds={selectedIds}
+          onSelect={onSelect} 
+          onDelete={onDelete}
+          onReorder={onReorder}
+        />
       ) : (
         <div className="text-gray-500 text-sm text-center py-4">
           No elements found

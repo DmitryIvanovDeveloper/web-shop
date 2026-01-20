@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { BackgroundEditor } from '../components/BackgroundEditor';
 import { ElementTreeSelector } from '../components/ElementTreeSelector';
-import { SidebarColorEditor } from '../components/SidebarColorEditor';
+import { LeftSidebarEditor } from '../components/LeftSidebarEditor';
 import { ColorInput } from '../components/ColorInput';
 import { AuthEditor } from '../components/AuthEditor';
 import { PageConstructor } from '../components/PageConstructor';
@@ -29,6 +29,57 @@ interface UIBuilderPageProps {
   presenter: any; 
   appId: string;
 }
+
+type SidebarSectionKey = 'sidebar' | 'rightSidebar';
+
+interface UiLayoutNodeStyles {
+  backgroundColor?: string;
+  textColor?: string;
+  borderColor?: string;
+  gap?: string;
+  padding?: string;
+  width?: string;
+  maxHeight?: string;
+  textAlign?: string;
+  borderRadius?: string;
+  backgroundOpacity?: string;
+}
+
+interface UiLayoutNode {
+  id: string;
+  type?: string;
+  props?: {
+    text?: string;
+    children?: string;
+    pageSlug?: string;
+    icon?: string;
+  };
+  styles?: UiLayoutNodeStyles;
+  children?: UiLayoutNode[];
+}
+
+interface UiSidebarSectionConfig {
+  version?: string;
+  theme?: unknown;
+  layout?: UiLayoutNode;
+}
+
+interface UiRendererModules {
+  uiRenderer?: Record<SidebarSectionKey, UiSidebarSectionConfig | undefined>;
+}
+
+interface UiThemeConfig {
+  background?: Record<string, string>;
+  buttonStyling?: {
+    backgroundColor?: string;
+    hoverBackgroundColor?: string;
+  };
+}
+
+type UiAppConfig = AppConfigStructure & {
+  theme?: UiThemeConfig;
+  modules?: UiRendererModules & Record<string, unknown>;
+};
 
 export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Element {
   const [viewModel, setViewModel] = useState(presenter.getViewModel());
@@ -330,8 +381,8 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     }
 
     (['sidebar', 'rightSidebar'] as const).forEach(section => {
-      const config = viewModel.config as any;
-      const hasLayout = config?.modules?.uiRenderer?.[section]?.layout;
+      const config = viewModel.config as UiAppConfig;
+      const hasLayout = config.modules?.uiRenderer?.[section]?.layout;
       if (!hasLayout && !ensuredSectionsRef.current.has(section)) {
         const rootId = presenter.ensureSidebarLayout(section);
         ensuredSectionsRef.current.add(section);
@@ -381,15 +432,15 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     }
   };
 
-  const handleSidebarElementSelect = (elementId: string | null, section: 'sidebar' | 'rightSidebar'): void => {
+  const handleSidebarElementSelect = (elementId: string | null, section: 'sidebar' | 'rightSidebar', shiftKey = false): void => {
     const ensuredRootId = presenter.ensureSidebarLayout(section);
     let normalizedId = elementId || '';
 
     if (!normalizedId && viewModel.config) {
       normalizedId = ensuredRootId || '';
       if (!normalizedId) {
-        const config = viewModel.config as any;
-        const rootNode = config?.modules?.uiRenderer?.[section]?.layout;
+        const config = viewModel.config as UiAppConfig;
+        const rootNode = config.modules?.uiRenderer?.[section]?.layout;
         if (rootNode?.id) {
           normalizedId = rootNode.id as string;
         }
@@ -410,7 +461,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     } else if (section === 'rightSidebar') {
       setActiveTab('rightSidebar');
     }
-    presenter.selectElement(normalizedId);
+    presenter.selectElement(normalizedId, shiftKey, section);
   };
 
   useEffect(() => {
@@ -446,8 +497,8 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   const extractSidebarElements = (layoutKey: 'sidebar' | 'rightSidebar'): SidebarElement[] => {
     if (!viewModel.config) return [];
 
-    const config = viewModel.config as any;
-    const sidebarConfig = config?.modules?.uiRenderer?.[layoutKey];
+    const config = viewModel.config as UiAppConfig;
+    const sidebarConfig = config.modules?.uiRenderer?.[layoutKey];
 
     if (!sidebarConfig?.layout) return [];
 
@@ -471,8 +522,8 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
   const getElementColorsFromConfig = (elementId: string): Record<string, string> | null => {
     if (!viewModel.config) return null;
-    const config = viewModel.config as any;
-    const sidebarConfig = config?.modules?.uiRenderer?.sidebar;
+    const config = viewModel.config as UiAppConfig;
+    const sidebarConfig = config.modules?.uiRenderer?.sidebar;
     if (!sidebarConfig?.layout) return null;
 
     const find = (node: any): any | null => {
@@ -500,8 +551,8 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     if (!viewModel.config) {
       return null;
     }
-    const config = viewModel.config as any;
-    const sidebarConfig = config?.modules?.uiRenderer?.sidebar;
+    const config = viewModel.config as UiAppConfig;
+    const sidebarConfig = config.modules?.uiRenderer?.sidebar;
     if (!sidebarConfig?.layout) {
       return null;
     }
@@ -721,7 +772,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     );
   }
 
-  const theme = viewModel.config.theme as any;
+  const theme = (viewModel.config as UiAppConfig).theme;
   const backgroundSettings = theme?.background;
 
   const headerTitle = (() => {
@@ -861,7 +912,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               <div className="space-y-3">
                 <ColorInput
                   label="Button Background"
-                  value={(viewModel.config as any)?.theme?.buttonStyling?.backgroundColor || '#1d4ed8'}
+                  value={(viewModel.config as UiAppConfig)?.theme?.buttonStyling?.backgroundColor || '#1d4ed8'}
                   onChange={(color) => {
                     presenter.updateButtonStyling({
                       backgroundColor: color,
@@ -870,7 +921,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 />
                 <ColorInput
                   label="Button Hover Background"
-                  value={(viewModel.config as any)?.theme?.buttonStyling?.hoverBackgroundColor || '#1e40af'}
+                  value={(viewModel.config as UiAppConfig)?.theme?.buttonStyling?.hoverBackgroundColor || '#1e40af'}
                   onChange={(color) => {
                     presenter.updateButtonStyling({
                       hoverBackgroundColor: color,
@@ -897,11 +948,13 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               <ElementTreeSelector
                 elements={extractSidebarElements('sidebar')}
                 selectedId={viewModel.selectedElement?.area === 'sidebar' ? (viewModel.selectedElement?.id || null) : null}
-                onSelect={(elementId) => {
-                  handleSidebarElementSelect(elementId, 'sidebar');
+                selectedIds={viewModel.selectedElementIds}
+                onSelect={(elementId, shiftKey) => {
+                  handleSidebarElementSelect(elementId, 'sidebar', shiftKey);
                   setActiveTab('leftSidebar');
                 }}
                 onDelete={(elementId) => presenter.removeSidebarButton(elementId)}
+                onReorder={(fromIndex, toIndex) => presenter.reorderSidebarButtons(fromIndex, toIndex, 'sidebar')}
               />
             </div>
           </div>
@@ -913,10 +966,13 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             <ElementTreeSelector
               elements={extractSidebarElements('rightSidebar')}
               selectedId={viewModel.selectedElement?.area === 'rightSidebar' ? (viewModel.selectedElement?.id || null) : null}
-              onSelect={(elementId) => {
-                handleSidebarElementSelect(elementId, 'rightSidebar');
+              selectedIds={viewModel.selectedElementIds}
+              onSelect={(elementId, shiftKey) => {
+                handleSidebarElementSelect(elementId, 'rightSidebar', shiftKey);
                 setActiveTab('rightSidebar');
               }}
+              onDelete={(elementId) => presenter.removeSidebarButton(elementId)}
+              onReorder={(fromIndex, toIndex) => presenter.reorderSidebarButtons(fromIndex, toIndex, 'rightSidebar')}
             />
           </div>
         );
@@ -1301,6 +1357,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 selectedId={viewModel.selectedElement?.area === 'sidebar' ? (viewModel.selectedElement?.id || null) : null}
                 onSelect={(elementId) => handleSidebarElementSelect(elementId, 'sidebar')}
                 onDelete={(elementId) => presenter.removeSidebarButton(elementId)}
+                onReorder={(fromIndex, toIndex) => presenter.reorderSidebarButtons(fromIndex, toIndex, 'sidebar')}
               />
             </div>
           )}
@@ -1583,7 +1640,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
             {}
             {(activeSection === 'sidebar' || activeSection === 'rightSidebar') && !selectedOfferCardId && (
-              <SidebarColorEditor
+              <LeftSidebarEditor
                 element={viewModel.selectedElement}
                 onChange={handleElementColorChange}
                 onGapChange={(elementId, gap) => presenter.updateContainerGap(elementId, gap)}
@@ -1593,8 +1650,17 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 onBorderRadiusChange={(elementId, borderRadius) => presenter.updateButtonBorderRadius(elementId, borderRadius)}
                 onLabelChange={(elementId, label) => presenter.updateButtonLabel(elementId, label)}
                 onTextAlignChange={(elementId, textAlign) => presenter.updateButtonTextAlign(elementId, textAlign)}
-                onFlexDirectionChange={(elementId, flexDirection) => presenter.updateContainerFlexDirection(elementId, flexDirection)}
+                onFlexDirectionChange={(elementId, flexDirection) => {
+                  // Use updateButtonFlexDirection for buttons, updateContainerFlexDirection for containers
+                  if (viewModel.selectedElement?.type === 'Button') {
+                    presenter.updateButtonFlexDirection(elementId, flexDirection);
+                  } else {
+                    presenter.updateContainerFlexDirection(elementId, flexDirection);
+                  }
+                }}
                 onIconChange={(elementId, icon) => presenter.updateButtonIcon(elementId, icon)}
+                onIconSizeChange={(elementId, iconSize) => presenter.updateButtonIconSize(elementId, iconSize)}
+                onIconGapChange={(elementId, iconGap) => presenter.updateButtonIconGap(elementId, iconGap)}
                 onBackgroundOpacityChange={(elementId, opacity) => presenter.updateContainerBackgroundOpacity(elementId, opacity)}
                 onPageSlugChange={(elementId, pageSlug) => presenter.updateButtonPageSlug(elementId, pageSlug)}
                 pages={viewModel.pages}
@@ -1603,7 +1669,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
             {activeSection === 'authButton' && (
               <AuthEditor
-                value={viewModel.config as any}
+                value={viewModel.config}
                 onUpdateButton={(input) => presenter.updateLoginButton(input)}
                 onUpdatePopup={(input) => presenter.updateAuthPopup(input)}
                 tab="button"
@@ -1612,7 +1678,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
             {activeSection === 'authPopup' && (
               <AuthEditor
-                value={viewModel.config as any}
+                value={viewModel.config}
                 onUpdateButton={(input) => presenter.updateLoginButton(input)}
                 onUpdatePopup={(input) => presenter.updateAuthPopup(input)}
                 tab="popup"

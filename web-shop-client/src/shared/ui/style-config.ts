@@ -37,6 +37,8 @@ export interface StyleConfig {
 	readonly textDecoration?: 'none' | 'line-through' | 'underline';
 	readonly lineHeight?: number | string;
 	readonly letterSpacing?: string;
+	readonly iconSize?: string;
+	readonly iconGap?: string;
 	
 		readonly width?: number | string;
 	readonly height?: number | string;
