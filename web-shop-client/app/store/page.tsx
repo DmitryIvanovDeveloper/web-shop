@@ -19,6 +19,15 @@ import { DailyRewardsPopup } from '../../src/modules/daily-rewards';
 import { DAILY_REWARDS_TYPES } from '../../src/modules/daily-rewards/infrastructure/bootstrap/types';
 import type { CheckDailyRewardAvailabilityUseCase } from '../../src/modules/daily-rewards/application/use-cases/check-daily-reward-availability.use-case';
 import { isSuccess } from '../../src/shared/result/result';
+import type { OfferCardTemplate } from '../../src/shared/config/app-config.types';
+
+type OfferCardWithFlags = OfferCardTemplate & {
+  styles?: OfferCardTemplate['styles'] & {
+    buyButton?: { enabled?: boolean | null } | null;
+    purchasedBadge?: { enabled?: boolean | null } | null;
+  };
+  buyButton?: { enabled?: boolean | null } | null;
+};
 
 declare const process: {
   env: {
@@ -299,10 +308,11 @@ export default function StorePage(): JSX.Element {
           </h2>
           <div style={{ maxWidth: '400px', width: '100%', display: 'flex', justifyContent: 'center' }}>
             {(() => {
+              const cardWithFlags = selectedOfferCard as OfferCardWithFlags;
               const isPurchased =
-                (selectedOfferCard.styles as any)?.buyButton?.enabled === false ||
-                (selectedOfferCard as any)?.buyButton?.enabled === false ||
-                (selectedOfferCard.styles as any)?.purchasedBadge?.enabled === true ||
+                cardWithFlags.styles?.buyButton?.enabled === false ||
+                cardWithFlags.buyButton?.enabled === false ||
+                cardWithFlags.styles?.purchasedBadge?.enabled === true ||
                 false;
               return (
                 <OfferCard

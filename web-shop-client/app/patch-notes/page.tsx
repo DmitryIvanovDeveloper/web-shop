@@ -16,29 +16,35 @@ import { LoadAppConfigUseCase } from '../../src/application/use-cases/load-app-c
 import { TYPES } from '../../src/infrastructure/bootstrap/types';
 import { OfferCard } from '../../src/shared/components/molecules/offer-card';
 import { PatchNotesPublic } from '../../src/modules/patch-notes/interface-adapters/ui/components/patch-notes-public';
-import type { AppConfig } from '../../src/shared/config/app-config.types';
+import type { AppConfig, OfferCardTemplate } from '../../src/shared/config/app-config.types';
+
+declare const process: {
+  env: {
+    NEXT_PUBLIC_UI_BUILDER_URL?: string;
+  };
+};
 
 export default function PatchNotesPage(): JSX.Element {
-    const router = useRouter();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const sidebarPresenter = container.get<SidebarRendererPresenter>(
     APP_LAYOUT_TYPES.SidebarRendererPresenter
   );
 
-    const [previewMode, setPreviewMode] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
 
-    const getAppIdFromUrl = () => {
+  const getAppIdFromUrl = () => {
     if (typeof window !== 'undefined') {
       try {
         const url = new URL(window.location.href);
         const appId = url.searchParams.get('appId') || url.searchParams.get('app');
         if (!appId) {
-                    return '';
+          return '';
         }
         return appId;
       } catch (err) {
-                return '';
+        return '';
       }
     }
     return '';
@@ -46,7 +52,7 @@ export default function PatchNotesPage(): JSX.Element {
 
   const [currentAppId, setCurrentAppId] = useState<string>('');
 
-    useEffect(() => {
+  useEffect(() => {
     const appId = getAppIdFromUrl();
     setCurrentAppId(appId);
   }, []);
@@ -78,92 +84,100 @@ export default function PatchNotesPage(): JSX.Element {
     offerCards: []
   });
 
-      const navigateWithQuery = (path: string) => {
+  type OfferCardWithFlags = OfferCardTemplate & {
+    styles?: OfferCardTemplate['styles'] & {
+      buyButton?: { enabled?: boolean | null } | null;
+      purchasedBadge?: { enabled?: boolean | null } | null;
+    };
+    buyButton?: { enabled?: boolean | null } | null;
+  };
+
+  const navigateWithQuery = (path: string) => {
     const currentSearch = searchParams.toString();
     const newUrl = currentSearch ? `${path}?${currentSearch}` : path;
-        router.push(newUrl);
+    router.push(newUrl);
   };
 
   const actionContext: ActionContext = {
-    onPopupOpen: () => {},
-    onPopupClose: () => {},
+    onPopupOpen: () => { },
+    onPopupClose: () => { },
     navigate: (url: string) => {
       if (typeof url === 'string') {
         navigateWithQuery(url);
       }
     },
     navigateToPatchNotes: () => {
-                  const patchNotesElement = document.getElementById('patch-notes-section');
+      const patchNotesElement = document.getElementById('patch-notes-section');
       if (patchNotesElement) {
         patchNotesElement.scrollIntoView({ behavior: 'smooth' });
       } else {
-                navigateWithQuery('/patch-notes');
+        navigateWithQuery('/patch-notes');
       }
     },
     navigateToDailyRewards: () => {
-            navigateWithQuery('/daily-rewards');
+      navigateWithQuery('/daily-rewards');
     },
   };
 
-    useEffect(() => {
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
         const url = new URL(window.location.href);
         const isPreview = url.searchParams.get('previewMode') === 'true';
         setPreviewMode(isPreview);
-              } catch (err) {
-              }
+      } catch (err) {
+      }
     }
   }, []);
 
-    useEffect(() => {
+  useEffect(() => {
     const appId = getAppIdFromUrl();
     setCurrentAppId(appId);
-      }, [searchParams]);
+  }, [searchParams]);
 
-      useEffect(() => {
+  useEffect(() => {
     const loadAppConfig = async () => {
       try {
-                const appId = getAppIdFromUrl();
+        const appId = getAppIdFromUrl();
 
-                setCurrentAppId(appId);
+        setCurrentAppId(appId);
 
-                const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
+        const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
 
         if (appId) {
-                    const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
+          const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
 
           if (previewMode || isInIframe) {
-                        await loadAppConfigUseCase.execute(true);
-                      } else {
-                        await loadAppConfigUseCase.execute(false);
-                      }
+            await loadAppConfigUseCase.execute(true);
+          } else {
+            await loadAppConfigUseCase.execute(false);
+          }
         }
       } catch (error) {
-              }
+      }
     };
 
-            if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
       requestIdleCallback(() => loadAppConfig());
     } else {
       setTimeout(() => loadAppConfig(), 0);
     }
   }, [previewMode]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (!previewMode) return;
 
     const presenter = container.get<PageRendererPresenter>(PAGE_RENDERER_TYPES.PageRendererPresenter);
     const loadAppConfigFromMessageUseCase = container.get<LoadAppConfigFromMessageUseCase>(TYPES.LoadAppConfigFromMessage);
 
-        const unsubscribe = presenter.subscribe((newVm) => {
+    const unsubscribe = presenter.subscribe((newVm) => {
       setOfferCardVm(newVm);
-          });
+    });
 
-        const handleMessage = async (event: MessageEvent) => {
+    const handleMessage = async (event: MessageEvent) => {
       if (event.data?.type === 'CONFIG_UPDATE') {
         try {
-                              if (event.data.payload?.config) {
+          if (event.data.payload?.config) {
             const configPayload = event.data.payload.config as AppConfig;
             await loadAppConfigFromMessageUseCase.execute(configPayload);
             const selectionModeValue =
@@ -175,32 +189,32 @@ export default function PatchNotesPage(): JSX.Element {
             applyElementSelectionMode(false);
           }
 
-                    if (event.data.payload?.offerCards) {
-                        presenter.setOfferCards(event.data.payload.offerCards);
+          if (event.data.payload?.offerCards) {
+            presenter.setOfferCards(event.data.payload.offerCards);
           }
-                    if (event.data.payload?.selectedOfferCardId !== undefined) {
+          if (event.data.payload?.selectedOfferCardId !== undefined) {
             if (event.data.payload.selectedOfferCardId !== null) {
-                            presenter.setSelectedOfferCardId(event.data.payload.selectedOfferCardId);
+              presenter.setSelectedOfferCardId(event.data.payload.selectedOfferCardId);
             } else {
-                            console.log('[PatchNotesPage] Clearing selected offer card ID (explicit null)');
+              console.log('[PatchNotesPage] Clearing selected offer card ID (explicit null)');
               presenter.setSelectedOfferCardId(null);
             }
           }
-                  } catch (error) {
-                  }
+        } catch (error) {
+        }
       } else if (event.data?.type === 'SHOW_AUTH_POPUP') {
         const visible = event.data.payload?.visible ?? false;
-                if (visible) {
-                              if (event.data.payload?.config) {
+        if (visible) {
+          if (event.data.payload?.config) {
             try {
               await loadAppConfigFromMessageUseCase.execute(event.data.payload.config);
-                          } catch (error) {
-                          }
+            } catch (error) {
+            }
           }
 
-                    window.dispatchEvent(new CustomEvent('showAuthPopup'));
+          window.dispatchEvent(new CustomEvent('showAuthPopup'));
         } else {
-                    window.dispatchEvent(new CustomEvent('closeAuthPopup'));
+          window.dispatchEvent(new CustomEvent('closeAuthPopup'));
         }
       }
     };
@@ -213,11 +227,11 @@ export default function PatchNotesPage(): JSX.Element {
     };
   }, [previewMode, applyElementSelectionMode]);
 
-    const selectedOfferCard = offerCardVm.selectedOfferCardId && offerCardVm.offerCards.length > 0
+  const selectedOfferCard = offerCardVm.selectedOfferCardId && offerCardVm.offerCards.length > 0
     ? offerCardVm.offerCards.find(card => card.id === offerCardVm.selectedOfferCardId)
     : null;
 
-    useEffect(() => {
+  useEffect(() => {
     if (previewMode) {
       console.log('[PatchNotesPage] Demo section debug:', {
         previewMode,
@@ -229,17 +243,17 @@ export default function PatchNotesPage(): JSX.Element {
     }
   }, [previewMode, offerCardVm.selectedOfferCardId, offerCardVm.offerCards, selectedOfferCard]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (previewMode && selectedOfferCard && typeof window !== 'undefined') {
-            const currentStyles = (window as any).__offerCardStyles;
+      const currentStyles = (window as any).__offerCardStyles;
 
-            (window as any).__offerCardStyles = {
+      (window as any).__offerCardStyles = {
         styles: selectedOfferCard.styles || {}
       };
 
-            window.dispatchEvent(new Event('appConfigLoaded'));
+      window.dispatchEvent(new Event('appConfigLoaded'));
 
-            return () => {
+      return () => {
         if (currentStyles !== undefined) {
           (window as any).__offerCardStyles = currentStyles;
         }
@@ -261,7 +275,7 @@ export default function PatchNotesPage(): JSX.Element {
 
   return (
     <main className="flex-1 overflow-y-auto w-full mx-auto px-4 md:px-8" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>
-      {}
+      { }
       {previewMode && selectedOfferCard && (
         <div key="offer-card-demo-section" className="offer-card-demo-section" style={{ padding: '20px', marginBottom: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <h2 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: 'bold', width: '100%', textAlign: 'left' }}>
@@ -269,10 +283,11 @@ export default function PatchNotesPage(): JSX.Element {
           </h2>
           <div style={{ maxWidth: '400px', width: '100%', display: 'flex', justifyContent: 'center' }}>
             {(() => {
+              const cardWithFlags = selectedOfferCard as OfferCardWithFlags;
               const isPurchased =
-                (selectedOfferCard.styles as any)?.buyButton?.enabled === false ||
-                (selectedOfferCard as any)?.buyButton?.enabled === false ||
-                (selectedOfferCard.styles as any)?.purchasedBadge?.enabled === true ||
+                cardWithFlags.styles?.buyButton?.enabled === false ||
+                cardWithFlags.buyButton?.enabled === false ||
+                cardWithFlags.styles?.purchasedBadge?.enabled === true ||
                 false;
               return (
                 <OfferCard
@@ -291,7 +306,7 @@ export default function PatchNotesPage(): JSX.Element {
         </div>
       )}
 
-      {}
+      { }
       <section id="patch-notes-section" className="mt-12">
         <PatchNotesPublic appId={currentAppId} />
       </section>
