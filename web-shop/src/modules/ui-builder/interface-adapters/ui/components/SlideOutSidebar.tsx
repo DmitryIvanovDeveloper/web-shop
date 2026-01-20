@@ -14,7 +14,6 @@ export function SlideOutSidebar({ isOpen, onClose, appId, isAdmin = false }: Sli
   const pathname = usePathname();
   const router = useRouter();
 
-  // Fallback: also treat role=admin in query string as admin mode
   let effectiveIsAdmin = isAdmin;
   if (typeof window !== 'undefined') {
     const params = new URLSearchParams(window.location.search);
@@ -23,7 +22,6 @@ export function SlideOutSidebar({ isOpen, onClose, appId, isAdmin = false }: Sli
     }
   }
 
-  // Close on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
@@ -33,7 +31,7 @@ export function SlideOutSidebar({ isOpen, onClose, appId, isAdmin = false }: Sli
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
-      // Prevent body scroll when sidebar is open
+      
       document.body.style.overflow = 'hidden';
     }
 
@@ -80,8 +78,7 @@ export function SlideOutSidebar({ isOpen, onClose, appId, isAdmin = false }: Sli
         </svg>
       ),
     },
-    // Offers / Products are only relevant for merchant-admin flows.
-    // Hide them when working in admin UI Builder mode (role=admin).
+
     !effectiveIsAdmin && {
       label: 'Offers',
       href: `/merchant-admin/offers?appId=${appId}`,
@@ -125,7 +122,7 @@ export function SlideOutSidebar({ isOpen, onClose, appId, isAdmin = false }: Sli
 
   return (
     <>
-      {/* Overlay */}
+      {}
       <div
         className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity"
         onClick={onClose}
@@ -139,13 +136,13 @@ export function SlideOutSidebar({ isOpen, onClose, appId, isAdmin = false }: Sli
         aria-label="Close menu"
       />
 
-      {/* Sidebar */}
+      {}
       <div
         className="fixed left-0 top-0 bottom-0 w-64 bg-gray-900 shadow-xl z-50 transform transition-transform duration-300 ease-in-out translate-x-0"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="h-full flex flex-col">
-          {/* Header with Logo */}
+          {}
           <div className="p-6 border-b border-gray-800">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -155,7 +152,7 @@ export function SlideOutSidebar({ isOpen, onClose, appId, isAdmin = false }: Sli
             </div>
           </div>
 
-          {/* Navigation */}
+          {}
           <nav className="flex-1 overflow-y-auto p-4">
             <div className="space-y-1">
               {navItems.filter(Boolean).map((item) => {
@@ -171,7 +168,7 @@ export function SlideOutSidebar({ isOpen, onClose, appId, isAdmin = false }: Sli
                       }
                     `}
                     onClick={() => {
-                      // Close sidebar and navigate
+                      
                       onClose();
                       router.push(item.href);
                     }}

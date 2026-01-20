@@ -14,22 +14,3 @@ export class LoadDraftUseCase {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

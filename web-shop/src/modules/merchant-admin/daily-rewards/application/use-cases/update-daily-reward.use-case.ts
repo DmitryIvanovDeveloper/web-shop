@@ -16,7 +16,7 @@ export class UpdateDailyRewardUseCase {
 
   async execute(input: UpdateDailyRewardInput): Promise<Result<DailyRewardOutput, Error>> {
     try {
-      // Find the existing reward
+      
       const findResult = await this._dailyRewardRepository.findById(input.id);
       if (!findResult.isSuccess) {
         return Result.fail(findResult.error || new Error('Failed to find reward'));
@@ -24,7 +24,6 @@ export class UpdateDailyRewardUseCase {
 
       const existingReward = findResult.value!;
 
-      // Create updated reward using the existing reward's methods
       let updatedReward = existingReward;
 
       if (input.title !== undefined) {
@@ -47,7 +46,6 @@ export class UpdateDailyRewardUseCase {
         updatedReward = input.isActive ? updatedReward.activate() : updatedReward.deactivate();
       }
 
-      // Save the updated reward
       const saveResult = await this._dailyRewardRepository.save(updatedReward);
       if (!saveResult.isSuccess) {
         return Result.fail(saveResult.error || new Error('Failed to save updated reward'));

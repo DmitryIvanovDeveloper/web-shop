@@ -13,14 +13,12 @@ export class SupabaseProductImageStorageService implements ProductImageStoragePo
   ) {}
 
   public async uploadImage(buffer: ArrayBuffer, filename: string): Promise<Result<{ url: string }, Error>> {
-    // TODO: Implement direct Supabase upload
-    this.logger.warn('[SupabaseProductImageStorageService] Upload not implemented yet', { filename });
-    return Result.error(new Error('Upload not implemented'));
+    
+        return Result.error(new Error('Upload not implemented'));
   }
 
   public async deleteImage(path: string): Promise<Result<void, Error>> {
-    // TODO: Implement delete
-    this.logger.warn('[SupabaseProductImageStorageService] Delete not implemented yet', { path });
-    return Result.error(new Error('Delete not implemented'));
+    
+        return Result.error(new Error('Delete not implemented'));
   }
 }

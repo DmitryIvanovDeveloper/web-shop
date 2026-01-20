@@ -20,8 +20,7 @@ export function ComparisonBadge({
   const isPositive = direction === 'up';
   const isNegative = direction === 'down';
   const isNeutral = direction === 'neutral';
-  
-  // Значительное изменение (>20%) для pulse анимации
+
   const isSignificant = Math.abs(percent) > 20;
 
   const badgeClass = `${styles.comparisonBadge} ${

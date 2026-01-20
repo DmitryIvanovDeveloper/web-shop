@@ -1,4 +1,4 @@
-// Language DTOs
+
 export interface ChangeActiveLanguageRequest {
   languageCode: string;
 }
@@ -27,7 +27,6 @@ export interface LanguageResponse {
   fallbackCode?: string;
 }
 
-// Translation DTOs
 export interface CreateTranslationRequest {
   key: string;
   languageCode: string;
@@ -49,7 +48,6 @@ export interface TranslationResponse {
   updatedAt: string;
 }
 
-// Bulk operations
 export interface BulkUpdateTranslationsRequest {
   translations: Array<{
     key: string;

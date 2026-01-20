@@ -15,9 +15,7 @@ export class CreateDailyRewardUseCase {
 
   async execute(input: CreateDailyRewardInput): Promise<Result<DailyRewardOutput, Error>> {
     try {
-      // Check for duplicates:
-      // - If dayNumber is provided: check for duplicate app_id + day_number
-      // - If dayNumber is null: check for duplicate app_id + title
+
       const existingRewards = await this._dailyRewardRepository.findAll({
         appId: input.appId,
         status: 'all',
@@ -29,12 +27,12 @@ export class CreateDailyRewardUseCase {
         let duplicate: DailyReward | undefined;
         
         if (input.dayNumber !== undefined && input.dayNumber !== null) {
-          // Check for duplicate day_number
+          
           duplicate = data?.find(
             (reward: DailyReward) => reward.dayNumber === input.dayNumber
           );
         } else {
-          // Check for duplicate title (when dayNumber is null)
+          
           duplicate = data?.find(
             (reward: DailyReward) => 
               reward.title.toLowerCase() === input.title.toLowerCase() && 
@@ -47,7 +45,6 @@ export class CreateDailyRewardUseCase {
         }
       }
 
-      // Generate ID and create reward
       const rewardId = RewardId.create(crypto.randomUUID());
       const rewardType = RewardType.create(input.type);
 
@@ -60,9 +57,7 @@ export class CreateDailyRewardUseCase {
         input.points,
         input.dayNumber ?? null
       );
-        
 
-      // Save to repository
       const saveResult = await this._dailyRewardRepository.save(dailyReward);
       if (!saveResult.isSuccess) {
         return Result.fail(saveResult.error || new Error('Failed to save reward'));

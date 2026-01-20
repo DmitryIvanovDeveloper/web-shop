@@ -8,18 +8,16 @@ export class ThrottledRealtimeClient implements RealtimeClientPort {
   private burstCount = 0;
   private lastBurstReset = Date.now();
   private isProcessing = false;
-  
-  // Auto-reconnect state
+
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
-  private baseReconnectDelay = 1000; // 1 second
+  private baseReconnectDelay = 1000; 
   private reconnectTimer: NodeJS.Timeout | null = null;
   private shouldAutoReconnect = true;
-  
-  // Heartbeat state
+
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private lastHeartbeat: Date = new Date();
-  private heartbeatTimeoutMs = 30000; // 30 seconds
+  private heartbeatTimeoutMs = 30000; 
 
   constructor(
     private readonly realtimeClient: RealtimeClientPort,
@@ -33,10 +31,8 @@ export class ThrottledRealtimeClient implements RealtimeClientPort {
       this.reconnectAttempts = 0;
       this.startHeartbeat();
       this.setupConnectionMonitoring();
-      this.logger.info('Connected to realtime service');
-    } catch (error) {
-      this.logger.error('Failed to connect to realtime service', { error });
-      if (this.shouldAutoReconnect) {
+          } catch (error) {
+            if (this.shouldAutoReconnect) {
         this.scheduleReconnect();
       }
       throw error;
@@ -55,12 +51,10 @@ export class ThrottledRealtimeClient implements RealtimeClientPort {
   private setupConnectionMonitoring(): void {
     this.realtimeClient.onConnectionStatusChange((connected) => {
       if (!connected && this.shouldAutoReconnect) {
-        this.logger.warn('Connection lost, attempting to reconnect...');
-        this.stopHeartbeat();
+                this.stopHeartbeat();
         this.scheduleReconnect();
       } else if (connected) {
-        this.logger.info('Connection restored');
-        this.reconnectAttempts = 0;
+                this.reconnectAttempts = 0;
         this.startHeartbeat();
       }
     });
@@ -68,26 +62,15 @@ export class ThrottledRealtimeClient implements RealtimeClientPort {
   
   private scheduleReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      this.logger.error('Max reconnect attempts reached', {
-        attempts: this.reconnectAttempts,
-        maxAttempts: this.maxReconnectAttempts,
-      });
-      return;
+            return;
     }
-    
-    // Exponential backoff: 1s, 2s, 4s, 8s, 16s
+
     const delay = this.baseReconnectDelay * Math.pow(2, this.reconnectAttempts);
     this.reconnectAttempts++;
     
-    this.logger.info('Scheduling reconnect', {
-      attempt: this.reconnectAttempts,
-      delayMs: delay,
-    });
-    
-    this.reconnectTimer = setTimeout(() => {
+        this.reconnectTimer = setTimeout(() => {
       this.connect().catch((error) => {
-        this.logger.error('Reconnect failed', { error });
-      });
+              });
     }, delay);
   }
   
@@ -107,19 +90,13 @@ export class ThrottledRealtimeClient implements RealtimeClientPort {
       const timeSinceLastHeartbeat = now.getTime() - this.lastHeartbeat.getTime();
       
       if (timeSinceLastHeartbeat > this.heartbeatTimeoutMs) {
-        this.logger.warn('Heartbeat timeout detected', {
-          timeSinceLastHeartbeat,
-          heartbeatTimeoutMs: this.heartbeatTimeoutMs,
-        });
-        
-        if (this.shouldAutoReconnect) {
+                if (this.shouldAutoReconnect) {
           this.scheduleReconnect();
         }
       }
-      
-      // Update heartbeat timestamp when we receive any message
+
       this.lastHeartbeat = now;
-    }, this.heartbeatTimeoutMs / 2); // Check every 15 seconds
+    }, this.heartbeatTimeoutMs / 2); 
   }
   
   private stopHeartbeat(): void {
@@ -168,39 +145,25 @@ export class ThrottledRealtimeClient implements RealtimeClientPort {
 
   private handleUpdate(message: RealtimeMessage, callback: (message: RealtimeMessage) => void): void {
     const now = Date.now();
-    
-    // Reset burst counter if cooldown period has passed
+
     if (now - this.lastBurstReset > this.throttleConfig.cooldownMs) {
       this.burstCount = 0;
       this.lastBurstReset = now;
     }
 
-    // Check burst limit
     if (this.burstCount >= this.throttleConfig.burstLimit) {
-      this.logger.warn('Burst limit exceeded, queuing update', {
-        channel: message.channel,
-        burstCount: this.burstCount,
-        burstLimit: this.throttleConfig.burstLimit,
-      });
-      this.updateQueue.push(message);
+            this.updateQueue.push(message);
       this.processQueue(callback);
       return;
     }
 
-    // Check rate limit
     const minInterval = this.throttleConfig.getMinIntervalMs();
     if (now - this.lastUpdateTime < minInterval) {
-      this.logger.warn('Rate limit exceeded, queuing update', {
-        channel: message.channel,
-        timeSinceLastUpdate: now - this.lastUpdateTime,
-        minInterval,
-      });
-      this.updateQueue.push(message);
+            this.updateQueue.push(message);
       this.processQueue(callback);
       return;
     }
 
-    // Update is allowed
     this.burstCount++;
     this.lastUpdateTime = now;
     callback(message);
@@ -229,7 +192,6 @@ export class ThrottledRealtimeClient implements RealtimeClientPort {
         callback(message);
       }
 
-      // Schedule next processing
       setTimeout(processNext, minInterval);
     };
 
@@ -246,6 +208,5 @@ export class ThrottledRealtimeClient implements RealtimeClientPort {
 
   clearQueue(): void {
     this.updateQueue = [];
-    this.logger.info('Update queue cleared');
-  }
+      }
 }

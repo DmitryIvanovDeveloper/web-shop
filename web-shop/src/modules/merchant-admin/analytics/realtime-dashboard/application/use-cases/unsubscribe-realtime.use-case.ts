@@ -13,19 +13,11 @@ export class UnsubscribeRealtimeUseCase {
   ) {}
 
   async execute(channels: string[]): Promise<void> {
-    this.logger.info(`UnsubscribeRealtimeUseCase: Unsubscribing from channels ${channels.join(', ')}`);
-
-    // Unsubscribe from each channel
     channels.forEach(channel => {
       this.realtimeClient.unsubscribe(channel);
     });
 
-    // Disconnect if no more subscriptions
     await this.realtimeClient.disconnect();
   }
 }
-
-
-
-
 

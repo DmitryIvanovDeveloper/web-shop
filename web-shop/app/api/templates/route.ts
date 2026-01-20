@@ -21,14 +21,12 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
-      console.error('[GET /api/templates] Supabase error:', error);
-      return NextResponse.json({ error: 'Failed to load templates' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to load templates' }, { status: 500 });
     }
 
     return NextResponse.json({ templates: data ?? [] });
   } catch (error) {
-    console.error('[GET /api/templates] Unexpected error:', error);
-    return NextResponse.json({ error: 'Failed to load templates' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to load templates' }, { status: 500 });
   }
 }
 
@@ -60,8 +58,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('[POST /api/templates] Supabase error:', error);
-      return NextResponse.json(
+            return NextResponse.json(
         { error: 'Failed to create template', details: error.message },
         { status: 500 }
       );
@@ -69,8 +66,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
-    console.error('[POST /api/templates] Unexpected error:', error);
-    return NextResponse.json({ error: 'Failed to create template' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to create template' }, { status: 500 });
   }
 }
 
@@ -79,9 +75,7 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { id, name, description, appConfig, pages, isActive } = body;
 
-    console.log('[PUT /api/templates] Received request:', { id, name, description, hasAppConfig: !!appConfig, hasPages: !!pages, isActive });
-
-    if (!id) {
+        if (!id) {
       return NextResponse.json({ error: 'Template id is required' }, { status: 400 });
     }
 
@@ -96,9 +90,8 @@ export async function PUT(request: NextRequest) {
     if (pages !== undefined) updateData.page_configs = pages;
     if (isActive !== undefined) updateData.is_active = isActive;
 
-    // Handle metadata updates properly - merge with existing metadata
     if (description !== undefined) {
-      // First get current template to merge metadata
+      
       const { data: currentTemplate } = await supabase
         .from('templates')
         .select('metadata')
@@ -111,9 +104,7 @@ export async function PUT(request: NextRequest) {
       };
     }
 
-    console.log('[PUT /api/templates] Updating template with data:', updateData);
-
-    const { data, error } = await supabase
+        const { data, error } = await supabase
       .from('templates')
       .update(updateData)
       .eq('id', id)
@@ -121,8 +112,7 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('[PUT /api/templates] Supabase error:', error);
-      return NextResponse.json(
+            return NextResponse.json(
         { error: 'Failed to update template', details: error.message },
         { status: 500 }
       );
@@ -132,11 +122,9 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Template not found' }, { status: 404 });
     }
 
-    console.log('[PUT /api/templates] Template updated successfully:', data);
-    return NextResponse.json(data, { status: 200 });
+        return NextResponse.json(data, { status: 200 });
   } catch (error) {
-    console.error('[PUT /api/templates] Unexpected error:', error);
-    return NextResponse.json({ error: 'Failed to update template' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to update template' }, { status: 500 });
   }
 }
 
@@ -157,13 +145,11 @@ export async function DELETE(request: NextRequest) {
       .eq('id', id);
 
     if (error) {
-      console.error('[DELETE /api/templates] Supabase error:', error);
-      return NextResponse.json({ error: 'Failed to delete template' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to delete template' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error('[DELETE /api/templates] Unexpected error:', error);
-    return NextResponse.json({ error: 'Failed to delete template' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to delete template' }, { status: 500 });
   }
 }

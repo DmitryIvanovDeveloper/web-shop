@@ -15,7 +15,7 @@ export function LocalizationStatus({ viewModel }: LocalizationStatusProps): JSX.
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Overall Status */}
+      {}
       <div className="bg-white overflow-hidden shadow rounded-lg">
         <div className="p-5">
           <div className="flex items-center">
@@ -54,7 +54,7 @@ export function LocalizationStatus({ viewModel }: LocalizationStatusProps): JSX.
         </div>
       </div>
 
-      {/* Translation Progress */}
+      {}
       <div className="bg-white overflow-hidden shadow rounded-lg">
         <div className="p-5">
           <div className="flex items-center">
@@ -89,7 +89,7 @@ export function LocalizationStatus({ viewModel }: LocalizationStatusProps): JSX.
         </div>
       </div>
 
-      {/* Incomplete Languages */}
+      {}
       <div className="bg-white overflow-hidden shadow rounded-lg">
         <div className="p-5">
           <div className="flex items-center">
@@ -120,7 +120,7 @@ export function LocalizationStatus({ viewModel }: LocalizationStatusProps): JSX.
         </div>
       </div>
 
-      {/* Incomplete Languages Details */}
+      {}
       {incompleteLanguages.length > 0 && (
         <div className="md:col-span-3">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -144,7 +144,7 @@ export function LocalizationStatus({ viewModel }: LocalizationStatusProps): JSX.
         </div>
       )}
 
-      {/* Supported Languages List */}
+      {}
       <div className="md:col-span-3">
         <div className="bg-gray-50 rounded-lg p-4">
           <h4 className="text-sm font-medium text-gray-700 mb-3">

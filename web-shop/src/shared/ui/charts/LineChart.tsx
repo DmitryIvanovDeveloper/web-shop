@@ -60,7 +60,7 @@ export const LineChart: React.FC<LineChartProps> = ({
     if (points.length === 0) return '';
     
     if (smooth) {
-      // Catmull-Rom spline for smooth curves
+      
       const path = [`M ${points[0].x} ${points[0].y}`];
       
       for (let i = 0; i < points.length - 1; i++) {
@@ -106,7 +106,7 @@ export const LineChart: React.FC<LineChartProps> = ({
         height={chartHeight}
         className="overflow-visible"
       >
-        {/* Grid */}
+        {}
         {showGrid && (
           <g>
             {gridLines.map((line, index) => (
@@ -130,7 +130,7 @@ export const LineChart: React.FC<LineChartProps> = ({
               </g>
             ))}
             
-            {/* X-axis labels */}
+            {}
             {data.map((d, i) => {
               const showLabel = i === 0 || i === data.length - 1 || i % Math.ceil(data.length / 6) === 0;
               if (!showLabel) return null;
@@ -150,7 +150,7 @@ export const LineChart: React.FC<LineChartProps> = ({
           </g>
         )}
 
-        {/* Area fill */}
+        {}
         {fill && areaPath && (
           <path
             d={areaPath}
@@ -159,7 +159,7 @@ export const LineChart: React.FC<LineChartProps> = ({
           />
         )}
 
-        {/* Line */}
+        {}
         <path
           d={linePath}
           fill="none"
@@ -169,7 +169,7 @@ export const LineChart: React.FC<LineChartProps> = ({
           strokeLinejoin="round"
         />
 
-        {/* Dots */}
+        {}
         {showDots && points.map((point, index) => (
           <g key={index}>
             <circle

@@ -39,7 +39,6 @@ export function TranslationEditor({
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
   const [changes, setChanges] = useState<Record<string, string>>({});
 
-  // Group translations by keys
   const groupedTranslations = useMemo(() => {
     const groups: Record<string, Record<string, TranslationResponse>> = {};
 
@@ -53,7 +52,6 @@ export function TranslationEditor({
     return groups;
   }, [translations]);
 
-  // Filter translations
   const filteredTranslationKeys = useMemo(() => {
     const keys = Object.keys(groupedTranslations);
 
@@ -95,7 +93,6 @@ export function TranslationEditor({
 
   return (
     <div className="space-y-6">
-      {/* Filters and Search */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
           <input
@@ -137,7 +134,6 @@ export function TranslationEditor({
         )}
       </div>
 
-      {/* Translation Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -154,7 +150,7 @@ export function TranslationEditor({
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {isLoading && translations.length === 0 && (
-              // Skeleton loading rows
+              
               Array.from({ length: 5 }).map((_, index) => (
                 <tr key={index}>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -217,7 +213,6 @@ export function TranslationEditor({
              </div>
       )}
 
-      {/* Statistics */}
       <div className="bg-gray-50 rounded-lg p-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                <div>

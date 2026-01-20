@@ -26,4 +26,3 @@ export interface SelectedElement {
   pageSlug?: string;
 }
 
-

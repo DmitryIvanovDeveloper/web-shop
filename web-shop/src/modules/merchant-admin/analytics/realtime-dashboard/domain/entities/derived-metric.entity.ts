@@ -7,7 +7,7 @@ export interface DerivedMetricProps {
   id: string;
   name: string;
   numeratorMetricId: string;
-  denominatorMetricId?: string; // Optional for ratio calculations
+  denominatorMetricId?: string; 
   operator: MetricOperator;
   format?: 'number' | 'currency' | 'percentage';
   decimals?: number;
@@ -31,7 +31,6 @@ export class DerivedMetric {
       return new Failure(new InvalidArgumentError('Numerator metric ID is required'));
     }
 
-    // Denominator is required for division, percentage operations
     if (['divide', 'percentage'].includes(props.operator) && !props.denominatorMetricId) {
       return new Failure(new InvalidArgumentError(`Denominator is required for ${props.operator} operation`));
     }
@@ -159,5 +158,4 @@ export class DerivedMetric {
     });
   }
 }
-
 

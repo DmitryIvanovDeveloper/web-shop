@@ -105,7 +105,7 @@ describe('GeographyPanel - Real Data Tests', () => {
         regions: [
           { country: 'US', percentage: 45.0 },
           { country: 'EU', percentage: 30.0 },
-          { country: 'Asia', percentage: 0.0 }, // Нулевой процент
+          { country: 'Asia', percentage: 0.0 },
           { country: 'LATAM', percentage: 25.0 },
         ]
       };

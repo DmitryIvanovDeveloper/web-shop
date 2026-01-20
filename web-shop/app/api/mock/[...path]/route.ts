@@ -13,28 +13,23 @@ export async function GET(
       return NextResponse.json({ error: 'No path provided' }, { status: 400 });
     }
 
-    // Reconstruct the API path
     const apiPath = `/${path.join('/')}`;
-    
-    // Remove .json extension if present
+
     const cleanApiPath = apiPath.replace(/\.json$/, '');
-    
-    // Map API paths to mock file paths
+
     const mockFilePath = mapApiPathToMockFile(cleanApiPath);
     
     if (!mockFilePath) {
       return NextResponse.json({ error: 'Mock file not found' }, { status: 404 });
     }
 
-    // Read the mock file
     const filePath = join(process.cwd(), 'public/mocks/api', mockFilePath);
     const fileContent = readFileSync(filePath, 'utf-8');
     const data = JSON.parse(fileContent);
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Error loading mock data:', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Failed to load mock data' }, 
       { status: 500 }
     );
@@ -42,7 +37,7 @@ export async function GET(
 }
 
 function mapApiPathToMockFile(apiPath: string): string | null {
-  // Map API endpoints to mock file paths
+  
   const mapping: Record<string, string> = {
     '/api/sales/summary': 'sales/summary.json',
     '/api/revenue/summary': 'revenue/summary.json',

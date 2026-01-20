@@ -23,7 +23,7 @@ export class CreatePatchNoteUseCase {
 
   async execute(input: CreatePatchNoteInput): Promise<Result<PatchNoteOutput, Error>> {
     try {
-      // Check if version already exists for this app
+      
       const existingPatchNote = await this._patchNoteRepository.findByVersion(
         Version.create(input.version.trim()),
         input.appId
@@ -33,7 +33,6 @@ export class CreatePatchNoteUseCase {
         return Failure.fail(new PatchNoteAlreadyExistsError(input.version));
       }
 
-      // Create domain objects
       const patchNoteId = PatchNoteId.create();
       const version = Version.create(input.version.trim());
 
@@ -41,7 +40,6 @@ export class CreatePatchNoteUseCase {
         ChangeItem.create(change.type, change.description)
       );
 
-      // Create patch note entity
       const patchNote = PatchNote.create(
         patchNoteId,
         input.appId,
@@ -51,7 +49,6 @@ export class CreatePatchNoteUseCase {
         changes
       );
 
-      // Save to repository
       const saveResult = await this._patchNoteRepository.save(patchNote);
       if (!saveResult.isSuccess) {
         return Failure.fail(saveResult.error);
@@ -61,12 +58,10 @@ export class CreatePatchNoteUseCase {
         return Failure.fail(new Error('Save operation failed: no data returned'));
       }
 
-      // Publish domain event
       await this._eventBus.publish(
         new PatchNoteCreatedEvent(patchNoteId.value, input.version, input.title, input.appId)
       );
 
-      // Return output
       return Success.ok(this.mapToOutput(saveResult.value));
 
     } catch (error) {

@@ -1,5 +1,5 @@
 export interface PaymentMethodItem {
-  method: string; // Card, PayPal, Carrier Billing
+  method: string; 
   revenue: number;
   transactions: number;
   percentage: number;

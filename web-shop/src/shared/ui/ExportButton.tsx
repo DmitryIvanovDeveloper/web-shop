@@ -24,16 +24,14 @@ export const ExportButton: React.FC<ExportButtonProps> = ({
   const exportToCSV = (data: any, filename: string) => {
     const rows: string[] = [];
 
-    // Extract headers
     if (Array.isArray(data) && data.length > 0) {
       const headers = Object.keys(data[0]);
       rows.push(headers.join(','));
 
-      // Extract rows
       data.forEach((item: any) => {
         const values = headers.map(header => {
           const value = item[header];
-          // Escape commas and quotes
+          
           if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
             return `"${value.replace(/"/g, '""')}"`;
           }
@@ -42,7 +40,7 @@ export const ExportButton: React.FC<ExportButtonProps> = ({
         rows.push(values.join(','));
       });
     } else if (typeof data === 'object') {
-      // Handle single object
+      
       const headers = Object.keys(data);
       rows.push(headers.join(','));
       rows.push(headers.map(h => data[h]).join(','));
@@ -76,14 +74,14 @@ export const ExportButton: React.FC<ExportButtonProps> = ({
   };
 
   const exportToPDF = async (data: any, filename: string) => {
-    // Simple PDF generation (would use a library like jsPDF in production)
+    
     const textContent = JSON.stringify(data, null, 2);
     const blob = new Blob([textContent], { type: 'text/plain' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     
     link.setAttribute('href', url);
-    link.setAttribute('download', `${filename}.txt`); // Simplified - use .pdf with proper library
+    link.setAttribute('download', `${filename}.txt`); 
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -106,8 +104,7 @@ export const ExportButton: React.FC<ExportButtonProps> = ({
           break;
       }
     } catch (error) {
-      console.error('Export failed:', error);
-      alert('Export failed. Please try again.');
+            alert('Export failed. Please try again.');
     } finally {
       setIsExporting(false);
     }
@@ -140,7 +137,6 @@ export const ExportButton: React.FC<ExportButtonProps> = ({
   );
 };
 
-// Multi-format export dropdown
 interface ExportDropdownProps {
   data: any;
   filename?: string;

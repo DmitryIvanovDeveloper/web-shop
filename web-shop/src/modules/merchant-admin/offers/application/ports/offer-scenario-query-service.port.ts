@@ -6,4 +6,3 @@ export interface OfferScenarioQueryServicePort {
   loadScenario(appId: string, slug: string): Promise<Result<OfferScenario, Error>>;
 }
 
-

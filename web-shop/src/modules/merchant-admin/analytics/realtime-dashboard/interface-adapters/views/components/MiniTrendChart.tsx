@@ -3,7 +3,6 @@
 import React, { useMemo } from 'react';
 import dynamic from 'next/dynamic';
 
-// Nivo (SSR off)
 const ResponsiveLine = dynamic(
   () => import('@nivo/line').then(m => m.ResponsiveLine),
   { ssr: false }
@@ -28,7 +27,6 @@ export function MiniTrendChart({
     setIsClient(true);
   }, []);
 
-  // Подготавливаем данные для Nivo (должно вызываться на каждом рендере до любых return)
   const nivoData = useMemo(() => ([{
     id: 'sales',
     color: strokeColor,
@@ -46,7 +44,6 @@ export function MiniTrendChart({
     );
   }
 
-  // Показываем fallback до загрузки графической библиотеки
   if (!isClient) {
     return (
       <div 

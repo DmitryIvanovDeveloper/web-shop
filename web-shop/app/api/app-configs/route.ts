@@ -20,14 +20,12 @@ export async function GET(request: NextRequest) {
       .order('updated_at', { ascending: false });
 
     if (error) {
-      console.error('[GET /api/app-configs] Supabase error:', error);
-      return NextResponse.json({ error: 'Failed to load app configs' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to load app configs' }, { status: 500 });
     }
 
     return NextResponse.json({ appConfigs: data ?? [] });
   } catch (error) {
-    console.error('[GET /api/app-configs] Unexpected error:', error);
-    return NextResponse.json({ error: 'Failed to load app configs' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to load app configs' }, { status: 500 });
   }
 }
 
@@ -50,10 +48,10 @@ export async function POST(request: NextRequest) {
       .from('app_configs')
       .insert({
         app_id: appId,
-        merchant_id: 'user', // Для не-админов
+        merchant_id: 'user', 
         config: config,
         version: 1,
-        is_active: false, // Сохраненные configs не активны по умолчанию
+        is_active: false, 
         is_draft: true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -62,14 +60,12 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('[POST /api/app-configs] Supabase error:', error);
-      return NextResponse.json({ error: 'Failed to save app config' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to save app config' }, { status: 500 });
     }
 
     return NextResponse.json({ appConfig: data });
   } catch (error) {
-    console.error('[POST /api/app-configs] Unexpected error:', error);
-    return NextResponse.json({ error: 'Failed to save app config' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to save app config' }, { status: 500 });
   }
 }
 
@@ -84,7 +80,6 @@ export async function PUT(request: NextRequest) {
 
     const supabase = getSupabaseServerClient();
 
-    // First get existing config to merge metadata if needed
     const { data: existing, error: fetchError } = await supabase
       .from('app_configs')
       .select('id')
@@ -92,8 +87,7 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (fetchError) {
-      console.error('[PUT /api/app-configs] Fetch error:', fetchError);
-      return NextResponse.json({ error: 'App config not found' }, { status: 404 });
+            return NextResponse.json({ error: 'App config not found' }, { status: 404 });
     }
 
     const updateData: any = {
@@ -101,7 +95,6 @@ export async function PUT(request: NextRequest) {
     };
 
     if (config !== undefined) updateData.config = config;
-    // Note: name field not supported in current schema
 
     const { data, error } = await supabase
       .from('app_configs')
@@ -111,14 +104,12 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('[PUT /api/app-configs] Supabase error:', error);
-      return NextResponse.json({ error: 'Failed to update app config' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to update app config' }, { status: 500 });
     }
 
     return NextResponse.json({ appConfig: data });
   } catch (error) {
-    console.error('[PUT /api/app-configs] Unexpected error:', error);
-    return NextResponse.json({ error: 'Failed to update app config' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to update app config' }, { status: 500 });
   }
 }
 
@@ -139,13 +130,11 @@ export async function DELETE(request: NextRequest) {
       .eq('id', id);
 
     if (error) {
-      console.error('[DELETE /api/app-configs] Supabase error:', error);
-      return NextResponse.json({ error: 'Failed to delete app config' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to delete app config' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[DELETE /api/app-configs] Unexpected error:', error);
-    return NextResponse.json({ error: 'Failed to delete app config' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to delete app config' }, { status: 500 });
   }
 }

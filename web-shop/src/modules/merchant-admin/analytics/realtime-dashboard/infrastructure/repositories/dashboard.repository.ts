@@ -23,12 +23,11 @@ export class DashboardRepository implements DashboardRepositoryPort {
   }
 
   public async findByUserId(userId: string): Promise<Dashboard | null> {
-    // For simplicity, using userId as id
+    
     return this.dashboards.get(`dashboard-${userId}`) || null;
   }
 
   public async save(dashboard: Dashboard): Promise<void> {
-    // Since Dashboard doesn't have id/userId, we can't store it
-    // This is a mock implementation
+
   }
 }

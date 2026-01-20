@@ -14,7 +14,6 @@ export abstract class DashboardDomainError extends Error {
     this.timestamp = new Date();
     this.context = context;
 
-    // Убеждаемся, что стек сохраняется
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor);
     }
@@ -94,41 +93,4 @@ export class TimeoutError extends DashboardDomainError {
     this.timeoutMs = timeoutMs;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

@@ -89,12 +89,7 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
 
   async save(dailyReward: DailyReward): Promise<Result<DailyReward, Error>> {
     try {
-      this.logger.info('[DailyRewardApiRepository] Saving daily reward', {
-        id: dailyReward.id.value,
-        appId: dailyReward.appId
-      });
-
-      const requestData: CreateDailyRewardRequest = {
+            const requestData: CreateDailyRewardRequest = {
         appId: dailyReward.appId,
         type: dailyReward.type.value,
         title: dailyReward.title,
@@ -109,11 +104,7 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
       );
 
       if (response.status !== 201 && response.status !== 200) {
-        this.logger.error('[DailyRewardApiRepository] Failed to save daily reward', {
-          status: response.status,
-          statusText: response.statusText
-        });
-        return Result.fail(new Error(`Failed to save daily reward: ${response.statusText}`));
+                return Result.fail(new Error(`Failed to save daily reward: ${response.statusText}`));
       }
 
       if (!response.data?.reward) {
@@ -125,36 +116,23 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
         return Result.fail(mappingResult.error!);
       }
 
-      this.logger.info('[DailyRewardApiRepository] Daily reward saved successfully', {
-        id: dailyReward.id.value
-      });
-
-      return Result.ok(mappingResult.value!);
+            return Result.ok(mappingResult.value!);
     } catch (error) {
-      this.logger.error('[DailyRewardApiRepository] Unexpected save error', { error });
-      return Result.fail(error instanceof Error ? error : new Error('Unknown save error'));
+            return Result.fail(error instanceof Error ? error : new Error('Unknown save error'));
     }
   }
 
   async findById(id: string): Promise<Result<DailyReward, Error>> {
     try {
-      this.logger.info('[DailyRewardApiRepository] Finding daily reward by ID', { id });
-
-      const response = await this.httpClient.get<DailyRewardApiResponse>(
+            const response = await this.httpClient.get<DailyRewardApiResponse>(
         `/api/merchant-admin/daily-rewards/${id}`
       );
 
       if (response.status !== 200) {
         if (response.status === 404) {
-          this.logger.info('[DailyRewardApiRepository] Daily reward not found', { id });
-          return Result.fail(new Error('Daily reward not found'));
+                    return Result.fail(new Error('Daily reward not found'));
         }
-        this.logger.error('[DailyRewardApiRepository] Failed to find daily reward', {
-          id,
-          status: response.status,
-          statusText: response.statusText
-        });
-        return Result.fail(new Error(`Failed to find daily reward: ${response.statusText}`));
+                return Result.fail(new Error(`Failed to find daily reward: ${response.statusText}`));
       }
 
       if (!response.data?.reward) {
@@ -166,19 +144,15 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
         return Result.fail(mappingResult.error!);
       }
 
-      this.logger.info('[DailyRewardApiRepository] Daily reward found', { id });
-      return Result.ok(mappingResult.value!);
+            return Result.ok(mappingResult.value!);
     } catch (error) {
-      this.logger.error('[DailyRewardApiRepository] Unexpected find error', { error, id });
-      return Result.fail(error instanceof Error ? error : new Error('Unknown find error'));
+            return Result.fail(error instanceof Error ? error : new Error('Unknown find error'));
     }
   }
 
   async findAll(input: GetDailyRewardsInput): Promise<Result<DailyReward[], Error>> {
     try {
-      this.logger.info('[DailyRewardApiRepository] Finding all daily rewards', input);
-
-      const params = new URLSearchParams({
+            const params = new URLSearchParams({
         appId: input.appId,
         ...(input.status && { status: input.status }),
         ...(input.limit && { limit: input.limit.toString() }),
@@ -191,47 +165,31 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
       const response = await this.httpClient.get<DailyRewardsApiResponse>(url);
 
       if (response.status !== 200) {
-        this.logger.error('[DailyRewardApiRepository] Failed to find daily rewards', {
-          input,
-          status: response.status,
-          statusText: response.statusText
-        });
-        return Result.fail(new Error(`Failed to find daily rewards: ${response.statusText}`));
+                return Result.fail(new Error(`Failed to find daily rewards: ${response.statusText}`));
       }
 
       if (!response.data?.rewards) {
-        this.logger.info('[DailyRewardApiRepository] No rewards found', input);
-        return Result.ok([]);
+                return Result.ok([]);
       }
 
       const rewards: DailyReward[] = [];
       for (const dto of response.data.rewards) {
         const mappingResult = mapDtoToDomain(dto);
         if (mappingResult.isFailure) {
-          this.logger.error('[DailyRewardApiRepository] Failed to map reward DTO', {
-            error: mappingResult.error!,
-            dto
-          });
-          continue;
+                    continue;
         }
         rewards.push(mappingResult.value!);
       }
 
       return Result.ok(rewards);
     } catch (error) {
-      this.logger.error('[DailyRewardApiRepository] Unexpected findAll error', { error, input });
-      return Result.fail(error instanceof Error ? error : new Error('Unknown findAll error'));
+            return Result.fail(error instanceof Error ? error : new Error('Unknown findAll error'));
     }
   }
 
   async update(dailyReward: DailyReward): Promise<Result<DailyReward, Error>> {
     try {
-      this.logger.info('[DailyRewardApiRepository] Updating daily reward', {
-        id: dailyReward.id.value,
-        appId: dailyReward.appId
-      });
-
-      const requestData: UpdateDailyRewardRequest = {
+            const requestData: UpdateDailyRewardRequest = {
         id: dailyReward.id.value,
         title: dailyReward.title,
         description: dailyReward.description,
@@ -246,12 +204,7 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
       );
 
       if (response.status !== 200) {
-        this.logger.error('[DailyRewardApiRepository] Failed to update daily reward', {
-          id: dailyReward.id.value,
-          status: response.status,
-          statusText: response.statusText
-        });
-        return Result.fail(new Error(`Failed to update daily reward: ${response.statusText}`));
+                return Result.fail(new Error(`Failed to update daily reward: ${response.statusText}`));
       }
 
       if (!response.data?.reward) {
@@ -263,67 +216,44 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
         return Result.fail(mappingResult.error!);
       }
 
-      this.logger.info('[DailyRewardApiRepository] Daily reward updated successfully', {
-        id: dailyReward.id.value
-      });
-
-      return Result.ok(mappingResult.value!);
+            return Result.ok(mappingResult.value!);
     } catch (error) {
-      this.logger.error('[DailyRewardApiRepository] Unexpected update error', { error });
-      return Result.fail(error instanceof Error ? error : new Error('Unknown update error'));
+            return Result.fail(error instanceof Error ? error : new Error('Unknown update error'));
     }
   }
 
   async delete(id: string): Promise<Result<void, Error>> {
     try {
-      this.logger.info('[DailyRewardApiRepository] Deleting daily reward', { id });
-
-      const response = await this.httpClient.delete(
+            const response = await this.httpClient.delete(
         `/api/merchant-admin/daily-rewards/${id}`
       );
 
       if (response.status !== 200 && response.status !== 204) {
         if (response.status === 404) {
-          this.logger.info('[DailyRewardApiRepository] Daily reward not found for deletion', { id });
-          return Result.fail(new Error('Daily reward not found'));
+                    return Result.fail(new Error('Daily reward not found'));
         }
-        this.logger.error('[DailyRewardApiRepository] Failed to delete daily reward', {
-          id,
-          status: response.status,
-          statusText: response.statusText
-        });
-        return Result.fail(new Error(`Failed to delete daily reward: ${response.statusText}`));
+                return Result.fail(new Error(`Failed to delete daily reward: ${response.statusText}`));
       }
 
-      this.logger.info('[DailyRewardApiRepository] Daily reward deleted successfully', { id });
-      return Result.ok(undefined);
+            return Result.ok(undefined);
     } catch (error) {
-      this.logger.error('[DailyRewardApiRepository] Unexpected delete error', { error, id });
-      return Result.fail(error instanceof Error ? error : new Error('Unknown delete error'));
+            return Result.fail(error instanceof Error ? error : new Error('Unknown delete error'));
     }
   }
 
   async findActiveReward(appId: string): Promise<Result<DailyReward | null, Error>> {
     try {
-      this.logger.info('[DailyRewardApiRepository] Finding active daily reward', { appId });
-
-      const response = await this.httpClient.get<DailyRewardsApiResponse>(
+            const response = await this.httpClient.get<DailyRewardsApiResponse>(
         `/api/merchant-admin/daily-rewards?appId=${encodeURIComponent(appId)}&status=active&limit=1`
       );
 
       if (response.status !== 200) {
-        this.logger.error('[DailyRewardApiRepository] Failed to find active daily reward', {
-          appId,
-          status: response.status,
-          statusText: response.statusText
-        });
-        return Result.fail(new Error(`Failed to find active daily reward: ${response.statusText}`));
+                return Result.fail(new Error(`Failed to find active daily reward: ${response.statusText}`));
       }
 
       const rewards = response.data?.rewards || [];
       if (rewards.length === 0) {
-        this.logger.info('[DailyRewardApiRepository] No active daily reward found', { appId });
-        return Result.ok(null);
+                return Result.ok(null);
       }
 
       const mappingResult = mapDtoToDomain(rewards[0]);
@@ -331,15 +261,9 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
         return Result.fail(mappingResult.error!);
       }
 
-      this.logger.info('[DailyRewardApiRepository] Active daily reward found', {
-        appId,
-        rewardId: mappingResult.value!.id.value
-      });
-
-      return Result.ok(mappingResult.value!);
+            return Result.ok(mappingResult.value!);
     } catch (error) {
-      this.logger.error('[DailyRewardApiRepository] Unexpected findActive error', { error, appId });
-      return Result.fail(error instanceof Error ? error : new Error('Unknown findActive error'));
+            return Result.fail(error instanceof Error ? error : new Error('Unknown findActive error'));
     }
   }
 }

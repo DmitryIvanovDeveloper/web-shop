@@ -2,7 +2,7 @@ import { Result } from '../../../../../shared/result/result';
 import type { Project, ProjectId, AppId, MerchantId } from '../../domain';
 
 export interface ProjectRepositoryPort {
-  // CRUD operations
+  
   findById(id: ProjectId): Promise<Result<Project, Error>>;
   findByAppId(appId: AppId): Promise<Result<Project, Error>>;
   findByMerchantId(merchantId: MerchantId): Promise<Result<Project[], Error>>;
@@ -15,7 +15,6 @@ export interface ProjectRepositoryPort {
   }>): Promise<Result<Project, Error>>;
   delete(id: ProjectId): Promise<Result<void, Error>>;
 
-  // Additional queries
   existsByAppId(appId: AppId): Promise<Result<boolean, Error>>;
   existsById(id: ProjectId): Promise<Result<boolean, Error>>;
 }

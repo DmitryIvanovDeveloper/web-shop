@@ -8,7 +8,6 @@ export class TranslationKey {
       throw new TranslationKeyValidationError('Translation key cannot be empty');
     }
 
-    // Validate dot-separated format (module.field.subfield)
     const keyRegex = /^[a-z][a-zA-Z0-9]*(\.[a-z][a-zA-Z0-9]*)*$/;
     if (!keyRegex.test(key)) {
       throw new TranslationKeyValidationError('Translation key must be dot-separated lowercase format');

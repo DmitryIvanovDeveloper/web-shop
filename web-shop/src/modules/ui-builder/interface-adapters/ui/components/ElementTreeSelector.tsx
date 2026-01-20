@@ -74,7 +74,7 @@ function ElementTree({ elements, selectedId, onSelect, onDelete, level = 0 }: El
                 style={{ paddingLeft: `${level * 10}px` }}
               >
                 {element.type === 'Button' ? (
-                  // Для кнопок показываем красивый UI элемент
+                  
                   <div className="flex items-center gap-2">
                     <div
                       className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-medium border transition-colors ${
@@ -94,7 +94,7 @@ function ElementTree({ elements, selectedId, onSelect, onDelete, level = 0 }: El
                     </div>
                   </div>
                 ) : (
-                  // Для других элементов показываем как раньше
+                  
                   <div className="flex items-center gap-1.5">
                     <span className={`text-[10px] uppercase font-semibold ${isSelected ? 'text-blue-100' : 'text-gray-500'}`}>
                       {element.type}
@@ -137,7 +137,7 @@ function ElementTree({ elements, selectedId, onSelect, onDelete, level = 0 }: El
 }
 
 export function ElementTreeSelector({ elements, selectedId, onSelect, onDelete }: ElementTreeSelectorProps): JSX.Element {
-  // Показываем дочерние элементы контейнера, если контейнер есть
+  
   const visibleElements = elements.length > 0 && elements[0].children ? elements[0].children : [];
 
   return (

@@ -24,8 +24,7 @@ export function ProductsPage({ appId }: ProductsPageProps): JSX.Element {
     });
 
     presenter.init(appId).catch((error) => {
-      console.error('[ProductsPage] Failed to initialize presenter', error);
-    });
+          });
 
     return unsubscribe;
   }, [presenter, appId]);

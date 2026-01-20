@@ -24,7 +24,7 @@ export class DailyReward {
     points: number,
     dayNumber: number | null = null
   ): DailyReward {
-    // Business rules validation
+    
     if (!title || title.trim().length === 0) {
       throw new Error('Reward title cannot be empty');
     }

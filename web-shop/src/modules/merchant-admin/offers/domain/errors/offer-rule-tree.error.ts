@@ -19,4 +19,3 @@ export class OfferRuleTreeValidationError extends OfferRuleTreeError {
   }
 }
 
-

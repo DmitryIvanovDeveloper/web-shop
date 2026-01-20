@@ -2,7 +2,7 @@ import React from 'react';
 import { StackedAreaChart, StackedPoint } from '../../../../../../shared/ui/charts/StackedAreaChart';
 
 interface MarketingChannelsStackedPanelProps {
-  data: StackedPoint[]; // segmented revenue by channels over time
+  data: StackedPoint[]; 
 }
 
 export const MarketingChannelsStackedPanel: React.FC<MarketingChannelsStackedPanelProps> = ({ data }) => {
@@ -21,6 +21,4 @@ export const MarketingChannelsStackedPanel: React.FC<MarketingChannelsStackedPan
     </div>
   );
 };
-
-
 

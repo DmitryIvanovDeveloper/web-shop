@@ -12,14 +12,12 @@ export async function GET(request: NextRequest) {
       .order('language_code', { ascending: true });
 
     if (error) {
-      console.error('[API] Failed to get all translations:', error);
-      return NextResponse.json(
+            return NextResponse.json(
         { error: error.message },
         { status: 500 }
       );
     }
 
-    // Map to API response format
     const apiTranslations = (translations || []).map((translation: any) => ({
       key: translation.key,
       languageCode: translation.language_code,
@@ -31,8 +29,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(apiTranslations);
   } catch (error) {
-    console.error('[API] Unexpected error getting all translations:', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );

@@ -22,13 +22,10 @@ import { bindDailyRewards } from '@/modules/merchant-admin/daily-rewards/infrast
 import { bindLocalization } from '../../modules/localization/infrastructure/bootstrap/bind.localization';
 import { bindRealtimeDashboard } from '../../modules/merchant-admin/analytics/realtime-dashboard/infrastructure/bootstrap/realtime-dashboard.container';
 
-// Create Inversify container
 const container = new Container();
 
-// Register core services
 container.bind<Logger>(TYPES.Logger).to(ConsoleLogger);
 
-// Register HTTP client based on mode
 const mode = resolveHttpClientMode();
 if (mode === HttpClientMode.Mock) {
   container.bind<HttpClient>(TYPES.HttpClient).to(HttpClientMock).inSingletonScope();
@@ -40,7 +37,6 @@ container.bind<EventBus>(TYPES.EventBus).to(InMemoryEventBus).inSingletonScope()
 container.bind<RealtimeClientPort>(TYPES.RealtimeClient).to(MockRealtimeClient).inSingletonScope();
 container.bind<DatabaseClientPort>(TYPES.DatabaseClient).to(SupabaseClient).inSingletonScope();
 
-// Register UI Builder module
 bindUIBuilder(container);
 bindMerchantAdminOffers(container);
 bindMerchantAdminProducts(container);
@@ -51,7 +47,6 @@ bindLocalization(container);
 bindRealtimeDashboard(container);
 bindMerchantAdminPromoCodes(container);
 
-// Register Project Selected Event Handler
 import { ProjectSelectedHandler } from '../handlers/project-selected.handler';
 import { IAsyncEventHandler } from '../events/events-handler.plugin';
 import { ProjectSelectedEvent } from '../../modules/merchant-admin/projects/domain';

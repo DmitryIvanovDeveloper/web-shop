@@ -27,11 +27,10 @@ export class PatchNote {
     description: string,
     changes: ChangeItem[]
   ): PatchNote {
-    // Allow empty strings but not null/undefined
+    
     const finalTitle = title || 'Untitled';
     const finalDescription = description || '';
 
-    // Allow empty changes array for existing data
     const finalChanges = changes || [];
 
     const now = new Date();
@@ -86,7 +85,7 @@ export class PatchNote {
       updates.changes ?? this.changes,
       this.status,
       this.createdAt,
-      new Date(), // updatedAt
+      new Date(), 
       this.publishedAt,
       this.scheduledFor
     );

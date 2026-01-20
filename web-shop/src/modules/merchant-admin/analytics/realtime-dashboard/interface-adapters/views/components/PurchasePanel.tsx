@@ -79,7 +79,7 @@ export function PurchasePanel({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Purchases */}
+        {}
         <KPICard
           title="Total Purchases"
           value={MetricFormatter.formatNumber(purchaseSummary.totalPurchases)}
@@ -89,7 +89,7 @@ export function PurchasePanel({
           className="border-l-4 border-l-blue-500"
         />
 
-        {/* Unique Customers */}
+        {}
         <KPICard
           title="Unique Customers"
           value={MetricFormatter.formatNumber(purchaseSummary.uniqueCustomers)}
@@ -98,7 +98,7 @@ export function PurchasePanel({
           className="border-l-4 border-l-green-500"
         />
 
-        {/* Average Purchase Value */}
+        {}
         <KPICard
           title="Avg Purchase Value"
           value={MetricFormatter.formatCurrency(purchaseSummary.averagePurchaseValue)}
@@ -107,7 +107,7 @@ export function PurchasePanel({
           className="border-l-4 border-l-purple-500"
         />
 
-        {/* Customer Lifetime Value */}
+        {}
         <KPICard
           title="Customer LTV"
           value={MetricFormatter.formatCurrency(customerLifetimeValue)}
@@ -117,7 +117,7 @@ export function PurchasePanel({
         />
       </div>
 
-      {/* Purchase Trend Chart */}
+      {}
       {purchaseSummary.trend && purchaseSummary.trend.length > 0 && (
         <div className="mt-6 pt-6 border-t border-gray-200">
           <div className="flex items-center justify-between mb-4">

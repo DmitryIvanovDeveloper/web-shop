@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GeographyRepository } from '../geography.repository';
 import { GeographySummary } from '../../../domain/entities/geography-summary.entity';
 
-// Реальные JSON данные (копия из public/mocks/api/geography/summary.json)
 const geographyData = {
   "regions": [
     { "country": "US", "percentage": 45.0 },
@@ -25,7 +24,6 @@ describe('GeographyRepository - Real Data Tests', () => {
   let mockHttpClient: any;
 
   beforeEach(() => {
-    // Создаем мок HttpClient, который возвращает реальные JSON данные
     mockHttpClient = {
       get: vi.fn(),
       post: vi.fn(),
@@ -38,7 +36,6 @@ describe('GeographyRepository - Real Data Tests', () => {
 
   describe('Data Flow Tests with Real JSON Data', () => {
     it('should fetch and process real geography data', async () => {
-      // Настраиваем мок для возврата реальных данных
       mockHttpClient.get
         .mockResolvedValueOnce({
           status: 200,
@@ -48,10 +45,8 @@ describe('GeographyRepository - Real Data Tests', () => {
 
       const result = await geographyRepository.getGeographySummary();
 
-      // Проверяем, что API был вызван с правильным URL
       expect(mockHttpClient.get).toHaveBeenCalledWith('/api/geography/summary');
 
-      // Проверяем, что результат соответствует реальным данным
       expect(result).toBeInstanceOf(GeographySummary);
       expect(result.regions).toHaveLength(5);
       expect(result.regions[0].country).toBe('US');
@@ -69,7 +64,6 @@ describe('GeographyRepository - Real Data Tests', () => {
 
       const result = await geographyRepository.getGeographySummary();
 
-      // Проверяем структуру данных
       result.regions.forEach(region => {
         expect(region).toHaveProperty('country');
         expect(region).toHaveProperty('percentage');
@@ -77,7 +71,6 @@ describe('GeographyRepository - Real Data Tests', () => {
         expect(typeof region.percentage).toBe('number');
       });
 
-      // Проверяем конкретные значения из JSON
       expect(result.regions).toEqual(geographyData.regions);
     });
 
@@ -90,7 +83,6 @@ describe('GeographyRepository - Real Data Tests', () => {
 
       const result = await geographyRepository.getGeographySummary();
 
-      // Проверяем, что данные точно соответствуют JSON
       const expectedRegions = [
         { country: 'US', percentage: 45.0 },
         { country: 'EU', percentage: 30.0 },
@@ -113,7 +105,6 @@ describe('GeographyRepository - Real Data Tests', () => {
 
       const result = await geographyRepository.getGeographySummary();
 
-      // Проверяем математику с реальными данными
       const totalPercentage = result.regions.reduce(
         (sum, region) => sum + region.percentage, 
         0
@@ -175,7 +166,7 @@ describe('GeographyRepository - Real Data Tests', () => {
     it('should handle malformed response data', async () => {
       const malformedData = {
         countries: [ // Неправильное поле
-          { name: 'US', percent: 45 } // Неправильные поля
+          { name: 'US', percent: 45 }
         ]
       };
 

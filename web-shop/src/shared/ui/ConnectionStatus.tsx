@@ -82,7 +82,7 @@ export function useConnectionStatus() {
 
   const retry = useCallback(() => {
     setStatus('connecting');
-    // Trigger reconnection logic here
+    
   }, []);
 
   return { status, lastConnected, retryCount, updateStatus, retry };

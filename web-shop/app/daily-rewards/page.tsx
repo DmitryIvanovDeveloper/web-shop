@@ -1,7 +1,7 @@
 import { DailyRewardsCardsGrid, DailyRewardCard } from '../../src/modules/daily-rewards/interface-adapters/ui';
 
 export default function DailyRewardsPage() {
-  // Demo data for daily rewards
+  
   const demoRewards = [
     { day: 1, multiplier: 1 },
     { day: 2, multiplier: 2 },
@@ -23,10 +23,10 @@ export default function DailyRewardsPage() {
           Collect daily rewards to enhance your gaming experience!
         </p>
 
-        {/* Grid of reward cards */}
+        {}
         <DailyRewardsCardsGrid rewards={demoRewards} />
 
-        {/* Individual card examples */}
+        {}
         <div style={{ marginTop: '40px' }}>
           <h2 style={{ fontSize: '24px', fontWeight: 600, textAlign: 'center', marginBottom: '20px' }}>
             Individual Cards

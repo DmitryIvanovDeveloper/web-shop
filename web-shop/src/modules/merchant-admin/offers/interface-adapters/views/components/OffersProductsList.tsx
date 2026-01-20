@@ -66,7 +66,7 @@ export function OffersProductsList({ viewModel, presenter }: OffersProductsListP
               presenter
                 .updateScenarioProducts(viewModel.selectedScenario.slug, triggerCode, Array.from(updated))
                 .catch(() => {
-                  // Presenter already logs failure via LoggerPort
+                  
                 });
             }}
             onDiscountChange={(value) => {
@@ -77,7 +77,7 @@ export function OffersProductsList({ viewModel, presenter }: OffersProductsListP
               presenter
                 .updateProductDiscount(viewModel.selectedScenario.slug, triggerCode, product.id, value)
                 .catch(() => {
-                  // Presenter already logs failure via LoggerPort
+                  
                 });
             }}
           />
@@ -86,5 +86,4 @@ export function OffersProductsList({ viewModel, presenter }: OffersProductsListP
     </div>
   );
 }
-
 

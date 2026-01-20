@@ -10,13 +10,12 @@ export interface ResetSettingsInput {
 @injectable()
 export class ResetSettingsUseCase {
   execute(input: ResetSettingsInput): Result<DashboardSettings, Error> {
-    // Clear settings from local storage
+    
     if (typeof window !== 'undefined') {
       const key = `dashboard-settings-${input.userId}`;
       localStorage.removeItem(key);
     }
 
-    // Return default settings
     return new Success(DashboardSettings.createDefault());
   }
 }

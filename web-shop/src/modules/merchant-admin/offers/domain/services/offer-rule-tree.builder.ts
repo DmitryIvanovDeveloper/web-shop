@@ -158,12 +158,9 @@ const buildConditionForScenario = (scenario: OfferScenario): Condition => {
   return factory();
 };
 
-// OPTIMIZED: Use compact structure to avoid huge JSON size (352MB -> few KB)
-// Instead of deep recursion with nextOperation/elseOperation chains,
-// we use a simpler structure: first scenario's condition -> action, with fallback
 const buildOperationChain = (scenarios: readonly OfferScenario[]): OfferRuleSet => {
   if (scenarios.length === 0) {
-    // Return a no-op action as fallback
+    
     return {
       operationType: 'action',
       action: {
@@ -173,13 +170,9 @@ const buildOperationChain = (scenarios: readonly OfferScenario[]): OfferRuleSet 
     };
   }
 
-  // Sort by priority (highest first)
   const sortedScenarios = [...scenarios].sort((a, b) => b.priority - a.priority);
   const firstScenario = sortedScenarios[0];
 
-  // Build a simple structure: if first condition matches -> show offer, else -> try next
-  // This is much more compact than deep recursion with all scenarios
-  // The engine can evaluate scenarios sequentially by priority from the scenarios array
   const actionOperation: OfferRuleSet = {
     operationType: 'action',
     action: {
@@ -195,8 +188,7 @@ const buildOperationChain = (scenarios: readonly OfferScenario[]): OfferRuleSet 
     operationType: 'condition',
     condition: buildConditionForScenario(firstScenario),
     nextOperation: actionOperation,
-    // Note: elseOperation is omitted - engine should evaluate next scenario from scenarios array
-    // This reduces JSON size dramatically while maintaining evaluation logic
+
   };
 };
 
@@ -213,7 +205,6 @@ export const buildOfferRuleTree = (input: BuildOfferRuleTreeInput): OfferRuleTre
     throw new OfferRuleTreeBuildError('At least one scenario is required to build OfferRuleTree.');
   }
 
-  // Expand scenarios with conditions: each condition becomes a separate scenario entry
   const expandedScenarios: Array<{
     slug: string;
     title: string;
@@ -226,8 +217,7 @@ export const buildOfferRuleTree = (input: BuildOfferRuleTreeInput): OfferRuleTre
 
   for (const scenario of input.scenarios) {
     const configProps = scenario.configuration.toProps();
-    
-    // If scenario has conditions array, create separate scenario for each condition
+
     if (configProps.conditions && configProps.conditions.length > 0) {
       for (const condition of configProps.conditions) {
         expandedScenarios.push({
@@ -248,7 +238,7 @@ export const buildOfferRuleTree = (input: BuildOfferRuleTreeInput): OfferRuleTre
         });
       }
     } else {
-      // Backward compatibility: use single offerIds if no conditions
+      
       expandedScenarios.push({
         slug: scenario.slug,
         title: scenario.title,
@@ -268,19 +258,16 @@ export const buildOfferRuleTree = (input: BuildOfferRuleTreeInput): OfferRuleTre
     }
   }
 
-  // Sort by priority (highest first)
   const sortedExpandedScenarios = [...expandedScenarios].sort((a, b) => b.priority - a.priority);
 
-  // Build rule set from expanded scenarios
-  // Create temporary OfferScenario-like structures for buildOperationChain
   const tempScenariosForRuleSet = sortedExpandedScenarios.map((expanded) => {
-    // Find original scenario to get full structure
+    
     const originalScenario = input.scenarios.find((s) => 
       s.slug === expanded.slug || expanded.slug.startsWith(s.slug)
     );
     
     if (originalScenario) {
-      // Create a modified scenario with the condition's triggerCode
+      
       return {
         ...originalScenario,
         slug: expanded.slug,
@@ -291,8 +278,7 @@ export const buildOfferRuleTree = (input: BuildOfferRuleTreeInput): OfferRuleTre
         } as any,
       } as OfferScenario;
     }
-    
-    // Fallback: create minimal structure
+
     return {
       slug: expanded.slug,
       trigger: { code: expanded.triggerCode } as any,
@@ -394,7 +380,4 @@ export const buildOfferRuleTreeFromCatalog = (
     scenarios,
   });
 };
-
-
-
 

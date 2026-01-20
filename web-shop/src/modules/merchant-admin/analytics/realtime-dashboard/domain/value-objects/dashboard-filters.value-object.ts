@@ -26,12 +26,11 @@ export class DashboardFilters {
     platform: PlatformType = 'All',
     currency: string = 'USD'
   ): DashboardFilters {
-    // Валидация валюты (3 символа)
+    
     if (currency.length !== 3) {
       throw new Error('Currency must be 3 characters (e.g., USD, EUR)');
     }
 
-    // Валидация регионов (не пустой массив, если указан)
     if (regions.length > 0) {
       for (const region of regions) {
         if (!region || region.trim().length === 0) {
@@ -97,15 +96,4 @@ export class DashboardFilters {
     };
   }
 }
-
-
-
-
-
-
-
-
-
-
-
 

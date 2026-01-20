@@ -67,7 +67,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const anyOverlayOpen = showFilters || showSettings || showMetricSelector || showMetricsCatalog;
   const lastFocusedRef = React.useRef<HTMLElement | null>(null);
 
-  // Body scroll lock + Esc to close + focus restore
   React.useEffect(() => {
     if (anyOverlayOpen) {
       lastFocusedRef.current = (document.activeElement as HTMLElement) || null;
@@ -85,7 +84,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       return () => {
         document.body.style.overflow = prevOverflow;
         window.removeEventListener('keydown', onKeyDown);
-        // restore focus
+        
         if (lastFocusedRef.current) {
           lastFocusedRef.current.focus();
           lastFocusedRef.current = null;
@@ -94,7 +93,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     }
   }, [anyOverlayOpen]);
 
-  // Available metrics for selection
   const availableMetrics: MetricOption[] = [
     { id: 'sales', label: 'Total Sales', category: 'Sales', color: '#3b82f6', description: 'Number of transactions' },
     { id: 'revenue', label: 'Revenue', category: 'Finance', color: '#10b981', description: 'Total revenue' },
@@ -103,7 +101,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     { id: 'geography', label: 'Top Regions', category: 'Geography', color: '#06b6d4', description: 'Regional breakdown' },
   ];
 
-  // Handle panel click for drill-down
   const handlePanelClick = (panelType: 'sales' | 'revenue' | 'geography' | 'conversion') => {
     const data = {
       sales: viewModel.dashboard?.salesSummary,
@@ -116,7 +113,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     setIsDrillDownOpen(true);
   };
 
-  // Update connection status based on realtime state
   React.useEffect(() => {
     if (viewModel.realtimeConnected) {
       updateStatus('connected');
@@ -154,7 +150,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Connection Status */}
+      {}
       <ConnectionStatus 
         status={status}
         lastConnected={lastConnected}
@@ -166,13 +162,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-[240px]">
             <h1 className="text-3xl font-bold mb-1">📊 {labels.title}</h1>
-            <p className="text-gray-600 text-sm">
-              Realtime analytics dashboard с мониторингом метрик в реальном времени.
-            </p>
-          </div>
-          {/* Toolbar */}
-          <div role="toolbar" aria-label="Dashboard Actions" className="flex flex-wrap items-center justify-end gap-2">
-            {/* Primary group */}
+            <p className="text-gray-600 text-sm""toolbar" aria-label="Dashboard Actions" className="flex flex-wrap items-center justify-end gap-2">
+            {}
             <div className="flex items-center gap-2 bg-white/70 border border-gray-200 rounded-xl p-1 shadow-sm">
               <button
                 onClick={() => setShowMetricSelector(true)}
@@ -202,7 +193,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span className="hidden sm:inline">Settings</span>
               </button>
             </div>
-            {/* Secondary group */}
+            {}
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowMetricsCatalog(true)}
@@ -228,7 +219,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* Metric Selector Modal (Portal) */}
+      {}
       {showMetricSelector && (
         <Portal>
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -257,7 +248,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </Portal>
       )}
 
-      {/* Filter Panel Modal (Portal) */}
+      {}
       {showFilters && onApplyFilters && onResetFilters && onLoadFilterPreset && onSaveFilterPreset && (
         <Portal>
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -280,7 +271,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </Portal>
       )}
 
-      {/* Settings Panel Modal (Portal) */}
+      {}
       {showSettings && (
         <Portal>
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -299,7 +290,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </Portal>
       )}
 
-      {/* Metrics Catalog Drawer (Portal) */}
+      {}
       {showMetricsCatalog && (
         <Portal>
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -384,7 +375,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         )}
       </div>
 
-      {/* Advanced Metrics Overview */}
+      {}
       <MetricsOverviewPanel
         ltv={285}
         arppu={95}
@@ -394,9 +385,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         currency={viewModel.dashboard.salesSummary?.currency || 'USD'}
       />
 
-      {/* Advanced analytics panels */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {/* Retention curves from retention summary */}
+        {}
         {viewModel.dashboard.retentionSummary && (
           <ErrorBoundary>
             <RetentionPanel
@@ -410,7 +401,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </ErrorBoundary>
         )}
 
-        {/* Payment methods split from dedicated summary */}
+        {}
         {viewModel.dashboard.paymentMethodsSummary && (
           <ErrorBoundary>
             <PaymentMethodsPanel
@@ -423,7 +414,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </ErrorBoundary>
         )}
 
-        {/* Cohorts by acquisition channel */}
+        {}
         {viewModel.dashboard.cohortSummary && (
           <ErrorBoundary>
             <CohortsPanel cohorts={viewModel.dashboard.cohortSummary.cohorts || []} />
@@ -431,7 +422,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         )}
       </div>
 
-      {/* Marketing Channels Stacked Area */}
+      {}
       {viewModel.dashboard.marketingChannelsSummary && (
         <div className="mt-6">
           <ErrorBoundary>
@@ -440,38 +431,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       )}
 
-      {/* Realtime Status & Controls */}
+      {}
       <div className={`mt-6 p-4 rounded-lg border ${
         viewModel.realtimeConnected 
           ? 'bg-green-50 border-green-200' 
           : 'bg-gray-50 border-gray-200'
       }`}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`w-3 h-3 rounded-full ${
-              viewModel.realtimeConnected 
-                ? 'bg-green-500 animate-pulse' 
-                : 'bg-gray-400'
-            }`}></div>
-            <span className={`text-sm font-medium ${
-              viewModel.realtimeConnected 
-                ? 'text-green-700' 
-                : 'text-gray-600'
-            }`}>
-              {viewModel.realtimeConnected 
-                ? viewModel.realtimePaused 
-                  ? 'Realtime приостановлен' 
-                  : 'Realtime активен'
-                : 'Realtime отключен'
-              }
-            </span>
-          </div>
-        </div>
-      </div>
-
-
-      {/* Detail tables */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex items-center gap-3""grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl p-4 border border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Recent Transactions</h3>
           <TransactionsTable rows={(viewModel.dashboard.transactionsSummary?.transactions || []).slice(0, 10).map(t => ({
@@ -499,12 +466,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* Drill-Down Modal */}
+      {}
       <DrillDownModal
         isOpen={isDrillDownOpen}
         onClose={() => setIsDrillDownOpen(false)}
         title={drillDownData?.type ? `${drillDownData.type.charAt(0).toUpperCase() + drillDownData.type.slice(1)} Details` : 'Details'}
-        subtitle="Подробная информация с интерактивной таблицей"
+        subtitle=""
         size="large"
       >
         {drillDownData && <DrillDownContent data={drillDownData} />}
@@ -514,7 +481,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   );
 };
 
-// DrillDown Content Component
 function DrillDownContent({ data }: { data: any }) {
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | undefined>();
 

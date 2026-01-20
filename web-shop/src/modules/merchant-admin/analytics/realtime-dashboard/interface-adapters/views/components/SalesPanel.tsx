@@ -31,12 +31,11 @@ export function SalesPanel({ presenter }: SalesPanelProps) {
       });
     };
     void loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [presenter]);
 
   const trendData = state?.data?.trend ?? [];
-  
-  // Calculate growth rate from trend data
+
   const calculateGrowthRate = (trend: TrendDataPoint[]): number => {
     if (trend.length < 2) return 0;
     const firstValue = trend[0]?.value || 0;
@@ -56,7 +55,7 @@ export function SalesPanel({ presenter }: SalesPanelProps) {
 
   return (
     <div className="sales-panel">
-      {/* Top row: Total Sales and Transactions (2 колонки как в референсе) */}
+      {}
       <div className="sales-panel-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: '24px' }}>
         <MetricCard
           title="Sales"
@@ -76,7 +75,7 @@ export function SalesPanel({ presenter }: SalesPanelProps) {
         />
       </div>
 
-      {/* ARPU row (отдельная строка как в референсе) */}
+      {}
       <div style={{ marginTop: 24 }}>
         <MetricCard
           title="ARPU"
@@ -87,7 +86,7 @@ export function SalesPanel({ presenter }: SalesPanelProps) {
         />
       </div>
 
-      {/* Sales Trend full width */}
+      {}
       <div style={{ marginTop: 24 }}>
         <MiniTrendChart
           data={trendData.map((p: TrendDataPoint) => ({ 
@@ -99,6 +98,4 @@ export function SalesPanel({ presenter }: SalesPanelProps) {
     </div>
   );
 }
-
-
 

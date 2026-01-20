@@ -1,6 +1,4 @@
-/**
- * Offer Card Template Styles
- */
+
 export interface OfferCardStyles {
   container?: {
     backgroundColor?: string;
@@ -69,7 +67,7 @@ export interface OfferCardStyles {
     padding?: string;
     minHeight?: string;
     maxHeight?: string;
-    // preview flag (persisted)
+    
     enabled?: boolean;
   };
   purchasedBadge?: {
@@ -78,7 +76,7 @@ export interface OfferCardStyles {
     padding?: string;
     borderRadius?: string;
     minHeight?: string;
-    // preview flag (persisted)
+    
     enabled?: boolean;
   };
   bonuses?: {
@@ -93,9 +91,6 @@ export interface OfferCardMedia {
   mainImageAlt?: string;
 }
 
-/**
- * Offer Card Template
- */
 export interface OfferCardTemplate {
   id: string;
   name: string;
@@ -103,9 +98,6 @@ export interface OfferCardTemplate {
   media?: OfferCardMedia;
 }
 
-/**
- * Application Config structure
- */
 export interface AppConfigStructure {
   theme?: unknown;
   shared?: unknown;

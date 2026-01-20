@@ -4,7 +4,7 @@ import { BarChart, BarChartDataPoint } from '../../../../../../shared/ui/charts/
 export interface PaymentMethodItem { name: string; value: number; color?: string; }
 
 interface PaymentMethodsPanelProps {
-  items: PaymentMethodItem[]; // Card/PayPal/Carrier Billing
+  items: PaymentMethodItem[]; 
 }
 
 export const PaymentMethodsPanel: React.FC<PaymentMethodsPanelProps> = ({ items }) => {
@@ -28,7 +28,4 @@ export const PaymentMethodsPanel: React.FC<PaymentMethodsPanelProps> = ({ items 
     </div>
   );
 };
-
-
-
 

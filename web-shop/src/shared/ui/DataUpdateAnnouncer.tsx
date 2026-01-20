@@ -16,4 +16,3 @@ export const DataUpdateAnnouncer: React.FC<DataUpdateAnnouncerProps> = ({ lastUp
 
 export default DataUpdateAnnouncer;
 
-

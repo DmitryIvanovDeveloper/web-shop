@@ -40,4 +40,3 @@ export const TableSkeleton: React.FC = () => (
 
 export default PanelSkeleton;
 
-

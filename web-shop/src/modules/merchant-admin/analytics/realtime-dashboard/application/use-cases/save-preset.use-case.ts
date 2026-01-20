@@ -20,11 +20,11 @@ export class SavePresetUseCase {
   ) {}
 
   private generateId(): string {
-    // Use crypto.randomUUID() in browser, fallback for Node.js
+    
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
       return crypto.randomUUID();
     }
-    // Fallback: generate UUID v4 manually
+    
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
       const r = (Math.random() * 16) | 0;
       const v = c === 'x' ? r : (r & 0x3) | 0x8;

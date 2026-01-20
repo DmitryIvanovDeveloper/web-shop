@@ -67,24 +67,3 @@ export function ThemeEditor({ colors, onChange }: ThemeEditorProps): JSX.Element
   );
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

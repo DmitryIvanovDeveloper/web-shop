@@ -8,13 +8,12 @@ import { GetPatchNotesUseCase } from '../../application/use-cases/get-patch-note
 import { PatchNotesAdminPresenter } from '../../interface-adapters/presenters/patch-notes-admin.presenter';
 
 export function bindMerchantAdminPatchNotes(container: Container): void {
-  // Repositories
+  
   container
     .bind(MERCHANT_ADMIN_PATCH_NOTES_TYPES.PatchNoteRepository)
     .to(SupabasePatchNoteRepository)
     .inSingletonScope();
 
-  // Use Cases
   container
     .bind(MERCHANT_ADMIN_PATCH_NOTES_TYPES.CreatePatchNoteUseCase)
     .to(CreatePatchNoteUseCase)
@@ -35,7 +34,6 @@ export function bindMerchantAdminPatchNotes(container: Container): void {
     .to(GetPatchNotesUseCase)
     .inSingletonScope();
 
-  // Presenters
   container
     .bind(MERCHANT_ADMIN_PATCH_NOTES_TYPES.PatchNotesAdminPresenter)
     .to(PatchNotesAdminPresenter)

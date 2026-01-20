@@ -17,7 +17,6 @@ export async function POST(request: NextRequest) {
     let updatedCount = 0;
     let createdCount = 0;
 
-    // Process each update
     for (const update of updates) {
       const { key, languageCode, value } = update;
 
@@ -28,7 +27,6 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Check if translation exists
       const { data: existing, error: checkError } = await supabase
         .from('translations')
         .select('id')
@@ -36,16 +34,15 @@ export async function POST(request: NextRequest) {
         .eq('language_code', languageCode)
         .single();
 
-      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = not found
-        console.error('[API] Failed to check existing translation:', checkError);
-        return NextResponse.json(
+      if (checkError && checkError.code !== 'PGRST116') { 
+                return NextResponse.json(
           { error: checkError.message },
           { status: 500 }
         );
       }
 
       if (existing) {
-        // Update existing
+        
         const { error: updateError } = await supabase
           .from('translations')
           .update({
@@ -57,15 +54,14 @@ export async function POST(request: NextRequest) {
           .eq('language_code', languageCode);
 
         if (updateError) {
-          console.error('[API] Failed to update translation:', updateError);
-          return NextResponse.json(
+                    return NextResponse.json(
             { error: updateError.message },
             { status: 500 }
           );
         }
         updatedCount++;
       } else {
-        // Create new
+        
         const { error: insertError } = await supabase
           .from('translations')
           .insert({
@@ -78,8 +74,7 @@ export async function POST(request: NextRequest) {
           });
 
         if (insertError) {
-          console.error('[API] Failed to create translation:', insertError);
-          return NextResponse.json(
+                    return NextResponse.json(
             { error: insertError.message },
             { status: 500 }
           );
@@ -94,8 +89,7 @@ export async function POST(request: NextRequest) {
       createdCount
     });
   } catch (error) {
-    console.error('[API] Unexpected error in bulk update:', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );

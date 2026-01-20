@@ -13,9 +13,8 @@ export interface DashboardPageProps {
   className?: string;
 }
 
-
 export function DashboardPage({ className = '' }: DashboardPageProps) {
-  // Получаем Presenter из DI контейнера один раз
+  
   const presenter = useMemo(
     () => appContainer.get<DashboardPresenter>(TYPES.DashboardPresenter),
     []
@@ -24,7 +23,6 @@ export function DashboardPage({ className = '' }: DashboardPageProps) {
   const [selectedPeriod] = React.useState<PeriodPreset>('last7days');
   const [isLoading, setIsLoading] = React.useState(true);
 
-  // Загружаем данные при монтировании компонента
   React.useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -58,7 +56,7 @@ export function DashboardPage({ className = '' }: DashboardPageProps) {
 
   return (
     <div className={`${styles.dashboardPage} ${className}`}>
-      {/* Header - Sticky with Glassmorphism */}
+      {}
       <header className={styles.dashboardHeader}>
         <div className={styles.dashboardHeaderContent}>
           <div className={styles.dashboardTitle}>
@@ -106,10 +104,10 @@ export function DashboardPage({ className = '' }: DashboardPageProps) {
         </div>
       </header>
 
-      {/* Main Content */}
+      {}
       <main className={styles.dashboardMain}>
         <div className={styles.dashboardContent}>
-          {/* Purchase Analytics Section */}
+          {}
           <section className={styles.dashboardSection}>
             <h2 className={styles.sectionTitle}>Purchase Analytics (Supabase Data)</h2>
             <div className={styles.panelsRow}>
@@ -120,7 +118,7 @@ export function DashboardPage({ className = '' }: DashboardPageProps) {
             </div>
           </section>
 
-          {/* Recent Purchases Table Section */}
+          {}
           <section className={styles.dashboardSection}>
             <h2 className={styles.sectionTitle}>Recent Purchases (Supabase Data)</h2>
             <div className={styles.panelsRow}>

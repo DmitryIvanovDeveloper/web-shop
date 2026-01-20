@@ -14,7 +14,6 @@ export async function POST(request: NextRequest) {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    // Find the active config for APP123
     const { data: configs, error: findError } = await supabase
       .from('app_configs')
       .select('id, config')
@@ -33,9 +32,8 @@ export async function POST(request: NextRequest) {
     const configId = configs[0].id;
     const currentConfig = configs[0].config;
 
-    // Update the sidebar children
     const updatedChildren = [
-      // Update existing buttons with correct IDs
+      
       ...(currentConfig.modules?.uiRenderer?.sidebar?.layout?.children || []).map((child: any) => {
         if (child.id === 'button-68b97f4c-358c-461f-a428-4b1eebcedc41') {
           return { ...child, id: 'store-button' };
@@ -48,7 +46,7 @@ export async function POST(request: NextRequest) {
         }
         return child;
       }),
-      // Add Patch Notes button
+      
       {
         id: 'patch-notes-button',
         type: 'Button',
@@ -91,7 +89,6 @@ export async function POST(request: NextRequest) {
       }
     };
 
-    // Update the config
     const { error: updateError } = await supabase
       .from('app_configs')
       .update({ config: updatedConfig })
@@ -111,11 +108,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error', details: error }, { status: 500 });
   }
 }
-
-
-
-
-
-
-
 

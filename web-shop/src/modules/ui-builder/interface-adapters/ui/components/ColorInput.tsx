@@ -36,4 +36,3 @@ export function ColorInput({ label, value, onChange }: ColorInputProps): JSX.Ele
   );
 }
 
-

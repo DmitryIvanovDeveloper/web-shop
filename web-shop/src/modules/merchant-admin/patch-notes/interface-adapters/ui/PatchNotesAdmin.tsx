@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { PatchNotesAdminPresenter } from '../presenters/patch-notes-admin.presenter';
-// PatchNotesAdminViewModel not used directly, accessed via presenter.getViewModel()
+
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { MERCHANT_ADMIN_PATCH_NOTES_TYPES } from '../../infrastructure/bootstrap/types';
 import type { ChangeType } from '../../domain/entities/change-item';
@@ -20,7 +20,6 @@ export function PatchNotesAdmin(): JSX.Element {
   const router = useRouter();
   const appId = searchParams?.get('appId') || null;
 
-  // Always call hooks first, in the same order
   const [, forceUpdate] = useState({});
   const [presenter] = useState(() =>
     container.get<PatchNotesAdminPresenter>(MERCHANT_ADMIN_PATCH_NOTES_TYPES.PatchNotesAdminPresenter)
@@ -40,7 +39,6 @@ export function PatchNotesAdmin(): JSX.Element {
     changes: [{ type: 'feature' as ChangeType, description: '' }]
   });
 
-  // Redirect to projects page if appId is missing (useLayoutEffect runs before paint)
   useLayoutEffect(() => {
     if (!appId) {
       router.push('/projects');
@@ -56,7 +54,6 @@ export function PatchNotesAdmin(): JSX.Element {
     }
   }, [presenter, appId]);
 
-  // Initialize edit form when edit modal opens
   useEffect(() => {
     if (viewModel.isEditModalOpen && viewModel.selectedNote) {
       setEditFormData({
@@ -78,15 +75,13 @@ export function PatchNotesAdmin(): JSX.Element {
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!appId) return; // Safety check
+    if (!appId) return; 
 
-    // Validate form
     if (!formData.version || !formData.title || !formData.description) {
       presenter.showError('Please fill in all required fields');
       return;
     }
 
-    // Validate version format
     const semverRegex = /^\d+\.\d+\.\d+$/;
     if (!semverRegex.test(formData.version.trim())) {
       presenter.showError('Version must be in format x.y.z (e.g., 1.0.0, 2.5.3)');
@@ -145,13 +140,11 @@ export function PatchNotesAdmin(): JSX.Element {
     }));
   };
 
-  // Edit form functions
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!viewModel.selectedNote || !appId) return;
 
-    // Validate form
     if (!editFormData.title || !editFormData.description) {
       presenter.showError('Please fill in all required fields');
       return;
@@ -174,7 +167,7 @@ export function PatchNotesAdmin(): JSX.Element {
     });
 
     if (success) {
-      // Modal will be closed by presenter
+      
     }
   };
 
@@ -203,8 +196,6 @@ export function PatchNotesAdmin(): JSX.Element {
     }));
   };
 
-  // Show loading while redirecting if appId is missing
-
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-8">
@@ -219,7 +210,7 @@ export function PatchNotesAdmin(): JSX.Element {
         </div>
       </div>
 
-      {/* Header Actions */}
+      {}
       <div className="mb-6 flex justify-between items-center">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">Patch Notes</h2>
@@ -235,7 +226,7 @@ export function PatchNotesAdmin(): JSX.Element {
         </button>
       </div>
 
-      {/* Error Message */}
+      {}
       {viewModel.error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
           <div className="flex justify-between items-center">
@@ -250,7 +241,7 @@ export function PatchNotesAdmin(): JSX.Element {
         </div>
       )}
 
-      {/* Loading State */}
+      {}
       {viewModel.status === 'loading' && (
         <div className="flex justify-center items-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -258,7 +249,7 @@ export function PatchNotesAdmin(): JSX.Element {
         </div>
       )}
 
-      {/* Empty State */}
+      {}
       {viewModel.status === 'loaded' && viewModel.patchNotes.length === 0 && (
         <div className="text-center py-12">
           <div className="text-6xl mb-4">📋</div>
@@ -273,7 +264,7 @@ export function PatchNotesAdmin(): JSX.Element {
         </div>
       )}
 
-      {/* Patch Notes List */}
+      {}
       {viewModel.status === 'loaded' && viewModel.patchNotes.length > 0 && (
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
@@ -354,14 +345,14 @@ export function PatchNotesAdmin(): JSX.Element {
         </div>
       )}
 
-      {/* Create Modal */}
+      {}
       {viewModel.isCreateModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-semibold text-gray-900 mb-6">Create New Patch Note</h3>
 
             <form onSubmit={handleCreateSubmit} className="space-y-6">
-              {/* Version and Title */}
+              {}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -395,7 +386,7 @@ export function PatchNotesAdmin(): JSX.Element {
                 </div>
               </div>
 
-              {/* Description */}
+              {}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Description *
@@ -410,7 +401,7 @@ export function PatchNotesAdmin(): JSX.Element {
                 />
               </div>
 
-              {/* Changes */}
+              {}
               <div>
                 <div className="flex justify-between items-center mb-3">
                   <label className="block text-sm font-medium text-gray-700">
@@ -462,7 +453,7 @@ export function PatchNotesAdmin(): JSX.Element {
                 </div>
               </div>
 
-              {/* Actions */}
+              {}
               <div className="flex justify-end space-x-3 pt-4 border-t">
                 <button
                   type="button"
@@ -484,14 +475,14 @@ export function PatchNotesAdmin(): JSX.Element {
         </div>
       )}
 
-      {/* Edit Modal */}
+      {}
       {viewModel.isEditModalOpen && viewModel.selectedNote && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-semibold text-gray-900 mb-6">Edit Patch Note</h3>
 
             <form onSubmit={handleEditSubmit} className="space-y-6">
-              {/* Title */}
+              {}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Title *
@@ -506,7 +497,7 @@ export function PatchNotesAdmin(): JSX.Element {
                 />
               </div>
 
-              {/* Description */}
+              {}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Description *
@@ -521,7 +512,7 @@ export function PatchNotesAdmin(): JSX.Element {
                 />
               </div>
 
-              {/* Changes */}
+              {}
               <div>
                 <div className="flex justify-between items-center mb-3">
                   <label className="block text-sm font-medium text-gray-700">
@@ -573,7 +564,7 @@ export function PatchNotesAdmin(): JSX.Element {
                 </div>
               </div>
 
-              {/* Actions */}
+              {}
               <div className="flex justify-end space-x-3 pt-4 border-t">
                 <button
                   type="button"
@@ -595,7 +586,7 @@ export function PatchNotesAdmin(): JSX.Element {
         </div>
       )}
 
-      {/* Delete Modal */}
+      {}
       {viewModel.isDeleteModalOpen && viewModel.selectedNote && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
@@ -618,7 +609,7 @@ export function PatchNotesAdmin(): JSX.Element {
                   if (!appId) return;
                   const success = await presenter.deletePatchNote(viewModel.selectedNote!.id, appId);
                   if (success) {
-                    // Modal will be closed by presenter
+                    
                   }
                 }}
                 disabled={viewModel.status === 'deleting'}

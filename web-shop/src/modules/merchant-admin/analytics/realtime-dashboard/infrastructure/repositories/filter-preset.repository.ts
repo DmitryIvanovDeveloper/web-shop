@@ -75,19 +75,17 @@ export class FilterPresetRepository implements FilterPresetRepositoryPort {
   }
 
   public async save(preset: FilterPreset): Promise<Result<FilterPreset, Error>> {
-    // In a real implementation, this would POST/PUT to an API
-    // For now, we just return the preset as if it was saved
+
     return new Success(preset);
   }
 
   public async delete(id: string): Promise<Result<void, Error>> {
-    // In a real implementation, this would DELETE from an API
-    // For now, we just simulate success
+
     return new Success(undefined);
   }
 
   private mapDTOToEntity(dto: any): FilterPreset {
-    // Reconstruct DateRangeFilter
+    
     const dateRangeResult = DateRangeFilter.fromQueryParams({
       dateRange: dto.filterSet.dateRange.preset,
       granularity: dto.filterSet.dateRange.granularity,
@@ -99,7 +97,6 @@ export class FilterPresetRepository implements FilterPresetRepositoryPort {
       throw new Error(`Invalid date range in preset: ${dateRangeResult.error.message}`);
     }
 
-    // Reconstruct GeoFilter
     const geoResult =
       dto.filterSet.geo.countries.length > 0
         ? GeoFilter.create({ countries: dto.filterSet.geo.countries })
@@ -109,7 +106,6 @@ export class FilterPresetRepository implements FilterPresetRepositoryPort {
       throw new Error(`Invalid geo filter in preset: ${geoResult.error.message}`);
     }
 
-    // Reconstruct PaymentFilter
     const paymentResult =
       dto.filterSet.payment.methods.length > 0
         ? PaymentFilter.create({ methods: dto.filterSet.payment.methods as any[] })
@@ -119,7 +115,6 @@ export class FilterPresetRepository implements FilterPresetRepositoryPort {
       throw new Error(`Invalid payment filter in preset: ${paymentResult.error.message}`);
     }
 
-    // Reconstruct SourceFilter
     const sourceResult =
       dto.filterSet.source.sources.length > 0
         ? SourceFilter.create({ sources: dto.filterSet.source.sources as any[] })
@@ -129,14 +124,12 @@ export class FilterPresetRepository implements FilterPresetRepositoryPort {
       throw new Error(`Invalid source filter in preset: ${sourceResult.error.message}`);
     }
 
-    // Reconstruct CurrencyFilter
     const currencyResult = CurrencyFilter.create({ currency: dto.filterSet.currency.currency as any });
 
     if (currencyResult.isFailure()) {
       throw new Error(`Invalid currency filter in preset: ${currencyResult.error.message}`);
     }
 
-    // Reconstruct FilterSet
     const filterSetResult = FilterSet.create({
       dateRange: dateRangeResult.data!,
       geo: geoResult.data!,

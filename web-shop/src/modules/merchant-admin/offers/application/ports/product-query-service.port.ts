@@ -11,5 +11,3 @@ export interface ProductQueryServicePort {
   loadProducts(appId: string): Promise<Result<readonly Product[], Error>>;
 }
 
-
-

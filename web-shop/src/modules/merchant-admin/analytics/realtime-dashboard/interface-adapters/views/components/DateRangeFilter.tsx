@@ -33,8 +33,7 @@ export function DateRangeFilter({
   };
 
   const handleCustomDateChange = (startDate: string, endDate: string) => {
-    // TODO: Implement custom date picker logic
-    // For now, just call onChange with 'custom'
+
     onChange('custom');
     setShowCustomPicker(false);
   };

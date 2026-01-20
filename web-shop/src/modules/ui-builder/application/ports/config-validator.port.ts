@@ -14,20 +14,3 @@ export interface ConfigValidatorPort {
   validate(config: Record<string, unknown>): Promise<ValidationResult>;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -37,4 +37,3 @@ export interface PromoCodeRepositoryPort {
   update(promoCode: PromoCode): Promise<Result<PromoCode, Error>>;
 }
 
-

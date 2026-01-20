@@ -8,4 +8,3 @@ export type { BarChartDataPoint } from './BarChart';
 export type { DonutChartDataPoint } from './DonutChart';
 export type { LineSeries, SeriesPoint } from './MultiLineChart';
 
-

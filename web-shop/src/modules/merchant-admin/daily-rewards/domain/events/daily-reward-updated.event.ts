@@ -9,7 +9,3 @@ export class DailyRewardUpdatedEvent {
   ) {}
 }
 
-
-
-
-

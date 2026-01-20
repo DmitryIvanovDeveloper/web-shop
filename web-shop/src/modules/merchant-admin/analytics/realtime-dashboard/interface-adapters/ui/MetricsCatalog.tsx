@@ -16,7 +16,7 @@ export interface MetricDefinition {
 }
 
 const METRICS_CATALOG: MetricDefinition[] = [
-  // Sales Metrics
+  
   {
     id: 'total_sales',
     name: 'Total Sales',
@@ -51,7 +51,6 @@ const METRICS_CATALOG: MetricDefinition[] = [
     constraints: ['Calculated over rolling 30-day window'],
   },
 
-  // Revenue Metrics
   {
     id: 'total_revenue',
     name: 'Total Revenue',
@@ -95,7 +94,6 @@ const METRICS_CATALOG: MetricDefinition[] = [
     freshness: 'Daily',
   },
 
-  // Conversion Metrics
   {
     id: 'conversion_rate',
     name: 'Conversion Rate',
@@ -128,7 +126,6 @@ const METRICS_CATALOG: MetricDefinition[] = [
     freshness: 'Real-time (< 1 min)',
   },
 
-  // Geography Metrics
   {
     id: 'top_regions',
     name: 'Top Regions',
@@ -141,7 +138,6 @@ const METRICS_CATALOG: MetricDefinition[] = [
     constraints: ['Grouped by ISO country code'],
   },
 
-  // Advanced Metrics
   {
     id: 'ltv',
     name: 'Lifetime Value (LTV)',
@@ -217,7 +213,7 @@ export const MetricsCatalog: React.FC<MetricsCatalogProps> = ({ onSelectMetric }
 
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-200">
-      {/* Sticky Header */}
+      {}
       <div className="sticky top-0 z-10 p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-50/80 to-purple-50/80 backdrop-blur supports-[backdrop-filter]:bg-white/70">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -232,7 +228,7 @@ export const MetricsCatalog: React.FC<MetricsCatalogProps> = ({ onSelectMetric }
           </div>
         </div>
 
-        {/* Search */}
+        {}
         <input
           type="text"
           placeholder="Search metrics… (Cmd/Ctrl + /)"
@@ -242,7 +238,7 @@ export const MetricsCatalog: React.FC<MetricsCatalogProps> = ({ onSelectMetric }
         />
       </div>
 
-      {/* Category Filters */}
+      {}
       <div className="p-4 border-b border-gray-200 bg-gray-50">
         <div className="flex gap-2 flex-wrap">
           {categories.map((category) => (
@@ -261,7 +257,7 @@ export const MetricsCatalog: React.FC<MetricsCatalogProps> = ({ onSelectMetric }
         </div>
       </div>
 
-      {/* Metrics List */}
+      {}
       <div className="p-4 sm:p-6 space-y-3 max-h-[600px] overflow-y-auto">
         {filteredMetrics.length === 0 ? (
           <div className="text-center py-12">
@@ -275,7 +271,7 @@ export const MetricsCatalog: React.FC<MetricsCatalogProps> = ({ onSelectMetric }
               key={metric.id}
               className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
             >
-              {/* Metric Header */}
+              {}
               <div
                 className="p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
                 onClick={() => setExpandedMetric(expandedMetric === metric.id ? null : metric.id)}
@@ -297,10 +293,10 @@ export const MetricsCatalog: React.FC<MetricsCatalogProps> = ({ onSelectMetric }
                 </div>
               </div>
 
-              {/* Expanded Details */}
+              {}
               {expandedMetric === metric.id && (
                 <div className="p-4 bg-white border-t border-gray-200 space-y-4">
-                  {/* Formula */}
+                  {}
                   {metric.formula && (
                     <div>
                       <h4 className="text-sm font-semibold text-gray-700 mb-1">Formula:</h4>
@@ -310,19 +306,19 @@ export const MetricsCatalog: React.FC<MetricsCatalogProps> = ({ onSelectMetric }
                     </div>
                   )}
 
-                  {/* Data Source */}
+                  {}
                   <div>
                     <h4 className="text-sm font-semibold text-gray-700 mb-1">Data Source:</h4>
                     <p className="text-sm text-gray-600">{metric.dataSource}</p>
                   </div>
 
-                  {/* Freshness */}
+                  {}
                   <div>
                     <h4 className="text-sm font-semibold text-gray-700 mb-1">Data Freshness:</h4>
                     <p className="text-sm text-gray-600">{metric.freshness}</p>
                   </div>
 
-                  {/* Timezone */}
+                  {}
                   {metric.timezone && (
                     <div>
                       <h4 className="text-sm font-semibold text-gray-700 mb-1">Timezone:</h4>
@@ -330,7 +326,7 @@ export const MetricsCatalog: React.FC<MetricsCatalogProps> = ({ onSelectMetric }
                     </div>
                   )}
 
-                  {/* Constraints */}
+                  {}
                   {metric.constraints && metric.constraints.length > 0 && (
                     <div>
                       <h4 className="text-sm font-semibold text-gray-700 mb-1">Constraints & Rules:</h4>
@@ -342,7 +338,7 @@ export const MetricsCatalog: React.FC<MetricsCatalogProps> = ({ onSelectMetric }
                     </div>
                   )}
 
-                  {/* Actions */}
+                  {}
                   {onSelectMetric && (
                     <div className="pt-2">
                       <button

@@ -4,7 +4,6 @@ import { MERCHANT_ADMIN_PATCH_NOTES_TYPES } from '@/modules/merchant-admin/patch
 import type { PatchNoteRepositoryPort } from '@/modules/merchant-admin/patch-notes/application/ports/patch-note-repository.port';
 import { PatchNoteId } from '@/modules/merchant-admin/patch-notes/domain/value-objects/patch-note-id';
 
-// GET /api/merchant-admin/patch-notes/[id]
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -26,8 +25,7 @@ export async function GET(
     const result = await patchNoteRepository.findById(patchNoteId, appId);
 
     if (!result.isSuccess) {
-      console.error('[GET /api/merchant-admin/patch-notes/[id]] Failed to find patch note', result.error);
-      return NextResponse.json({ error: 'Failed to find patch note' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to find patch note' }, { status: 500 });
     }
 
     if (!result.value) {
@@ -51,12 +49,10 @@ export async function GET(
       scheduledFor: result.value.scheduledFor?.toISOString()
     });
   } catch (error) {
-    console.error('[GET /api/merchant-admin/patch-notes/[id]] Unexpected error', error);
-    return NextResponse.json({ error: 'Unexpected error while fetching patch note' }, { status: 500 });
+        return NextResponse.json({ error: 'Unexpected error while fetching patch note' }, { status: 500 });
   }
 }
 
-// DELETE /api/merchant-admin/patch-notes/[id]
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -78,13 +74,11 @@ export async function DELETE(
     const result = await patchNoteRepository.delete(patchNoteId, appId);
 
     if (!result.isSuccess) {
-      console.error('[DELETE /api/merchant-admin/patch-notes/[id]] Failed to delete patch note', result.error);
-      return NextResponse.json({ error: 'Failed to delete patch note' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to delete patch note' }, { status: 500 });
     }
 
     return NextResponse.json({ message: 'Patch note deleted successfully' });
   } catch (error) {
-    console.error('[DELETE /api/merchant-admin/patch-notes/[id]] Unexpected error', error);
-    return NextResponse.json({ error: 'Unexpected error while deleting patch note' }, { status: 500 });
+        return NextResponse.json({ error: 'Unexpected error while deleting patch note' }, { status: 500 });
   }
 }

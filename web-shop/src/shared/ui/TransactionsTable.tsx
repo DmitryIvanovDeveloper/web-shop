@@ -2,12 +2,12 @@ import React, { useMemo, useState } from 'react';
 
 export interface TransactionRow {
   id: string;
-  createdAt: string; // ISO date
+  createdAt: string; 
   user: string;
   amount: number;
   currency: string;
   country?: string;
-  method?: string; // Card/PayPal/Carrier
+  method?: string; 
   status: 'success' | 'refunded' | 'chargeback' | 'failed';
 }
 
@@ -102,5 +102,4 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({ rows }) =>
     </div>
   );
 };
-
 

@@ -12,7 +12,6 @@ export abstract class Result<T, E> {
     return new Failure(error);
   }
 
-  // Alias for compatibility
   static error<T = void, E = Error>(error: E): Failure<T, E> {
     return Result.fail(error);
   }

@@ -4,12 +4,6 @@ import { DatabaseClientPort } from '../../application/ports/database-client.port
 import { TYPES } from '../bootstrap/types';
 import type { Logger } from '../../application/ports/logger.port';
 
-/**
- * Supabase Client Implementation
- * 
- * Infrastructure implementation of DatabaseClientPort using Supabase
- * Singleton pattern - one instance shared across all modules
- */
 @injectable()
 export class SupabaseClient implements DatabaseClientPort {
   private static instance: SupabaseClientType | null = null;
@@ -29,18 +23,15 @@ export class SupabaseClient implements DatabaseClientPort {
 
     if (!supabaseUrl || !supabaseKey) {
       const errorMsg = 'Supabase URL and Anon Key must be provided. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables.';
-      this._logger.error('[SupabaseClient] ' + errorMsg);
-      throw new Error(errorMsg);
+            throw new Error(errorMsg);
     }
 
     if (supabaseUrl === 'SET' || supabaseKey === 'SET') {
       const errorMsg = 'Supabase credentials are not properly configured (still showing "SET")';
-      this._logger.error('[SupabaseClient] ' + errorMsg);
-      throw new Error(errorMsg);
+            throw new Error(errorMsg);
     }
 
     SupabaseClient.instance = createClient(supabaseUrl, supabaseKey);
-    this._logger.info('[SupabaseClient] Supabase client initialized (singleton)');
   }
 
   public from(table: string): any {
@@ -57,5 +48,4 @@ export class SupabaseClient implements DatabaseClientPort {
     return SupabaseClient.instance;
   }
 }
-
 

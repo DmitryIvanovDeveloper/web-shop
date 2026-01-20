@@ -30,7 +30,7 @@ export function RevenuePanel({ presenter }: RevenuePanelProps) {
       });
     };
     void loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [presenter]);
 
   const trend = state?.data?.trend ?? [];
@@ -49,7 +49,7 @@ export function RevenuePanel({ presenter }: RevenuePanelProps) {
   return (
     <div className="revenue-panel">
       <div className="revenue-panel-grid">
-        {/* Total Revenue */}
+        {}
         <MetricCard
           title="Total Revenue"
           icon={DollarSign}
@@ -60,7 +60,7 @@ export function RevenuePanel({ presenter }: RevenuePanelProps) {
           error={state?.error}
         />
 
-        {/* Revenue Per Visitor */}
+        {}
         <MetricCard
           title="Revenue Per Visitor"
           icon={DollarSign}
@@ -70,7 +70,7 @@ export function RevenuePanel({ presenter }: RevenuePanelProps) {
           className="revenue-per-visitor-card"
         />
 
-        {/* Average Order Value */}
+        {}
         <MetricCard
           title="Average Order Value"
           icon={DollarSign}

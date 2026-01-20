@@ -37,9 +37,7 @@ export class UpdateProductUseCase {
   public async execute(
     input: UpdateProductInput
   ): Promise<Result<UpdateProductOutput, Error>> {
-    console.log('[UpdateProductUseCase] execute called with input:', input);
-
-    // Load existing product via port
+        
     const loadResult = await this.queryService.loadById(input.id, input.appId);
     if (loadResult.isFailure()) {
       return Result.error(loadResult.error!);
@@ -47,7 +45,6 @@ export class UpdateProductUseCase {
 
     const existingProduct = loadResult.data!;
 
-    // Create updated entity via Domain immutable update methods
     let updatedProduct = existingProduct;
 
     if (input.title !== undefined) {
@@ -138,7 +135,6 @@ export class UpdateProductUseCase {
       updatedProduct = lpBonusResult.data!;
     }
 
-    // Update updated_at timestamp
     const finalProductResult = Product.create({
       ...updatedProduct.toProps(),
       updated_at: new Date().toISOString(),
@@ -147,7 +143,6 @@ export class UpdateProductUseCase {
       return Result.error(finalProductResult.error!);
     }
 
-    // Save via port
     const saveResult = await this.commandService.update(finalProductResult.data!);
     if (saveResult.isFailure()) {
       return Result.error(saveResult.error!);

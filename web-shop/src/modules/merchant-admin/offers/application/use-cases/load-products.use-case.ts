@@ -30,4 +30,3 @@ export class LoadProductsUseCase {
   }
 }
 
-

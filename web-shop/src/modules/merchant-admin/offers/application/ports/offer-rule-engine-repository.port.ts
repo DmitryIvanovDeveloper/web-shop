@@ -6,4 +6,3 @@ export interface OfferRuleEngineRepositoryPort {
   saveRuleTree(tree: OfferRuleTree): Promise<Result<void, Error>>;
 }
 
-

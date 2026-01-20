@@ -1,6 +1,4 @@
-/**
- * Utility to apply filters to data
- */
+
 
 interface DateRange {
   start: string;
@@ -29,9 +27,7 @@ export interface Filters {
 }
 
 export class FilterApplier {
-  /**
-   * Apply date range filter to data
-   */
+  
   static applyDateFilter<T extends { timestamp?: Date | string; date?: Date | string }>(
     data: T[],
     dateRange?: DateRange
@@ -47,9 +43,6 @@ export class FilterApplier {
     });
   }
 
-  /**
-   * Apply geography filter to data
-   */
   static applyGeographyFilter<T extends { country?: string; region?: string; city?: string }>(
     data: T[],
     geography?: Filters['geography']
@@ -76,9 +69,6 @@ export class FilterApplier {
     });
   }
 
-  /**
-   * Apply payment filter to data
-   */
   static applyPaymentFilter<T extends { paymentMethod?: string; provider?: string }>(
     data: T[],
     payment?: Filters['payment']
@@ -100,9 +90,6 @@ export class FilterApplier {
     });
   }
 
-  /**
-   * Apply acquisition filter to data
-   */
   static applyAcquisitionFilter<T extends { source?: string; campaign?: string; channel?: string }>(
     data: T[],
     acquisition?: Filters['acquisition']
@@ -129,9 +116,6 @@ export class FilterApplier {
     });
   }
 
-  /**
-   * Apply currency filter to data
-   */
   static applyCurrencyFilter<T extends { currency?: string }>(
     data: T[],
     currencies?: string[]
@@ -143,9 +127,6 @@ export class FilterApplier {
     });
   }
 
-  /**
-   * Apply amount range filter to data
-   */
   static applyAmountFilter<T extends { amount?: number; value?: number }>(
     data: T[],
     minAmount?: number | null,
@@ -163,39 +144,27 @@ export class FilterApplier {
     });
   }
 
-  /**
-   * Apply all filters to data
-   */
   static applyAllFilters<T>(data: T[], filters: Filters): T[] {
     let filtered = data;
 
-    // Apply date filter
     filtered = this.applyDateFilter(filtered as any, filters.dateRange) as T[];
 
-    // Apply geography filter
     filtered = this.applyGeographyFilter(filtered as any, filters.geography) as T[];
 
-    // Apply payment filter
     filtered = this.applyPaymentFilter(filtered as any, filters.payment) as T[];
 
-    // Apply acquisition filter
     filtered = this.applyAcquisitionFilter(filtered as any, filters.acquisition) as T[];
 
-    // Apply currency filter
     filtered = this.applyCurrencyFilter(filtered as any, filters.currency) as T[];
 
-    // Apply amount filter
     filtered = this.applyAmountFilter(filtered as any, filters.minAmount, filters.maxAmount) as T[];
 
     return filtered;
   }
 
-  /**
-   * Load current filters from mock JSON
-   */
   static async loadCurrentFilters(): Promise<Filters> {
     try {
-      // В браузере используем полный URL
+      
       const url = typeof window !== 'undefined' 
         ? `${window.location.origin}/mocks/api/filters/current.json`
         : '/mocks/api/filters/current.json';
@@ -207,17 +176,12 @@ export class FilterApplier {
       
       return await response.json();
     } catch (error) {
-      console.error('Failed to load filters:', error);
-      return {};
+            return {};
     }
   }
 
-  /**
-   * Save current filters to mock JSON (simulated - in real app would call API)
-   */
   static async saveCurrentFilters(filters: Filters): Promise<void> {
-    // In real app, this would make a POST request to save filters.
-    // For now this is a no-op in production code.
+
   }
 }
 

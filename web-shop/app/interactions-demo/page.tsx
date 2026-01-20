@@ -75,57 +75,27 @@ export default function InteractionsDemoPage() {
   };
 
   const handleSaveMetric = (metric: any) => {
-    console.log('Created metric:', metric);
-    alert(`Metric "${metric.name}" created successfully!`);
+        alert(`Metric "${metric.name}" created successfully!`);
     setIsRatioBuilderOpen(false);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
+        {}
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-8 text-white shadow-lg">
           <h1 className="text-3xl font-bold mb-2">🎯 Interactions Demo</h1>
-          <p className="text-indigo-100">
-            Демонстрация всех интерактивных компонентов: сортировка, выбор метрик, создание ratio, drill-down
-          </p>
-        </div>
-
-        {/* Metric Selector */}
-        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
+          <p className="text-indigo-100""bg-white rounded-xl p-6 shadow-lg border border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <span>📊</span>
             <span>1. Multi-Metric Selector</span>
           </h2>
-          <p className="text-sm text-gray-600 mb-4">
-            Выберите метрики для отображения. Максимум 5 метрик. Используйте поиск для фильтрации.
-          </p>
-          <MetricSelector
-            availableMetrics={availableMetrics}
-            selectedMetrics={selectedMetrics}
-            onSelect={setSelectedMetrics}
-            maxSelection={5}
-          />
-        </div>
-
-        {/* Ratio Builder */}
-        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
+          <p className="text-sm text-gray-600 mb-4""bg-white rounded-xl p-6 shadow-lg border border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <span>🧮</span>
             <span>2. Ratio Builder</span>
           </h2>
-          <p className="text-sm text-gray-600 mb-4">
-            Создайте производную метрику из существующих метрик (деление, умножение, процент и т.д.)
-          </p>
-          <button
-            onClick={() => setIsRatioBuilderOpen(!isRatioBuilderOpen)}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            {isRatioBuilderOpen ? 'Скрыть Ratio Builder' : 'Открыть Ratio Builder'}
-          </button>
-          
-          {isRatioBuilderOpen && (
-            <div className="mt-6">
+          <p className="text-sm text-gray-600 mb-4""px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors""mt-6">
               <RatioBuilder
                 availableMetrics={availableMetrics}
                 onSave={handleSaveMetric}
@@ -135,51 +105,29 @@ export default function InteractionsDemoPage() {
           )}
         </div>
 
-        {/* DataTable with Sorting & Drill-Down */}
+        {}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
           <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
             <h2 className="text-xl font-semibold text-gray-900 mb-2 flex items-center gap-2">
               <span>📋</span>
               <span>3. Interactive Table</span>
             </h2>
-            <p className="text-sm text-gray-600">
-              Кликните по заголовкам для сортировки. Используйте клавиатуру: ↑↓ для навигации, Enter для drill-down.
-            </p>
-            <div className="mt-3 space-y-2 text-sm text-gray-600">
+            <p className="text-sm text-gray-600""mt-3 space-y-2 text-sm text-gray-600">
               <div className="flex items-center gap-2">
                 <kbd className="px-2 py-1 bg-white border border-gray-300 rounded text-xs">↑</kbd>
-                <kbd className="px-2 py-1 bg-white border border-gray-300 rounded text-xs">↓</kbd>
-                <span>Навигация по строкам</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 bg-white border border-gray-300 rounded text-xs">Enter</kbd>
-                <span>Открыть drill-down</span>
-              </div>
-              <div className="flex items-center gap-2">
+                <kbd className="px-2 py-1 bg-white border border-gray-300 rounded text-xs""flex items-center gap-2">
+                <kbd className="px-2 py-1 bg-white border border-gray-300 rounded text-xs""flex items-center gap-2">
                 <kbd className="px-2 py-1 bg-white border border-gray-300 rounded text-xs">Home</kbd>
-                <kbd className="px-2 py-1 bg-white border border-gray-300 rounded text-xs">End</kbd>
-                <span>Первая/последняя строка</span>
-              </div>
-            </div>
-          </div>
-          
-          <DataTable
-            data={sampleData}
-            columns={columns}
-            pagination={true}
-            pageSize={5}
-            onRowClick={handleRowClick}
-            selectedRowIndex={selectedRowIndex}
-            ariaLabel="Product sales data table"
+                <kbd className="px-2 py-1 bg-white border border-gray-300 rounded text-xs""Product sales data table"
           />
         </div>
 
-        {/* Drill-Down Modal */}
+        {}
         <DrillDownModal
           isOpen={isDrillDownOpen}
           onClose={() => setIsDrillDownOpen(false)}
           title={`Product Details: ${drillDownData?.product}`}
-          subtitle="Подробная информация о продукте"
+          subtitle=""
           size="large"
         >
           {drillDownData && (
@@ -229,39 +177,26 @@ export default function InteractionsDemoPage() {
           )}
         </DrillDownModal>
 
-        {/* Feature Summary */}
+        {}
         <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">✨ Реализованные Features</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4""grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-start gap-3">
               <span className="text-2xl">✅</span>
               <div>
                 <h3 className="font-semibold text-gray-900">Sorting in Tables</h3>
-                <p className="text-sm text-gray-600">Клик по заголовку для сортировки asc/desc</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
+                <p className="text-sm text-gray-600""flex items-start gap-3">
               <span className="text-2xl">✅</span>
               <div>
                 <h3 className="font-semibold text-gray-900">Multi-Metric Selection</h3>
-                <p className="text-sm text-gray-600">Overlay с поиском и группировкой</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
+                <p className="text-sm text-gray-600""flex items-start gap-3">
               <span className="text-2xl">✅</span>
               <div>
                 <h3 className="font-semibold text-gray-900">Derived Metrics</h3>
-                <p className="text-sm text-gray-600">Ratio builder для создания формул</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
+                <p className="text-sm text-gray-600""flex items-start gap-3">
               <span className="text-2xl">✅</span>
               <div>
                 <h3 className="font-semibold text-gray-900">Drill-Down Flows</h3>
-                <p className="text-sm text-gray-600">Modal с breadcrumb навигацией</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
+                <p className="text-sm text-gray-600""flex items-start gap-3">
               <span className="text-2xl">✅</span>
               <div>
                 <h3 className="font-semibold text-gray-900">Keyboard Navigation</h3>
@@ -281,5 +216,4 @@ export default function InteractionsDemoPage() {
     </div>
   );
 }
-
 

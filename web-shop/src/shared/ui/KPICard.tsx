@@ -135,7 +135,6 @@ export const KPICard: React.FC<KPICardProps> = ({
   );
 };
 
-// Layout component for KPI Cards
 interface KPIGridProps {
   children: React.ReactNode;
   columns?: 2 | 3 | 4;

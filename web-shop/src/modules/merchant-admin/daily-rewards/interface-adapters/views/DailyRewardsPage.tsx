@@ -56,16 +56,13 @@ export function DailyRewardsPage({ appId }: DailyRewardsPageProps): JSX.Element 
     []
   );
 
-  // Reactive state from presenter
   const [rewards, setRewards] = useState<DailyRewardViewModel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // UI state for modals
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingReward, setEditingReward] = useState<DailyRewardViewModel | null>(null);
 
-  // Form data with proper types
   const [formData, setFormData] = useState<{
     type: RewardTypeValue;
     title: string;
@@ -81,17 +78,15 @@ export function DailyRewardsPage({ appId }: DailyRewardsPageProps): JSX.Element 
   });
 
   useEffect(() => {
-    // Subscribe to presenter changes
+    
     const unsubscribe = presenter.subscribe(() => {
       setRewards(presenter.rewards);
       setIsLoading(presenter.isLoading);
       setError(presenter.error);
     });
 
-    // Initial load
     loadRewards();
 
-    // Cleanup subscription
     return unsubscribe;
   }, [appId, presenter]);
 
@@ -249,7 +244,7 @@ export function DailyRewardsPage({ appId }: DailyRewardsPageProps): JSX.Element 
         )}
       </div>
 
-      {/* Create/Edit Modal */}
+      {}
       {(showCreateForm || editingReward) && (
         <RewardModal
           appId={appId}
@@ -262,7 +257,6 @@ export function DailyRewardsPage({ appId }: DailyRewardsPageProps): JSX.Element 
   );
 }
 
-// Reward Modal Component
 interface RewardModalProps {
   appId: string;
   reward: DailyRewardViewModel | null;
@@ -464,8 +458,4 @@ function RewardModal({ appId, reward, presenter, onClose }: RewardModalProps): J
     </div>
   );
 }
-
-
-
-
 

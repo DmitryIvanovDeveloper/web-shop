@@ -14,42 +14,28 @@ interface ClientLocalizationDashboardProps {
 }
 
 export default function ClientLocalizationDashboard({ initialViewModel }: ClientLocalizationDashboardProps): JSX.Element {
-  console.log('[LocalizationDashboard] Component rendered');
-
-  // Get Presenter from DI Container (following pattern from other modules)
   const presenter = useMemo(() => {
-    console.log('[LocalizationDashboard] Getting presenter from container');
     try {
       const presenter = container.get<LocalizationPresenter>(LOCALIZATION_TYPES.LocalizationPresenter);
-      console.log('[LocalizationDashboard] Presenter obtained successfully');
       return presenter;
     } catch (error) {
-      console.error('[LocalizationDashboard] Failed to get presenter:', error);
       throw error;
     }
-  }, []); // Presenter is stable, no need for dependencies
+  }, []);
 
-  // Use View Model from Presenter (following pattern from other modules)
   const [viewModel, setViewModel] = useState<LocalizationViewModel>(initialViewModel);
 
   useEffect(() => {
-    console.log('[LocalizationDashboard] useEffect triggered, presenter:', presenter);
-
-    // Subscribe to View Model changes
     const unsubscribe = presenter.subscribe(() => {
-      console.log('[LocalizationDashboard] View model updated:', presenter.viewModel);
       setViewModel(presenter.viewModel);
     });
 
-    // Load initial data through Presenter (Clean Architecture)
-    console.log('[LocalizationDashboard] Calling loadLocalizationStatus');
     presenter.loadLocalizationStatus();
 
     return unsubscribe;
   }, [presenter]);
 
   const handleLanguageChange = async (languageCode: string): Promise<void> => {
-    console.log('[LocalizationDashboard] Language change requested:', languageCode);
     await presenter.changeActiveLanguage(languageCode);
   };
 
@@ -58,12 +44,10 @@ export default function ClientLocalizationDashboard({ initialViewModel }: Client
     languageCode: string;
     value: string;
   }>): Promise<void> => {
-    console.log('[LocalizationDashboard] Translation updates:', updates);
     await presenter.updateTranslations(updates);
   };
 
   const handleErrorClear = (): void => {
-    console.log('[LocalizationDashboard] Clearing error');
     presenter.clearError();
   };
 
@@ -83,8 +67,6 @@ export default function ClientLocalizationDashboard({ initialViewModel }: Client
       document.documentElement.dir = 'ltr';
     };
   }, [isRTL]);
-
-  console.log('[LocalizationDashboard] Rendering with viewModel:', viewModel);
 
   if (viewModel.error) {
     return (
@@ -118,7 +100,7 @@ export default function ClientLocalizationDashboard({ initialViewModel }: Client
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="border-b border-gray-200 pb-4">
         <h1 className="text-2xl font-bold text-gray-900">Localization Management</h1>
         <p className="text-gray-600 mt-1">
@@ -126,10 +108,10 @@ export default function ClientLocalizationDashboard({ initialViewModel }: Client
         </p>
       </div>
 
-      {/* Status Overview */}
+      {}
       <LocalizationStatus viewModel={viewModel} />
 
-      {/* Language Management */}
+      {}
       <div className="bg-white shadow rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-medium text-gray-900">Language Settings</h2>
@@ -147,7 +129,7 @@ export default function ClientLocalizationDashboard({ initialViewModel }: Client
         </div>
       </div>
 
-      {/* Translation Management */}
+      {}
       <div className="bg-white shadow rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-medium text-gray-900">Translation Editor</h2>

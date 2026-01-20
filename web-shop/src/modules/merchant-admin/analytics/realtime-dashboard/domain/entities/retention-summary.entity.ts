@@ -1,7 +1,7 @@
 export interface RetentionCurve {
   cohortId: string;
   cohortName: string;
-  points: { day: number; retention: number }[]; // retention as percentage 0-100
+  points: { day: number; retention: number }[]; 
 }
 
 export class RetentionSummary {

@@ -24,7 +24,7 @@ export const SalesPanel: React.FC<SalesPanelProps> = ({ salesSummary }) => {
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/60 rounded-xl p-6 shadow-lg">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md">
@@ -39,7 +39,7 @@ export const SalesPanel: React.FC<SalesPanelProps> = ({ salesSummary }) => {
         </div>
       </div>
 
-      {/* KPI Cards using new component */}
+      {}
       <KPIGrid columns={3} className="mb-6">
         <KPICard
           title="Total Sales"
@@ -70,7 +70,7 @@ export const SalesPanel: React.FC<SalesPanelProps> = ({ salesSummary }) => {
         />
       </KPIGrid>
 
-      {/* Line Chart for trend */}
+      {}
       <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 border border-blue-200/30">
         <LineChart
           data={trendData}

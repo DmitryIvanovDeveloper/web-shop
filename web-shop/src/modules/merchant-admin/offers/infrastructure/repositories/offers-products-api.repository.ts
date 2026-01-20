@@ -23,29 +23,14 @@ export class OffersProductsApiRepository implements ProductQueryServicePort {
       const response = await this._http.get<ProductsApiResponse>(`/api/products?appId=${encodeURIComponent(appId)}`);
 
       if (response.status !== 200) {
-        this._logger.error('[OffersProductsApiRepository] Failed to load products', {
-          status: response.status,
-          appId,
-        });
-        return Result.error(new Error(`Failed to load products: ${response.statusText}`));
+                return Result.error(new Error(`Failed to load products: ${response.statusText}`));
       }
 
       const products = response.data?.products ?? [];
       return Result.ok(products);
     } catch (error) {
-      this._logger.error('[OffersProductsApiRepository] Unexpected load error', { error, appId });
-      return Result.error(error as Error);
+            return Result.error(error as Error);
     }
   }
 }
-
-
-
-
-
-
-
-
-
-
 

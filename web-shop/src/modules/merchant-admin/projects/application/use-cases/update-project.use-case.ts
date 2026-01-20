@@ -29,7 +29,6 @@ export class UpdateProjectUseCase {
     try {
       const projectId = ProjectId.fromString(request.projectId);
 
-      // Get current project
       const projectResult = await this._projectRepository.findById(projectId);
       if (projectResult.isFailure) {
         return Result.error(projectResult.error!);
@@ -37,7 +36,6 @@ export class UpdateProjectUseCase {
 
       const currentProject = projectResult.value!;
 
-      // Update project
       const updateResult = currentProject.update({
         name: request.name,
         description: request.description
@@ -49,7 +47,6 @@ export class UpdateProjectUseCase {
 
       const updatedProject = updateResult.value!;
 
-      // Save to repository
       const saveResult = await this._projectRepository.update(projectId, {
         name: request.name,
         description: request.description
@@ -59,7 +56,6 @@ export class UpdateProjectUseCase {
         return Result.error(saveResult.error!);
       }
 
-      // Publish project updated event
       await this._eventBus.publishSync(
         new ProjectUpdatedEvent(
           updatedProject.id.value,

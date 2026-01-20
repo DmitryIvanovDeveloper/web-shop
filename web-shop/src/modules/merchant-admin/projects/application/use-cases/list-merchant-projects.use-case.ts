@@ -28,7 +28,6 @@ export class ListMerchantProjectsUseCase {
         return Result.error(result.error!);
       }
 
-      // Filter only active projects for the list
       const activeProjects = result.value!.filter((project: Project) => project.isActive());
 
       return Result.ok({

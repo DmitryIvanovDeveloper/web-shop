@@ -9,7 +9,6 @@ export default function Page(): JSX.Element {
   const searchParams = useSearchParams();
   const appId = searchParams?.get('appId');
 
-  // Redirect to projects page if appId is missing (useLayoutEffect runs before paint)
   useLayoutEffect(() => {
     if (!appId) {
       router.push('/projects');
@@ -18,6 +17,4 @@ export default function Page(): JSX.Element {
 
   return <DashboardPage />;
 }
-
-
 

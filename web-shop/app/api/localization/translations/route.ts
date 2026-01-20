@@ -22,24 +22,20 @@ export async function GET(request: NextRequest) {
       .order('key', { ascending: true });
 
     if (error) {
-      console.error('[API] Failed to get translations:', error);
-      return NextResponse.json(
+            return NextResponse.json(
         { error: 'Failed to get translations' },
         { status: 500 }
       );
     }
 
-    // Детальное логирование для отладки
     const allKeys = (data || []).map((t: any) => t.key);
     const navKeys = (data || []).filter((t: any) => t.key && t.key.startsWith('nav.')).map((t: any) => t.key);
     const allNavTranslations = (data || []).filter((t: any) => t.key && t.key.startsWith('nav.')).map((t: any) => ({ key: t.key, value: t.value }));
     const expectedNavKeys = ['nav.home', 'nav.store', 'nav.patchNotes', 'nav.dailyRewards', 'nav.loyaltyProgram', 'nav.news', 'nav.updates', 'nav.events'];
     const missingNavKeys = expectedNavKeys.filter(key => !navKeys.includes(key));
     
-    console.log('[API /api/localization/translations] Supabase response details', {
-      languageCode,
-      totalTranslations: (data || []).length,
-      allKeys: allKeys.slice(0, 20), // первые 20 ключей для примера
+    .length,
+      allKeys: allKeys.slice(0, 20), 
       navKeys: navKeys,
       navKeysCount: navKeys.length,
       allNavTranslations: allNavTranslations,
@@ -59,8 +55,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(translations);
   } catch (error) {
-    console.error('[API] Unexpected error getting translations:', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
@@ -85,7 +80,6 @@ export async function POST(request: NextRequest) {
 
       const supabase = getSupabaseServerClient();
 
-      // Check if translation exists
       const { data: existing } = await supabase
         .from('translations')
         .select('id')
@@ -94,7 +88,7 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (existing) {
-        // Update existing translation
+        
         const { error } = await supabase
           .from('translations')
           .update({
@@ -106,13 +100,12 @@ export async function POST(request: NextRequest) {
           .eq('language_code', languageCode);
 
         if (error) {
-          console.error('[API] Failed to update translation:', error);
-          results.push({ key, languageCode, success: false, error: error.message });
+                    results.push({ key, languageCode, success: false, error: error.message });
         } else {
           results.push({ key, languageCode, success: true });
         }
       } else {
-        // Create new translation
+        
         const { error } = await supabase
           .from('translations')
           .insert({
@@ -123,8 +116,7 @@ export async function POST(request: NextRequest) {
           });
 
         if (error) {
-          console.error('[API] Failed to create translation:', error);
-          results.push({ key, languageCode, success: false, error: error.message });
+                    results.push({ key, languageCode, success: false, error: error.message });
         } else {
           results.push({ key, languageCode, success: true });
         }
@@ -136,8 +128,7 @@ export async function POST(request: NextRequest) {
       results
     });
   } catch (error) {
-    console.error('[API] Unexpected error in translations POST:', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );

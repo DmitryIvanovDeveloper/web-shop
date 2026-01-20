@@ -8,4 +8,3 @@ export interface FilterPresetRepositoryPort {
   delete(id: string): Promise<Result<void, Error>>;
 }
 
-

@@ -120,7 +120,7 @@ export const MultiLineChart: React.FC<MultiLineChartProps> = ({
           );
         })}
       </svg>
-      {/* Legend */}
+      {}
       <div className="flex flex-wrap gap-3 mt-3">
         {series.map(s => (
           <div key={s.id} className="flex items-center gap-2 text-sm text-gray-600">
@@ -132,7 +132,4 @@ export const MultiLineChart: React.FC<MultiLineChartProps> = ({
     </div>
   );
 };
-
-
-
 

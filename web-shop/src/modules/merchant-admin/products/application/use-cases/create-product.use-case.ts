@@ -32,10 +32,9 @@ export class CreateProductUseCase {
   public async execute(
     input: CreateProductInput
   ): Promise<Result<CreateProductOutput, Error>> {
-    // Generate ID (simple UUID-like string for now)
+    
     const id = `product-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-    // Create Product entity via Domain layer
     const productProps: ProductProps = {
       id,
       title: input.title,
@@ -58,7 +57,6 @@ export class CreateProductUseCase {
       return Result.error(productResult.error!);
     }
 
-    // Save via port interface
     const saveResult = await this.commandService.create(productResult.data!);
     if (saveResult.isFailure()) {
       return Result.error(saveResult.error!);
@@ -67,10 +65,4 @@ export class CreateProductUseCase {
     return Result.ok({ product: saveResult.data! });
   }
 }
-
-
-
-
-
-
 

@@ -20,14 +20,12 @@ export async function GET(request: NextRequest) {
       .order('title', { ascending: true });
 
     if (error) {
-      console.error('[GET /api/products] Supabase error:', error);
-      return NextResponse.json({ error: 'Failed to load products' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to load products' }, { status: 500 });
     }
 
     return NextResponse.json({ products: data ?? [] });
   } catch (error) {
-    console.error('[GET /api/products] Unexpected error:', error);
-    return NextResponse.json({ error: 'Failed to load products' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to load products' }, { status: 500 });
   }
 }
 
@@ -44,12 +42,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Product title is required' }, { status: 400 });
     }
 
-    // Check if main_image is base64 and validate size
     if (product.main_image && product.main_image.startsWith('data:')) {
       const base64Length = product.main_image.length;
-      // Base64 increases size by ~33%, so 2MB file becomes ~2.67MB string
-      // PostgreSQL text field can handle up to ~1GB, but we'll limit to 10MB for safety
-      const maxBase64Length = 10 * 1024 * 1024; // 10MB
+
+      const maxBase64Length = 10 * 1024 * 1024; 
       if (base64Length > maxBase64Length) {
         return NextResponse.json(
           { error: 'Image is too large. Maximum size is 2MB.' },
@@ -60,13 +56,10 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseServerClient();
 
-    // Log main_image size for debugging
     if (product.main_image) {
       const imageSize = product.main_image.length;
-      console.log('[POST /api/products] main_image size:', imageSize, 'bytes');
-      if (product.main_image.startsWith('data:')) {
-        console.log('[POST /api/products] main_image is base64 data URL');
-      }
+            if (product.main_image.startsWith('data:')) {
+              }
     }
 
     const { data, error } = await supabase
@@ -93,8 +86,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('[POST /api/products] Supabase error:', error);
-      return NextResponse.json(
+            return NextResponse.json(
         { error: 'Failed to create product', details: error.message },
         { status: 500 }
       );
@@ -102,8 +94,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data, { status: 201 });
   } catch (error) {
-    console.error('[POST /api/products] Unexpected error:', error);
-    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
   }
 }
 
@@ -124,12 +115,10 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Product title is required' }, { status: 400 });
     }
 
-    // Check if main_image is base64 and validate size
     if (product.main_image && product.main_image.startsWith('data:')) {
       const base64Length = product.main_image.length;
-      // Base64 increases size by ~33%, so 2MB file becomes ~2.67MB string
-      // PostgreSQL text field can handle up to ~1GB, but we'll limit to 10MB for safety
-      const maxBase64Length = 10 * 1024 * 1024; // 10MB
+
+      const maxBase64Length = 10 * 1024 * 1024; 
       if (base64Length > maxBase64Length) {
         return NextResponse.json(
           { error: 'Image is too large. Maximum size is 2MB.' },
@@ -140,15 +129,12 @@ export async function PUT(request: NextRequest) {
 
     const supabase = getSupabaseServerClient();
 
-    // Log main_image for debugging
     if (product.main_image) {
       if (product.main_image.startsWith('data:')) {
         const imageSize = product.main_image.length;
-        console.log('[PUT /api/products] main_image is base64 data URL, size:', imageSize, 'bytes');
-      } else if (product.main_image.startsWith('http')) {
-        console.log('[PUT /api/products] main_image is URL:', product.main_image);
-      } else {
-        console.log('[PUT /api/products] main_image value:', product.main_image.substring(0, 100));
+              } else if (product.main_image.startsWith('http')) {
+              } else {
+        );
       }
     }
 
@@ -175,8 +161,7 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('[PUT /api/products] Supabase error:', error);
-      return NextResponse.json(
+            return NextResponse.json(
         { error: 'Failed to update product', details: error.message },
         { status: 500 }
       );
@@ -188,8 +173,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
-    console.error('[PUT /api/products] Unexpected error:', error);
-    return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
   }
 }
 
@@ -216,13 +200,11 @@ export async function DELETE(request: NextRequest) {
       .eq('appid', appId);
 
     if (error) {
-      console.error('[DELETE /api/products] Supabase error:', error);
-      return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error('[DELETE /api/products] Unexpected error:', error);
-    return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 });
   }
 }

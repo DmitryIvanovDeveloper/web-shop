@@ -15,7 +15,7 @@ export class LoadDashboardUseCase {
   ) {}
 
   async execute(userId: string): Promise<Dashboard> {
-    // Загружаем все данные параллельно
+    
     const [
       salesSummary,
       revenueSummary,
@@ -41,8 +41,7 @@ export class LoadDashboardUseCase {
       this.analyticsRepository.getMarketingChannelsSummary(),
       this.purchaseRepository.getPurchaseSummary()
     ]);
-    
-    // Создаем дашборд с помощью репозитория
+
     return new Dashboard(
       salesSummary,
       revenueSummary,

@@ -101,8 +101,6 @@ export class OfferScenarioApiRepository
         return Result.error(new Error(`Failed to save scenario (status ${response.status})`));
       }
 
-      // API returns { success: true }, so we return the scenario we sent
-      // The scenario is already updated in memory, so this is correct
       return Result.ok(scenario);
     } catch (error) {
       return Result.error(error as Error);

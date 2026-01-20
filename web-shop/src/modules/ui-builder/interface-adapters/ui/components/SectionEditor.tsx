@@ -17,13 +17,11 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       alert('Please select an image file');
       return;
     }
 
-    // Validate file size (max 5MB for base64 storage)
     if (file.size > 5 * 1024 * 1024) {
       alert('File size must be less than 5MB');
       return;
@@ -32,7 +30,7 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
     setUploading(true);
 
     try {
-      // Convert file to base64
+      
       const base64String = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -46,7 +44,6 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
         reader.readAsDataURL(file);
       });
 
-      // Update styles with base64 image
       const newStyles = { ...section.styles };
       newStyles.backgroundImage = `url("${base64String}")`;
       if (!newStyles.backgroundSize) {
@@ -64,14 +61,14 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
       alert(`Failed to process image: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setUploading(false);
-      // Reset file input
+      
       event.target.value = '';
     }
   };
 
   return (
     <div className="p-4 space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">Section Settings</h3>
@@ -88,11 +85,11 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
         </button>
       </div>
 
-      {/* Layout Settings */}
+      {}
       <div className="space-y-4">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Layout</h4>
 
-        {/* Grid Layout */}
+        {}
         <div>
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Grid Columns
@@ -109,25 +106,23 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
           </select>
         </div>
 
-        {/* Gap */}
+        {}
         <div>
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Gap Between Items
           </label>
           <div className="flex items-center gap-2">
             {(() => {
-              // Parse gap value and unit
+              
               const parseGap = (gapString: string | number | undefined): { value: number; unit: string } => {
                 if (!gapString) return { value: 1, unit: 'rem' };
                 const gap = typeof gapString === 'number' ? `${gapString}px` : gapString;
-                
-                // Try to match simple single value (e.g., "1rem", "20px")
+
                 const match = gap.match(/^([\d.]+)\s*(rem|px|em|%)$/);
                 if (match) {
                   return { value: parseFloat(match[1]), unit: match[2] };
                 }
-                
-                // Default fallback
+
                 return { value: 1, unit: 'rem' };
               };
 
@@ -177,7 +172,7 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
           <p className="text-xs text-gray-400 mt-1">Examples: 1rem, 20px, 2em</p>
         </div>
 
-        {/* Alignment */}
+        {}
         <div>
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Item Alignment
@@ -194,11 +189,11 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
         </div>
       </div>
 
-      {/* Style Settings */}
+      {}
       <div className="space-y-4 pt-4 border-t border-gray-200">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Styles</h4>
 
-        {/* Background Color */}
+        {}
         <div>
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Background Color
@@ -220,13 +215,13 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
           </div>
         </div>
 
-        {/* Border */}
+        {}
         <div>
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Border
           </label>
           
-          {/* Border Width */}
+          {}
           <div className="mb-2">
             <div className="flex items-center gap-2">
               {(() => {
@@ -285,7 +280,7 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
             <label className="text-xs text-gray-500 mt-1 block">Width</label>
           </div>
 
-          {/* Border Style */}
+          {}
           <div className="mb-2">
             <select
               value={(section.styles?.borderStyle as string) || 'none'}
@@ -313,7 +308,7 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
             <label className="text-xs text-gray-500 mt-1 block">Style</label>
           </div>
 
-          {/* Border Color */}
+          {}
           <div>
             <div className="flex items-center gap-2">
               <input
@@ -334,22 +329,22 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
           </div>
         </div>
 
-        {/* Background Image */}
+        {}
         <div>
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Background Image
           </label>
           
-          {/* URL Input */}
+          {}
           <div className="mb-2">
             <input
               type="text"
               value={(() => {
                 const bgImage = (section.styles?.backgroundImage as string) || '';
-                // Remove url("...") wrapper if present for editing
+                
                 if (bgImage.startsWith('url("') && bgImage.endsWith('")')) {
                   const content = bgImage.slice(5, -2);
-                  // If it's base64, show a shorter indicator
+                  
                   if (content.startsWith('data:image/')) {
                     const match = content.match(/data:image\/([^;]+);base64,/);
                     const type = match ? match[1] : 'image';
@@ -362,16 +357,15 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
               onChange={(e) => {
                 const url = e.target.value.trim();
                 const newStyles = { ...section.styles };
-                
-                // Don't update if it's the base64 indicator
+
                 if (url.startsWith('[Base64')) {
                   return;
                 }
                 
                 if (url) {
-                  // Wrap in url("...") format for CSS
+                  
                   newStyles.backgroundImage = `url("${url}")`;
-                  // Add background size and position defaults for better UX
+                  
                   if (!newStyles.backgroundSize) {
                     newStyles.backgroundSize = 'cover';
                   }
@@ -390,12 +384,12 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
                 onUpdateStyles(newStyles);
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
-              placeholder="https://example.com/image.jpg or upload file below"
+              placeholder="https:
               disabled={uploading}
               readOnly={(() => {
                 const bgImage = (section.styles?.backgroundImage as string) || '';
                 if (bgImage.startsWith('url("data:image/')) {
-                  return true; // Read-only for base64 images
+                  return true; 
                 }
                 return false;
               })()}
@@ -411,44 +405,15 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
             </p>
           </div>
 
-          {/* File Upload and Clear */}
+          {}
           <div className="flex items-center gap-2">
             <label className="flex-1 cursor-pointer">
               <input
                 type="file"
-                accept="image/*"
-                onChange={handleFileUpload}
-                disabled={uploading}
-                className="hidden"
-              />
-              <div className={`px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm text-center text-gray-700 ${uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
-                {uploading ? '📤 Converting...' : '📤 Upload Image (Base64)'}
-              </div>
-            </label>
-            {(section.styles?.backgroundImage as string) && (
-              <button
-                type="button"
-                onClick={() => {
-                  const newStyles = { ...section.styles };
-                  delete newStyles.backgroundImage;
-                  delete newStyles.backgroundSize;
-                  delete newStyles.backgroundPosition;
-                  delete newStyles.backgroundRepeat;
-                  onUpdateStyles(newStyles);
-                }}
-                className="px-3 py-2 border border-red-300 rounded-lg hover:bg-red-50 text-sm text-red-600 font-medium transition-colors"
-                title="Remove background image"
-              >
-                ✕ Clear
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Background Image Options (shown only if background image exists) */}
+                accept="image}
         {(section.styles?.backgroundImage as string) && (
           <div className="space-y-2 pl-4 border-l-2 border-gray-200">
-            {/* Background Size */}
+            {}
             <div>
               <label className="text-xs font-medium text-gray-600 block mb-1.5">
                 Background Size
@@ -465,7 +430,7 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
               </select>
             </div>
 
-            {/* Background Position */}
+            {}
             <div>
               <label className="text-xs font-medium text-gray-600 block mb-1.5">
                 Background Position
@@ -489,19 +454,18 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
           </div>
         )}
 
-        {/* Height */}
+        {}
         <div>
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Height
           </label>
           <div className="flex items-center gap-2">
             {(() => {
-              // Parse height value and unit
+              
               const parseHeight = (heightString: string | number | undefined): { value: number | string; unit: string } => {
                 if (!heightString) return { value: '', unit: 'px' };
                 const height = typeof heightString === 'number' ? `${heightString}px` : heightString;
-                
-                // Check for special values like 'auto'
+
                 if (height === 'auto' || height === '100%' || height === 'inherit') {
                   return { value: height, unit: '' };
                 }
@@ -515,7 +479,6 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
 
               const { value: heightValue, unit: heightUnit } = parseHeight(section.styles?.height as string | number | undefined);
 
-              // If it's a special value (auto, 100%, etc), show as text input
               if (heightUnit === '' && typeof heightValue === 'string') {
                 return (
                   <input
@@ -583,14 +546,14 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
           <p className="text-xs text-gray-400 mt-1">Examples: 400px, 50vh, 10rem, auto</p>
         </div>
 
-        {/* Border Radius */}
+        {}
         <div>
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Border Radius
           </label>
           <div className="flex items-center gap-2">
             {(() => {
-              // Parse borderRadius value and unit
+              
               const parseBorderRadius = (borderRadiusString: string | number | undefined): { value: number; unit: string } => {
                 if (!borderRadiusString) return { value: 0.5, unit: 'rem' };
                 const borderRadius = typeof borderRadiusString === 'number' ? `${borderRadiusString}px` : borderRadiusString;
@@ -647,18 +610,18 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
           <p className="text-xs text-gray-400 mt-1">Examples: 0.5rem, 8px, 50%</p>
         </div>
 
-        {/* Padding */}
+        {}
         <div>
           <label className="text-xs font-medium text-gray-600 block mb-1.5">
             Padding
           </label>
           <div className="flex items-center gap-2">
             {(() => {
-              // Parse padding value and unit
+              
               const parsePadding = (paddingString: string | number | undefined): { value: number; unit: string } => {
-                // Explicitly handle 0 as a valid value
+                
                 if (paddingString === 0 || paddingString === '0' || paddingString === '0px' || paddingString === '0rem' || paddingString === '0em' || paddingString === '0%') {
-                  // Extract unit if present, default to 'rem'
+                  
                   if (typeof paddingString === 'string') {
                     const match = paddingString.match(/^0\s*(rem|px|em|%)?$/);
                     return { value: 0, unit: match && match[1] ? match[1] : 'rem' };
@@ -668,14 +631,12 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
                 
                 if (!paddingString) return { value: 2, unit: 'rem' };
                 const padding = typeof paddingString === 'number' ? `${paddingString}px` : paddingString;
-                
-                // Try to match simple single value (e.g., "2rem", "20px")
+
                 const match = padding.match(/^([\d.]+)\s*(rem|px|em|%)$/);
                 if (match) {
                   return { value: parseFloat(match[1]), unit: match[2] };
                 }
-                
-                // Default fallback
+
                 return { value: 2, unit: 'rem' };
               };
 
@@ -683,10 +644,10 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
 
               const handlePaddingValueChange = (newValue: string): void => {
                 const newStyles = { ...section.styles };
-                // Allow 0 as a valid value - check for empty string specifically
+                
                 if (newValue !== '' && newValue !== null && newValue !== undefined) {
                   const numValue = parseFloat(newValue);
-                  // Allow 0 or any positive number (including 0)
+                  
                   if (!isNaN(numValue) && numValue >= 0) {
                     newStyles.padding = `${newValue}${paddingUnit}`;
                   }
@@ -731,7 +692,7 @@ export function SectionEditor({ section, onUpdateLayout, onUpdateStyles, onRemov
         </div>
       </div>
 
-      {/* Component Count */}
+      {}
       <div className="pt-4 border-t border-gray-200">
         <div className="text-xs text-gray-500">
           <span className="font-medium">{section.components?.length || 0}</span> component(s) in this section

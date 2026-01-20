@@ -1,10 +1,10 @@
 export interface OfferConditionViewModel {
   readonly triggerCode: string;
-  readonly label: string; // User-friendly label
-  readonly description: string; // Technical description for reference
+  readonly label: string; 
+  readonly description: string; 
   readonly offerIds: readonly string[];
   readonly productIds: readonly string[];
-  readonly productDiscounts: Record<string, string>; // Product ID -> discount string (e.g., "10%", "$5")
+  readonly productDiscounts: Record<string, string>; 
 }
 
 export interface OfferScenarioConfigViewModel {
@@ -82,5 +82,4 @@ export const initialOffersPageViewModel: OffersPageViewModel = {
   lastUpdatedAt: null,
   ruleTreeJson: null,
 };
-
 

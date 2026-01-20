@@ -22,10 +22,9 @@ export type AnalyticsKey =
   | 'marketing-channels.summary';
 
 export interface AnalyticsRepositoryPort {
-  // Generic low-level access (internal usage)
+  
   getByKey<TPayload = unknown>(key: AnalyticsKey): Promise<TPayload>;
 
-  // Domain-level accessors used by use-cases
   getSalesSummary(): Promise<SalesSummary>;
   getRevenueSummary(): Promise<RevenueSummary>;
   getGeographySummary(): Promise<GeographySummary>;
@@ -37,6 +36,4 @@ export interface AnalyticsRepositoryPort {
   getMarketingChannelsSummary(): Promise<MarketingChannelsSummary>;
   getTransactionsSummary(): Promise<TransactionsSummary>;
 }
-
-
 

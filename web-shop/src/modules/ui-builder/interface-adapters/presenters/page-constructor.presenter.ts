@@ -37,16 +37,13 @@ export class PageConstructorPresenter {
   private saveOfferCardsTimer: ReturnType<typeof setTimeout> | undefined;
   private saveOfferCardsPending = false;
   private saveOfferCardsPromise: Promise<void> | null = null;
-  
-  // Store pageStyles separately (not in ViewModel)
+
   private pageStyles: { padding?: string; gap?: string; backgroundColor?: string; backgroundOpacity?: number } = {};
-  
-  // Store offerCards separately (not in ViewModel)
+
   private offerCards: OfferCardTemplate[] = [];
   private selectedOfferCardId: string | null = null;
   private lastAppConfig: AppConfig | null = null;
-  
-  // Store elementSelectionMode to send with config updates
+
   private elementSelectionMode: boolean = false;
   
   private vm: PageConstructorViewModel = {
@@ -110,7 +107,7 @@ export class PageConstructorPresenter {
       }
 
       if (result.value) {
-        // Migrate all IDs to UUID format
+        
         const migratedConfig = migratePageConfigIds(result.value);
         
         this.pageStyles = migratedConfig.pageStyles || {};
@@ -188,8 +185,6 @@ export class PageConstructorPresenter {
     }
   }
 
-  // ============ Section Operations ============
-
   public addSection(type: 'header' | 'content' | 'footer'): void {
     const newSection: PageSection = {
       id: generateElementId(type),
@@ -201,7 +196,7 @@ export class PageConstructorPresenter {
       },
       styles: {
         minHeight: '350px',
-        border: '2px dashed #d1d5db', // Gray dashed border
+        border: '2px dashed #d1d5db', 
       },
       components: [],
     };
@@ -264,7 +259,6 @@ export class PageConstructorPresenter {
       ),
     };
 
-    // Update selectedSection if it's the one being edited
     if (this.vm.selectedSection?.id === sectionId) {
       this.vm.selectedSection = this.vm.sections.find(s => s.id === sectionId) || null;
     }
@@ -292,8 +286,6 @@ export class PageConstructorPresenter {
     this.saveConfigDebounced();
     this.sendConfigToIframe();
   }
-
-  // ============ Component Operations ============
 
   public addComponent(sectionId: string, componentType: string): void {
 
@@ -394,8 +386,6 @@ export class PageConstructorPresenter {
     this.sendConfigToIframe();
   }
 
-  // ============ Persistence ============
-
   private saveConfigDebounced(): void {
     if (this.saveDraftDebounceTimer) {
       clearTimeout(this.saveDraftDebounceTimer);
@@ -412,11 +402,11 @@ export class PageConstructorPresenter {
 
     try {
       const config: PageConfig = {
-        id: '', // Will be set by database
+        id: '', 
         appId: this.vm.appId,
         merchantId: this.vm.merchantId,
         pageSlug: this.vm.pageSlug,
-        version: 1, // Will be incremented by storage layer
+        version: 1, 
         isDraft: true,
         isActive: false,
         sections: this.vm.sections,
@@ -489,8 +479,6 @@ export class PageConstructorPresenter {
       return false;
     }
   }
-
-  // ============ Page Settings ============
 
   public updatePagePadding(padding: string): void {
     this.pageStyles = {
@@ -704,7 +692,6 @@ export class PageConstructorPresenter {
         offerCards: [...this.offerCards],
       };
 
-      // Create updated AppConfig
       const updatedAppConfig: AppConfig = {
         ...appConfig,
         config: updatedConfig,
@@ -732,8 +719,6 @@ export class PageConstructorPresenter {
     }
   }
 
-  // ============ Helper Methods ============
-
   private getDefaultProps(componentType: string): Record<string, unknown> {
     const defaults: Record<string, Record<string, unknown>> = {
       Text: { text: 'Enter text here...' },
@@ -751,7 +736,7 @@ export class PageConstructorPresenter {
   private getDefaultStyles(componentType: string): Record<string, unknown> {
     if (componentType === 'Video') {
       return {
-        minHeight: '315px', // Standard YouTube embed height
+        minHeight: '315px', 
       };
     }
     const defaults: Record<string, Record<string, unknown>> = {
@@ -764,8 +749,6 @@ export class PageConstructorPresenter {
 
     return defaults[componentType] || {};
   }
-
-  // ============ Offer Cards Methods ============
 
   public async loadOfferCards(): Promise<void> {
     try {
@@ -934,9 +917,7 @@ export class PageConstructorPresenter {
         fontWeight: 'bold',
         padding: '12px 8px',
         minHeight: '48px',
-        // explicit enabled flag to persist preview state
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+
         enabled: true,
       },
       purchasedBadge: {
@@ -945,8 +926,7 @@ export class PageConstructorPresenter {
         padding: '12px 16px',
         borderRadius: '8px',
         minHeight: '44px',
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+
         enabled: false,
       },
       bonuses: {

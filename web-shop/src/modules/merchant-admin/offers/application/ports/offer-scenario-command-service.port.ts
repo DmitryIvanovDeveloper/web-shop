@@ -5,4 +5,3 @@ export interface OfferScenarioCommandServicePort {
   saveScenario(appId: string, scenario: OfferScenario): Promise<Result<OfferScenario, Error>>;
 }
 
-

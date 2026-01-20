@@ -82,11 +82,10 @@ export class Translation {
   }
 
   isOutdated(): boolean {
-    // Consider translation outdated if not updated in last 30 days
+    
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     return this.updatedAt < thirtyDaysAgo;
   }
 }
-
 

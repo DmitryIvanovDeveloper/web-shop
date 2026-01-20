@@ -19,7 +19,7 @@ export const DrillDownModal: React.FC<DrillDownModalProps> = ({
   size = 'large',
   className = '',
 }) => {
-  // Handle ESC key
+  
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && isOpen) {
@@ -31,7 +31,6 @@ export const DrillDownModal: React.FC<DrillDownModalProps> = ({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
-  // Prevent body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -60,20 +59,20 @@ export const DrillDownModal: React.FC<DrillDownModalProps> = ({
       aria-modal="true"
       aria-labelledby="drill-down-title"
     >
-      {/* Backdrop */}
+      {}
       <div
         className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Modal */}
+      {}
       <div className="flex min-h-screen items-center justify-center p-4">
         <div
           className={`relative bg-white rounded-xl shadow-2xl ${sizeClasses[size]} w-full ${className}`}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
+          {}
           <div className="flex items-start justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-t-xl">
             <div className="flex-1">
               <h2
@@ -108,12 +107,12 @@ export const DrillDownModal: React.FC<DrillDownModalProps> = ({
             </button>
           </div>
 
-          {/* Content */}
+          {}
           <div className="px-6 py-6 max-h-[calc(90vh-160px)] overflow-y-auto">
             {children}
           </div>
 
-          {/* Footer */}
+          {}
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl flex items-center justify-end gap-3">
             <button
               onClick={onClose}
@@ -128,7 +127,6 @@ export const DrillDownModal: React.FC<DrillDownModalProps> = ({
   );
 };
 
-// Breadcrumb component for drill-down navigation
 export interface BreadcrumbItem {
   label: string;
   onClick?: () => void;
@@ -169,5 +167,4 @@ export const DrillDownBreadcrumb: React.FC<DrillDownBreadcrumbProps> = ({
     </nav>
   );
 };
-
 

@@ -43,8 +43,7 @@ export async function GET(request: NextRequest) {
       .range(offset, offset + pageSize - 1);
 
     if (error) {
-      console.error('[GET /api/merchant-admin/promo-codes] Supabase error:', error);
-      return NextResponse.json({ error: 'Failed to load promo codes' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to load promo codes' }, { status: 500 });
     }
 
     const items =
@@ -75,8 +74,7 @@ export async function GET(request: NextRequest) {
       total: count ?? items.length,
     });
   } catch (error) {
-    console.error('[GET /api/merchant-admin/promo-codes] Unexpected error:', error);
-    return NextResponse.json({ error: 'Failed to load promo codes' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to load promo codes' }, { status: 500 });
   }
 }
 
@@ -125,8 +123,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('[POST /api/merchant-admin/promo-codes] Supabase error:', error);
-      return NextResponse.json({ error: 'Failed to create promo code' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to create promo code' }, { status: 500 });
     }
 
     const created = {
@@ -153,8 +150,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
-    console.error('[POST /api/merchant-admin/promo-codes] Unexpected error:', error);
-    return NextResponse.json({ error: 'Failed to create promo code' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to create promo code' }, { status: 500 });
   }
 }
 
@@ -199,8 +195,7 @@ export async function PUT(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('[PUT /api/merchant-admin/promo-codes] Supabase error:', error);
-      return NextResponse.json({ error: 'Failed to update promo code' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to update promo code' }, { status: 500 });
     }
 
     if (!data) {
@@ -231,9 +226,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(updated, { status: 200 });
   } catch (error) {
-    console.error('[PUT /api/merchant-admin/promo-codes] Unexpected error:', error);
-    return NextResponse.json({ error: 'Failed to update promo code' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to update promo code' }, { status: 500 });
   }
 }
-
 

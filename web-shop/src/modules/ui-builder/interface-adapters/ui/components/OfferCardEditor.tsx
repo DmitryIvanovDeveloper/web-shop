@@ -49,7 +49,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
   };
 
   const [isMainImageUploading, setIsMainImageUploading] = React.useState(false);
-  // Button / Purchased toggle: derive initial from buyButton.enabled
+  
   const initialButtonMode: 'buy' | 'purchased' =
     card.styles.buyButton && (card.styles.buyButton as any).enabled === false
       ? 'purchased'
@@ -96,7 +96,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
         mainImageAlt: existingMedia.mainImageAlt || file.name || 'Offer card image',
       });
     } catch {
-      // Ignore upload errors for now
+      
     } finally {
       setIsMainImageUploading(false);
       event.target.value = '';
@@ -149,7 +149,6 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
     updateStyleField('container', 'blurAmount', clamped.toString());
   };
 
-  // Helpers for padding input with value + unit
   const parsePadding = (padding: string | number | undefined): { value: string; unit: 'px' | 'rem' } => {
     if (padding === undefined || padding === null || padding === '') {
       return { value: '', unit: 'px' };
@@ -161,7 +160,6 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
       return { value: match[1], unit: match[2].toLowerCase() as 'px' | 'rem' };
     }
 
-    // fallback: try to extract numeric part, default px
     const numericMatch = str.match(/([\d.,]+)/);
     return {
       value: numericMatch ? numericMatch[1] : '',
@@ -178,7 +176,6 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
     return `${numeric}${unit}`;
   };
 
-  // Generic size helpers (px / rem)
   const parseSize = (
     size: string | number | undefined,
     defaultUnit: 'px' | 'rem' = 'px'
@@ -239,7 +236,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
 
   return (
     <div className="p-4 space-y-6">
-      {/* Header */}
+      {}
       <div>
         <h3 className="text-sm font-semibold text-gray-900">Offer Card Settings</h3>
         <p className="text-xs text-gray-500 mt-0.5">
@@ -247,7 +244,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
         </p>
       </div>
 
-      {/* Name */}
+      {}
       <div>
         <label className="text-xs font-medium text-gray-600 block mb-1.5">
           Name
@@ -261,7 +258,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
         />
       </div>
 
-      {/* Container Styles */}
+      {}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Container</h4>
         
@@ -320,13 +317,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
               </button>
             )}
           </div>
-          <p className="text-[10px] text-gray-500 mt-1">
-            Значение от 0 (полностью прозрачный) до 1 (непрозрачный). По умолчанию 1.
-          </p>
-        </div>
-
-        <div>
-          <label className="text-xs font-medium text-gray-600 block mb-1.5">
+          <p className="text-[10px] text-gray-500 mt-1""text-xs font-medium text-gray-600 block mb-1.5">
             Background Blur (px)
           </label>
           <div className="flex items-center gap-3">
@@ -359,13 +350,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
               </button>
             )}
           </div>
-          <p className="text-[10px] text-gray-500 mt-1">
-            Применяет CSS backdrop-filter: blur(...) только к фону карточки. Контент внутри остаётся чётким. Значение 0 отключает эффект.
-          </p>
-        </div>
-
-        <div>
-          <label className="text-xs font-medium text-gray-600 block mb-1.5">
+          <p className="text-[10px] text-gray-500 mt-1""text-xs font-medium text-gray-600 block mb-1.5">
             Border Radius
           </label>
           {(() => {
@@ -408,7 +393,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
         </div>
       </div>
 
-      {/* Image Styles */}
+      {}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Image</h4>
         
@@ -422,7 +407,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
               value={card.media?.mainImage || ''}
               onChange={(e) => updateMediaField('mainImage', e.target.value)}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
-              placeholder="https://example.com/image.png"
+              placeholder="https:
             />
             {card.media?.mainImage && (
               <button
@@ -444,94 +429,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
           <label className="flex-1 cursor-pointer">
             <input
               type="file"
-              accept="image/*"
-              onChange={handleMainImageUpload}
-              disabled={isMainImageUploading}
-              className="hidden"
-            />
-            <div className={`px-3 py-2 border border-gray-300 rounded-lg text-sm text-center text-gray-700 ${isMainImageUploading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'}`}>
-              {isMainImageUploading ? '📤 Uploading…' : '📤 Upload Image'}
-            </div>
-          </label>
-        </div>
-
-        <div>
-          <label className="text-xs font-medium text-gray-600 block mb-1.5">
-            Alt Text
-          </label>
-          <input
-            type="text"
-            value={card.media?.mainImageAlt || ''}
-            onChange={(e) => updateMediaField('mainImageAlt', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="Offer card image"
-          />
-        </div>
-
-        {card.media?.mainImage && (
-          <div>
-            <label className="text-xs font-medium text-gray-600 block mb-1.5">
-              Preview
-            </label>
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <img
-                src={card.media.mainImage}
-                alt={card.media.mainImageAlt || 'Offer card image'}
-                className="w-full h-40 object-cover"
-              />
-            </div>
-          </div>
-        )}
-
-        <div>
-          <label className="text-xs font-medium text-gray-600 block mb-1.5">
-            Background Color
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="color"
-              value={card.styles.image?.backgroundColor || '#374151'}
-              onChange={(e) => updateStyleField('image', 'backgroundColor', e.target.value)}
-              className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
-            />
-            <input
-              type="text"
-              value={card.styles.image?.backgroundColor || ''}
-              onChange={(e) => updateStyleField('image', 'backgroundColor', e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
-              placeholder="#374151"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="text-xs font-medium text-gray-600 block mb-1.5">
-            Aspect Ratio
-          </label>
-          <input
-            type="text"
-            value={card.styles.image?.aspectRatio || ''}
-            onChange={(e) => updateStyleField('image', 'aspectRatio', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="1.5 / 1"
-          />
-        </div>
-
-        <div>
-          <label className="text-xs font-medium text-gray-600 block mb-1.5">
-            Height
-          </label>
-          <input
-            type="text"
-            value={card.styles.image?.height || ''}
-            onChange={(e) => updateStyleField('image', 'height', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            placeholder="274px"
-          />
-        </div>
-      </div>
-
-      {/* Top Label Styles */}
+              accept="image}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Top Label</h4>
         
@@ -713,7 +611,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
         </div>
       </div>
 
-      {/* Discount Badge Styles */}
+      {}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Discount Badge</h4>
         
@@ -865,7 +763,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
         </div>
       </div>
 
-      {/* Title Styles */}
+      {}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Title</h4>
         
@@ -936,7 +834,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
         </div>
       </div>
 
-      {/* Description Styles */}
+      {}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Description</h4>
         
@@ -1037,7 +935,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
         </div>
       </div>
 
-      {/* Original Price Styles */}
+      {}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Original Price</h4>
 
@@ -1123,7 +1021,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
         </div>
       </div>
 
-      {/* Current Price Styles */}
+      {}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Current Price</h4>
         
@@ -1194,7 +1092,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
         </div>
       </div>
 
-      {/* Rarity Styles */}
+      {}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Rarity</h4>
         
@@ -1241,7 +1139,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
         </div>
       </div>
 
-      {/* Action State: Buy vs Purchased */}
+      {}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Action State</h4>
@@ -1250,7 +1148,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
               type="button"
               onClick={() => {
                 setButtonMode('buy');
-                // Ensure buy button is enabled when switching to Buy
+                
                 updateStyles({
                   buyButton: {
                     ...(card.styles.buyButton || {}),
@@ -1271,7 +1169,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
               type="button"
               onClick={() => {
                 setButtonMode('purchased');
-                // Disable buy button when purchased to force preview state
+                
                 updateStyles({
                   buyButton: {
                     ...(card.styles.buyButton || {}),
@@ -1293,32 +1191,8 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
 
         {buttonMode === 'buy' && (
           <>
-            <p className="text-[11px] text-gray-500">
-              Price block оформляет текст на кнопке &mdash; все параметры ниже применяются к кнопке целиком.
-            </p>
-
-            <ButtonEditor
-              backgroundColor={card.styles.buyButton?.backgroundColor || '#FF6B35'}
-              textColor={card.styles.buyButton?.color || '#FFFFFF'}
-              borderColor={card.styles.buyButton?.borderColor || '#FF6B35'}
-              onColorChange={(colorKey, value) => {
-                if (colorKey === 'textColor') {
-                  updateStyleField('buyButton', 'color', value);
-                } else {
-                  updateStyleField('buyButton', colorKey, value);
-                }
-              }}
-              label={card.buyButtonLabel || 'Buy Now'}
-              onLabelChange={(value) => {
-                // For now, we'll store this in card object, but it could be moved to styles later
-                onUpdate({ ...card, buyButtonLabel: value });
-              }}
-              borderRadius={card.styles.buyButton?.borderRadius}
-              onBorderRadiusChange={(value) => updateStyleField('buyButton', 'borderRadius', value)}
-              padding={card.styles.buyButton?.padding}
-              onPaddingChange={(value) => updateStyleField('buyButton', 'padding', value)}
-              width="100%"
-              onWidthChange={() => {}} // Fixed width for offer card buttons
+            <p className="text-[11px] text-gray-500""100%"
+              onWidthChange={() => {}} 
               maxHeight={card.styles.buyButton?.maxHeight}
               onMaxHeightChange={(value) => updateStyleField('buyButton', 'maxHeight', value)}
               fontSize={card.styles.buyButton?.fontSize}
@@ -1334,12 +1208,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
 
         {buttonMode === 'purchased' && (
           <div className="space-y-3">
-            <p className="text-[11px] text-gray-500">
-              Purchased Badge отображается вместо кнопки, когда товар уже куплен.
-            </p>
-
-            <div>
-              <label className="text-xs font-medium text-gray-600 block mb-1.5">
+            <p className="text-[11px] text-gray-500""text-xs font-medium text-gray-600 block mb-1.5">
                 Background Color
               </label>
               <div className="flex gap-2">
@@ -1473,7 +1342,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
         )}
       </div>
 
-      {/* Purchased Badge Styles */}
+      {}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Purchased Badge</h4>
         
@@ -1610,7 +1479,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
         </div>
       </div>
 
-      {/* Bonuses Styles */}
+      {}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Bonuses</h4>
         
@@ -1687,7 +1556,7 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
         </div>
       </div>
 
-      {/* Included Items Styles */}
+      {}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Included Items</h4>
         
@@ -1736,7 +1605,4 @@ export function OfferCardEditor({ card, onUpdate }: OfferCardEditorProps): JSX.E
     </div>
   );
 }
-
-
-
 

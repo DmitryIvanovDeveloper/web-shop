@@ -18,7 +18,7 @@ export class ChangeActiveLanguageUseCase {
     request: ChangeActiveLanguageRequest
   ): Promise<Result<ChangeActiveLanguageResponse, Error>> {
     try {
-      // Validate that language exists
+      
       const languageResult = await this._languageRepository.getByCode(request.languageCode);
       if (languageResult.isFailure) {
         return Failure.fail(languageResult.error || new Error('Unknown error'));
@@ -26,7 +26,6 @@ export class ChangeActiveLanguageUseCase {
 
       const targetLanguage = languageResult.value!;
 
-      // Get currently active language
       const activeLanguageResult = await this._languageRepository.getActiveLanguage();
       if (activeLanguageResult.isFailure) {
         return Failure.fail(activeLanguageResult.error || new Error('Unknown error'));
@@ -34,24 +33,14 @@ export class ChangeActiveLanguageUseCase {
 
       const currentActiveLanguage = activeLanguageResult.value!;
 
-      // If same language is already active, return success
       if (currentActiveLanguage.code.value === request.languageCode) {
         return Success.ok(void 0);
       }
 
-      // Activate new language (this will automatically deactivate others)
       const activateResult = await this._languageRepository.activateLanguage(request.languageCode);
       if (activateResult.isFailure) {
         return Failure.fail(activateResult.error || new Error('Unknown error'));
       }
-
-      // TODO: Publish activation event when Event interface is implemented
-      // await this._eventBus.publishSync(
-      //   new LanguageActivatedEvent(
-      //     targetLanguage.code.value,
-      //     targetLanguage.name
-      //   )
-      // );
 
       return Success.ok(void 0);
     } catch (error) {

@@ -368,9 +368,7 @@ const result = await useCase.execute({
 });
 
 if (result.isSuccess()) {
-  console.log('Language changed successfully');
 } else {
-  console.error('Failed to change language:', result.error.message);
 }
 ```
 
@@ -387,8 +385,6 @@ const result = await statusUseCase.execute({});
 
 if (result.isSuccess()) {
   const { languages, translations, activeLanguage } = result.data;
-  console.log(`Active language: ${activeLanguage.name}`);
-  console.log(`Total languages: ${languages.length}`);
 }
 ```
 
@@ -409,7 +405,6 @@ const result = await updateUseCase.execute({
 });
 
 if (result.isSuccess()) {
-  console.log('Translations updated successfully');
 }
 ```
 

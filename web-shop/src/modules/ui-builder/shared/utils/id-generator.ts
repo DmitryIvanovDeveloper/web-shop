@@ -1,12 +1,7 @@
-/**
- * Generates a unique element ID using UUID v4 with a type prefix
- * Format: {type}-{uuid-v4}
- * Example: button-a1b2c3d4-e5f6-7890-abcd-ef1234567890
- */
+
 export function generateElementId(type: string): string {
   if (typeof crypto === 'undefined' || !crypto.randomUUID) {
-    // Fallback for environments without crypto.randomUUID
-    // Generate a simple UUID-like string
+
     const chars = '0123456789abcdef';
     const segments = [8, 4, 4, 4, 12];
     const uuid = segments
@@ -25,15 +20,9 @@ export function generateElementId(type: string): string {
   return `${type}-${uuid}`;
 }
 
-/**
- * Generates a pure UUID v4 string (without type prefix)
- * Format: uuid-v4
- * Example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
- */
 export function generateUuid(): string {
   if (typeof crypto === 'undefined' || !crypto.randomUUID) {
-    // Fallback for environments without crypto.randomUUID
-    // Generate a simple UUID-like string
+
     const chars = '0123456789abcdef';
     const segments = [8, 4, 4, 4, 12];
     return segments

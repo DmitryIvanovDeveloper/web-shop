@@ -4,8 +4,6 @@ import { TYPES } from '@/infrastructure/bootstrap/types';
 import type { DatabaseClientPort } from '@/application/ports/database-client.port';
 import { z } from 'zod';
 
-// Real database only - no mock storage
-
 const UpdateDailyRewardSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters').optional(),
   description: z.string().min(1, 'Description is required').max(500, 'Description must be less than 500 characters').optional(),
@@ -40,8 +38,7 @@ export async function GET(
       .single();
 
     if (error && error.code !== 'PGRST116') {
-      console.error('[GET /api/merchant-admin/daily-rewards/[id]] Database error:', error);
-      return NextResponse.json({ error: 'Failed to find daily reward' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to find daily reward' }, { status: 500 });
     }
 
     if (!data) {
@@ -50,8 +47,7 @@ export async function GET(
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('[GET /api/merchant-admin/daily-rewards/[id]] Unexpected error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -67,7 +63,6 @@ export async function PUT(
       return NextResponse.json({ error: 'Reward ID is required' }, { status: 400 });
     }
 
-    // Validate input
     const validationResult = UpdateDailyRewardSchema.safeParse(body);
     if (!validationResult.success) {
       return NextResponse.json({
@@ -78,7 +73,6 @@ export async function PUT(
 
     const databaseClient = container.get<DatabaseClientPort>(TYPES.DatabaseClient);
 
-    // Check if reward exists
     const { data: existingReward, error: findError } = await databaseClient
       .from('daily_rewards')
       .select('*')
@@ -86,15 +80,13 @@ export async function PUT(
       .single();
 
     if (findError && findError.code !== 'PGRST116') {
-      console.error('[PUT /api/merchant-admin/daily-rewards/[id]] Find error:', findError);
-      return NextResponse.json({ error: 'Failed to find daily reward' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to find daily reward' }, { status: 500 });
     }
 
     if (!existingReward) {
       return NextResponse.json({ error: 'Daily reward not found' }, { status: 404 });
     }
 
-    // Update reward - map camelCase to snake_case for database
     const updateData: any = {
       updated_at: new Date().toISOString()
     };
@@ -123,14 +115,12 @@ export async function PUT(
       .single();
 
     if (error) {
-      console.error('[PUT /api/merchant-admin/daily-rewards/[id]] Update error:', error);
-      return NextResponse.json({ error: 'Failed to update daily reward' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to update daily reward' }, { status: 500 });
     }
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('[PUT /api/merchant-admin/daily-rewards/[id]] Unexpected error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -147,7 +137,6 @@ export async function DELETE(
 
     const databaseClient = container.get<DatabaseClientPort>(TYPES.DatabaseClient);
 
-    // Check if reward exists
     const { data: existingReward, error: findError } = await databaseClient
       .from('daily_rewards')
       .select('*')
@@ -155,28 +144,24 @@ export async function DELETE(
       .single();
 
     if (findError && findError.code !== 'PGRST116') {
-      console.error('[DELETE /api/merchant-admin/daily-rewards/[id]] Find error:', findError);
-      return NextResponse.json({ error: 'Failed to find daily reward' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to find daily reward' }, { status: 500 });
     }
 
     if (!existingReward) {
       return NextResponse.json({ error: 'Daily reward not found' }, { status: 404 });
     }
 
-    // Delete reward
     const { error } = await databaseClient
       .from('daily_rewards')
       .delete()
       .eq('id', id);
 
     if (error) {
-      console.error('[DELETE /api/merchant-admin/daily-rewards/[id]] Delete error:', error);
-      return NextResponse.json({ error: 'Failed to delete daily reward' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to delete daily reward' }, { status: 500 });
     }
 
     return NextResponse.json({ message: 'Daily reward deleted successfully' });
   } catch (error) {
-    console.error('[DELETE /api/merchant-admin/daily-rewards/[id]] Unexpected error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

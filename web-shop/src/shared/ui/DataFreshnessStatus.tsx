@@ -67,7 +67,7 @@ export const DataFreshnessStatus: React.FC<DataFreshnessStatusProps> = ({
           
           <p className="text-sm text-gray-600 mb-3">{config.description}</p>
 
-          {/* Panel Status Details */}
+          {}
           {(stalePanels.length > 0 || warningPanels.length > 0) && (
             <div className="space-y-2 mb-3">
               {stalePanels.length > 0 && (
@@ -85,7 +85,7 @@ export const DataFreshnessStatus: React.FC<DataFreshnessStatusProps> = ({
             </div>
           )}
 
-          {/* Connection Info */}
+          {}
           {lastHeartbeat && (
             <div className="text-xs text-gray-500">
               Last heartbeat: {lastHeartbeat.toLocaleTimeString()}
@@ -99,7 +99,7 @@ export const DataFreshnessStatus: React.FC<DataFreshnessStatusProps> = ({
           )}
         </div>
 
-        {/* Reconnect Button */}
+        {}
         {onReconnect && overallStatus !== 'fresh' && (
           <button
             onClick={onReconnect}
@@ -110,7 +110,7 @@ export const DataFreshnessStatus: React.FC<DataFreshnessStatusProps> = ({
         )}
       </div>
 
-      {/* Incident Playbook */}
+      {}
       {showPlaybook && (
         <div className="mt-4 pt-4 border-t border-gray-200">
           <h4 className="text-sm font-semibold text-gray-700 mb-2">📋 Incident Playbook:</h4>
@@ -127,7 +127,6 @@ export const DataFreshnessStatus: React.FC<DataFreshnessStatusProps> = ({
   );
 };
 
-// Compact version for header/nav
 export interface DataFreshnessIndicatorProps {
   status: 'fresh' | 'warning' | 'stale';
   lagSeconds?: number;
@@ -168,5 +167,4 @@ export const DataFreshnessIndicator: React.FC<DataFreshnessIndicatorProps> = ({
     </button>
   );
 };
-
 

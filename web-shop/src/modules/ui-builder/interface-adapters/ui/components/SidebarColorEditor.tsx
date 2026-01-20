@@ -78,7 +78,6 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
     onChange(element.id, updatedColors);
   };
 
-  // Parse gap value and unit
   const parseGap = (gapString: string | number | undefined): { value: number; unit: string } => {
     if (!gapString) return { value: 0.5, unit: 'rem' };
     const gap = typeof gapString === 'number' ? `${gapString}px` : gapString;
@@ -103,7 +102,6 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
     }
   };
 
-  // Parse borderRadius value and unit
   const parseBorderRadius = (borderRadiusString: string | number | undefined): { value: number; unit: string } => {
     if (!borderRadiusString) return { value: 0.5, unit: 'rem' };
     const borderRadius = typeof borderRadiusString === 'number' ? `${borderRadiusString}px` : borderRadiusString;
@@ -128,7 +126,6 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
     }
   };
 
-  // Parse padding value and unit
   const parsePadding = (paddingString: string | number | undefined): { value: number; unit: string } => {
     if (!paddingString) return { value: 1, unit: 'rem' };
     const padding = typeof paddingString === 'number' ? `${paddingString}px` : paddingString;
@@ -176,7 +173,7 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
       const base64 = await readFileAsDataUrl(file);
       onIconChange(element.id, base64);
     } catch {
-      // ignore upload errors for now
+      
     } finally {
       setIsIconUploading(false);
       event.target.value = '';
@@ -253,43 +250,14 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
             >
               <input
                 type="file"
-                accept="image/*"
-                className="hidden"
-                disabled={isIconUploading}
-                onChange={handleIconFileUpload}
-              />
-              {isIconUploading ? '📤 Uploading…' : '📤 Upload Icon'}
-            </label>
-            {element.icon && (
-              hasImageIcon ? (
-                <img
-                  src={element.icon}
-                  alt="Icon preview"
-                  className="w-10 h-10 object-contain rounded border border-gray-200"
-                />
-              ) : (
-                <span className="text-xl leading-none">{element.icon}</span>
-              )
-            )}
-          </div>
-          <p className="text-[10px] text-gray-500">
-            You can use emoji, text symbols, or upload a PNG/SVG — the image will be saved as base64 in the config.
-          </p>
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      {/* Header */}
+                accept="image}
       <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
         <h3 className="text-sm font-semibold text-gray-900">Properties</h3>
         <p className="text-xs text-gray-500 mt-0.5 font-mono">{element.id}</p>
       </div>
 
       <div className="p-4 space-y-6">
-        {/* Use ButtonEditor for buttons, otherwise show Colors section for other elements */}
+        {}
         {isButton ? (
           <ButtonEditor
             backgroundColor={element.colors?.backgroundColor || '#ffc629'}
@@ -297,8 +265,7 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
             borderColor={element.colors?.borderColor || '#ffffff'}
             hoverBackgroundColor={element.colors?.hoverBackgroundColor}
             onColorChange={(colorKey, newColor) => {
-              // ButtonEditor uses backgroundColor, but we need to save it as backgroundColor in styles
-              // (readColorsFromNode expects backgroundColor, not background)
+
               handleColorChange(colorKey, newColor);
             }}
             label={element.label || ''}
@@ -320,7 +287,7 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
             onTextAlignChange={(value) => onTextAlignChange?.(element.id, value)}
           />
         ) : (
-          /* Colors Section for non-button elements */
+          
           Object.keys(element.colors ?? {}).length > 0 && (
             <div className="space-y-3">
               <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Colors</h4>
@@ -338,7 +305,7 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
           )
         )}
 
-        {/* Layout editor for containers */}
+        {}
         {isContainer && (onGapChange || onPaddingChange || onFlexDirectionChange || onBackgroundOpacityChange) && (
           <div className="space-y-3">
             <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Layout</h4>
@@ -444,21 +411,10 @@ export function SidebarColorEditor({ element, onChange, onGapChange, onPaddingCh
           </div>
         )}
 
-        {/* Icon editor for non-button elements (buttons use ButtonEditor) */}
+        {}
         {!isButton && renderIconEditor()}
       </div>
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
 

@@ -20,7 +20,7 @@ export function OfferCardsManager({
   onDelete,
   onMigrate
 }: OfferCardsManagerProps): JSX.Element {
-  // Check if migration is needed (if any card doesn't have topLabel styles)
+  
   const needsMigration = offerCards.length > 0 && offerCards.some(card => !card.styles?.topLabel);
   
   return (

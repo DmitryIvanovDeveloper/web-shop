@@ -59,7 +59,7 @@ export function PurchasesAnalyticsPanel({ presenter }: PurchasesAnalyticsPanelPr
         </button>
       </div>
 
-      {/* Summary Cards */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg">
           <div className="flex items-center justify-between">
@@ -98,14 +98,14 @@ export function PurchasesAnalyticsPanel({ presenter }: PurchasesAnalyticsPanelPr
         </div>
       </div>
 
-      {/* Error State */}
+      {}
       {error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-sm text-red-600">{error}</p>
         </div>
       )}
 
-      {/* Purchases Table */}
+      {}
       <div className="border rounded-lg">
         <div className="p-4 border-b bg-gray-50">
           <h4 className="text-sm font-medium text-gray-900">

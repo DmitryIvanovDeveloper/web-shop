@@ -2,12 +2,11 @@ import type { Result } from '../../../../shared/result/result';
 import type { Translation } from '../../domain/entities/translation';
 
 export interface TranslationRepositoryPort {
-  // Single operations
+  
   getTranslation(key: string, languageCode: string): Promise<Result<Translation | null, Error>>;
   createTranslation(translation: Translation): Promise<Result<Translation, Error>>;
   updateTranslation(key: string, languageCode: string, value: string): Promise<Result<Translation, Error>>;
 
-  // Bulk operations
   findAll(): Promise<Result<Translation[], Error>>;
   getTranslationsByLanguage(languageCode: string): Promise<Result<Translation[], Error>>;
   upsertTranslation(key: string, languageCode: string, value: string): Promise<Result<{ translation: Translation; wasCreated: boolean }, Error>>;
@@ -17,7 +16,6 @@ export interface TranslationRepositoryPort {
     value: string;
   }>): Promise<Result<void, Error>>;
 
-  // Statistics
   getTranslationCoverage(languageCode: string): Promise<Result<{
     totalKeys: number;
     translatedKeys: number;

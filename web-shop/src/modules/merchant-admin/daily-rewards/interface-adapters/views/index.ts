@@ -1,7 +1,2 @@
 export { DailyRewardsPage } from './DailyRewardsPage';
 
-
-
-
-
-

@@ -42,7 +42,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     let query = databaseClient.from('projects');
 
     if (id) {
-      // Find by ID
+      
       const { data, error } = await query
         .select('*')
         .eq('id', id)
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     if (appId) {
-      // Find by app_id
+      
       const { data, error } = await query
         .select('*')
         .eq('app_id', appId)
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     if (merchantId) {
-      // Find by merchant_id
+      
       const { data, error } = await query
         .select('*')
         .eq('merchant_id', merchantId)
@@ -110,7 +110,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const data = validationResult.data;
     const databaseClient = container.get<DatabaseClientPort>(TYPES.DatabaseClient);
 
-    // Check if app_id already exists
     const { data: existingProject, error: checkError } = await databaseClient
       .from('projects')
       .select('id')
@@ -125,7 +124,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Project with this app_id already exists' }, { status: 409 });
     }
 
-    // Create project
     const projectData = {
       id: data.id,
       app_id: data.appId,
@@ -144,7 +142,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .single();
 
     if (error) {
-      if (error.code === '23505') { // Unique constraint violation
+      if (error.code === '23505') { 
         return NextResponse.json({ error: 'Project with this ID or app_id already exists' }, { status: 409 });
       }
       return NextResponse.json({ error: error.message }, { status: 500 });

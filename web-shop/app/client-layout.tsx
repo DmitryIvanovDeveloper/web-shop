@@ -15,14 +15,11 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   const searchParams = useSearchParams();
   const [isNavigating, setIsNavigating] = useState(false);
 
-  // Get appId and merchantId from URL search params
   const appIdFromUrl = searchParams?.get('appId');
   const merchantIdFromUrl = searchParams?.get('merchantId');
-  
-  // Get selected project data (includes merchantId and appId)
+
   const { selectedProject } = useSelectedProject();
-  
-  // Priority: URL params first, then selected project
+
   const appId = appIdFromUrl || selectedProject?.appId || null;
   const merchantId = merchantIdFromUrl || selectedProject?.merchantId || null;
 
@@ -56,8 +53,6 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
     };
   }, [appId, merchantId]);
 
-  // Individual pages handle appId validation and redirect to projects if needed
-
   const handleSelect = (key: string) => {
     const target = routes[key];
     if (target) {
@@ -66,14 +61,13 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
     }
   };
 
-  // Reset navigation state when route changes
   useEffect(() => {
     setIsNavigating(false);
   }, [pathname]);
 
   return (
     <div className="h-screen flex">
-      {/* Navigation Loading Bar */}
+      {}
       {isNavigating && (
         <div
           style={{

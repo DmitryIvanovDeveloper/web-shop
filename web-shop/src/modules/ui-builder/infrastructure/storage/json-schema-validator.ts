@@ -2,7 +2,7 @@ import type { ConfigValidatorPort, ValidationResult } from '../../application/po
 
 export class JsonSchemaValidator implements ConfigValidatorPort {
   async validate(config: Record<string, unknown>): Promise<ValidationResult> {
-    // Stub: always succeed and echo back
+    
     return {
       isSuccess: true,
       isFailure: false,
@@ -10,22 +10,4 @@ export class JsonSchemaValidator implements ConfigValidatorPort {
     };
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

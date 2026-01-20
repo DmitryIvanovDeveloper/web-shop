@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 export interface TourStep {
-  target: string; // CSS selector
+  target: string; 
   title: string;
   content: string;
   position?: 'top' | 'bottom' | 'left' | 'right';
@@ -43,7 +43,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
 
     window.addEventListener('scroll', updateRect, { passive: true });
     window.addEventListener('resize', updateRect);
-    const interval = window.setInterval(updateRect, 150); // safeguard while animating scroll
+    const interval = window.setInterval(updateRect, 150); 
 
     return () => {
       window.removeEventListener('scroll', updateRect);
@@ -77,7 +77,6 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
     setCurrentStep(0);
   };
 
-  // Compute tooltip position (prefer bottom, clamp to viewport)
   const tooltipWidth = 400;
   const tooltipMaxHeight = 220;
   const bottomSpace = window.innerHeight - rect.bottom - 16;
@@ -87,9 +86,9 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
 
   return (
     <>
-      {/* Overlay */}
+      {}
       <div className="fixed inset-0 z-[1000] pointer-events-none">
-        {/* Spotlight effect */}
+        {}
         <div
           className="absolute pointer-events-auto rounded-lg"
           style={{
@@ -103,7 +102,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
           }}
         />
 
-        {/* Tooltip */}
+        {}
         <div
           className="absolute bg-white rounded-xl shadow-2xl max-w-md w-[400px] p-6 pointer-events-auto z-[1001]"
           style={{
@@ -111,7 +110,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
             left: `${tooltipLeft}px`,
           }}
         >
-          {/* Header */}
+          {}
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="text-lg font-bold text-gray-900">{step.title}</h3>
@@ -130,10 +129,10 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
             </button>
           </div>
 
-          {/* Content */}
+          {}
           <p className="text-gray-700 mb-6">{step.content}</p>
 
-          {/* Progress dots */}
+          {}
           <div className="flex items-center gap-2 mb-6">
             {steps.map((_, index) => (
               <div
@@ -150,7 +149,7 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
             ))}
           </div>
 
-          {/* Actions */}
+          {}
           <div className="flex items-center justify-between">
             <button
               onClick={handlePrevious}
@@ -181,12 +180,11 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
   );
 };
 
-// Hook to manage tour state
 export const useOnboardingTour = (tourKey: string) => {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    // Check if tour has been completed
+    
     const hasCompletedTour = localStorage.getItem(`tour-completed-${tourKey}`);
     if (!hasCompletedTour) {
       setIsOpen(true);

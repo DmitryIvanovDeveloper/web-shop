@@ -256,4 +256,3 @@ export class SupabaseTemplateRepository implements TemplateRepositoryPort {
   }
 }
 
-

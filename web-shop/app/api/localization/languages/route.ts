@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const supabase = getSupabaseServerClient();
 
     if (code) {
-      // Get specific language by code
+      
       const { data, error } = await supabase
         .from('languages')
         .select('*')
@@ -17,14 +17,12 @@ export async function GET(request: NextRequest) {
         .single();
 
       if (error) {
-        console.error('[API] Failed to get language by code:', error);
-        return NextResponse.json(
+                return NextResponse.json(
           { error: 'Language not found' },
           { status: 404 }
         );
       }
 
-      // Map to API response format
       const language = {
         id: data.id,
         code: data.code,
@@ -40,22 +38,19 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json(language);
     } else {
-      // Get all languages
-      console.log('[API] Getting all languages from Supabase...');
-      const { data, error } = await supabase
+      
+            const { data, error } = await supabase
         .from('languages')
         .select('*')
         .order('name', { ascending: true });
 
       if (error) {
-        console.error('[API] Failed to get languages:', error);
-        return NextResponse.json(
+                return NextResponse.json(
           { error: 'Failed to get languages' },
           { status: 500 }
         );
       }
 
-      // Map to API response format
       const languages = data.map((language: any) => ({
         id: language.id,
         code: language.code,
@@ -72,8 +67,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(languages);
     }
   } catch (error) {
-    console.error('[API] Unexpected error getting languages:', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
@@ -110,8 +104,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('[API] Failed to create language:', error);
-      if (error.code === '23505') { // Unique constraint violation
+            if (error.code === '23505') { 
         return NextResponse.json(
           { error: 'Language with this code already exists' },
           { status: 409 }
@@ -123,7 +116,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Map to API response format
     const language = {
       id: data.id,
       code: data.code,
@@ -137,11 +129,9 @@ export async function POST(request: NextRequest) {
       updatedAt: data.updated_at
     };
 
-    console.log('[API] Language created successfully:', code);
-    return NextResponse.json(language, { status: 201 });
+        return NextResponse.json(language, { status: 201 });
   } catch (error) {
-    console.error('[API] Unexpected error creating language:', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );

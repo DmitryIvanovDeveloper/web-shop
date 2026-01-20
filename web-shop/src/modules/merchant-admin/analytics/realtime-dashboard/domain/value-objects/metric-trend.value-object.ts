@@ -28,7 +28,6 @@ export class MetricTrend {
     this.maxValue = Math.max(...values);
     this.averageValue = values.reduce((sum, val) => sum + val, 0) / values.length;
 
-    // Определяем тренд по первым и последним точкам
     const firstValue = dataPoints[0].value;
     const lastValue = dataPoints[dataPoints.length - 1].value;
     this.isIncreasing = lastValue > firstValue;
@@ -40,7 +39,6 @@ export class MetricTrend {
       throw new Error('Data points must be an array');
     }
 
-    // Валидация точек данных
     for (const point of dataPoints) {
       if (!point.date || typeof point.value !== 'number' || isNaN(point.value)) {
         throw new Error('Invalid trend data point');
@@ -102,41 +100,4 @@ export class MetricTrend {
     };
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

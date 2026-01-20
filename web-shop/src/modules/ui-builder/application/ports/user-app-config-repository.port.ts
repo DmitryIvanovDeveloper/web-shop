@@ -13,13 +13,3 @@ export interface UserAppConfigRepositoryPort {
   list(filter: ListUserAppConfigsFilter): Promise<UserAppConfigSummary[]>;
 }
 
-
-
-
-
-
-
-
-
-
-

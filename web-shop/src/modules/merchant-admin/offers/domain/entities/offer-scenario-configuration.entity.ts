@@ -37,13 +37,10 @@ export class OfferScenarioConfiguration {
   public static create(
     props: OfferScenarioConfigurationProps
   ): Result<OfferScenarioConfiguration, OfferScenarioConfigurationError> {
-    // Support both old format (single offerIds) and new format (conditions array)
-    // If conditions array exists (even if empty), it's valid - user may have unselected all products
+
     const hasConditions = props.conditions !== undefined;
     const hasOfferIds = props.offerIds && props.offerIds.length > 0;
 
-    // Allow empty conditions array (user may have unselected all products)
-    // But require at least offerIds if no conditions array is provided
     if (!hasConditions && !hasOfferIds) {
       return Result.error(
         new OfferScenarioConfigurationError(
@@ -52,7 +49,6 @@ export class OfferScenarioConfiguration {
       );
     }
 
-    // Validate offerIds if provided (backward compatibility)
     let trimmedOfferIds: readonly string[] = [];
     if (hasOfferIds) {
       trimmedOfferIds = props.offerIds.map((id) => id.trim()).filter((id) => id.length > 0);
@@ -84,7 +80,6 @@ export class OfferScenarioConfiguration {
       }
     }
 
-    // Validate and process conditions array
     const conditions: {
       readonly triggerCode: OfferTriggerCode;
       readonly offerIds: readonly string[];
@@ -93,8 +88,7 @@ export class OfferScenarioConfiguration {
 
     if (hasConditions && props.conditions!.length > 0) {
       for (const conditionConfig of props.conditions!) {
-        // Allow empty offerIds - user may have unselected all products for this condition
-        // Empty arrays are valid, we just need the condition structure to exist
+
         if (!conditionConfig.offerIds) {
           return Result.error(
             new OfferScenarioConfigurationError(
@@ -103,11 +97,9 @@ export class OfferScenarioConfiguration {
           );
         }
 
-        // Allow empty offerIds - user may have unselected all products for this condition
         const trimmedConditionOfferIds = conditionConfig.offerIds
           .map((id) => id.trim())
           .filter((id) => id.length > 0);
-        // No validation error for empty arrays - this is valid when user unchecks all products
 
         const conditionItems: OfferItem[] = [];
         if (conditionConfig.items) {
@@ -122,7 +114,7 @@ export class OfferScenarioConfiguration {
 
         conditions.push({
           triggerCode: conditionConfig.triggerCode,
-          offerIds: Object.freeze(trimmedConditionOfferIds), // Can be empty array
+          offerIds: Object.freeze(trimmedConditionOfferIds), 
           items: Object.freeze(conditionItems),
         });
       }
@@ -182,14 +174,4 @@ export class OfferScenarioConfiguration {
     };
   }
 }
-
-
-
-
-
-
-
-
-
-
 

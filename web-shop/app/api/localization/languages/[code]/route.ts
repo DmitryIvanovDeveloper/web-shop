@@ -35,8 +35,7 @@ export async function PUT(
       .single();
 
     if (error) {
-      console.error('[API] Failed to update language:', error);
-      return NextResponse.json(
+            return NextResponse.json(
         { error: error.message },
         { status: 500 }
       );
@@ -49,7 +48,6 @@ export async function PUT(
       );
     }
 
-    // Map to API response format
     const language = {
       id: data.id,
       code: data.code,
@@ -63,11 +61,9 @@ export async function PUT(
       updatedAt: data.updated_at
     };
 
-    console.log('[API] Language updated successfully:', code);
-    return NextResponse.json(language);
+        return NextResponse.json(language);
   } catch (error) {
-    console.error('[API] Unexpected error updating language:', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );

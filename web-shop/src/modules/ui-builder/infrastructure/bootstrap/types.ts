@@ -1,15 +1,12 @@
 export const UI_BUILDER_TYPES = {
-  // Storage
+  
   ConfigStorage: Symbol.for('UIBuilder.ConfigStorage'),
   ConfigStoragePort: Symbol.for('UIBuilder.ConfigStoragePort'),
 
-  // Validators
   ConfigValidator: Symbol.for('UIBuilder.ConfigValidator'),
 
-  // Communication
   PreviewCommunication: Symbol.for('UIBuilder.PreviewCommunication'),
 
-  // Use Cases
   LoadConfigUseCase: Symbol.for('UIBuilder.LoadConfigUseCase'),
   SaveConfigUseCase: Symbol.for('UIBuilder.SaveConfigUseCase'),
   ValidateConfigUseCase: Symbol.for('UIBuilder.ValidateConfigUseCase'),
@@ -19,8 +16,7 @@ export const UI_BUILDER_TYPES = {
   LoadActiveConfigUseCase: Symbol.for('UIBuilder.LoadActiveConfigUseCase'),
   PublishDraftUseCase: Symbol.for('UIBuilder.PublishDraftUseCase'),
   UpdateOfferCardsUseCase: Symbol.for('UIBuilder.UpdateOfferCardsUseCase'),
-  
-  // Page Config Storage & Use Cases
+
   PageConfigStorage: Symbol.for('UIBuilder.PageConfigStorage'),
   LoadPageDraftUseCase: Symbol.for('UIBuilder.LoadPageDraftUseCase'),
   SavePageDraftUseCase: Symbol.for('UIBuilder.SavePageDraftUseCase'),
@@ -28,7 +24,6 @@ export const UI_BUILDER_TYPES = {
   CreatePageUseCase: Symbol.for('UIBuilder.CreatePageUseCase'),
   ListPagesUseCase: Symbol.for('UIBuilder.ListPagesUseCase'),
 
-  // Templates
   TemplateRepository: Symbol.for('UIBuilder.TemplateRepository'),
   CreateTemplateUseCase: Symbol.for('UIBuilder.CreateTemplateUseCase'),
   UpdateTemplateUseCase: Symbol.for('UIBuilder.UpdateTemplateUseCase'),
@@ -37,18 +32,12 @@ export const UI_BUILDER_TYPES = {
   GetTemplateDetailsUseCase: Symbol.for('UIBuilder.GetTemplateDetailsUseCase'),
   PublishTemplateUseCase: Symbol.for('UIBuilder.PublishTemplateUseCase'),
 
-  // User App Configs
   UserAppConfigRepository: Symbol.for('UIBuilder.UserAppConfigRepository'),
   ListUserAppConfigsUseCase: Symbol.for('UIBuilder.ListUserAppConfigsUseCase'),
   ApplyUserAppConfigUseCase: Symbol.for('UIBuilder.ApplyUserAppConfigUseCase'),
 
-  // Presenters
   UIBuilderPresenter: Symbol.for('UIBuilder.UIBuilderPresenter'),
   PageConstructorPresenter: Symbol.for('UIBuilder.PageConstructorPresenter'),
   TemplatesPresenter: Symbol.for('UIBuilder.TemplatesPresenter'),
 };
-
-
-
-
 

@@ -43,7 +43,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const databaseClient = container.get<DatabaseClientPort>(TYPES.DatabaseClient);
 
     if (id) {
-      // Find by ID
+      
       const { data, error } = await databaseClient
         .from('patch_notes')
         .select('*')
@@ -52,8 +52,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('[GET /api/merchant-admin/patch-notes] Failed to find patch note by ID', error);
-        return NextResponse.json({ error: 'Failed to find patch note' }, { status: 500 });
+                return NextResponse.json({ error: 'Failed to find patch note' }, { status: 500 });
       }
 
       if (!data) {
@@ -62,7 +61,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
       return NextResponse.json([data]);
     } else if (version) {
-      // Find by version
+      
       const { data, error } = await databaseClient
         .from('patch_notes')
         .select('*')
@@ -71,8 +70,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('[GET /api/merchant-admin/patch-notes] Failed to find patch note by version', error);
-        return NextResponse.json({ error: 'Failed to find patch note' }, { status: 500 });
+                return NextResponse.json({ error: 'Failed to find patch note' }, { status: 500 });
       }
 
       if (!data) {
@@ -81,7 +79,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
       return NextResponse.json([data]);
     } else {
-      // Find all with optional status filter
+      
       let query = databaseClient
         .from('patch_notes')
         .select('*')
@@ -94,15 +92,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
-        console.error('[GET /api/merchant-admin/patch-notes] Failed to find patch notes', error);
-        return NextResponse.json({ error: 'Failed to fetch patch notes' }, { status: 500 });
+                return NextResponse.json({ error: 'Failed to fetch patch notes' }, { status: 500 });
       }
 
       return NextResponse.json(data || []);
     }
   } catch (error) {
-    console.error('[GET /api/merchant-admin/patch-notes] Unexpected error', error);
-    return NextResponse.json({ error: 'Unexpected error while fetching patch notes' }, { status: 500 });
+        return NextResponse.json({ error: 'Unexpected error while fetching patch notes' }, { status: 500 });
   }
 }
 
@@ -119,7 +115,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const databaseClient = container.get<DatabaseClientPort>(TYPES.DatabaseClient);
 
-    // Create patch note entity to get proper structure
     const patchNote = PatchNote.create(
       PatchNoteId.create(),
       appId,
@@ -129,7 +124,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       changes.map(change => ChangeItem.create(change.type, change.description))
     );
 
-    // Convert to database row format
     const row = {
       id: patchNote.id.value,
       app_id: patchNote.appId,
@@ -152,8 +146,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .insert(row);
 
     if (error) {
-      console.error('[POST /api/merchant-admin/patch-notes] Failed to create patch note', error);
-      return NextResponse.json({ error: `Failed to create patch note: ${error.message}` }, { status: 500 });
+            return NextResponse.json({ error: `Failed to create patch note: ${error.message}` }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -173,8 +166,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       scheduledFor: patchNote.scheduledFor?.toISOString()
     }, { status: 201 });
   } catch (error) {
-    console.error('[POST /api/merchant-admin/patch-notes] Unexpected error', error);
-    return NextResponse.json({ error: 'Unexpected error while creating patch note' }, { status: 500 });
+        return NextResponse.json({ error: 'Unexpected error while creating patch note' }, { status: 500 });
   }
 }
 
@@ -199,7 +191,6 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
 
     const databaseClient = container.get<DatabaseClientPort>(TYPES.DatabaseClient);
 
-    // Prepare update data
     const updateData: any = {
       updated_at: new Date().toISOString()
     };
@@ -220,11 +211,9 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
       .eq('app_id', appId);
 
     if (error) {
-      console.error('[PUT /api/merchant-admin/patch-notes] Failed to update patch note', error);
-      return NextResponse.json({ error: `Failed to update patch note: ${error.message}` }, { status: 500 });
+            return NextResponse.json({ error: `Failed to update patch note: ${error.message}` }, { status: 500 });
     }
 
-    // Get updated record
     const { data: updatedData, error: fetchError } = await databaseClient
       .from('patch_notes')
       .select('*')
@@ -233,14 +222,12 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
       .single();
 
     if (fetchError) {
-      console.error('[PUT /api/merchant-admin/patch-notes] Failed to fetch updated patch note', fetchError);
-      return NextResponse.json({ error: 'Failed to fetch updated patch note' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to fetch updated patch note' }, { status: 500 });
     }
 
     return NextResponse.json(updatedData);
   } catch (error) {
-    console.error('[PUT /api/merchant-admin/patch-notes] Unexpected error', error);
-    return NextResponse.json({ error: 'Unexpected error while updating patch note' }, { status: 500 });
+        return NextResponse.json({ error: 'Unexpected error while updating patch note' }, { status: 500 });
   }
 }
 
@@ -263,13 +250,11 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
       .eq('app_id', appId);
 
     if (error) {
-      console.error('[DELETE /api/merchant-admin/patch-notes] Failed to delete patch note', error);
-      return NextResponse.json({ error: `Failed to delete patch note: ${error.message}` }, { status: 500 });
+            return NextResponse.json({ error: `Failed to delete patch note: ${error.message}` }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[DELETE /api/merchant-admin/patch-notes] Unexpected error', error);
-    return NextResponse.json({ error: 'Unexpected error while deleting patch note' }, { status: 500 });
+        return NextResponse.json({ error: 'Unexpected error while deleting patch note' }, { status: 500 });
   }
 }

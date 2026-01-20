@@ -3,13 +3,13 @@ import { InvalidArgumentError } from '../../../../../../shared/domain/errors/inv
 
 export interface DataFreshnessProps {
   lastUpdated: Date;
-  targetLatencySeconds?: number; // Default 300 (5 min)
-  maxLatencySeconds?: number; // Default 900 (15 min)
+  targetLatencySeconds?: number; 
+  maxLatencySeconds?: number; 
 }
 
 export class DataFreshness {
-  private readonly FRESH_THRESHOLD_SECONDS = 300; // 5 minutes
-  private readonly STALE_THRESHOLD_SECONDS = 900; // 15 minutes
+  private readonly FRESH_THRESHOLD_SECONDS = 300; 
+  private readonly STALE_THRESHOLD_SECONDS = 900; 
 
   private constructor(
     public readonly lastUpdated: Date,
@@ -87,5 +87,4 @@ export class DataFreshness {
     });
   }
 }
-
 

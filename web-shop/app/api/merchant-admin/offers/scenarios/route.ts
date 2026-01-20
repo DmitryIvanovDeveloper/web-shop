@@ -59,8 +59,7 @@ export const GET = async (request: NextRequest) => {
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.error('[GET /merchant-admin/offers/scenarios] Unexpected error', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Unexpected error while loading scenarios' },
       { status: 500 }
     );
@@ -101,8 +100,7 @@ export const PUT = async (request: NextRequest) => {
       );
 
     if (error) {
-      console.error('[PUT /merchant-admin/offers/scenarios] Supabase error', error);
-      return NextResponse.json(
+            return NextResponse.json(
         { error: 'Failed to save scenario to Supabase' },
         { status: 500 }
       );
@@ -110,21 +108,10 @@ export const PUT = async (request: NextRequest) => {
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error('[PUT /merchant-admin/offers/scenarios] Unexpected error', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Unexpected error while saving scenario' },
       { status: 500 }
     );
   }
 };
-
-
-
-
-
-
-
-
-
-
 

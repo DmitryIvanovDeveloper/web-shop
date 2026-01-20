@@ -2,12 +2,12 @@ import React from 'react';
 import { MultiLineChart, LineSeries } from '../../../../../../shared/ui/charts/MultiLineChart';
 
 export interface RetentionSeriesPoint {
-  label: string; // e.g., D0, D1, D7, D30
-  value: number; // percentage 0..100
+  label: string; 
+  value: number; 
 }
 
 export interface RetentionPanelProps {
-  series: LineSeries[]; // each series is a cohort curve
+  series: LineSeries[]; 
 }
 
 export const RetentionPanel: React.FC<RetentionPanelProps> = ({ series }) => {
@@ -32,7 +32,4 @@ export const RetentionPanel: React.FC<RetentionPanelProps> = ({ series }) => {
     </div>
   );
 };
-
-
-
 

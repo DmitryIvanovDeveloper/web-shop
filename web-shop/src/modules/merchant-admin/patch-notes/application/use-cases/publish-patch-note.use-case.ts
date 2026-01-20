@@ -18,7 +18,7 @@ export class PublishPatchNoteUseCase {
 
   async execute(input: PublishPatchNoteInput): Promise<Result<PatchNoteOutput, Error>> {
     try {
-      // Find the patch note first
+      
       const findResult = await this._patchNoteRepository.findById(input.id, input.appId);
       if (!findResult.isSuccess) {
         return findResult;
@@ -30,12 +30,10 @@ export class PublishPatchNoteUseCase {
 
       const patchNote = findResult.data;
 
-      // Check if it's already published
       if (patchNote.status === 'published') {
         return { isSuccess: false, error: new Error('Patch note is already published') };
       }
 
-      // Update the patch note to published status
       patchNote.status = 'published';
       patchNote.publishedAt = new Date();
 
@@ -69,11 +67,4 @@ export class PublishPatchNoteUseCase {
     }
   }
 }
-
-
-
-
-
-
-
 

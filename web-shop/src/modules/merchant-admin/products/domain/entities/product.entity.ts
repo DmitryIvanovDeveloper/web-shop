@@ -48,21 +48,19 @@ export class Product {
   public static create(
     props: ProductProps
   ): Result<Product, InvalidArgumentError | ProductValidationError> {
-    // Validate required fields
+    
     if (!props.title || props.title.trim().length === 0) {
       return Result.error(
         new ProductValidationError('Product title is required and cannot be empty')
       );
     }
 
-    // Validate price is non-negative if provided
     if (props.price !== null && props.price !== undefined && props.price < 0) {
       return Result.error(
         new ProductValidationError('Product price must be non-negative')
       );
     }
 
-    // Validate bonuses are non-negative if provided
     if (props.rp_bonus !== null && props.rp_bonus !== undefined && props.rp_bonus < 0) {
       return Result.error(
         new ProductValidationError('Product rp_bonus must be non-negative')
@@ -75,14 +73,11 @@ export class Product {
       );
     }
 
-    // Validate limited_offer is non-negative if provided
     if (props.limited_offer !== null && props.limited_offer !== undefined && props.limited_offer < 0) {
       return Result.error(
         new ProductValidationError('Product limited_offer must be non-negative')
       );
     }
-
-    // Note: expires_at can be in the past (for expired products) - no validation needed
 
     return Result.ok(
       new Product(
@@ -218,6 +213,4 @@ export class Product {
     };
   }
 }
-
-
 

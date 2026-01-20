@@ -34,7 +34,6 @@ export class CreateProjectUseCase {
       const appId = AppId.create(request.appId);
       const merchantId = MerchantId.fromString(request.merchantId);
 
-      // Check if project with this app_id already exists
       const existsResult = await this._projectRepository.existsByAppId(appId);
       if (existsResult.isFailure) {
         return Result.error(existsResult.error!);
@@ -44,12 +43,11 @@ export class CreateProjectUseCase {
         return Result.error(new ProjectAlreadyExistsError(appId.value));
       }
 
-      // Create project
       const projectResult = Project.create({
         appId,
         name: request.name,
         description: request.description,
-        status: ProjectStatus.create('active'), // New projects are active by default
+        status: ProjectStatus.create('active'), 
         merchantId
       });
 
@@ -59,13 +57,11 @@ export class CreateProjectUseCase {
 
       const project = projectResult.value!;
 
-      // Save to repository
       const saveResult = await this._projectRepository.save(project);
       if (saveResult.isFailure) {
         return Result.error(saveResult.error!);
       }
 
-      // Publish project created event
       await this._eventBus.publishSync(
         new ProjectCreatedEvent(
           project.id.value,

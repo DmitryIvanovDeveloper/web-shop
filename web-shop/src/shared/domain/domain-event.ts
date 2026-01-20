@@ -14,7 +14,6 @@ export abstract class DomainEvent implements Event {
     this.source = source;
   }
 
-  // Legacy properties for backward compatibility
   public get eventId(): string {
     return this.id;
   }
@@ -31,9 +30,4 @@ export abstract class DomainEvent implements Event {
     return this;
   }
 }
-
-
-
-
-
 

@@ -34,34 +34,32 @@ export default function ProjectsPage({ merchantId }: ProjectsPageProps) {
   }, [presenter]);
 
   const handleProjectSelect = async (projectId: string) => {
-    // Показать loading
+    
     setIsSelectingProject(true);
 
     try {
       const selectedProject = await presenter.selectProject(projectId);
 
       if (selectedProject) {
-        // Перенаправить в Analytics с appId в query
-        // Не сбрасываем loading - компонент размонтируется при навигации
+
         router.push(`/merchant-admin/analytics/dashboard?appId=${selectedProject.appId.value}&merchantId=${merchantId}`);
       } else {
-        // Если проект не найден, сбросить loading
+        
         setIsSelectingProject(false);
       }
     } catch (error) {
-      console.error('Failed to select project:', error);
-      // В случае ошибки сбросить loading
+            
       setIsSelectingProject(false);
     }
   };
 
   const handleCreateProject = async (formData: { name: string; description: string }) => {
-    // Generate App ID automatically from project name
+    
     const generatedAppId = formData.name
       .toUpperCase()
-      .replace(/[^A-Z0-9]/g, '_') // Replace non-alphanumeric with underscores
-      .replace(/_+/g, '_') // Replace multiple underscores with single
-      .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
+      .replace(/[^A-Z0-9]/g, '_') 
+      .replace(/_+/g, '_') 
+      .replace(/^_|_$/g, ''); 
 
     await presenter.createProject(formData.name, generatedAppId, formData.description);
     setShowCreateForm(false);
@@ -87,7 +85,7 @@ export default function ProjectsPage({ merchantId }: ProjectsPageProps) {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* Header Section */}
+        {}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
@@ -121,7 +119,7 @@ export default function ProjectsPage({ merchantId }: ProjectsPageProps) {
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
             <div className="flex items-center justify-between">
@@ -168,7 +166,7 @@ export default function ProjectsPage({ merchantId }: ProjectsPageProps) {
           </div>
         </div>
 
-        {/* Error Display */}
+        {}
         {viewModel.error && (
           <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
             <div className="flex items-start">
@@ -197,9 +195,9 @@ export default function ProjectsPage({ merchantId }: ProjectsPageProps) {
           </div>
         )}
 
-        {/* Main Content */}
+        {}
         {showCreateForm || editingProject ? (
-          /* Create/Edit Form */
+          
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
               <div className="flex items-center gap-3">
@@ -229,7 +227,7 @@ export default function ProjectsPage({ merchantId }: ProjectsPageProps) {
             </div>
           </div>
         ) : (
-          /* Projects Grid */
+          
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
@@ -241,7 +239,7 @@ export default function ProjectsPage({ merchantId }: ProjectsPageProps) {
             </div>
 
             {viewModel.projects.length === 0 ? (
-              /* Empty State */
+              
               <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-12 text-center">
                 <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -263,7 +261,7 @@ export default function ProjectsPage({ merchantId }: ProjectsPageProps) {
                 </button>
               </div>
             ) : (
-              /* Projects Grid */
+              
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {viewModel.projects.map((project) => (
                   <div
@@ -326,7 +324,7 @@ export default function ProjectsPage({ merchantId }: ProjectsPageProps) {
                       <div className="flex gap-2">
                         <button
                           onClick={(e) => {
-                            e.stopPropagation(); // Prevent card click
+                            e.stopPropagation(); 
                             setEditingProject(project.id);
                           }}
                           className="px-3 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 border border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 rounded-lg transition-colors"
@@ -345,7 +343,7 @@ export default function ProjectsPage({ merchantId }: ProjectsPageProps) {
           </div>
         )}
 
-        {/* Loading overlay when selecting project */}
+        {}
         {isSelectingProject && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-xl max-w-sm w-full mx-4">

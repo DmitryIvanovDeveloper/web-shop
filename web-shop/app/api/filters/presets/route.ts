@@ -28,7 +28,7 @@ type Preset = {
 };
 
 export async function GET(): Promise<NextResponse> {
-  // For now we return an empty presets list to unblock dashboard.
+  
   const response: { presets: Preset[] } = {
     presets: [],
   };

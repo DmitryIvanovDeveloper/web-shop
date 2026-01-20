@@ -12,7 +12,6 @@ export class AppId {
       throw new InvalidArgumentError('AppId cannot be empty or whitespace');
     }
 
-    // Validate format - alphanumeric with underscores and hyphens
     const appIdRegex = /^[a-zA-Z0-9_-]+$/;
     if (!appIdRegex.test(value)) {
       throw new InvalidArgumentError('AppId must contain only letters, numbers, underscores and hyphens');

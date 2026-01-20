@@ -1,13 +1,11 @@
 import { Container } from 'inversify';
 import { UI_BUILDER_TYPES } from './types';
 
-// Ports
 import type { ConfigStoragePort } from '../../application/ports/config-storage.port';
 import type { ConfigValidatorPort } from '../../application/ports/config-validator.port';
 import type { PreviewCommunicationPort } from '../../application/ports/preview-communication.port';
 import type { PageConfigStoragePort } from '../../application/ports/page-config-storage.port';
 
-// Implementations
 import { SupabaseConfigStorage } from '../storage/supabase-config.storage';
 import { JsonSchemaValidator } from '../storage/json-schema-validator';
 import { PostMessagePreviewAdapter } from '../messaging/postmessage-preview.adapter';
@@ -15,7 +13,6 @@ import { SupabasePageConfigStorage } from '../storage/supabase-page-config.stora
 import { SupabaseTemplateRepository } from '../storage/supabase-template.repository';
 import { SupabaseUserAppConfigRepository } from '../storage/supabase-user-app-config.repository';
 
-// Use Cases
 import { LoadConfigUseCase } from '../../application/use-cases/load-config.use-case';
 import { SaveConfigUseCase } from '../../application/use-cases/save-config.use-case';
 import { ValidateConfigUseCase } from '../../application/use-cases/validate-config.use-case';
@@ -39,13 +36,12 @@ import { PublishTemplateUseCase } from '../../application/use-cases/publish-temp
 import { ListUserAppConfigsUseCase } from '../../application/use-cases/list-user-app-configs.use-case';
 import { ApplyUserAppConfigUseCase } from '../../application/use-cases/apply-user-app-config.use-case';
 
-// Presenters
 import { UIBuilderPresenter } from '../../interface-adapters/presenters/ui-builder.presenter';
 import { PageConstructorPresenter } from '../../interface-adapters/presenters/page-constructor.presenter';
 import { TemplatesPresenter } from '../../interface-adapters/presenters/templates.presenter';
 
 export function bindUIBuilder(container: Container): void {
-  // Storage
+  
   container
     .bind<ConfigStoragePort>(UI_BUILDER_TYPES.ConfigStorage)
     .to(SupabaseConfigStorage)
@@ -56,25 +52,21 @@ export function bindUIBuilder(container: Container): void {
     .to(SupabaseConfigStorage)
     .inSingletonScope();
 
-  // Validators
   container
     .bind<ConfigValidatorPort>(UI_BUILDER_TYPES.ConfigValidator)
     .to(JsonSchemaValidator)
     .inSingletonScope();
 
-  // Communication
   container
     .bind<PreviewCommunicationPort>(UI_BUILDER_TYPES.PreviewCommunication)
     .to(PostMessagePreviewAdapter)
     .inSingletonScope();
 
-  // Page Config Storage
   container
     .bind<PageConfigStoragePort>(UI_BUILDER_TYPES.PageConfigStorage)
     .to(SupabasePageConfigStorage)
     .inSingletonScope();
 
-  // Templates repository
   container
     .bind<import('../../application/ports/template-repository.port').TemplateRepositoryPort>(
       UI_BUILDER_TYPES.TemplateRepository
@@ -82,7 +74,6 @@ export function bindUIBuilder(container: Container): void {
     .to(SupabaseTemplateRepository)
     .inSingletonScope();
 
-  // User App Config repository
   container
     .bind<import('../../application/ports/user-app-config-repository.port').UserAppConfigRepositoryPort>(
       UI_BUILDER_TYPES.UserAppConfigRepository
@@ -90,7 +81,6 @@ export function bindUIBuilder(container: Container): void {
     .to(SupabaseUserAppConfigRepository)
     .inSingletonScope();
 
-  // Use Cases
   container
     .bind<LoadConfigUseCase>(UI_BUILDER_TYPES.LoadConfigUseCase)
     .to(LoadConfigUseCase)
@@ -136,7 +126,6 @@ export function bindUIBuilder(container: Container): void {
     .to(UpdateOfferCardsUseCase)
     .inSingletonScope();
 
-  // Page Config Use Cases
   container
     .bind<LoadPageDraftUseCase>(UI_BUILDER_TYPES.LoadPageDraftUseCase)
     .to(LoadPageDraftUseCase)
@@ -162,7 +151,6 @@ export function bindUIBuilder(container: Container): void {
     .to(ListPagesUseCase)
     .inSingletonScope();
 
-  // Template use cases
   container
     .bind<CreateTemplateUseCase>(UI_BUILDER_TYPES.CreateTemplateUseCase)
     .to(CreateTemplateUseCase)
@@ -193,7 +181,6 @@ export function bindUIBuilder(container: Container): void {
     .to(PublishTemplateUseCase)
     .inSingletonScope();
 
-  // User App Config use cases
   container
     .bind<ListUserAppConfigsUseCase>(UI_BUILDER_TYPES.ListUserAppConfigsUseCase)
     .to(ListUserAppConfigsUseCase)
@@ -204,7 +191,6 @@ export function bindUIBuilder(container: Container): void {
     .to(ApplyUserAppConfigUseCase)
     .inSingletonScope();
 
-  // Presenters
   container
     .bind<UIBuilderPresenter>(UI_BUILDER_TYPES.UIBuilderPresenter)
     .to(UIBuilderPresenter)
@@ -220,8 +206,4 @@ export function bindUIBuilder(container: Container): void {
     .to(TemplatesPresenter)
     .inSingletonScope();
 }
-
-
-
-
 

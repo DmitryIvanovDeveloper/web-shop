@@ -33,25 +33,21 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home', pages = [
     return unsubscribe;
   }, [presenter]);
 
-  // Update offer cards when they change
   useEffect(() => {
     const updateOfferCards = () => {
       const cards = presenter.getOfferCards();
       const selectedId = presenter.getSelectedOfferCardId();
       setOfferCards(cards);
-      // Only update selectedOfferCardId if it's different to avoid unnecessary re-renders
+      
       setSelectedOfferCardId(prev => prev !== selectedId ? selectedId : prev);
     };
 
-    // Initial load
     updateOfferCards();
 
-    // Poll for updates (could be improved with subscription pattern)
     const interval = setInterval(updateOfferCards, 500);
     return () => clearInterval(interval);
   }, [presenter]);
-  
-  // Sync selectedOfferCardId when offerCards change
+
   useEffect(() => {
     const presenterSelectedId = presenter.getSelectedOfferCardId();
     if (presenterSelectedId !== selectedOfferCardId) {
@@ -91,9 +87,9 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home', pages = [
 
   return (
     <div className="flex h-full">
-      {/* Center Panel: Canvas/Preview */}
+      {}
       <main className="flex-1 bg-gray-50 overflow-hidden flex flex-col">
-        {/* Header with Preview Mode Toggle and Action Buttons */}
+        {}
         <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between">
           <div className="flex gap-2">
             <button
@@ -119,7 +115,7 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home', pages = [
           </div>
 
           <div className="flex gap-2 items-center">
-            {/* Action Buttons */}
+            {}
             <button
               onClick={() => presenter.saveDraft()}
               disabled={vm.isSaving}
@@ -140,7 +136,7 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home', pages = [
             
             {previewMode === 'live' && (
               <>
-                {/* Viewport Switcher */}
+                {}
                 <div className="flex gap-0.5 border border-gray-300 rounded p-0.5 ml-2">
                   <button
                     onClick={() => setViewportMode('mobile')}
@@ -195,7 +191,7 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home', pages = [
           </div>
         </div>
 
-        {/* Preview Content */}
+        {}
         <div className="flex-1 overflow-hidden">
           {previewMode === 'structure' ? (
             <PageCanvas
@@ -204,7 +200,7 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home', pages = [
               selectedComponentId={vm.selectedComponent?.id}
               onSelectSection={(sectionId) => {
                 presenter.selectSection(sectionId);
-                // Clear offer card selection when selecting section
+                
                 if (selectedOfferCardId) {
                   presenter.selectOfferCard(null);
                   setSelectedOfferCardId(null);
@@ -212,7 +208,7 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home', pages = [
               }}
               onSelectComponent={(sectionId, componentId) => {
                 presenter.selectComponent(sectionId, componentId);
-                // Clear offer card selection when selecting component
+                
                 if (selectedOfferCardId) {
                   presenter.selectOfferCard(null);
                   setSelectedOfferCardId(null);
@@ -240,13 +236,13 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home', pages = [
         </div>
       </main>
 
-      {/* Right Panel: Editor */}
+      {}
       <aside className="w-80 bg-white border-l border-gray-200 overflow-y-auto">
-        {/* Page Settings - Always visible at top */}
+        {}
         <div className="p-4 border-b border-gray-200">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">Page Settings</h3>
           
-          {/* Padding */}
+          {}
           <div className="mb-4">
             <label className="text-xs font-medium text-gray-600 block mb-1.5">
               Padding
@@ -320,7 +316,7 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home', pages = [
             </div>
           </div>
 
-          {/* Gap */}
+          {}
           <div className="mb-4">
             <label className="text-xs font-medium text-gray-600 block mb-1.5">
               Gap (Spacing)
@@ -394,7 +390,7 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home', pages = [
             </div>
           </div>
 
-          {/* Background Color */}
+          {}
           <div className="mb-4">
             <label className="text-xs font-medium text-gray-600 block mb-1.5">
               Background Color
@@ -417,7 +413,7 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home', pages = [
             </div>
           </div>
 
-          {/* Background Opacity */}
+          {}
           <div>
             <label className="text-xs font-medium text-gray-600 block mb-1.5">
               Background Opacity
@@ -453,7 +449,7 @@ export function PageConstructor({ presenter, appId, pageSlug = 'home', pages = [
         {selectedOfferCardId && (() => {
           const selectedCard = offerCards.find(card => card.id === selectedOfferCardId);
           if (!selectedCard) {
-            // Try to get from presenter as fallback
+            
             const presenterCard = presenter.getSelectedOfferCard();
             if (!presenterCard) return null;
             return (

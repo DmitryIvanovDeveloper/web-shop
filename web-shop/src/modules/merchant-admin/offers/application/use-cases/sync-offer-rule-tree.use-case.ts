@@ -58,13 +58,3 @@ export class SyncOfferRuleTreeUseCase {
   }
 }
 
-
-
-
-
-
-
-
-
-
-

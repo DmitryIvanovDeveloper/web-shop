@@ -48,6 +48,3 @@ export const RefundsTable: React.FC<RefundsTableProps> = ({ rows }) => {
   );
 };
 
-
-
-

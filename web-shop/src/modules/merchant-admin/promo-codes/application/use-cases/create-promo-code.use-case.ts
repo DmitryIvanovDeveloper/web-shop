@@ -36,12 +36,7 @@ export class CreatePromoCodeUseCase {
   ) {}
 
   public async execute(input: CreatePromoCodeInput): Promise<Result<PromoCode, Error>> {
-    this.logger.info('[CreatePromoCodeUseCase] Creating promo code', {
-      appId: input.appId,
-      code: input.code,
-    });
-
-    const existsResult = await this.promoCodeRepository.existsByCode(input.appId, input.code);
+        const existsResult = await this.promoCodeRepository.existsByCode(input.appId, input.code);
     if (existsResult.isFailure()) {
       return Result.error(existsResult.error!);
     }
@@ -87,5 +82,4 @@ export class CreatePromoCodeUseCase {
     return saveResult;
   }
 }
-
 

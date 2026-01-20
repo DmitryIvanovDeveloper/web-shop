@@ -8,7 +8,6 @@ import { TransactionsSummary, Transaction } from '../domain/entities/transaction
 import { SalesSummary } from '../domain/entities/sales-summary.entity';
 import { RevenueSummary } from '../domain/entities/revenue-summary.entity';
 
-// Мокаем DonutChart компонент
 vi.mock('../../../../../../shared/ui/charts/DonutChart', () => ({
   DonutChart: ({ data, title }: any) => {
     return React.createElement('div', {
@@ -53,15 +52,12 @@ describe('UI Display Integration Tests', () => {
 
       render(<GeographyPanel geographySummary={geographySummary} />);
 
-      // Проверяем заголовок
       expect(screen.getByText('Geography Panel')).toBeInTheDocument();
       expect(screen.getByText('LIVE')).toBeInTheDocument();
 
-      // Проверяем, что DonutChart отображается
       expect(screen.getByTestId('donut-chart')).toBeInTheDocument();
       expect(screen.getByText('Regional Distribution')).toBeInTheDocument();
 
-      // Проверяем данные в графике
       expect(screen.getByTestId('chart-item-0')).toHaveTextContent('US: 45%');
       expect(screen.getByTestId('chart-item-1')).toHaveTextContent('EU: 30%');
       expect(screen.getByTestId('chart-item-2')).toHaveTextContent('Asia: 15%');
@@ -75,11 +71,9 @@ describe('UI Display Integration Tests', () => {
 
       render(<GeographyPanel geographySummary={geographySummary} />);
 
-      // Проверяем, что компонент все равно отображается
       expect(screen.getByText('Geography Panel')).toBeInTheDocument();
       expect(screen.getByTestId('donut-chart')).toBeInTheDocument();
       
-      // Проверяем, что нет данных для отображения
       expect(screen.getByTestId('chart-data')).toBeEmptyDOMElement();
     });
   });
@@ -113,7 +107,6 @@ describe('UI Display Integration Tests', () => {
 
       const transactionsSummary = TransactionsSummary.fromApiResponse(transactionsData);
 
-      // Создаем простой компонент для отображения транзакций
       const TransactionsTable = ({ transactions }: { transactions: Transaction[] }) => (
         <div data-testid="transactions-table">
           <table>
@@ -145,7 +138,6 @@ describe('UI Display Integration Tests', () => {
 
       render(<TransactionsTable transactions={transactionsSummary.transactions} />);
 
-      // Проверяем заголовки таблицы
       expect(screen.getByText('DATE')).toBeInTheDocument();
       expect(screen.getByText('USER')).toBeInTheDocument();
       expect(screen.getByText('AMOUNT')).toBeInTheDocument();
@@ -153,11 +145,9 @@ describe('UI Display Integration Tests', () => {
       expect(screen.getByText('COUNTRY')).toBeInTheDocument();
       expect(screen.getByText('METH')).toBeInTheDocument();
 
-      // Проверяем данные транзакций
       expect(screen.getByTestId('transaction-row-tx-001')).toBeInTheDocument();
       expect(screen.getByTestId('transaction-row-tx-002')).toBeInTheDocument();
 
-      // Проверяем содержимое первой транзакции
       const firstRow = screen.getByTestId('transaction-row-tx-001');
       expect(firstRow).toHaveTextContent('user-1234');
       expect(firstRow).toHaveTextContent('45.99');
@@ -207,10 +197,8 @@ describe('UI Display Integration Tests', () => {
 
       render(<TransactionsTable transactions={transactionsSummary.transactions} />);
 
-      // Проверяем, что таблица отображается
       expect(screen.getByTestId('transactions-table')).toBeInTheDocument();
       
-      // Проверяем, что показывается состояние "нет данных"
       expect(screen.getByTestId('empty-state')).toBeInTheDocument();
       expect(screen.getByText('No transactions found')).toBeInTheDocument();
     });
@@ -233,7 +221,6 @@ describe('UI Display Integration Tests', () => {
 
       const salesSummary = SalesSummary.fromApiResponse(salesData);
 
-      // Создаем простой компонент для отображения KPI
       const SalesKPIPanel = ({ salesSummary }: { salesSummary: SalesSummary }) => (
         <div data-testid="sales-kpi-panel">
           <h2>Sales KPI</h2>
@@ -253,10 +240,8 @@ describe('UI Display Integration Tests', () => {
 
       render(<SalesKPIPanel salesSummary={salesSummary} />);
 
-      // Проверяем заголовок
       expect(screen.getByText('Sales KPI')).toBeInTheDocument();
 
-      // Проверяем KPI карточки
       expect(screen.getByTestId('total-sales')).toHaveTextContent('Total Sales: 125,430 USD');
       expect(screen.getByTestId('transactions')).toHaveTextContent('Transactions: 1,247');
       expect(screen.getByTestId('arpu')).toHaveTextContent('ARPU: USD 100.58');
@@ -282,7 +267,6 @@ describe('UI Display Integration Tests', () => {
 
       const revenueSummary = RevenueSummary.fromApiResponse(revenueData);
 
-      // Создаем простой компонент для отображения Revenue KPI
       const RevenueKPIPanel = ({ revenueSummary }: { revenueSummary: RevenueSummary }) => (
         <div data-testid="revenue-kpi-panel">
           <h2>Revenue KPI</h2>
@@ -305,10 +289,8 @@ describe('UI Display Integration Tests', () => {
 
       render(<RevenueKPIPanel revenueSummary={revenueSummary} />);
 
-      // Проверяем заголовок
       expect(screen.getByText('Revenue KPI')).toBeInTheDocument();
 
-      // Проверяем KPI карточки
       expect(screen.getByTestId('total-revenue')).toHaveTextContent('Total Revenue: 245,680 USD');
       expect(screen.getByTestId('net-income')).toHaveTextContent('Net Income: 98,500 USD');
       expect(screen.getByTestId('growth')).toHaveTextContent('Growth: +15.3%');
@@ -347,7 +329,6 @@ describe('UI Display Integration Tests', () => {
       const testDate = new Date('2025-10-09T10:15:00Z');
       const formatted = testDate.toLocaleDateString('en-US');
       
-      // Проверяем, что дата отформатирована (конкретный формат может зависеть от локали)
       expect(formatted).toMatch(/^\d{1,2}\/\d{1,2}\/\d{4}$/);
     });
   });
@@ -366,14 +347,11 @@ describe('UI Display Integration Tests', () => {
 
       const { rerender } = render(<LoadingPanel isLoading={true} />);
 
-      // Проверяем состояние загрузки
       expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
       expect(screen.getByText('Loading...')).toBeInTheDocument();
 
-      // Переключаем на загруженное состояние
       rerender(<LoadingPanel isLoading={false} />);
 
-      // Проверяем загруженное состояние
       expect(screen.getByTestId('content')).toBeInTheDocument();
       expect(screen.getByText('Content loaded')).toBeInTheDocument();
     });
@@ -393,14 +371,11 @@ describe('UI Display Integration Tests', () => {
 
       const { rerender } = render(<ErrorPanel error={null} />);
 
-      // Проверяем успешное состояние
       expect(screen.getByTestId('success-content')).toBeInTheDocument();
       expect(screen.getByText('Data loaded successfully')).toBeInTheDocument();
 
-      // Переключаем на состояние ошибки
       rerender(<ErrorPanel error="Failed to load data" />);
 
-      // Проверяем состояние ошибки
       expect(screen.getByTestId('error-message')).toBeInTheDocument();
       expect(screen.getByText('Error: Failed to load data')).toBeInTheDocument();
     });

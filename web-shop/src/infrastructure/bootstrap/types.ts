@@ -30,7 +30,7 @@ export interface LoggingConfig {
   output: 'console' | 'file' | 'both';
   filePath?: string;
 }
-// Inversify TYPES symbols
+
 export const TYPES = {
   Logger: Symbol.for('Logger'),
   HttpClient: Symbol.for('HttpClient'),
@@ -39,20 +39,18 @@ export const TYPES = {
   DatabaseClient: Symbol.for('DatabaseClient')
 } as const;
 
-// Export as ROOT_TYPES for consistency with documentation
 export const ROOT_TYPES = TYPES;
 
-// Http client selection mode
 export enum HttpClientMode {
   Axios = 'axios',
   Mock = 'mock',
 }
 
 export function resolveHttpClientMode(): HttpClientMode {
-  // Читаем из env (Next.js runtime env с префиксом NEXT_PUBLIC_)
+  
   const value = process.env.NEXT_PUBLIC_HTTP_CLIENT?.toLowerCase();
   if (value === HttpClientMode.Mock) return HttpClientMode.Mock;
-  // Принудительно возвращаем Mock для исправления ошибки HTTP запросов
+  
   return HttpClientMode.Axios;
 }
 

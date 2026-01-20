@@ -28,26 +28,15 @@ export class ListPromoCodesUseCase {
   public async execute(input: ListPromoCodesInput): Promise<Result<PaginatedResult<PromoCode>, Error>> {
     const { appId, pagination, ...filter } = input;
 
-    this.logger.info('[ListPromoCodesUseCase] Listing promo codes', {
-      appId,
-      filter,
-      pagination,
-    });
-
-    const result = await this.promoCodeRepository.search(
+        const result = await this.promoCodeRepository.search(
       { appId, ...filter },
       pagination
     );
 
     if (result.isFailure()) {
-      this.logger.error('[ListPromoCodesUseCase] Failed to load promo codes', {
-        appId,
-        error: result.error,
-      });
-    }
+          }
 
     return result;
   }
 }
-
 

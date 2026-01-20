@@ -50,4 +50,3 @@ export const FocusTrap: React.FC<{ children: React.ReactNode; initialFocusSelect
 
 export default FocusTrap;
 
-

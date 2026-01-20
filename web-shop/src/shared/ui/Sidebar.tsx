@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 type SidebarProps = {
   children?: React.ReactNode;
-  widthClassName?: string; // e.g. "w-64"
+  widthClassName?: string; 
   title?: string;
   onSelect?: (key: string) => void;
 };
@@ -28,7 +28,7 @@ export function Sidebar({ children, widthClassName = "w-64", title = "Navigation
     if (typeof window === "undefined") return false;
     const url = new URL(window.location.href);
     return url.searchParams.get("role") === "admin";
-  }, [pathname]); // Re-evaluate when pathname changes
+  }, [pathname]); 
   const containerStyle: React.CSSProperties = {
     position: "fixed",
     top: 0,
@@ -140,5 +140,4 @@ export function Sidebar({ children, widthClassName = "w-64", title = "Navigation
 }
 
 export default Sidebar;
-
 

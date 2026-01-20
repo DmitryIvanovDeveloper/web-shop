@@ -2,15 +2,10 @@ import { injectable } from 'inversify';
 import { PurchaseRepositoryPort, PurchaseRow } from '../../application/ports/purchase-repository.port';
 import { PurchaseSummary } from '../../domain/entities/purchase-summary.entity';
 
-/**
- * Mock Purchase Repository Implementation
- * 
- * Fallback implementation that returns mock data
- */
 @injectable()
 export class PurchaseRepository implements PurchaseRepositoryPort {
   public async getPurchaseSummary(): Promise<PurchaseSummary> {
-    // Mock data for development
+    
     const mockTrend = [
       { timestamp: new Date('2024-01-01'), value: 45 },
       { timestamp: new Date('2024-01-02'), value: 52 },
@@ -22,18 +17,18 @@ export class PurchaseRepository implements PurchaseRepositoryPort {
     ];
 
     return new PurchaseSummary(
-      1250, // totalPurchases
-      340,  // uniqueCustomers
-      89.50, // averagePurchaseValue
-      3.7,   // purchaseFrequency
-      'Electronics', // topProductCategory
-      'USD', // currency
+      1250, 
+      340,  
+      89.50, 
+      3.7,   
+      'Electronics', 
+      'USD', 
       mockTrend
     );
   }
 
   public async getRecentPurchases(limit: number = 50): Promise<PurchaseRow[]> {
-    // Mock data for development
+    
     const mockPurchases: PurchaseRow[] = [
       {
         id: '1',
@@ -51,7 +46,7 @@ export class PurchaseRepository implements PurchaseRepositoryPort {
       },
       {
         id: '2',
-        createdAt: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+        createdAt: new Date(Date.now() - 3600000).toISOString(), 
         userId: 'user-002',
         productId: 'mythic-chest',
         productTitle: 'Mythic Chest',
@@ -65,7 +60,7 @@ export class PurchaseRepository implements PurchaseRepositoryPort {
       },
       {
         id: '3',
-        createdAt: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
+        createdAt: new Date(Date.now() - 7200000).toISOString(), 
         userId: 'user-003',
         productId: 'hero-fortune',
         productTitle: 'Hero Fortune',

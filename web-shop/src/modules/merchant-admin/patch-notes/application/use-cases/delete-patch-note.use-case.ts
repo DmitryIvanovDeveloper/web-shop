@@ -22,41 +22,33 @@ export class DeletePatchNoteUseCase {
   ) {}
 
   async execute(input: DeletePatchNoteInput): Promise<Result<void, Error>> {
-    this._logger.info('[DeletePatchNoteUseCase] Deleting patch note', { input });
-
-    try {
-      // Check if patch note exists
+        try {
+      
       const patchNoteId = PatchNoteId.fromString(input.id);
       const findResult = await this._patchNoteRepository.findById(patchNoteId, input.appId);
 
       if (!findResult.isSuccess) {
-        this._logger.error('[DeletePatchNoteUseCase] Failed to find patch note', findResult.error);
-        return Failure.fail(findResult.error);
+                return Failure.fail(findResult.error);
       }
 
       if (!findResult.value) {
         return Failure.fail(new PatchNoteNotFoundError(input.id));
       }
 
-      // Delete patch note
       const deleteResult = await this._patchNoteRepository.delete(patchNoteId, input.appId);
 
       if (!deleteResult.isSuccess) {
-        this._logger.error('[DeletePatchNoteUseCase] Failed to delete patch note', deleteResult.error);
-        return Failure.fail(deleteResult.error);
+                return Failure.fail(deleteResult.error);
       }
 
-      // Publish domain event
       await this._eventBus.publish(
         new PatchNoteDeletedEvent(input.id, findResult.value.version.value, input.appId)
       );
 
-      this._logger.info('[DeletePatchNoteUseCase] Patch note deleted successfully', { patchNoteId: input.id });
-      return Success.ok(undefined);
+            return Success.ok(undefined);
 
     } catch (error) {
-      this._logger.error('[DeletePatchNoteUseCase] Unexpected error deleting patch note', { error });
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+            return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 }

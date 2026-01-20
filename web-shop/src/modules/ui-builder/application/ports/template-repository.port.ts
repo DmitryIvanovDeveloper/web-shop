@@ -35,15 +35,3 @@ export interface TemplateRepositoryPort {
   ): Promise<Result<TemplateSummary[], Error>>;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-

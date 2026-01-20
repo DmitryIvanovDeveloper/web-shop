@@ -30,20 +30,20 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
-          {/* Left: Title */}
+          {}
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
               {title}
             </h1>
             <p className="text-sm text-gray-500">
-              {/* Context string: period • regions • currency */}
+              {}
               Last 7 days • All regions • USD · <span className="text-gray-400">Last updated just now</span>
             </p>
           </div>
 
-          {/* Right: Actions */}
+          {}
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-            {/* Primary Actions */}
+            {}
             <div className="flex gap-2 flex-wrap" role="group" aria-label="Dashboard controls">
               <button
                 onClick={onToggleMetrics}
@@ -58,7 +58,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               <ExportDropdown data={exportData} />
             </div>
 
-            {/* Secondary Actions (Desktop only) */}
+            {}
             <div className="hidden md:flex gap-2 ml-2 pl-2 border-l border-gray-300 flex-wrap">
               <button
                 onClick={onToggleFilters}
@@ -91,7 +91,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               </button>
             </div>
 
-            {/* Mobile: Menu Button */}
+            {}
             <div className="md:hidden">
               <button
                 onClick={onToggleSettings}
@@ -109,6 +109,4 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     </header>
   );
 };
-
-
 

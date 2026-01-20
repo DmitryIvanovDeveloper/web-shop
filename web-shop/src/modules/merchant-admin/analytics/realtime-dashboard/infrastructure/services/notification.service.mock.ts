@@ -5,8 +5,7 @@ export class NotificationServiceMock {
   constructor(private readonly logger: Logger) {}
 
   async send(message: string): Promise<Result<void, never>> {
-    this.logger.info('Notification sent', { message });
-    return Success.ok(undefined);
+        return Success.ok(undefined);
   }
 }
 

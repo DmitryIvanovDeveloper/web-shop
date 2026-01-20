@@ -10,22 +10,15 @@ import { TranslationEditor } from './components/TranslationEditor';
 import { LocalizationStatus } from './components/LocalizationStatus';
 
 export default function LocalizationDashboard(): JSX.Element {
-  console.log('[LocalizationDashboard] Component rendered');
-
-  // Get Presenter from DI Container (following Clean Architecture)
   const presenter = useMemo(() => {
-    console.log('[LocalizationDashboard] Getting presenter from container');
     try {
       const presenter = container.get<LocalizationPresenter>(LOCALIZATION_TYPES.LocalizationPresenter);
-      console.log('[LocalizationDashboard] Presenter obtained successfully');
       return presenter;
     } catch (error) {
-      console.error('[LocalizationDashboard] Failed to get presenter:', error);
       throw error;
     }
   }, []);
 
-  // Use View Model from Presenter (following Clean Architecture)
   const [viewModel, setViewModel] = useState<LocalizationViewModel>({
     isLoading: true,
     error: null,
@@ -41,28 +34,19 @@ export default function LocalizationDashboard(): JSX.Element {
   });
 
   useEffect(() => {
-    console.log('[LocalizationDashboard] useEffect triggered, presenter:', presenter);
-
-    // Subscribe to View Model changes
     const unsubscribe = presenter.subscribe(() => {
-      console.log('[LocalizationDashboard] View model updated:', presenter.viewModel);
       setViewModel(presenter.viewModel);
     });
 
-    // Load initial data through Presenter (Clean Architecture)
-    console.log('[LocalizationDashboard] Calling loadLocalizationStatus');
     presenter.loadLocalizationStatus();
 
     return unsubscribe;
   }, [presenter]);
 
-  // Event handlers
   const handleLanguageChange = async (languageCode: string) => {
-    console.log('[LocalizationDashboard] Changing active language to:', languageCode);
     try {
       await presenter.changeActiveLanguage(languageCode);
     } catch (error) {
-      console.error('[LocalizationDashboard] Error changing language:', error);
     }
   };
 
@@ -71,17 +55,15 @@ export default function LocalizationDashboard(): JSX.Element {
     languageCode: string;
     value: string;
   }>) => {
-    console.log('[LocalizationDashboard] Updating translations:', updates.length, 'items');
     try {
       await presenter.updateTranslations(updates);
     } catch (error) {
-      console.error('[LocalizationDashboard] Error updating translations:', error);
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="border-b border-gray-200 pb-4">
         <h1 className="text-3xl font-bold text-gray-900">Localization Management</h1>
         <p className="text-gray-600 mt-1">
@@ -89,10 +71,10 @@ export default function LocalizationDashboard(): JSX.Element {
         </p>
       </div>
 
-      {/* Status Overview */}
+      {}
       <LocalizationStatus viewModel={viewModel} />
 
-      {/* Language Selector */}
+      {}
       <div className="bg-white shadow rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-medium text-gray-900">Active Language</h2>
@@ -110,7 +92,7 @@ export default function LocalizationDashboard(): JSX.Element {
         </div>
       </div>
 
-      {/* Translation Editor */}
+      {}
       <div className="bg-white shadow rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-medium text-gray-900">Translation Editor</h2>
@@ -128,7 +110,7 @@ export default function LocalizationDashboard(): JSX.Element {
         </div>
       </div>
 
-      {/* Error Display */}
+      {}
       {viewModel.error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex">
@@ -149,7 +131,7 @@ export default function LocalizationDashboard(): JSX.Element {
         </div>
       )}
 
-      {/* Loading Overlay */}
+      {}
       {viewModel.isLoading && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 flex items-center space-x-4">

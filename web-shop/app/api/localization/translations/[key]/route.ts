@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '../../../_lib/supabase-server-client';
 
-/**
- * GET /api/localization/translations/[key]?lang=<languageCode>
- * Get a specific translation by key and language
- */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ key: string }> }
@@ -31,26 +27,20 @@ export async function GET(
       .eq('language_code', languageCode)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-      console.error('[GET /api/localization/translations/[key]] Database error:', error);
-      return NextResponse.json(
+    if (error && error.code !== 'PGRST116') { 
+            return NextResponse.json(
         { error: 'Failed to load translation' },
         { status: 500 }
       );
     }
 
     if (!data) {
-      console.log('[GET /api/localization/translations/[key]] Translation not found:', {
-        key: decodedKey,
-        languageCode
-      });
-      return NextResponse.json(
+            return NextResponse.json(
         { error: 'Translation not found' },
         { status: 404 }
       );
     }
 
-    // Transform to API format
     const translation = {
       id: data.id,
       key: data.key,
@@ -62,16 +52,9 @@ export async function GET(
       updatedAt: data.updated_at
     };
 
-    console.log('[GET /api/localization/translations/[key]] Translation retrieved:', {
-      key: decodedKey,
-      languageCode,
-      isTranslated: translation.isTranslated
-    });
-
-    return NextResponse.json(translation);
+        return NextResponse.json(translation);
   } catch (error) {
-    console.error('[GET /api/localization/translations/[key]] Unexpected error:', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Unexpected error while loading translation' },
       { status: 500 }
     );

@@ -106,7 +106,6 @@ export function DataTable<T extends Record<string, any>>({
     return column.render ? column.render(value, row) : value;
   };
 
-  // Keyboard navigation
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTableRowElement>, rowIndex: number, row: T) => {
     switch (event.key) {
       case 'ArrowUp':

@@ -44,7 +44,7 @@ export function FullscreenPreview({
         onClick={(e) => e.stopPropagation()}
         style={{ maxWidth: '95vw', maxHeight: '95vh' }}
       >
-        {/* Close Button */}
+        {}
         <button
           onClick={onClose}
           className="absolute -top-10 right-0 text-white hover:text-gray-300 text-2xl font-bold z-10 transition-colors"
@@ -53,7 +53,7 @@ export function FullscreenPreview({
           ×
         </button>
 
-        {/* Phone Mockup */}
+        {}
         <div className="w-full h-full flex items-center justify-center">
           <PhoneMockup
             iframeSrc={iframeSrc}

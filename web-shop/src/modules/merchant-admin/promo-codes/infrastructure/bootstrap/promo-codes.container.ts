@@ -33,4 +33,3 @@ export function bindMerchantAdminPromoCodes(container: Container): void {
   container.bind(PROMO_CODE_TYPES.PromoCodesPresenter).toService(PromoCodesPresenter);
 }
 
-

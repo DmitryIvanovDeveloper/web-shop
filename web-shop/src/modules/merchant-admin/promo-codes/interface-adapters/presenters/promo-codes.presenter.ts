@@ -133,10 +133,7 @@ export class PromoCodesPresenter {
     });
 
     if (result.isFailure()) {
-      this.logger.error('[PromoCodesPresenter] Failed to load promo codes', {
-        error: result.error,
-      });
-      this._viewModel = {
+            this._viewModel = {
         ...this._viewModel,
         isLoading: false,
         errorMessage: 'Failed to load promo codes',
@@ -232,8 +229,7 @@ export class PromoCodesPresenter {
   public async createPromoCode(): Promise<Result<void, Error>> {
     if (!this._appId) {
       const error = new Error('App ID is not set');
-      this.logger.error('[PromoCodesPresenter] Cannot create promo code without appId', { error });
-      return Result.error(error);
+            return Result.error(error);
     }
 
     this._viewModel = {
@@ -268,10 +264,7 @@ export class PromoCodesPresenter {
     const result = await this.createPromoCodeUseCase.execute(input);
 
     if (result.isFailure()) {
-      this.logger.error('[PromoCodesPresenter] Failed to create promo code', {
-        error: result.error,
-      });
-      this._viewModel = {
+            this._viewModel = {
         ...this._viewModel,
         isSaving: false,
         errorMessage: 'Failed to create promo code',
@@ -312,10 +305,7 @@ export class PromoCodesPresenter {
   public async updatePromoCode(): Promise<Result<void, Error>> {
     if (!this._appId || !this._viewModel.editingId) {
       const error = new Error('App ID or editingId is not set');
-      this.logger.error('[PromoCodesPresenter] Cannot update promo code without appId/editingId', {
-        error,
-      });
-      return Result.error(error);
+            return Result.error(error);
     }
 
     this._viewModel = {
@@ -335,10 +325,7 @@ export class PromoCodesPresenter {
     });
 
     if (result.isFailure()) {
-      this.logger.error('[PromoCodesPresenter] Failed to update promo code', {
-        error: result.error,
-      });
-      this._viewModel = {
+            this._viewModel = {
         ...this._viewModel,
         isSaving: false,
         errorMessage: 'Failed to update promo code',
@@ -364,8 +351,7 @@ export class PromoCodesPresenter {
   public async togglePromoCodeStatus(item: PromoCodesListItemViewModel): Promise<Result<void, Error>> {
     if (!this._appId) {
       const error = new Error('App ID is not set');
-      this.logger.error('[PromoCodesPresenter] Cannot toggle promo code without appId', { error });
-      return Result.error(error);
+            return Result.error(error);
     }
 
     const result = await this.updatePromoCodeUseCase.execute({
@@ -375,10 +361,7 @@ export class PromoCodesPresenter {
     });
 
     if (result.isFailure()) {
-      this.logger.error('[PromoCodesPresenter] Failed to toggle promo code status', {
-        error: result.error,
-      });
-      this._viewModel = {
+            this._viewModel = {
         ...this._viewModel,
         errorMessage: 'Failed to update promo code status',
       };
@@ -391,5 +374,4 @@ export class PromoCodesPresenter {
     return Result.ok(undefined);
   }
 }
-
 

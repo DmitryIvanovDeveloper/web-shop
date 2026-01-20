@@ -8,7 +8,6 @@ export class LanguageCode {
       throw new LanguageCodeValidationError('Language code cannot be empty');
     }
 
-    // Validate ISO 639-1 format (2 letters)
     const isoRegex = /^[a-z]{2}$/;
     if (!isoRegex.test(code.toLowerCase())) {
       throw new LanguageCodeValidationError('Language code must be ISO 639-1 format (2 lowercase letters)');
@@ -34,7 +33,7 @@ export class LanguageCode {
   }
 
   isRTL(): boolean {
-    // Right-to-left languages
+    
     const rtlLanguages = ['ar', 'he', 'fa', 'ur', 'yi'];
     return rtlLanguages.includes(this._value);
   }

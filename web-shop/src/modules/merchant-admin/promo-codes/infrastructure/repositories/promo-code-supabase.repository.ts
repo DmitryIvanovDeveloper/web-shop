@@ -111,12 +111,7 @@ export class PromoCodeSupabaseRepository implements PromoCodeRepositoryPort {
       }
 
       if (response.status !== 200) {
-        this.logger.error('[PromoCodeSupabaseRepository] findById error', {
-          status: response.status,
-          statusText: response.statusText,
-          id,
-        });
-        return Result.error(new Error(`Failed to load promo code: ${response.statusText}`));
+                return Result.error(new Error(`Failed to load promo code: ${response.statusText}`));
       }
 
       const dto = response.data;
@@ -131,8 +126,7 @@ export class PromoCodeSupabaseRepository implements PromoCodeRepositoryPort {
 
       return Result.ok(entityResult.data!);
     } catch (error) {
-      this.logger.error('[PromoCodeSupabaseRepository] findById unexpected error', { error, id });
-      return Result.error(error as Error);
+            return Result.error(error as Error);
     }
   }
 
@@ -150,13 +144,7 @@ export class PromoCodeSupabaseRepository implements PromoCodeRepositoryPort {
       }
 
       if (response.status !== 200) {
-        this.logger.error('[PromoCodeSupabaseRepository] findByCode error', {
-          status: response.status,
-          statusText: response.statusText,
-          appId,
-          code: normalized,
-        });
-        return Result.error(new Error(`Failed to load promo code: ${response.statusText}`));
+                return Result.error(new Error(`Failed to load promo code: ${response.statusText}`));
       }
 
       const dto = response.data;
@@ -171,12 +159,7 @@ export class PromoCodeSupabaseRepository implements PromoCodeRepositoryPort {
 
       return Result.ok(entityResult.data!);
     } catch (error) {
-      this.logger.error('[PromoCodeSupabaseRepository] findByCode unexpected error', {
-        error,
-        appId,
-        code,
-      });
-      return Result.error(error as Error);
+            return Result.error(error as Error);
     }
   }
 
@@ -216,13 +199,7 @@ export class PromoCodeSupabaseRepository implements PromoCodeRepositoryPort {
       );
 
       if (response.status !== 200) {
-        this.logger.error('[PromoCodeSupabaseRepository] search error', {
-          status: response.status,
-          statusText: response.statusText,
-          filter,
-          pagination,
-        });
-        return Result.error(new Error(`Failed to load promo codes: ${response.statusText}`));
+                return Result.error(new Error(`Failed to load promo codes: ${response.statusText}`));
       }
 
       const payload = response.data;
@@ -239,11 +216,7 @@ export class PromoCodeSupabaseRepository implements PromoCodeRepositoryPort {
       for (const row of rows) {
         const entityResult = mapDtoToEntity(row);
         if (entityResult.isFailure()) {
-          this.logger.error('[PromoCodeSupabaseRepository] Failed to map promo code DTO', {
-            error: entityResult.error,
-            row,
-          });
-          continue;
+                    continue;
         }
         items.push(entityResult.data!);
       }
@@ -253,12 +226,7 @@ export class PromoCodeSupabaseRepository implements PromoCodeRepositoryPort {
         total: payload.total ?? items.length,
       });
     } catch (error) {
-      this.logger.error('[PromoCodeSupabaseRepository] search unexpected error', {
-        error,
-        filter,
-        pagination,
-      });
-      return Result.error(error as Error);
+            return Result.error(error as Error);
     }
   }
 
@@ -276,12 +244,7 @@ export class PromoCodeSupabaseRepository implements PromoCodeRepositoryPort {
       );
 
       if (response.status !== 200 && response.status !== 201) {
-        this.logger.error('[PromoCodeSupabaseRepository] save error', {
-          status: response.status,
-          statusText: response.statusText,
-          promoCodeId: promoCode.id,
-        });
-        return Result.error(new Error(`Failed to create promo code: ${response.statusText}`));
+                return Result.error(new Error(`Failed to create promo code: ${response.statusText}`));
       }
 
       const createdDto = response.data;
@@ -296,8 +259,7 @@ export class PromoCodeSupabaseRepository implements PromoCodeRepositoryPort {
 
       return Result.ok(entityResult.data!);
     } catch (error) {
-      this.logger.error('[PromoCodeSupabaseRepository] save unexpected error', { error, promoCodeId: promoCode.id });
-      return Result.error(error as Error);
+            return Result.error(error as Error);
     }
   }
 
@@ -315,12 +277,7 @@ export class PromoCodeSupabaseRepository implements PromoCodeRepositoryPort {
       );
 
       if (response.status !== 200) {
-        this.logger.error('[PromoCodeSupabaseRepository] update error', {
-          status: response.status,
-          statusText: response.statusText,
-          promoCodeId: promoCode.id,
-        });
-        return Result.error(new Error(`Failed to update promo code: ${response.statusText}`));
+                return Result.error(new Error(`Failed to update promo code: ${response.statusText}`));
       }
 
       const updatedDto = response.data;
@@ -335,10 +292,8 @@ export class PromoCodeSupabaseRepository implements PromoCodeRepositoryPort {
 
       return Result.ok(entityResult.data!);
     } catch (error) {
-      this.logger.error('[PromoCodeSupabaseRepository] update unexpected error', { error, promoCodeId: promoCode.id });
-      return Result.error(error as Error);
+            return Result.error(error as Error);
     }
   }
 }
-
 

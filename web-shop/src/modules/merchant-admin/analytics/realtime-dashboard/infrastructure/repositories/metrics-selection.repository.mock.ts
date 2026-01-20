@@ -19,22 +19,19 @@ export class MetricsSelectionRepositoryMock {
 
   async load(): Promise<MetricsSelection | null> {
     try {
-      // Load from mock JSON
+      
       const response = await fetch('/mocks/api/metrics/selected.json');
       const data = await response.json();
-      
-      // Store in memory
+
       this.selection = data as MetricsSelection;
       return this.selection;
     } catch (error) {
-      this.logger.error('[MetricsSelectionRepositoryMock] Failed to load metrics selection', error as Error);
-      return null;
+            return null;
     }
   }
 
   async save(selection: MetricsSelection): Promise<void> {
-    // In real app, this would POST to API
-    // For now, just store in memory
+
     this.selection = selection;
   }
 
@@ -43,8 +40,7 @@ export class MetricsSelectionRepositoryMock {
       const response = await fetch('/mocks/api/metrics/catalog.json');
       return await response.json();
     } catch (error) {
-      this.logger.error('[MetricsSelectionRepositoryMock] Failed to load metrics catalog', error as Error);
-      return { categories: [] };
+            return { categories: [] };
     }
   }
 
@@ -61,5 +57,4 @@ export class MetricsSelectionRepositoryMock {
   }
 }
 
-// Singleton instance
 export const metricsSelectionRepository = new MetricsSelectionRepositoryMock();

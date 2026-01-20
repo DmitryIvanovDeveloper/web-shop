@@ -31,8 +31,7 @@ export async function GET(request: NextRequest) {
       if ((error as { code?: string }).code === 'PGRST116') {
         return NextResponse.json({ error: 'Promo code not found' }, { status: 404 });
       }
-      console.error('[GET /api/merchant-admin/promo-codes/by-code] Supabase error:', error);
-      return NextResponse.json({ error: 'Failed to load promo code' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to load promo code' }, { status: 500 });
     }
 
     if (!data) {
@@ -63,9 +62,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(dto, { status: 200 });
   } catch (error) {
-    console.error('[GET /api/merchant-admin/promo-codes/by-code] Unexpected error:', error);
-    return NextResponse.json({ error: 'Failed to load promo code' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to load promo code' }, { status: 500 });
   }
 }
-
 

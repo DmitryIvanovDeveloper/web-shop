@@ -64,4 +64,3 @@ export function AuthEditor({ value, onUpdateButton, onUpdatePopup, tab }: Props)
   );
 }
 
-

@@ -20,20 +20,3 @@ export default async function MerchantAdminPromoCodesPage(
   return <PromoCodesPage appId={appId} />;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

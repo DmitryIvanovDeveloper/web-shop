@@ -109,7 +109,7 @@ export function BackgroundEditor({ value, onChange }: BackgroundEditorProps): JS
               rows={2}
               value={background.backgroundImage || ''}
               onChange={(e) => updateField('backgroundImage', e.target.value)}
-              placeholder='url("https://example.com/bg.png") or linear-gradient(...)'
+              placeholder='url("https:
               className="flex-1 px-2 py-1 border border-gray-300 rounded text-xs font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 resize-y"
             />
             {background.backgroundImage && (
@@ -233,6 +233,4 @@ export function BackgroundEditor({ value, onChange }: BackgroundEditorProps): JS
     </div>
   );
 }
-
-
 

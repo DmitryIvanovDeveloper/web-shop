@@ -38,13 +38,3 @@ export class OfferItem {
   }
 }
 
-
-
-
-
-
-
-
-
-
-

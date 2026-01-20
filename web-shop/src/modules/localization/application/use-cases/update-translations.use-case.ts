@@ -23,7 +23,6 @@ export class UpdateTranslationsUseCase {
       let updatedCount = 0;
       let createdCount = 0;
 
-      // Process each translation
       for (const translationData of request.translations) {
         const result = await this._translationRepository.upsertTranslation(
           translationData.key,
@@ -38,14 +37,7 @@ export class UpdateTranslationsUseCase {
         const wasCreated = result.value!.wasCreated;
         if (wasCreated) {
           createdCount++;
-          // TODO: Publish event when Event interface is implemented
-          // await this._eventBus.publishSync(
-          //   new TranslationUpdatedEvent(
-          //     translationData.key,
-          //     translationData.languageCode,
-          //     translationData.value
-          //   )
-          // );
+
         } else {
           updatedCount++;
         }

@@ -16,7 +16,7 @@ export const GeographyPanel: React.FC<GeographyPanelProps> = ({ geographySummary
 
   return (
     <div className="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200/60 rounded-xl p-6 shadow-lg">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg shadow-md">
@@ -31,7 +31,7 @@ export const GeographyPanel: React.FC<GeographyPanelProps> = ({ geographySummary
         </div>
       </div>
 
-      {/* Donut Chart using new component */}
+      {}
       <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 border border-purple-200/30">
         <DonutChart
           data={chartData}

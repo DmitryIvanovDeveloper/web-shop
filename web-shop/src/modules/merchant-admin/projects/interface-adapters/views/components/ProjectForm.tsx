@@ -68,20 +68,20 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
 
     try {
       await onSubmit(formData);
-      // Reset form on success
+      
       setFormData({
         name: '',
         description: ''
       });
       setErrors({});
     } catch (error) {
-      // Error handling is done in the presenter
+      
     }
   };
 
   const handleInputChange = (field: keyof ProjectFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
+    
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
@@ -112,7 +112,6 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
           <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
         )}
       </div>
-
 
       <div>
         <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

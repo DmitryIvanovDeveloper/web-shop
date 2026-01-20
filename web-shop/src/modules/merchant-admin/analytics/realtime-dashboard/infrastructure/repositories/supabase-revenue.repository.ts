@@ -6,12 +6,6 @@ import { ROOT_TYPES } from '../../../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../../../application/ports/logger.port';
 import { TrendDataPoint } from '../../domain/types/trend.types';
 
-/**
- * Supabase Revenue Repository Implementation
- * 
- * Infrastructure implementation of RevenueRepositoryPort using Supabase
- * Handles revenue analytics operations through Supabase API
- */
 @injectable()
 export class SupabaseRevenueRepository implements RevenueRepositoryPort {
   private readonly _supabase: SupabaseClient;
@@ -32,36 +26,24 @@ export class SupabaseRevenueRepository implements RevenueRepositoryPort {
 
   public async getRevenueSummary(): Promise<RevenueSummary> {
     try {
-      this._logger.info('[SupabaseRevenueRepository] Loading revenue summary');
-
-      // Получаем данные о доходах из таблицы транзакций
-      const { data: transactions, error: transactionsError } = await this._supabase
+            const { data: transactions, error: transactionsError } = await this._supabase
         .from('transaction_log')
         .select('amount, created_at, payment_status')
         .eq('payment_status', 'succeeded')
         .gte('created_at', this.getLast30DaysDate());
 
       if (transactionsError) {
-        this._logger.error('[SupabaseRevenueRepository] Failed to load transactions', { 
-          error: transactionsError
-        });
-        throw new Error(`Failed to load transactions: ${transactionsError.message}`);
+                throw new Error(`Failed to load transactions: ${transactionsError.message}`);
       }
 
-      // Получаем данные о посетителях для расчета revenue per visitor
       const { data: visitors, error: visitorsError } = await this._supabase
         .from('user_sessions')
         .select('user_id, created_at')
         .gte('created_at', this.getLast30DaysDate());
 
       if (visitorsError) {
-        this._logger.warn('[SupabaseRevenueRepository] Failed to load visitors data', { 
-          error: visitorsError
-        });
-        // Продолжаем без данных о посетителях
-      }
+              }
 
-      // Вычисляем метрики
       const totalRevenue = this.calculateTotalRevenue(transactions || []);
       const averageOrderValue = this.calculateAverageOrderValue(transactions || []);
       const revenuePerVisitor = this.calculateRevenuePerVisitor(
@@ -78,24 +60,13 @@ export class SupabaseRevenueRepository implements RevenueRepositoryPort {
         revenuePerVisitor,
         netIncome,
         monthlyGrowth,
-        'USD', // Можно сделать конфигурируемым
+        'USD', 
         trend
       );
 
-      this._logger.info('[SupabaseRevenueRepository] Revenue summary loaded', { 
-        totalRevenue,
-        averageOrderValue,
-        revenuePerVisitor,
-        netIncome,
-        monthlyGrowth
-      });
-
-      return revenueSummary;
+            return revenueSummary;
     } catch (error) {
-      this._logger.error('[SupabaseRevenueRepository] Unexpected error loading revenue summary', { 
-        error
-      });
-      throw error;
+            throw error;
     }
   }
 
@@ -116,7 +87,7 @@ export class SupabaseRevenueRepository implements RevenueRepositoryPort {
   }
 
   private calculateNetIncome(totalRevenue: number): number {
-    // Предполагаем 20% операционных расходов
+    
     const operatingExpenses = totalRevenue * 0.2;
     return totalRevenue - operatingExpenses;
   }
@@ -127,14 +98,12 @@ export class SupabaseRevenueRepository implements RevenueRepositoryPort {
       const lastMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
       const currentMonthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
 
-      // Текущий месяц
       const { data: currentMonthData } = await this._supabase
         .from('transaction_log')
         .select('amount')
         .eq('payment_status', 'succeeded')
         .gte('created_at', currentMonthStart.toISOString());
 
-      // Прошлый месяц
       const { data: lastMonthData } = await this._supabase
         .from('transaction_log')
         .select('amount')
@@ -149,23 +118,20 @@ export class SupabaseRevenueRepository implements RevenueRepositoryPort {
       
       return ((currentRevenue - lastRevenue) / lastRevenue) * 100;
     } catch (error) {
-      this._logger.warn('[SupabaseRevenueRepository] Failed to calculate monthly growth', { error });
-      return 0;
+            return 0;
     }
   }
 
   private async calculateTrend(transactions: any[]): Promise<TrendDataPoint[]> {
     try {
-      // Группируем транзакции по дням за последние 7 дней
+      
       const last7Days = this.getLast7Days();
       const trendMap = new Map<string, number>();
 
-      // Инициализируем все дни нулевыми значениями
       last7Days.forEach(date => {
         trendMap.set(date.toISOString().split('T')[0], 0);
       });
 
-      // Суммируем транзакции по дням
       transactions.forEach(transaction => {
         const date = new Date(transaction.created_at);
         const dateKey = date.toISOString().split('T')[0];
@@ -174,14 +140,12 @@ export class SupabaseRevenueRepository implements RevenueRepositoryPort {
         }
       });
 
-      // Преобразуем в массив TrendDataPoint
       return Array.from(trendMap.entries()).map(([date, value]) => ({
         timestamp: new Date(date),
         value
       })).sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
     } catch (error) {
-      this._logger.warn('[SupabaseRevenueRepository] Failed to calculate trend', { error });
-      return [];
+            return [];
     }
   }
 

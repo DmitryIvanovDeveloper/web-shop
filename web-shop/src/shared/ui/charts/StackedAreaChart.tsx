@@ -35,7 +35,6 @@ export const StackedAreaChart: React.FC<StackedAreaChartProps> = ({
   const getX = (i: number) => pad.left + (i / Math.max(labels.length - 1, 1)) * (chartWidth - pad.left - pad.right);
   const getY = (v: number) => chartHeight - pad.bottom - (v / maxTotal) * (chartHeight - pad.top - pad.bottom);
 
-  // Build stacked paths
   const cumulativeBySegment = (segmentId: string) => {
     const values = data.map(d => d.segments.find(s => s.id === segmentId)?.value ?? 0);
     return values;
@@ -90,7 +89,7 @@ export const StackedAreaChart: React.FC<StackedAreaChartProps> = ({
         })}
       </svg>
 
-      {/* Legend */}
+      {}
       <div className="flex flex-wrap gap-3 mt-3">
         {segments.map(segId => (
           <div key={segId} className="flex items-center gap-2 text-sm text-gray-600">
@@ -102,7 +101,4 @@ export const StackedAreaChart: React.FC<StackedAreaChartProps> = ({
     </div>
   );
 };
-
-
-
 

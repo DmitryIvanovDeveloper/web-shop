@@ -20,7 +20,6 @@ export class GetPatchNotesUseCase {
         return Failure.fail(result.error);
       }
 
-      // Sort by created date (newest first)
       const patchNotes = result.value || [];
       const sortedNotes = patchNotes.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 

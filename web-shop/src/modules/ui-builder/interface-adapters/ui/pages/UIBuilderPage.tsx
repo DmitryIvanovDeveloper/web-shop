@@ -26,7 +26,7 @@ import { container } from '@/infrastructure/bootstrap/container';
 import { UI_BUILDER_TYPES } from '../../../infrastructure/bootstrap/types';
 
 interface UIBuilderPageProps {
-  presenter: any; // Will be typed properly when presenter hook is created
+  presenter: any; 
   appId: string;
 }
 
@@ -38,7 +38,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   const [device, setDevice] = useState<DeviceType>('iphone-15-pro');
   const [orientation, setOrientation] = useState<Orientation>('portrait');
   const [isFullscreen, setIsFullscreen] = useState(false);
-  // Allow overriding clientUrl via previewHost query param (useful when running client on a different port)
+  
   const clientUrl = (() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -62,7 +62,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   const [createTemplateType, setCreateTemplateType] = useState<'base' | 'current'>('base');
   const ensuredSectionsRef = useRef<Set<'sidebar' | 'rightSidebar'>>(new Set());
 
-  // Auto-switch tab based on activeSection
   useEffect(() => {
     if (activeSection === 'background') {
       setActiveTab('theme');
@@ -80,8 +79,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       setActiveTab('templates');
     }
   }, [activeSection]);
-  
-  // Get pageSlug from URL or default to 'home'
+
   const getPageSlugFromUrl = (): string => {
     if (typeof window === 'undefined') return 'home';
     const params = new URLSearchParams(window.location.search);
@@ -89,8 +87,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   };
   
   const [selectedPageSlug, setSelectedPageSlug] = useState<string>(getPageSlugFromUrl());
-  
-  // Update selectedPageSlug and role when URL changes
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -100,13 +97,11 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       setIsAdmin(role === 'admin');
     }
   }, []);
-  
-  // Get PageConstructorPresenter from DI container
+
   const pageConstructorPresenter = React.useMemo(() => {
     return container.get<PageConstructorPresenter>(UI_BUILDER_TYPES.PageConstructorPresenter);
   }, []);
 
-  // Get TemplatesPresenter from DI container
   const templatesPresenter = React.useMemo(() => {
     return container.get<TemplatesPresenter>(UI_BUILDER_TYPES.TemplatesPresenter);
   }, []);
@@ -115,7 +110,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
   useEffect(() => {
     const unsubscribe = templatesPresenter.subscribe(setTemplatesVm);
-    // Initial access mode + load
+    
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const role = params.get('role');
@@ -129,26 +124,22 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     }
 
     templatesPresenter.loadTemplates().catch(() => {
-      // errors are already logged inside presenter
+      
     });
 
     return unsubscribe;
   }, [templatesPresenter, isAdmin, presenter, pageConstructorPresenter]);
 
-  // Offer Cards state
   const [offerCards, setOfferCards] = useState(pageConstructorPresenter.getOfferCards());
   const [selectedOfferCardId, setSelectedOfferCardId] = useState<string | null>(pageConstructorPresenter.getSelectedOfferCardId());
-  
-  // PageConstructor ViewModel state
+
   const [pageConstructorVm, setPageConstructorVm] = useState(pageConstructorPresenter.getViewModel());
 
-  // Subscribe to PageConstructor presenter changes
   useEffect(() => {
     const unsubscribe = pageConstructorPresenter.subscribe(setPageConstructorVm);
     return unsubscribe;
   }, [pageConstructorPresenter]);
 
-  // Initialize pageConstructorPresenter and load offer cards
   useEffect(() => {
     const initializeOfferCards = async () => {
       await pageConstructorPresenter.initialize(appId, selectedPageSlug);
@@ -159,7 +150,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     initializeOfferCards();
   }, [appId, selectedPageSlug, pageConstructorPresenter]);
 
-  // Update offer cards periodically
   useEffect(() => {
     const updateOfferCards = () => {
       setOfferCards(pageConstructorPresenter.getOfferCards());
@@ -169,16 +159,12 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     return () => clearInterval(interval);
   }, [pageConstructorPresenter]);
 
-  // Calculate iframe src based on active section
-  // For pageConstructor, use a stable base URL to avoid iframe reloads when switching pages
-  // The page content will be updated via postMessage instead
   const iframeSrc = React.useMemo(() => {
     if (!clientUrl) return null;
     const targetSlug = activeSection === 'pageConstructor' ? 'home' : (selectedPageSlug || 'home');
     return `${clientUrl.replace(/\/$/, '')}/${targetSlug}?appId=${appId}&previewMode=true&uibuilder=true`;
   }, [activeSection, appId, clientUrl, selectedPageSlug]);
 
-  // Callback to set iframe ref when PhoneMockup mounts
   const handleIframeRef = useCallback(
     (el: HTMLIFrameElement | null) => {
       if (!el) {
@@ -232,26 +218,18 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     ensuredSectionsRef.current.clear();
   }, [viewModel.config]);
 
-  // Track last template/config pair to avoid autosaving on mere template switch.
   const lastTemplateAutosaveRef = useRef<{
     templateId: string | null;
     lastModified: number;
-    configSnapshot: string | null; // JSON string of config for comparison
+    configSnapshot: string | null; 
   }>({
     templateId: null,
     lastModified: 0,
     configSnapshot: null,
   });
 
-  // Track autosave timeout to prevent multiple concurrent saves
   const autosaveTimeoutRef = useRef<number | null>(null);
 
-  /**
-   * Autosave Template for admin:
-   * When the main app configuration changes while a specific template is selected,
-   * persist the current builder + page state back into that Template in Supabase.
-   * Switching between templates should not immediately overwrite each other.
-   */
   useEffect(() => {
     if (!isAdmin) {
       return;
@@ -303,11 +281,9 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     };
   }, [isAdmin, viewModel.lastModified]);
 
-  // Send viewport mode update to iframe when device or orientation changes
   useEffect(() => {
     if (!iframeRef.current?.contentWindow || !isClient) return;
-    
-    // Map device to viewport mode for backward compatibility
+
     const deviceToViewportMode = (deviceType: DeviceType): 'mobile' | 'tablet' | 'desktop' => {
       if (deviceType === 'ipad') return 'tablet';
       return 'mobile';
@@ -335,25 +311,18 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             );
     };
 
-    // Send immediately when device or orientation changes
     sendViewportModeUpdate();
 
-    // Also send after a short delay to ensure iframe is ready
     const timeoutId = setTimeout(sendViewportModeUpdate, 500);
 
     return () => clearTimeout(timeoutId);
   }, [device, orientation, isClient]);
 
-  // Initialize and load full config from Supabase on mount
-  // Initialize presenter on mount
   useEffect(() => {
-    // Always initialize with default config first
+    
     presenter.initialize(appId, false);
     presenter.loadPages();
   }, [presenter, appId]);
-
-  // Template config is now applied automatically in TemplatesPresenter.selectTemplate()
-  // No need for separate useEffect
 
   useEffect(() => {
     if (!viewModel.config) {
@@ -397,8 +366,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     const success = await presenter.publishDraft();
 
     if (success) {
-      // If admin, also mark selected template as published (template-level flag),
-      // but only if some template is currently selected in Templates tab.
+
       if (isAdmin && templatesVm.selectedTemplateId) {
         const result = await templatesPresenter.markSelectedTemplatePublished();
         if (result.isFailure) {
@@ -437,7 +405,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       setActiveSection(section);
     }
 
-    // Auto-switch to corresponding tab
     if (section === 'sidebar') {
       setActiveTab('leftSidebar');
     } else if (section === 'rightSidebar') {
@@ -446,13 +413,10 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     presenter.selectElement(normalizedId);
   };
 
-  // Force re-render when selectedElement changes
   useEffect(() => {
-    // This effect ensures UI updates when selectedElement changes
-    // even if activeSection doesn't change
+
   }, [viewModel.selectedElement?.id]);
 
-  // Subscribe to pageConstructorPresenter changes and send selected element to iframe
   useEffect(() => {
     const unsubscribe = pageConstructorPresenter.subscribe((pageVm) => {
       const previewComm = presenter.getPreviewCommunication();
@@ -460,15 +424,14 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         return;
       }
 
-      // Send selected section or component to iframe
       if (pageVm.selectedComponent && pageVm.selectedSection) {
-        // Component is selected - send component ID
+        
         previewComm.selectElement(pageVm.selectedComponent.id);
       } else if (pageVm.selectedSection) {
-        // Section is selected - send section ID
+        
         previewComm.selectElement(pageVm.selectedSection.id);
       } else {
-        // Nothing selected - clear selection
+        
         previewComm.selectElement(null);
       }
     });
@@ -480,7 +443,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     presenter.updateElementColors(elementId, colors);
   };
 
-  // Extract sidebar elements from config
   const extractSidebarElements = (layoutKey: 'sidebar' | 'rightSidebar'): SidebarElement[] => {
     if (!viewModel.config) return [];
 
@@ -507,7 +469,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     return [convertToSidebarElement(sidebarConfig.layout)];
   };
 
-  // Helper: read element colors from current config
   const getElementColorsFromConfig = (elementId: string): Record<string, string> | null => {
     if (!viewModel.config) return null;
     const config = viewModel.config as any;
@@ -535,7 +496,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     return colors;
   };
 
-  // Helper: find sidebar button by pageSlug
   const findSidebarButtonByPageSlug = (pageSlug: string): string | null => {
     if (!viewModel.config) {
       return null;
@@ -547,11 +507,11 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     }
 
     const findButton = (node: any): any | null => {
-      // Check if this is a Button node with matching pageSlug
+      
       if (node.type === 'Button' && node.props?.pageSlug === pageSlug) {
         return node;
       }
-      // Recursively search children
+      
       if (Array.isArray(node.children)) {
         for (const c of node.children) {
           const found = findButton(c);
@@ -569,7 +529,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     return null;
   };
 
-  // Helper: simulate click on sidebar button in iframe using postMessage
   const simulateSidebarButtonClick = (buttonId: string): void => {
     const iframe = iframeRef.current;
 
@@ -587,7 +546,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     );
   };
 
-  // Setup element selection listener from preview
   useEffect(() => {
     const previewComm = presenter.getPreviewCommunication();
     if (previewComm && previewComm.onElementSelected) {
@@ -602,7 +560,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         const area = presenter.findElementArea(elementId, pageConstructorPresenter);
 
         if (area === 'sidebar') {
-          // Clear offer card selection first to ensure editor switches
+          
           setSelectedOfferCardId((prev) => {
             if (prev) {
               pageConstructorPresenter.selectOfferCard(null);
@@ -612,7 +570,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           });
           handleSidebarElementSelect(elementId, 'sidebar');
         } else if (area === 'rightSidebar') {
-          // Clear offer card selection first to ensure editor switches
+          
           setSelectedOfferCardId((prev) => {
             if (prev) {
               pageConstructorPresenter.selectOfferCard(null);
@@ -622,25 +580,21 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           });
           handleSidebarElementSelect(elementId, 'rightSidebar');
         } else if (area === 'offerCard') {
-          // Extract offer card ID from elementId (e.g., "offer-card-123" or just use elementId)
-          const offerCardId = elementId.startsWith('offer-card-') ? elementId : elementId;
           
-          // Switch to Offer Cards tab
+          const offerCardId = elementId.startsWith('offer-card-') ? elementId : elementId;
+
           setActiveTab('offerCards');
           setActiveSection('offerCards');
-          
-          // Select the offer card
+
           pageConstructorPresenter.selectOfferCard(offerCardId);
           setSelectedOfferCardId(offerCardId);
-          
-          // Clear sidebar selection if any
+
           presenter.selectElement(null);
         } else if (area === 'authButton') {
-          // Switch to Authentication tab
+          
           setActiveTab('authentication');
           setActiveSection('authButton');
-          
-          // Clear other selections
+
           presenter.selectElement(null);
           pageConstructorPresenter.selectSection(null);
           pageConstructorPresenter.selectComponent(null, null);
@@ -649,11 +603,10 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             setSelectedOfferCardId(null);
           }
         } else if (area === 'authPopup') {
-          // Switch to Authentication tab
+          
           setActiveTab('authentication');
           setActiveSection('authPopup');
-          
-          // Clear other selections
+
           presenter.selectElement(null);
           pageConstructorPresenter.selectSection(null);
           pageConstructorPresenter.selectComponent(null, null);
@@ -662,34 +615,28 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             setSelectedOfferCardId(null);
           }
         } else if (area === 'page') {
-          // Check if elementId is a page container (page-{pageSlug})
+          
           if (elementId.startsWith('page-')) {
             const pageSlug = elementId.replace('page-', '');
-            // Switch to Pages tab and open page editor
+            
             setActiveTab('pages');
             setActiveSection('pageConstructor');
-            
-            // Clear other selections
+
             pageConstructorPresenter.selectOfferCard(null);
             setSelectedOfferCardId(null);
-            
-            // Clear section/component selection to show page-level editor
+
             pageConstructorPresenter.selectSection(null);
             pageConstructorPresenter.selectComponent(null, null);
-            
-            // Note: Don't call presenter.selectElement(null) here because we want to keep the selection
-            // The useEffect will handle opening the editor based on selectedElement
-            
+
             return;
           }
-          
-          // Find which section contains this element
+
           const pageVm = pageConstructorPresenter.getViewModel();
           let foundSectionId: string | null = null;
           let foundComponentId: string | null = null;
 
           if (pageVm?.sections) {
-            // First check if elementId matches a section ID
+            
             for (const section of pageVm.sections) {
               if (section.id === elementId) {
                 foundSectionId = section.id;
@@ -698,10 +645,9 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               }
             }
 
-            // If not found as section, search in components
             if (!foundSectionId) {
               for (const section of pageVm.sections) {
-                // Search directly in section.components array
+                
                 const foundComponent = section.components?.find(comp => comp.id === elementId);
                 if (foundComponent) {
                   foundSectionId = section.id;
@@ -713,16 +659,14 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           }
 
           if (foundSectionId) {
-            // Switch to Pages tab
+            
             setActiveTab('pages');
             setActiveSection('pageConstructor');
-            
-            // Clear other selections
+
             presenter.selectElement(null);
             pageConstructorPresenter.selectOfferCard(null);
             setSelectedOfferCardId(null);
-            
-            // Select the section and component
+
             pageConstructorPresenter.selectSection(foundSectionId);
             if (foundComponentId && foundComponentId !== foundSectionId) {
               pageConstructorPresenter.selectComponent(foundSectionId, foundComponentId);
@@ -735,8 +679,6 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     }
   }, [presenter, pageConstructorPresenter]);
 
-  // Send initial theme and sidebar colors when preview signals ready or when config changes
-  // Setup iframe ready handler - this is needed for sendConfig to work
   useEffect(() => {
     const previewComm = presenter.getPreviewCommunication();
     if (!previewComm) return;
@@ -823,14 +765,13 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
 
-    // Set activeSection based on tab
     switch (tabId) {
       case 'theme':
         setActiveSection('background');
         break;
       case 'leftSidebar':
         setActiveSection('leftSidebar');
-        // Auto-select container for leftSidebar to show ContainerEditor
+        
         const leftElements = extractSidebarElements('sidebar');
         if (leftElements.length > 0 && leftElements[0]) {
           handleSidebarElementSelect(leftElements[0].id, 'sidebar');
@@ -838,17 +779,17 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         break;
       case 'rightSidebar':
         setActiveSection('rightSidebar');
-        // Select first element if available
+        
         const rightElements = extractSidebarElements('rightSidebar');
         if (rightElements.length > 0 && rightElements[0]) {
           handleSidebarElementSelect(rightElements[0].id, 'rightSidebar');
         }
         break;
       case 'authentication': {
-        // By default show popup so user sees something in preview
+        
         setActiveSection('authPopup');
         presenter.previewAuthPopup(true);
-        // Clear other selections so unrelated sidebars/pages are not shown
+        
         presenter.selectElement(null);
         pageConstructorPresenter.selectSection(null);
         pageConstructorPresenter.selectComponent(null, null);
@@ -858,7 +799,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       }
       case 'pages':
         setActiveSection('pageConstructor');
-        // Clear offer card selection when switching to Pages tab
+        
         if (selectedOfferCardId) {
           pageConstructorPresenter.selectOfferCard(null);
           setSelectedOfferCardId(null);
@@ -866,17 +807,17 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         break;
       case 'offerCards':
         setActiveSection('offerCards');
-        // Clear page constructor selection when switching to Offer Cards
+        
         pageConstructorPresenter.selectSection(null);
         pageConstructorPresenter.selectComponent(null, null);
-        // Clear sidebar element selection
+        
         if (viewModel.selectedElement) {
           presenter.selectElement(null);
         }
         break;
       case 'templates':
         setActiveSection('templates');
-        // Clear other selections when switching to Templates
+        
         presenter.selectElement(null);
         pageConstructorPresenter.selectSection(null);
         pageConstructorPresenter.selectComponent(null, null);
@@ -914,7 +855,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       case 'leftSidebar':
         return (
           <div className="p-3 space-y-4">
-            {/* Button Styling */}
+            {}
             <div className="bg-white rounded-lg shadow p-4">
               <h4 className="text-sm font-semibold text-gray-900 mb-3">Button Styling</h4>
               <div className="space-y-3">
@@ -939,7 +880,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               </div>
             </div>
 
-            {/* Manage Buttons */}
+            {}
             <div className="bg-white rounded-lg shadow p-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-semibold text-gray-900">Manage Buttons</span>
@@ -1053,16 +994,14 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                     const url = new URL(window.location.href);
                     url.searchParams.set('pageSlug', pageSlug);
                     window.history.replaceState({}, '', url.toString());
-                    
-                    // Find and simulate click on corresponding sidebar button
+
                     const buttonId = findSidebarButtonByPageSlug(pageSlug);
                     if (buttonId) {
                       setTimeout(() => {
                         simulateSidebarButtonClick(buttonId);
                       }, 100);
                     }
-                    
-                    // Initialize page constructor for the new page (this will send config to iframe)
+
                     await pageConstructorPresenter.initialize(appId, pageSlug);
                     setOfferCards(pageConstructorPresenter.getOfferCards());
                     setSelectedOfferCardId(pageConstructorPresenter.getSelectedOfferCardId());
@@ -1090,7 +1029,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 pageConstructorPresenter.selectOfferCard(cardId);
                 setSelectedOfferCardId(cardId);
                 setActiveTab('offerCards');
-                // Clear sidebar element selection when selecting offer card
+                
                 if (viewModel.selectedElement) {
                   handleSidebarElementSelect(null, 'sidebar');
                 }
@@ -1130,7 +1069,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
   return (
     <div className="w-full h-screen flex bg-gray-100">
-      {/* Slide Out Sidebar */}
+      {}
       <SlideOutSidebar
         isOpen={isSlideOutSidebarOpen}
         onClose={() => setIsSlideOutSidebarOpen(false)}
@@ -1138,7 +1077,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         isAdmin={isAdmin}
       />
 
-      {/* Main Menu Button */}
+      {}
       <button
         onClick={() => setIsSlideOutSidebarOpen(true)}
         className="fixed top-4 left-4 z-30 p-2 bg-white rounded-lg shadow-md hover:bg-gray-50 transition-colors"
@@ -1151,7 +1090,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
 
       <aside className="w-72 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0">
         <div className="p-3">
-          {/* Page Builder - Add Section (only when Pages tab is active) */}
+          {}
           {activeTab === 'pages' && activeSection === 'pageConstructor' && (() => {
             const pageVm = pageConstructorPresenter.getViewModel();
             const selectedSectionId = pageVm?.selectedSection?.id || null;
@@ -1168,7 +1107,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             );
           })()}
 
-          {/* Offer Cards Manager (only when Offer Cards tab is active) */}
+          {}
           {activeTab === 'offerCards' && (
             <div className="mb-4">
               <OfferCardsManager
@@ -1178,7 +1117,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                   pageConstructorPresenter.selectOfferCard(cardId);
                   setSelectedOfferCardId(cardId);
                   setActiveTab('offerCards');
-                  // Clear sidebar element selection when selecting offer card
+                  
                   if (viewModel.selectedElement) {
                     handleSidebarElementSelect(null, 'sidebar');
                   }
@@ -1203,7 +1142,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             </div>
           )}
 
-          {/* Templates Manager (list + create buttons) when Templates tab is active */}
+          {}
           {activeTab === 'templates' && (
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
@@ -1267,7 +1206,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 )}
               </div>
 
-              {/* User App Configs for non-admin users */}
+              {}
               {!isAdmin && (
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-2">
@@ -1342,7 +1281,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
             </div>
           )}
 
-          {/* Left Sidebar Elements (hide when in authentication, pageConstructor, offerCards or templates) */}
+          {}
           {activeTab !== 'pages' && activeTab !== 'offerCards' && activeTab !== 'templates' && activeTab !== 'authentication' && activeSection !== 'pageConstructor' && (
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
@@ -1368,14 +1307,14 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         </div>
       </aside>
 
-      {/* Center - Live Preview */}
+      {}
       <div className="flex-1 flex flex-col overflow-hidden bg-white border-l border-r border-gray-200">
         <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange}>
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="border-b border-gray-200 px-4 py-3 flex justify-between items-center bg-gray-50">
               <h3 className="text-sm font-bold text-gray-900">Live Preview</h3>
               <div className="flex items-center gap-2">
-                {/* Element Selection Mode Toggle */}
+                {}
                 {isClient && iframeSrc && (
                   <button
                     onClick={() => {
@@ -1384,7 +1323,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                       if (typeof presenter.setElementSelectionMode === 'function') {
                         presenter.setElementSelectionMode(newMode);
                       }
-                      // Also sync with page-constructor.presenter
+                      
                       if (typeof pageConstructorPresenter.setElementSelectionMode === 'function') {
                         pageConstructorPresenter.setElementSelectionMode(newMode);
                       }
@@ -1433,9 +1372,9 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         </Tabs>
       </div>
 
-      {/* Right Sidebar - Editing Panels */}
+      {}
       <aside ref={rightSidebarRef} className="w-80 bg-white border-l border-gray-200 flex flex-col flex-shrink-0 overflow-hidden">
-        {/* Compact Header */}
+        {}
         <header className="bg-white border-b border-gray-200 px-4 py-3">
           <div className="flex flex-col gap-2">
             <div>
@@ -1501,12 +1440,12 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                   onClick={async () => {
                     const success = await pageConstructorPresenter.publish();
                     if (success) {
-                      // Show success message and suggest reloading the page
+                      
                       const shouldReload = window.confirm(
                         'Page published successfully! Do you want to reload the published page to see the changes?'
                       );
                       if (shouldReload) {
-                        // Open the published page in a new tab
+                        
                         const pageUrl = `/home`;
                         window.open(pageUrl, '_blank');
                       }
@@ -1528,7 +1467,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           </div>
         </header>
 
-        {/* Page Selection Tabs */}
+        {}
         <div className="bg-white border-b border-gray-200 px-4 py-2">
           <div className="flex items-center gap-2">
             <button
@@ -1556,11 +1495,10 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                         const url = new URL(window.location.href);
                         url.searchParams.set('pageSlug', pageSlug);
                         window.history.pushState({}, '', url);
-                        // Switch to pageConstructor section to show the editor
+                        
                         setActiveSection('pageConstructor');
                         setActiveTab('pages');
-                        
-                        // Find and simulate click on corresponding sidebar button
+
                         const buttonId = findSidebarButtonByPageSlug(pageSlug);
                         if (buttonId) {
                           setTimeout(() => {
@@ -1571,12 +1509,11 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                         await pageConstructorPresenter.initialize(appId, pageSlug);
                         setOfferCards(pageConstructorPresenter.getOfferCards());
                         setSelectedOfferCardId(pageConstructorPresenter.getSelectedOfferCardId());
-                        // Sync elementSelectionMode with page-constructor.presenter after page switch
-                        // This ensures that element selection mode is properly set in iframe after page switch
+
                         if (typeof pageConstructorPresenter.setElementSelectionMode === 'function') {
                           pageConstructorPresenter.setElementSelectionMode(isElementSelectionMode);
                         }
-                        // Also send via ui-builder presenter as fallback
+                        
                         if (typeof presenter.forceSendConfigToIframe === 'function') {
                           presenter.forceSendConfigToIframe();
                         }
@@ -1601,10 +1538,10 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           </div>
         </div>
 
-        {/* Content Area */}
+        {}
         <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
           <div className="space-y-4">
-            {/* Background Editor */}
+            {}
             {activeSection === 'background' && (
               <BackgroundEditor
                 value={backgroundSettings}
@@ -1612,14 +1549,14 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               />
             )}
 
-            {/* Left Sidebar Properties */}
+            {}
             {activeSection === 'leftSidebar' && (
               <div className="space-y-4">
-                {/* Container properties are shown in the left sidebar */}
+                {}
               </div>
             )}
 
-            {/* Offer Card Editor */}
+            {}
             {(() => {
               const shouldShowOfferCardEditor =
                 selectedOfferCardId && activeTab === 'offerCards' && activeSection === 'offerCards';
@@ -1644,7 +1581,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               );
             })()}
 
-            {/* Color Editor for Selected Element */}
+            {}
             {(activeSection === 'sidebar' || activeSection === 'rightSidebar') && !selectedOfferCardId && (
               <SidebarColorEditor
                 element={viewModel.selectedElement}
@@ -1777,7 +1714,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
               </div>
             )}
 
-            {/* Validation Errors */}
+            {}
             {viewModel.validationErrors.length > 0 && (
               <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
                 <h4 className="font-semibold text-yellow-800 text-xs mb-1">Validation Warnings:</h4>
@@ -1794,7 +1731,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         </div>
       </aside>
 
-      {/* Fullscreen Preview Modal */}
+      {}
       {isFullscreen && isClient && iframeSrc && (
         <FullscreenPreview
           iframeSrc={iframeSrc}
@@ -1805,7 +1742,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
         />
       )}
 
-      {/* Create Template Modal */}
+      {}
       <CreateTemplateModal
         isOpen={isCreateTemplateModalOpen}
         onClose={() => {
@@ -1830,14 +1767,4 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
 

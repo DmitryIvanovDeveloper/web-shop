@@ -26,4 +26,3 @@ export function useKeyboardShortcuts(shortcuts: Shortcut[]): void {
 
 export default useKeyboardShortcuts;
 
-

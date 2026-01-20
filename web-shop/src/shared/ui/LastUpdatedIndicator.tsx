@@ -4,8 +4,8 @@ export interface LastUpdatedIndicatorProps {
   lastUpdated: Date;
   className?: string;
   showRelativeTime?: boolean;
-  targetLatencySeconds?: number; // Default 300 (5 min)
-  maxLatencySeconds?: number; // Default 900 (15 min)
+  targetLatencySeconds?: number; 
+  maxLatencySeconds?: number; 
 }
 
 export const LastUpdatedIndicator: React.FC<LastUpdatedIndicatorProps> = ({
@@ -20,7 +20,7 @@ export const LastUpdatedIndicator: React.FC<LastUpdatedIndicatorProps> = ({
   useEffect(() => {
     const interval = setInterval(() => {
       setNow(new Date());
-    }, 1000); // Update every second
+    }, 1000); 
 
     return () => clearInterval(interval);
   }, []);
@@ -99,7 +99,6 @@ export const LastUpdatedIndicator: React.FC<LastUpdatedIndicatorProps> = ({
   );
 };
 
-// Compact version for inline use
 export const LastUpdatedBadge: React.FC<LastUpdatedIndicatorProps> = ({
   lastUpdated,
   className = '',
@@ -155,5 +154,4 @@ export const LastUpdatedBadge: React.FC<LastUpdatedIndicatorProps> = ({
     </span>
   );
 };
-
 

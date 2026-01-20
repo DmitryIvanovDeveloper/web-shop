@@ -65,7 +65,6 @@ export const RatioBuilder: React.FC<RatioBuilderProps> = ({
   const numeratorMetric = availableMetrics.find(m => m.id === numeratorId);
   const denominatorMetric = availableMetrics.find(m => m.id === denominatorId);
 
-  // Generate preview formula
   const getFormulaPreview = () => {
     if (!numeratorMetric) return 'Select metrics to see preview';
 
@@ -99,7 +98,7 @@ export const RatioBuilder: React.FC<RatioBuilderProps> = ({
       </div>
 
       <form onSubmit={handleSubmit} className="p-6 space-y-6">
-        {/* Metric Name */}
+        {}
         <div>
           <label htmlFor="metric-name" className="block text-sm font-medium text-gray-700 mb-2">
             Metric Name *
@@ -115,7 +114,7 @@ export const RatioBuilder: React.FC<RatioBuilderProps> = ({
           />
         </div>
 
-        {/* Operator */}
+        {}
         <div>
           <label htmlFor="operator" className="block text-sm font-medium text-gray-700 mb-2">
             Operation *
@@ -134,7 +133,7 @@ export const RatioBuilder: React.FC<RatioBuilderProps> = ({
           </select>
         </div>
 
-        {/* Numerator */}
+        {}
         <div>
           <label htmlFor="numerator" className="block text-sm font-medium text-gray-700 mb-2">
             Numerator (First Metric) *
@@ -155,7 +154,7 @@ export const RatioBuilder: React.FC<RatioBuilderProps> = ({
           </select>
         </div>
 
-        {/* Denominator */}
+        {}
         {requiresDenominator && (
           <div>
             <label htmlFor="denominator" className="block text-sm font-medium text-gray-700 mb-2">
@@ -180,13 +179,13 @@ export const RatioBuilder: React.FC<RatioBuilderProps> = ({
           </div>
         )}
 
-        {/* Formula Preview */}
+        {}
         <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
           <div className="text-sm font-medium text-gray-700 mb-2">Formula Preview:</div>
           <div className="font-mono text-lg text-indigo-600">{getFormulaPreview()}</div>
         </div>
 
-        {/* Format Options */}
+        {}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="format" className="block text-sm font-medium text-gray-700 mb-2">
@@ -220,7 +219,7 @@ export const RatioBuilder: React.FC<RatioBuilderProps> = ({
           </div>
         </div>
 
-        {/* Actions */}
+        {}
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
           <button
             type="button"
@@ -241,5 +240,4 @@ export const RatioBuilder: React.FC<RatioBuilderProps> = ({
     </div>
   );
 };
-
 

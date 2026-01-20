@@ -24,16 +24,13 @@ export class UpdatePatchNoteUseCase {
   ) {}
 
   async execute(input: UpdatePatchNoteInput): Promise<Result<PatchNoteOutput, Error>> {
-    this._logger.info('[UpdatePatchNoteUseCase] Updating patch note', { input });
-
-    try {
-      // Find existing patch note
+        try {
+      
       const patchNoteId = PatchNoteId.fromString(input.id);
       const findResult = await this._patchNoteRepository.findById(patchNoteId, input.appId);
 
       if (!findResult.isSuccess) {
-        this._logger.error('[UpdatePatchNoteUseCase] Failed to find patch note', findResult.error);
-        return Failure.fail(findResult.error);
+                return Failure.fail(findResult.error);
       }
 
       if (!findResult.value) {
@@ -42,7 +39,6 @@ export class UpdatePatchNoteUseCase {
 
       const existingPatchNote = findResult.value;
 
-      // Create updated patch note
       const updateData: Partial<{ title: string; description: string; changes: ChangeItem[] }> = {};
 
       if (input.title !== undefined) {
@@ -61,25 +57,20 @@ export class UpdatePatchNoteUseCase {
 
       const updatedPatchNote = existingPatchNote.update(updateData);
 
-      // Save updated patch note
       const saveResult = await this._patchNoteRepository.update(updatedPatchNote);
 
       if (!saveResult.isSuccess) {
-        this._logger.error('[UpdatePatchNoteUseCase] Failed to save updated patch note', saveResult.error);
-        return Failure.fail(saveResult.error);
+                return Failure.fail(saveResult.error);
       }
 
-      // Publish domain event
       await this._eventBus.publish(
         new PatchNoteUpdatedEvent(updatedPatchNote.id.value, [], input.appId)
       );
 
-      this._logger.info('[UpdatePatchNoteUseCase] Patch note updated successfully', { patchNoteId: updatedPatchNote.id.value });
-      return Success.ok(this.mapToOutput(updatedPatchNote));
+            return Success.ok(this.mapToOutput(updatedPatchNote));
 
     } catch (error) {
-      this._logger.error('[UpdatePatchNoteUseCase] Unexpected error updating patch note', { error });
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+            return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 

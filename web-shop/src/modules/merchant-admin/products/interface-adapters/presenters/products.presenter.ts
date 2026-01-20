@@ -159,7 +159,6 @@ export class ProductsPresenter {
 
     await this.loadProducts();
 
-    // Close form
     this._viewModel = {
       ...this._viewModel,
       isSaving: false,
@@ -332,10 +331,4 @@ export class ProductsPresenter {
     return Result.ok(result.data!.url);
   }
 }
-
-
-
-
-
-
 

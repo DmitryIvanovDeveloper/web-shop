@@ -51,7 +51,7 @@ export function SectionPalette({ onAddSection, selectedSectionId, onAddComponent
         ))}
       </div>
 
-      {/* Show components only if a section is selected */}
+      {}
       {selectedSectionId && onAddComponent && (
         <>
           <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-3 mt-4">

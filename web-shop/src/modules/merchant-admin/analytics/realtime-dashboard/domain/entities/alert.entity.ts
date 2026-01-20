@@ -155,7 +155,6 @@ export class Alert {
       return false;
     }
 
-    // Check if enough time has passed for escalation (e.g., 1 hour)
     const hoursSinceTriggered = (Date.now() - this.triggeredAt.getTime()) / (1000 * 60 * 60);
     return hoursSinceTriggered >= 1 && this.escalationLevel < 3;
   }

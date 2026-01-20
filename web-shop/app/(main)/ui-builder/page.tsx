@@ -15,7 +15,7 @@ function UIBuilderContent(): JSX.Element {
   const isAdmin = role === 'admin';
 
   useLayoutEffect(() => {
-    // Для admin пользователей не делаем redirect, если нет appId
+    
     if (!appId && !isAdmin) {
       router.push('/projects');
     }
@@ -25,7 +25,6 @@ function UIBuilderContent(): JSX.Element {
     return <div>Redirecting...</div>;
   }
 
-  // Для admin пользователей без appId передаем пустую строку
   return <UIBuilderPage presenter={presenter} appId={appId || ''} />;
 }
 
@@ -37,4 +36,3 @@ export default function Page(): JSX.Element {
   );
 }
 
- 

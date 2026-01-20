@@ -14,7 +14,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Try to update first
     const { data: updateData, error: updateError } = await supabase
       .from('translations')
       .update({
@@ -31,7 +30,7 @@ export async function POST(request: NextRequest) {
     let wasCreated = false;
 
     if (updateError && updateError.code === 'PGRST116') {
-      // Not found, try to insert
+      
       const { data: insertData, error: insertError } = await supabase
         .from('translations')
         .insert({
@@ -46,8 +45,7 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (insertError) {
-        console.error('[API] Failed to insert translation:', insertError);
-        return NextResponse.json(
+                return NextResponse.json(
           { error: insertError.message },
           { status: 500 }
         );
@@ -56,14 +54,12 @@ export async function POST(request: NextRequest) {
       translation = insertData;
       wasCreated = true;
     } else if (updateError) {
-      console.error('[API] Failed to update translation:', updateError);
-      return NextResponse.json(
+            return NextResponse.json(
         { error: updateError.message },
         { status: 500 }
       );
     }
 
-    // Map to API response format
     const apiTranslation = {
       key: translation.key,
       languageCode: translation.language_code,
@@ -78,8 +74,7 @@ export async function POST(request: NextRequest) {
       wasCreated
     });
   } catch (error) {
-    console.error('[API] Unexpected error upserting translation:', error);
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );

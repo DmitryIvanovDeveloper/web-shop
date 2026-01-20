@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { ColorInput } from './ColorInput';
 
-// Generic size helpers (px / rem)
 const parseSize = (
   size: string | number | undefined,
   defaultUnit: 'px' | 'rem' = 'px'
@@ -53,31 +52,26 @@ const readFileAsDataUrl = (file: File): Promise<string> => {
 };
 
 export interface ButtonEditorProps {
-  // Colors
+  
   backgroundColor: string;
   textColor: string;
   borderColor: string;
   hoverBackgroundColor?: string;
   onColorChange: (colorKey: 'backgroundColor' | 'textColor' | 'borderColor' | 'hoverBackgroundColor', value: string) => void;
 
-  // Content
   label: string;
   onLabelChange: (value: string) => void;
 
-  // Icon
   icon?: string | null;
   onIconChange?: (value: string | null) => void;
 
-  // Navigation
   pageSlug?: string | null;
   onPageSlugChange?: (value: string | null) => void;
   pages?: string[];
 
-  // Action
   onClick?: string;
   onActionChange?: (value: string) => void;
 
-  // Layout (for sidebar buttons)
   borderRadius?: string;
   onBorderRadiusChange?: (value: string) => void;
   padding?: string;
@@ -89,7 +83,6 @@ export interface ButtonEditorProps {
   textAlign?: string;
   onTextAlignChange?: (value: string) => void;
 
-  // Typography
   fontSize?: string;
   onFontSizeChange?: (value: string) => void;
   fontWeight?: string;
@@ -97,8 +90,6 @@ export interface ButtonEditorProps {
   minHeight?: string;
   onMinHeightChange?: (value: string) => void;
 
-  // Sections are shown automatically if corresponding handlers are provided
-  // No need for showLayout/showPadding/showAction flags
 }
 
 export function ButtonEditor({
@@ -159,7 +150,7 @@ export function ButtonEditor({
       const base64 = await readFileAsDataUrl(file);
       onIconChange(base64);
     } catch {
-      // ignore upload errors for now
+      
     } finally {
       setIsIconUploading(false);
       event.target.value = '';
@@ -172,7 +163,6 @@ export function ButtonEditor({
     }
   };
 
-  // Parse borderRadius value and unit
   const parseBorderRadius = (borderRadiusString: string | number | undefined): { value: number; unit: string } => {
     if (!borderRadiusString) return { value: 0.5, unit: 'rem' };
     const borderRadius = typeof borderRadiusString === 'number' ? `${borderRadiusString}px` : borderRadiusString;
@@ -197,7 +187,6 @@ export function ButtonEditor({
     }
   };
 
-  // Parse padding value and unit
   const parsePadding = (paddingString: string | number | undefined): { value: number; unit: string } => {
     if (!paddingString) return { value: 1, unit: 'rem' };
     const padding = typeof paddingString === 'number' ? `${paddingString}px` : paddingString;
@@ -222,7 +211,6 @@ export function ButtonEditor({
     }
   };
 
-  // Parse width value and unit
   const parseWidth = (widthString: string | number | undefined): { value: number; unit: string } => {
     if (!widthString || widthString === '') return { value: 100, unit: '%' };
     const width = typeof widthString === 'number' ? `${widthString}px` : widthString;
@@ -249,7 +237,7 @@ export function ButtonEditor({
 
   return (
     <div className="space-y-6">
-      {/* Colors Section */}
+      {}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Colors</h4>
         <div className="space-y-3">
@@ -268,7 +256,7 @@ export function ButtonEditor({
             value={borderColor}
             onChange={(newColor) => onColorChange('borderColor', newColor)}
           />
-          {/* Hover Background Color - always show for buttons */}
+          {}
           <ColorInput
             label="Hover Background Color"
             value={hoverBackgroundColor || '#5C6BC0'}
@@ -277,7 +265,7 @@ export function ButtonEditor({
         </div>
       </div>
 
-      {/* Border Radius */}
+      {}
       {onBorderRadiusChange && (
         <div className="space-y-3">
           <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Border</h4>
@@ -308,11 +296,11 @@ export function ButtonEditor({
         </div>
       )}
 
-      {/* Spacing */}
+      {}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Spacing</h4>
         <div className="space-y-3">
-          {/* Width */}
+          {}
           {onWidthChange && (
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
@@ -343,7 +331,7 @@ export function ButtonEditor({
             </div>
           )}
 
-          {/* Max Height */}
+          {}
           {onMaxHeightChange && (
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
@@ -380,7 +368,7 @@ export function ButtonEditor({
             </div>
           )}
 
-          {/* Min Height */}
+          {}
           {onMinHeightChange && (
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
@@ -414,7 +402,7 @@ export function ButtonEditor({
             </div>
           )}
 
-          {/* Padding */}
+          {}
           {onPaddingChange && (
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
@@ -444,12 +432,12 @@ export function ButtonEditor({
         </div>
       </div>
 
-      {/* Typography */}
+      {}
       {(onFontSizeChange || onFontWeightChange) && (
         <div className="space-y-3">
           <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Typography</h4>
           <div className="space-y-3">
-            {/* Font Size */}
+            {}
             {onFontSizeChange && (
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
@@ -483,7 +471,7 @@ export function ButtonEditor({
               </div>
             )}
 
-            {/* Font Weight */}
+            {}
             {onFontWeightChange && (
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
@@ -505,7 +493,7 @@ export function ButtonEditor({
         </div>
       )}
 
-      {/* Layout */}
+      {}
       {onTextAlignChange && (
         <div className="space-y-3">
           <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Layout</h4>
@@ -526,11 +514,11 @@ export function ButtonEditor({
         </div>
       )}
 
-      {/* Content editor for buttons */}
+      {}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Content</h4>
 
-        {/* Label */}
+        {}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
             Button Text
@@ -544,7 +532,7 @@ export function ButtonEditor({
           />
         </div>
 
-        {/* Icon */}
+        {}
         {onIconChange && (
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
@@ -575,32 +563,7 @@ export function ButtonEditor({
               }`}>
                 <input
                   type="file"
-                  accept="image/*"
-                  className="hidden"
-                  disabled={isIconUploading}
-                  onChange={handleIconFileUpload}
-                />
-                {isIconUploading ? '📤 Uploading…' : '📤 Upload Icon'}
-              </label>
-              {icon && (
-                hasImageIcon ? (
-                  <img
-                    src={icon}
-                    alt="Button icon preview"
-                    className="w-10 h-10 object-contain rounded border border-gray-200"
-                  />
-                ) : (
-                  <span className="text-xl leading-none">{icon}</span>
-                )
-              )}
-            </div>
-            <p className="text-[10px] text-gray-500 mt-1">
-              The image is saved as base64 directly in the config. You can also use an emoji or a text symbol.
-            </p>
-          </div>
-        )}
-
-        {/* Navigate to Page */}
+                  accept="image}
         {onPageSlugChange && pages && pages.length > 0 && (
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">
@@ -624,7 +587,7 @@ export function ButtonEditor({
           </div>
         )}
 
-        {/* Action (URL or function) */}
+        {}
         {onActionChange && (
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-gray-600 uppercase tracking-wide">

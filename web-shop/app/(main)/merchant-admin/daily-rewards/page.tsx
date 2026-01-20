@@ -54,7 +54,6 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
   const router = useRouter();
   const appId = params?.appId;
 
-  // Always call hooks first, in the same order
   const [isLoading, setIsLoading] = useState(true);
   const [rewards, setRewards] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -74,13 +73,11 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
       setRewards(data);
     } catch (err) {
       setError('Failed to load daily rewards');
-      console.error('Error loading rewards:', err);
-    } finally {
+          } finally {
       setIsLoading(false);
     }
   }, [appId]);
 
-  // Redirect to projects page if appId is missing (useLayoutEffect runs before paint)
   useLayoutEffect(() => {
     if (!appId) {
       router.push('/projects');
@@ -88,8 +85,7 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
   }, [appId, router]);
 
   useEffect(() => {
-    // Defer data loading to avoid blocking navigation
-    // Use requestIdleCallback if available, otherwise setTimeout
+
     if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
       requestIdleCallback(() => loadRewards());
     } else {
@@ -98,8 +94,7 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
   }, [appId, loadRewards]);
 
   useEffect(() => {
-    // Defer data loading to avoid blocking navigation
-    // Use requestIdleCallback if available, otherwise setTimeout
+
     if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
       requestIdleCallback(() => loadRewards());
     } else {
@@ -117,8 +112,7 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
         description: formData.get('description'),
         points: parseInt(formData.get('points') as string),
       };
-      
-      // Add dayNumber if provided (empty string means null)
+
       if (dayNumberValue && dayNumberValue !== '') {
         data.dayNumber = parseInt(dayNumberValue as string);
       } else {
@@ -141,8 +135,7 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
       loadRewards();
     } catch (err) {
       setError('Failed to create reward');
-      console.error('Error creating reward:', err);
-    }
+          }
   };
 
   const handleEditReward = (reward: any): void => {
@@ -160,8 +153,7 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
         points: parseInt(formData.get('points') as string),
         isActive: formData.get('isActive') === 'true',
       };
-      
-      // Add dayNumber if provided (empty string means null)
+
       if (dayNumberValue && dayNumberValue !== '') {
         data.dayNumber = parseInt(dayNumberValue as string);
       } else {
@@ -184,13 +176,10 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
       loadRewards();
     } catch (err) {
       setError('Failed to update reward');
-      console.error('Error updating reward:', err);
-    }
+          }
   };
 
   const handleDeleteReward = async (rewardId: string): Promise<void> => {
-    // Temporarily remove confirm for testing
-    // if (!confirm('Are you sure you want to delete this reward?')) return;
 
     try {
       const response = await fetch(`/api/merchant-admin/daily-rewards/${rewardId}`, {
@@ -204,11 +193,8 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
       loadRewards();
     } catch (err) {
       setError('Failed to delete reward');
-      console.error('Error deleting reward:', err);
-    }
+          }
   };
-
-  // useLayoutEffect handles redirect, no conditional return needed
 
   return (
     <div style={containerStyle}>

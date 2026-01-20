@@ -12,8 +12,7 @@ export class AxiosHttpClient implements HttpClient {
   async request<T>(request: HttpRequest): Promise<HttpResponse<T>> {
     try {
       const url = `${this.baseURL}${request.url}`;
-      
-      // Simulate HTTP request
+
       const response = await fetch(url, {
         method: request.method,
         headers: {

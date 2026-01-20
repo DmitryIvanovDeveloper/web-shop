@@ -29,7 +29,6 @@ export class SelectActiveProjectUseCase {
       const merchantId = MerchantId.fromString(request.merchantId);
       const projectId = ProjectId.fromString(request.projectId);
 
-      // Get the project to select
       const projectResult = await this._projectRepository.findById(projectId);
       if (projectResult.isFailure) {
         return Result.error(projectResult.error!);
@@ -40,7 +39,6 @@ export class SelectActiveProjectUseCase {
         return Result.error(new Error('Cannot select inactive project'));
       }
 
-      // Get current active project
       const activeResult = await this._projectRepository.findActiveByMerchantId(merchantId);
       if (activeResult.isFailure) {
         return Result.error(activeResult.error!);
@@ -48,12 +46,10 @@ export class SelectActiveProjectUseCase {
 
       const currentActiveProject = activeResult.value;
 
-      // If same project is already active, return success
       if (currentActiveProject && currentActiveProject.id.equals(selectedProject.id)) {
         return Result.ok({ project: selectedProject });
       }
 
-      // Publish project selection event
       await this._eventBus.publishSync(
         new ProjectSelectedEvent(
           merchantId.value,

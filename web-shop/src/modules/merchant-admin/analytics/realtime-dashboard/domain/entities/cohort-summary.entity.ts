@@ -2,7 +2,7 @@ export interface CohortData {
   channel: string;
   users: number;
   revenue: number;
-  retention: number; // percentage
+  retention: number; 
 }
 
 export class CohortSummary {

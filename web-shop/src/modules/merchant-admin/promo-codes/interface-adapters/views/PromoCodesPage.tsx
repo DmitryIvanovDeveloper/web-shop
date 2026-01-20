@@ -26,9 +26,8 @@ export function PromoCodesPage(props: PromoCodesPageProps): JSX.Element {
     presenter
       .init(appId)
       .catch((error: unknown) => {
-        // Logger is used inside presenter; this is a fallback.
-        console.error('[PromoCodesPage] Failed to initialize presenter', error);
-      });
+        
+              });
 
     return unsubscribe;
   }, [presenter, appId]);
@@ -223,5 +222,4 @@ export function PromoCodesPage(props: PromoCodesPageProps): JSX.Element {
     </div>
   );
 }
-
 

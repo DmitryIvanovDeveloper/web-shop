@@ -36,7 +36,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     const endAngle = currentAngle + angle;
     currentAngle = endAngle;
 
-    // Calculate arc path for SVG
     const startRad = (startAngle * Math.PI) / 180;
     const endRad = (endAngle * Math.PI) / 180;
     
@@ -70,10 +69,10 @@ export const DonutChart: React.FC<DonutChartProps> = ({
       )}
       
       <div className="flex items-center gap-8">
-        {/* Chart */}
+        {}
         <div className="relative" style={{ width: size, height: size }}>
           <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-            {/* Background circle */}
+            {}
             <circle
               cx={radius}
               cy={radius}
@@ -82,7 +81,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
               opacity="0.3"
             />
             
-            {/* Segments */}
+            {}
             {segments.map((segment, index) => (
               <path
                 key={index}
@@ -93,7 +92,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
               />
             ))}
             
-            {/* Inner circle (donut hole) */}
+            {}
             <circle
               cx={radius}
               cy={radius}
@@ -101,7 +100,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
               fill="white"
             />
             
-            {/* Center text */}
+            {}
             <text
               x={radius}
               y={radius}
@@ -114,7 +113,7 @@ export const DonutChart: React.FC<DonutChartProps> = ({
           </svg>
         </div>
 
-        {/* Legend */}
+        {}
         {showLegend && (
           <div className="flex flex-col gap-2">
             {segments.map((segment, index) => (
@@ -141,5 +140,4 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     </div>
   );
 };
-
 

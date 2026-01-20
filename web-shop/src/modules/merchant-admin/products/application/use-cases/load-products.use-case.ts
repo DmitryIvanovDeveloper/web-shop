@@ -1,6 +1,4 @@
-/**
- * Use Case: Load products list for a given app.
- */
+
 
 import { inject, injectable } from 'inversify';
 import { Result } from '../../../../../shared/domain/result/result';

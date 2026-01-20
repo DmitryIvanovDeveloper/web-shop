@@ -17,7 +17,6 @@ import type {
   DailyRewardOutput
 } from '../../application/types/daily-reward.types';
 
-// View Model для UI
 export interface DailyRewardViewModel {
   id: string;
   appId: string;
@@ -39,7 +38,6 @@ export interface DailyRewardViewModel {
 export class DailyRewardsAdminPresenter {
   public readonly labels = { add: 'Add', update: 'Update', delete: 'Delete', list: 'List' } as const;
 
-  // Private state
   private _rewards: DailyRewardOutput[] = [];
   private _isLoading = false;
   private _error: string | null = null;
@@ -56,7 +54,6 @@ export class DailyRewardsAdminPresenter {
     private readonly deactivateDailyRewardUseCase: DeactivateDailyRewardUseCase
   ) {}
 
-  // View Model getters
   public get rewards(): DailyRewardViewModel[] {
     return this._rewards.map(reward => this.mapToViewModel(reward));
   }
@@ -73,7 +70,6 @@ export class DailyRewardsAdminPresenter {
     return this._rewards.length > 0;
   }
 
-  // Observable pattern - подписка на изменения
   public subscribe(listener: () => void): () => void {
     this._listeners.push(listener);
     return () => {
@@ -84,21 +80,18 @@ export class DailyRewardsAdminPresenter {
     };
   }
 
-  // Notify listeners about state changes
   private notifyListeners(): void {
     this._listeners.forEach(listener => listener());
   }
 
-  // Auto-refresh helper
   private async autoRefresh(): Promise<void> {
     if (this._lastLoadInput) {
       await this.loadRewards(this._lastLoadInput);
     }
   }
 
-  // Business logic methods
   public async loadRewards(input: GetDailyRewardsInput): Promise<void> {
-    this._lastLoadInput = input; // Store the input for auto-refresh
+    this._lastLoadInput = input; 
     this._isLoading = true;
     this._error = null;
     this.notifyListeners();
@@ -131,7 +124,6 @@ export class DailyRewardsAdminPresenter {
         return false;
       }
 
-      // Auto-refresh rewards to include the new one
       await this.autoRefresh();
       return true;
     } catch (error) {
@@ -153,7 +145,6 @@ export class DailyRewardsAdminPresenter {
         return false;
       }
 
-      // Auto-refresh rewards to reflect changes
       await this.autoRefresh();
       return true;
     } catch (error) {
@@ -175,7 +166,6 @@ export class DailyRewardsAdminPresenter {
         return false;
       }
 
-      // Auto-refresh rewards to reflect changes
       await this.autoRefresh();
       return true;
     } catch (error) {
@@ -195,7 +185,6 @@ export class DailyRewardsAdminPresenter {
     return result;
   }
 
-  // Helper method to map domain object to view model
   private mapToViewModel(reward: DailyRewardOutput): DailyRewardViewModel {
     return {
       id: reward.id,
@@ -229,40 +218,32 @@ export class DailyRewardsAdminPresenter {
     };
   }
 
-  // Legacy methods for backward compatibility (marked as deprecated)
-  /** @deprecated Use loadRewards() instead */
   public async onGetDailyRewards(input: GetDailyRewardsInput): Promise<void> {
     await this.loadRewards(input);
   }
 
-  /** @deprecated Use createReward() instead */
   public async onCreateDailyReward(input: CreateDailyRewardInput): Promise<void> {
     await this.createReward(input);
   }
 
-  /** @deprecated Use updateReward() instead */
   public async onUpdateDailyReward(input: UpdateDailyRewardInput): Promise<void> {
     await this.updateReward(input);
   }
 
-  /** @deprecated Use deleteReward() instead */
   public async onDeleteDailyReward(input: DeleteDailyRewardInput): Promise<void> {
     await this.deleteReward(input);
   }
 
-  /** @deprecated Use activateReward() instead */
   public async onActivateDailyReward(input: ActivateDailyRewardInput): Promise<void> {
     await this.activateReward(input);
   }
 
-  /** @deprecated Use deactivateReward() instead */
   public async onDeactivateDailyReward(input: DeactivateDailyRewardInput): Promise<void> {
     await this.deactivateReward(input);
   }
 
-  /** @deprecated Use getDailyRewardByIdUseCase directly instead */
   public async onGetDailyRewardById(input: GetDailyRewardByIdInput): Promise<void> {
-    // This method is not commonly used in UI, keeping for API compatibility
+    
     const result = await this.getDailyRewardByIdUseCase.execute(input);
     if (!result.isSuccess) {
       this._error = String(result.error || 'Failed to find reward');

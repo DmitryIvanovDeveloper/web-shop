@@ -4,15 +4,13 @@ import React from 'react';
 import { ColorInput } from './ColorInput';
 
 export interface TextEditorProps {
-  // Content
+  
   text: string;
   onTextChange: (value: string) => void;
-  
-  // Colors
+
   textColor: string;
   onTextColorChange: (value: string) => void;
-  
-  // Typography
+
   fontSize?: string;
   onFontSizeChange?: (value: string) => void;
   
@@ -73,7 +71,7 @@ export function TextEditor({
 }: TextEditorProps): JSX.Element {
   return (
     <div className="space-y-4">
-      {/* Text Content */}
+      {}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Content</h4>
         <div>
@@ -90,7 +88,7 @@ export function TextEditor({
         </div>
       </div>
 
-      {/* Colors */}
+      {}
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Colors</h4>
         <div className="space-y-3">
@@ -102,7 +100,7 @@ export function TextEditor({
         </div>
       </div>
 
-      {/* Typography */}
+      {}
       {(onFontSizeChange || onFontWeightChange || onTextAlignChange || onTextDecorationChange) && (
         <div className="space-y-3">
           <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Typography</h4>

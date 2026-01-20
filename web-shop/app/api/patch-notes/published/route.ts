@@ -14,7 +14,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const databaseClient = container.get<DatabaseClientPort>(TYPES.DatabaseClient);
 
-    // Get published patch notes ordered by published_at desc, then created_at desc
     const { data, error } = await databaseClient
       .from('patch_notes')
       .select('*')
@@ -24,21 +23,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('[GET /api/patch-notes/published] Failed to find patch notes', error);
-      return NextResponse.json({ error: 'Failed to fetch patch notes' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to fetch patch notes' }, { status: 500 });
     }
 
     return NextResponse.json(data || []);
   } catch (error) {
-    console.error('[GET /api/patch-notes/published] Unexpected error', error);
-    return NextResponse.json({ error: 'Unexpected error while fetching patch notes' }, { status: 500 });
+        return NextResponse.json({ error: 'Unexpected error while fetching patch notes' }, { status: 500 });
   }
 }
-
-
-
-
-
-
-
 

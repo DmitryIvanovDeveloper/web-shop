@@ -31,7 +31,7 @@ export function DeviceControls({
 }: DeviceControlsProps): JSX.Element {
   return (
     <div className="flex gap-2 items-center">
-      {/* Device Selector */}
+      {}
       <select
         value={device}
         onChange={(e) => onDeviceChange(e.target.value as DeviceType)}
@@ -45,7 +45,7 @@ export function DeviceControls({
         ))}
       </select>
 
-      {/* Orientation Toggle */}
+      {}
       <div className="flex gap-0.5 border border-gray-300 rounded p-0.5 bg-white">
         <button
           onClick={() => onOrientationChange('portrait')}
@@ -71,7 +71,7 @@ export function DeviceControls({
         </button>
       </div>
 
-      {/* Refresh Button */}
+      {}
       {onRefresh && (
         <button
           onClick={onRefresh}
@@ -82,7 +82,7 @@ export function DeviceControls({
         </button>
       )}
 
-      {/* Fullscreen Button */}
+      {}
       <button
         onClick={onFullscreen}
         className="p-1.5 text-gray-600 hover:text-gray-900 text-sm rounded hover:bg-gray-100 transition-colors"
@@ -91,7 +91,7 @@ export function DeviceControls({
         ⛶
       </button>
 
-      {/* Open in New Tab Button */}
+      {}
       {onOpenInNewTab && (
         <button
           onClick={onOpenInNewTab}

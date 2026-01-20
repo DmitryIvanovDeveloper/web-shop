@@ -31,7 +31,7 @@ export interface TemplatesViewModel {
   isLoadingUserAppConfigs: boolean;
   isSaving: boolean;
   error: string | null;
-  // Optional search / pagination state for future extension
+  
   query: string;
   pagination: PaginationParams | null;
 }
@@ -174,7 +174,7 @@ export class TemplatesPresenter {
     if (!this.isAdmin) {
       const result = await this.applyUserAppConfigUseCase.execute(userAppConfigId);
       if (result.isSuccess) {
-        // Mark the config as selected for UI feedback
+        
         this.selectUserAppConfig(userAppConfigId);
       }
       return result;
@@ -370,7 +370,6 @@ export class TemplatesPresenter {
     const pageVm = this.pageConstructorPresenter.getViewModel();
     const pageStyles = this.pageConstructorPresenter.getPageStyles();
 
-    // Get current config or fallback to default config
     let appConfigSnapshot = builderVm.config;
     const defaultConfig = this.uiBuilderPresenter.createDefaultConfigSnapshot();
 
@@ -670,10 +669,6 @@ export class TemplatesPresenter {
     }
   }
 
-  /**
-   * Apply currently selected Template into UI Builder and Page Constructor.
-   * Uses current pageSlug to choose matching pageConfig, falls back to first page.
-   */
   public async applySelectedTemplateToBuilder(): Promise<Result<void, Error>> {
     const selected = this.vm.selectedTemplate;
     if (!selected) {
@@ -683,9 +678,6 @@ export class TemplatesPresenter {
     return this.applyTemplateToBuilder(selected);
   }
 
-  /**
-   * Internal helper: apply given Template to app + current page.
-   */
   private applyTemplateToBuilder(template: Template): Result<void, Error> {
     const builderVm = this.uiBuilderPresenter.getViewModel();
     const pageVm = this.pageConstructorPresenter.getViewModel();
@@ -803,7 +795,6 @@ export class TemplatesPresenter {
     }
   }
 
-
   public async markSelectedTemplatePublished(): Promise<Result<Template, Error>> {
     if (!this.isAdmin) {
       return Result.error(new Error('Only admin can publish templates'));
@@ -826,5 +817,4 @@ export class TemplatesPresenter {
     return result;
   }
 }
-
 

@@ -169,7 +169,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
   return (
     <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-6 shadow-lg pb-24">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
           <span>🔍</span>
@@ -186,7 +186,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       </div>
 
       <div className="space-y-6">
-        {/* Preset Selector */}
+        {}
         <FilterPresetSelector
           presets={presets}
           currentPresetId={currentPresetId}
@@ -195,7 +195,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           isLoading={isLoading}
         />
 
-        {/* Date Range */}
+        {}
         <DateRangeFilterComponent
           preset={localFilterSet.dateRange.preset}
           granularity={localFilterSet.dateRange.granularity}
@@ -208,7 +208,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           onCustomRangeChange={(from, to) => handleDateRangeChange('custom', localFilterSet.dateRange.granularity, from, to)}
         />
 
-        {/* Geography */}
+        {}
         <MultiSelectFilter
           label="Geography"
           icon="🌍"
@@ -218,7 +218,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           placeholder="Select countries..."
         />
 
-        {/* Payment Method */}
+        {}
         <MultiSelectFilter
           label="Payment Method"
           icon="💳"
@@ -228,7 +228,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           placeholder="Select payment methods..."
         />
 
-        {/* Acquisition Source */}
+        {}
         <MultiSelectFilter
           label="Acquisition Source"
           icon="📢"
@@ -238,7 +238,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           placeholder="Select sources..."
         />
 
-        {/* Currency */}
+        {}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             <span className="mr-2">💰</span>
@@ -258,10 +258,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           </select>
         </div>
 
-        {/* Spacer under content for sticky footer */}
+        {}
         <div className="h-2" />
 
-        {/* Active Filters Summary */}
+        {}
         {localFilterSet.hasActiveFilters() && (
           <div className="mt-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
             <p className="text-xs font-semibold text-indigo-700 mb-2">Active Filters:</p>
@@ -285,10 +285,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           </div>
         )}
       </div>
-      {/* Sticky Footer: chips + Apply */}
+      {}
       <div className="fixed bottom-2 left-1/2 -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0 z-50">
         <div className="flex items-center gap-3 bg-white/90 backdrop-blur border border-gray-200 rounded-xl shadow-lg px-3 py-2">
-          {/* Chips summary */}
+          {}
           <div className="hidden md:flex flex-wrap gap-2 max-w-[50vw]">
             {!localFilterSet.geo.isEmpty() && (
               <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-gray-100 border border-gray-300 text-gray-700">🌍 {localFilterSet.geo.countries.length}</span>
@@ -315,5 +315,4 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     </div>
   );
 };
-
 

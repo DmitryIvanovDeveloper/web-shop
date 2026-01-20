@@ -15,8 +15,7 @@ export class LoadSalesUseCase {
 
   async execute(period: Period, filters: DashboardFilters): Promise<Result<SalesSummary, DataUnavailableError>> {
     try {
-      // Получаем данные о продажах за текущий период
-      // Repository уже возвращает SalesSummary с comparison данными из API
+
       const salesSummary = await this.analyticsRepository.getSalesSummary();
       return Result.ok(salesSummary);
 

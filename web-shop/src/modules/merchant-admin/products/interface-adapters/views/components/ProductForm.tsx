@@ -39,7 +39,6 @@ export function ProductForm({
 
   const [isMainImageUploading, setIsMainImageUploading] = useState(false);
 
-  // Sync form state when user selects another product while editor is open
   React.useEffect(() => {
     setFormData({
       title: product.title,
@@ -74,8 +73,7 @@ export function ProductForm({
         main_image: url,
       }));
     } catch (error) {
-      console.error('[ProductForm] Failed to upload image:', error);
-      alert(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            alert(`Failed to upload image: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsMainImageUploading(false);
     }

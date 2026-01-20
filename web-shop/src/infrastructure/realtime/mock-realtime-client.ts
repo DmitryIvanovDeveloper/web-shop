@@ -16,48 +16,35 @@ export class MockRealtimeClient implements RealtimeClientPort {
   ) {}
 
   async connect(): Promise<void> {
-    this.logger.info('MockRealtimeClient: Connecting...');
-    
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate connection delay
+        await new Promise(resolve => setTimeout(resolve, 500)); 
     
     this.connected = true;
-    this.logger.info('MockRealtimeClient: Connected');
-    this.notifyConnectionStatus(true);
+        this.notifyConnectionStatus(true);
   }
 
   async disconnect(): Promise<void> {
-    this.logger.info('MockRealtimeClient: Disconnecting...');
-    
-    // Stop all update intervals
-    this.updateIntervals.forEach(interval => clearInterval(interval));
+        this.updateIntervals.forEach(interval => clearInterval(interval));
     this.updateIntervals.clear();
     
     this.connected = false;
     this.subscriptions.clear();
     this.notifyConnectionStatus(false);
     
-    this.logger.info('MockRealtimeClient: Disconnected');
-  }
+      }
 
   subscribe<T>(channel: string, callback: (message: RealtimeMessage<T>) => void): void {
-    this.logger.info(`MockRealtimeClient: Subscribing to channel ${channel}`);
-    
-    if (!this.subscriptions.has(channel)) {
+        if (!this.subscriptions.has(channel)) {
       this.subscriptions.set(channel, []);
     }
     
     this.subscriptions.get(channel)!.push(callback as any);
-    
-    // Start mock updates for this channel
+
     this.startMockUpdates(channel);
   }
 
   unsubscribe(channel: string): void {
-    this.logger.info(`MockRealtimeClient: Unsubscribing from channel ${channel}`);
-    
-    this.subscriptions.delete(channel);
-    
-    // Stop mock updates for this channel
+        this.subscriptions.delete(channel);
+
     const interval = this.updateIntervals.get(channel);
     if (interval) {
       clearInterval(interval);
@@ -78,13 +65,12 @@ export class MockRealtimeClient implements RealtimeClientPort {
   }
 
   private startMockUpdates(channel: string): void {
-    // Clear existing interval if any
+    
     const existingInterval = this.updateIntervals.get(channel);
     if (existingInterval) {
       clearInterval(existingInterval);
     }
 
-    // Send mock updates every 5 seconds
     const interval = setInterval(() => {
       if (!this.connected || !this.subscriptions.has(channel)) {
         return;
@@ -154,7 +140,6 @@ export class MockRealtimeClient implements RealtimeClientPort {
     }
   }
 
-  // Test helper method
   simulateMessage(message: RealtimeMessage): void {
     const callbacks = this.subscriptions.get(message.channel);
     if (callbacks) {

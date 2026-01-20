@@ -7,12 +7,6 @@ import type { Logger } from '../../../../../../application/ports/logger.port';
 import { TrendDataPoint } from '../../domain/types/trend.types';
 import { env } from '../../../../../../env';
 
-/**
- * Supabase Purchase Repository Implementation
- * 
- * Infrastructure implementation of PurchaseRepositoryPort using Supabase
- * Handles purchase analytics operations through Supabase API
- */
 @injectable()
 export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
   private readonly _supabase: SupabaseClient;
@@ -33,36 +27,24 @@ export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
 
   public async getPurchaseSummary(): Promise<PurchaseSummary> {
     try {
-      this._logger.info('[SupabasePurchaseRepository] Loading purchase summary');
-
-      // Получаем данные о покупках из таблицы транзакций
-      const { data: transactions, error: transactionsError } = await this._supabase
+            const { data: transactions, error: transactionsError } = await this._supabase
         .from('transaction_log')
         .select('paid_amount, user_id, product_id, created_at, payment_status')
         .eq('payment_status', 'succeeded')
         .gte('created_at', this.getLast30DaysDate());
 
       if (transactionsError) {
-        this._logger.error('[SupabasePurchaseRepository] Failed to load transactions', { 
-          error: transactionsError
-        });
-        throw new Error(`Failed to load transactions: ${transactionsError.message}`);
+                throw new Error(`Failed to load transactions: ${transactionsError.message}`);
       }
 
-      // Получаем данные о продуктах для категоризации
       const { data: products, error: productsError } = await this._supabase
         .from('products')
         .select('id, rarity')
         .in('id', transactions?.map(t => t.product_id).filter(Boolean) || []);
 
       if (productsError) {
-        this._logger.warn('[SupabasePurchaseRepository] Failed to load products data', { 
-          error: productsError
-        });
-        // Продолжаем без данных о продуктах
-      }
+              }
 
-      // Вычисляем метрики
       const totalPurchases = this.calculateTotalPurchases(transactions || []);
       const uniqueCustomers = this.calculateUniqueCustomers(transactions || []);
       const averagePurchaseValue = this.calculateAveragePurchaseValue(transactions || []);
@@ -76,24 +58,13 @@ export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
         averagePurchaseValue,
         purchaseFrequency,
         topProductCategory,
-        'USD', // Можно сделать конфигурируемым
+        'USD', 
         trend
       );
 
-      this._logger.info('[SupabasePurchaseRepository] Purchase summary loaded', { 
-        totalPurchases,
-        uniqueCustomers,
-        averagePurchaseValue,
-        purchaseFrequency,
-        topProductCategory
-      });
-
-      return purchaseSummary;
+            return purchaseSummary;
     } catch (error) {
-      this._logger.error('[SupabasePurchaseRepository] Unexpected error loading purchase summary', { 
-        error
-      });
-      throw error;
+            throw error;
     }
   }
 
@@ -122,21 +93,18 @@ export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
 
   private calculateTopProductCategory(transactions: any[], products: any[]): string {
     if (products.length === 0) return 'Unknown';
-    
-    // Создаем мапу product_id -> rarity
+
     const productRarityMap = new Map();
     products.forEach(product => {
       productRarityMap.set(product.id, product.rarity);
     });
 
-    // Подсчитываем количество покупок по редкости
     const rarityCount = new Map();
     transactions.forEach(transaction => {
       const rarity = productRarityMap.get(transaction.product_id) || 'Unknown';
       rarityCount.set(rarity, (rarityCount.get(rarity) || 0) + 1);
     });
 
-    // Находим редкость с максимальным количеством покупок
     let topRarity = 'Unknown';
     let maxCount = 0;
     rarityCount.forEach((count, rarity) => {
@@ -151,16 +119,14 @@ export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
 
   private async calculateTrend(transactions: any[]): Promise<TrendDataPoint[]> {
     try {
-      // Группируем транзакции по дням за последние 7 дней
+      
       const last7Days = this.getLast7Days();
       const trendMap = new Map<string, number>();
 
-      // Инициализируем все дни нулевыми значениями
       last7Days.forEach(date => {
         trendMap.set(date.toISOString().split('T')[0], 0);
       });
 
-      // Суммируем покупки по дням
       transactions.forEach(transaction => {
         if (transaction.created_at) {
           const date = new Date(transaction.created_at);
@@ -173,7 +139,6 @@ export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
         }
       });
 
-      // Преобразуем в массив TrendDataPoint
       return Array.from(trendMap.entries())
         .map(([date, value]) => {
           const timestamp = new Date(date);
@@ -184,8 +149,7 @@ export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
         })
         .sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
     } catch (error) {
-      this._logger.warn('[SupabasePurchaseRepository] Failed to calculate trend', { error });
-      return [];
+            return [];
     }
   }
 
@@ -207,10 +171,7 @@ export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
 
   public async getRecentPurchases(limit: number = 50): Promise<PurchaseRow[]> {
     try {
-      this._logger.info('[SupabasePurchaseRepository] Loading recent purchases', { limit });
-
-      // Получаем транзакции
-      const { data: transactions, error: transactionsError } = await this._supabase
+            const { data: transactions, error: transactionsError } = await this._supabase
         .from('transaction_log')
         .select(`
           id,
@@ -227,7 +188,6 @@ export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
         .order('created_at', { ascending: false })
         .limit(limit);
 
-      // Получаем данные о продуктах отдельно
       const productIds = transactions?.map(t => t.product_id).filter(Boolean) || [];
       const { data: products } = await this._supabase
         .from('products')
@@ -235,19 +195,14 @@ export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
         .in('id', productIds);
 
       if (transactionsError) {
-        this._logger.error('[SupabasePurchaseRepository] Failed to load recent purchases', {
-          error: transactionsError
-        });
-        throw new Error(`Failed to load recent purchases: ${transactionsError.message}`);
+                throw new Error(`Failed to load recent purchases: ${transactionsError.message}`);
       }
 
-      // Создаем мапу продуктов для быстрого поиска
       const productMap = new Map();
       (products || []).forEach(product => {
         productMap.set(product.id, product);
       });
 
-      // Преобразуем данные в формат PurchaseRow
       const purchases: PurchaseRow[] = (transactions || []).map(transaction => {
         const product = productMap.get(transaction.product_id);
         return {
@@ -266,16 +221,9 @@ export class SupabasePurchaseRepository implements PurchaseRepositoryPort {
         };
       });
 
-      this._logger.info('[SupabasePurchaseRepository] Recent purchases loaded', {
-        count: purchases.length
-      });
-
-      return purchases;
+            return purchases;
     } catch (error) {
-      this._logger.error('[SupabasePurchaseRepository] Unexpected error loading recent purchases', {
-        error
-      });
-      throw error;
+            throw error;
     }
   }
 }

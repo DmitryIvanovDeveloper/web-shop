@@ -16,14 +16,8 @@ export class ProjectSelectedHandler implements IAsyncEventHandler<ProjectSelecte
   }
 
   public async handleAsync(event: ProjectSelectedEvent): Promise<void> {
-    this._logger.info('[ProjectSelectedHandler] Handling project selection', {
-      merchantId: event.merchantId,
-      projectId: event.projectId,
-      appId: event.appId
-    });
-
-    try {
-      // Store selected project in localStorage for persistence
+        try {
+      
       const selectedProjectData = {
         merchantId: event.merchantId,
         projectId: event.projectId,
@@ -35,17 +29,12 @@ export class ProjectSelectedHandler implements IAsyncEventHandler<ProjectSelecte
       if (typeof window !== 'undefined') {
         localStorage.setItem('selectedProject', JSON.stringify(selectedProjectData));
 
-        // Dispatch custom event for UI components to react
         window.dispatchEvent(new CustomEvent('projectSelected', {
           detail: selectedProjectData
         }));
 
-        this._logger.info('[ProjectSelectedHandler] Project selection stored and event dispatched', {
-          appId: event.appId
-        });
-      }
+              }
     } catch (error) {
-      this._logger.error('[ProjectSelectedHandler] Error handling project selection', error);
-    }
+          }
   }
 }

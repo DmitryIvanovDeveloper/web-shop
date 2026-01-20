@@ -26,25 +26,16 @@ export class PurchaseSummary {
     );
   }
 
-  /**
-   * Calculate purchase conversion rate
-   */
   public getConversionRate(): number {
     if (this.uniqueCustomers === 0) return 0;
     return (this.totalPurchases / this.uniqueCustomers) * 100;
   }
 
-  /**
-   * Calculate customer lifetime value
-   */
   public getCustomerLifetimeValue(): number {
     if (this.uniqueCustomers === 0) return 0;
     return (this.totalPurchases * this.averagePurchaseValue) / this.uniqueCustomers;
   }
 
-  /**
-   * Get purchase growth rate from trend data
-   */
   public getPurchaseGrowthRate(): number {
     if (this.trend.length < 2) return 0;
     

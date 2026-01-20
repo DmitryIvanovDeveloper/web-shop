@@ -20,17 +20,14 @@ export function useDashboardConfig() {
     isLoading: true,
   });
 
-  // Load configuration on mount
   useEffect(() => {
     async function loadConfig() {
       try {
-        // Load settings
+        
         const settings = await settingsRepository.load();
-        
-        // Load metrics selection
+
         const metricsSelection = await metricsSelectionRepository.load();
-        
-        // Load filters
+
         const filters = await FilterApplier.loadCurrentFilters();
 
         setConfig({
@@ -83,13 +80,13 @@ export function useDashboardConfig() {
   };
 
   const isPanelVisible = (panelId: string): boolean => {
-    // If no panels configured, show all
+    
     if (config.visiblePanels.length === 0) return true;
     return config.visiblePanels.includes(panelId);
   };
 
   const isMetricSelected = (metricId: string): boolean => {
-    // If no metrics configured, show all
+    
     if (config.selectedMetrics.length === 0) return true;
     return config.selectedMetrics.includes(metricId);
   };

@@ -105,7 +105,7 @@ export class Project {
       newStatus,
       this.merchantId,
       this.createdAt,
-      new Date() // updatedAt
+      new Date() 
     ));
   }
 
@@ -147,5 +147,4 @@ export class Project {
     return this.status.isDraft();
   }
 }
-
 

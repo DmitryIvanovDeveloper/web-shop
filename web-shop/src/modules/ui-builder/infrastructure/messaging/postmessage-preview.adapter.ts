@@ -29,7 +29,7 @@ export class PostMessagePreviewAdapter implements PreviewCommunicationPort {
     }
 
     this._elementSelectedHandler = (event: MessageEvent) => {
-      const isLocalhost = event.origin.startsWith('http://localhost:');
+      const isLocalhost = event.origin.startsWith('http://localhost');
       const isAllowedOrigin = this._targetOrigin === '*' || event.origin === this._targetOrigin;
 
       if (!isAllowedOrigin && !isLocalhost) {

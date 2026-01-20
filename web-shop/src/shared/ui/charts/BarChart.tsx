@@ -24,7 +24,7 @@ export const BarChart: React.FC<BarChartProps> = ({
   horizontal = false,
 }) => {
   const maxValue = Math.max(...data.map((d) => d.value));
-  const chartHeight = height - 60; // Reserve space for labels
+  const chartHeight = height - 60; 
   const chartWidth = data.length * 80;
   const barWidth = 50;
   const barSpacing = 30;
@@ -37,7 +37,7 @@ export const BarChart: React.FC<BarChartProps> = ({
       
       <div className="overflow-x-auto">
         <svg width={chartWidth} height={height} className="mx-auto">
-          {/* Grid lines */}
+          {}
           {showGrid && (
             <g className="grid-lines">
               {[0, 0.25, 0.5, 0.75, 1].map((ratio, index) => {
@@ -67,7 +67,7 @@ export const BarChart: React.FC<BarChartProps> = ({
             </g>
           )}
 
-          {/* Bars */}
+          {}
           {data.map((item, index) => {
             const barHeight = (item.value / maxValue) * chartHeight;
             const x = index * (barWidth + barSpacing) + barSpacing;
@@ -75,7 +75,7 @@ export const BarChart: React.FC<BarChartProps> = ({
 
             return (
               <g key={index}>
-                {/* Bar */}
+                {}
                 <rect
                   x={x}
                   y={y}
@@ -86,7 +86,7 @@ export const BarChart: React.FC<BarChartProps> = ({
                   className="transition-opacity hover:opacity-80"
                 />
                 
-                {/* Value label */}
+                {}
                 {showValues && (
                   <text
                     x={x + barWidth / 2}
@@ -98,7 +98,7 @@ export const BarChart: React.FC<BarChartProps> = ({
                   </text>
                 )}
                 
-                {/* Category label */}
+                {}
                 <text
                   x={x + barWidth / 2}
                   y={chartHeight + 35}
@@ -115,5 +115,4 @@ export const BarChart: React.FC<BarChartProps> = ({
     </div>
   );
 };
-
 

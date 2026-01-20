@@ -292,7 +292,6 @@ const result = await useCase.execute({
 if (result.isSuccess()) {
   // handle created promo code: result.data
 } else {
-  console.error('Error:', result.error);
 }
 ```
 

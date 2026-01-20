@@ -42,7 +42,7 @@ export class ComparisonPeriod {
       changePercent > 0 ? 'up' :
       changePercent < 0 ? 'down' : 'neutral';
 
-    const isSignificant = Math.abs(changePercent) > 0.1; // Более 0.1% считается значимым
+    const isSignificant = Math.abs(changePercent) > 0.1; 
 
     return new ComparisonPeriod(current, previous, Math.round(changePercent * 100) / 100, direction, isSignificant);
   }
@@ -68,41 +68,4 @@ export class ComparisonPeriod {
     return this.direction === 'down';
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

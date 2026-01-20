@@ -2,12 +2,6 @@ import { injectable, inject } from 'inversify';
 import type { PurchaseRepositoryPort, PurchaseRow } from '../ports/purchase-repository.port';
 import { TYPES } from '../../infrastructure/bootstrap/realtime-dashboard.types';
 
-/**
- * Load Recent Purchases Use Case
- * 
- * Application use case for loading recent purchases data
- * Orchestrates the business logic for purchase analytics
- */
 @injectable()
 export class LoadRecentPurchasesUseCase {
   constructor(

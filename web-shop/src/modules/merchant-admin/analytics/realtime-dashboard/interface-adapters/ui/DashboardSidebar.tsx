@@ -8,7 +8,7 @@ import { FilterPreset } from '../../domain/entities/filter-preset.entity';
 interface DashboardSidebarProps {
   activePanel: 'filters' | 'settings' | null;
   onClose: () => void;
-  // Filter props
+  
   filterSet?: FilterSet;
   presets?: FilterPreset[];
   currentPresetId?: string;
@@ -16,7 +16,7 @@ interface DashboardSidebarProps {
   onResetFilters?: () => void;
   onLoadPreset?: (id: string) => void;
   onSavePreset?: (name: string) => void;
-  // Settings props
+  
   settings?: DashboardSettings;
   settingsPreview?: DashboardSettings;
   onApplySettings?: (settings: DashboardSettings) => void;
@@ -42,20 +42,20 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
   return (
     <>
-      {/* Overlay */}
+      {}
       <div
         className="fixed inset-0 bg-black/50 z-40 lg:hidden"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Sidebar */}
+      {}
       <aside
         role="complementary"
         aria-label={activePanel === 'filters' ? 'Filters panel' : 'Settings panel'}
         className="fixed top-0 right-0 h-full w-full sm:w-96 bg-white shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 ease-in-out"
       >
-        {/* Header */}
+        {}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
           <h2 className="text-xl font-bold text-gray-900">
             {activePanel === 'filters' ? (
@@ -75,7 +75,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           </button>
         </div>
 
-        {/* Content */}
+        {}
         <div className="p-6">
           {activePanel === 'filters' && filterSet && (
             <FilterPanel
@@ -102,6 +102,4 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     </>
   );
 };
-
-
 

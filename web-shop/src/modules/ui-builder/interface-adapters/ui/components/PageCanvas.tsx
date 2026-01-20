@@ -67,7 +67,7 @@ export function PageCanvas({
                 padding: (section.styles?.padding as string) || '1.5rem',
               }}
             >
-              {/* Section Header */}
+              {}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
@@ -84,7 +84,7 @@ export function PageCanvas({
                 </div>
               </div>
 
-              {/* Components Grid */}
+              {}
               {section.components && section.components.length > 0 ? (
                 <div
                   className="gap-4"

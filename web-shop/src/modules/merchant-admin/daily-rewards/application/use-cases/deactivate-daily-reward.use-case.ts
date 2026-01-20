@@ -14,7 +14,7 @@ export class DeactivateDailyRewardUseCase {
 
   async execute(input: DeactivateDailyRewardInput): Promise<Result<DailyRewardOutput, Error>> {
     try {
-      // Find the reward by id
+      
       const findResult = await this._dailyRewardRepository.findById(input.id);
       if (!findResult.isSuccess) {
         return Result.fail(findResult.error || new Error('Failed to find reward'));
@@ -22,10 +22,9 @@ export class DeactivateDailyRewardUseCase {
 
       const reward = findResult.value!;
       if (reward.isActive) {
-        // Deactivate the reward
+        
         const deactivatedReward = reward.deactivate();
 
-        // Save the deactivated reward
         const saveResult = await this._dailyRewardRepository.save(deactivatedReward);
         if (!saveResult.isSuccess) {
           return Result.fail(saveResult.error || new Error('Failed to save deactivated reward'));
@@ -34,7 +33,6 @@ export class DeactivateDailyRewardUseCase {
         return Result.ok(this.mapToOutput(saveResult.value!));
       }
 
-      // Reward is already inactive
       return Result.ok(this.mapToOutput(reward));
     } catch (error) {
       return Result.fail(error instanceof Error ? error : new Error('Unknown error'));

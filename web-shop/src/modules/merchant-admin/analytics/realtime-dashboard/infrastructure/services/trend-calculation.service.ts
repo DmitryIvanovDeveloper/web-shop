@@ -20,24 +20,21 @@ export class TrendCalculationService implements ITrendCalculationService {
     dataPoints: Array<{ date: string | Date; value: number }>,
     period: { startDate: Date; endDate: Date }
   ): MetricTrend {
-    // Фильтруем точки данных по периоду
+    
     const filteredPoints = dataPoints.filter(point => {
       const pointDate = new Date(point.date);
       return pointDate >= period.startDate && pointDate <= period.endDate;
     });
 
-    // Сортируем по дате
     const sortedPoints = filteredPoints.sort((a, b) =>
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
 
-    // Если точек слишком много, выбираем оптимальное количество
     const optimalCount = this.getOptimalDataPointsCount(sortedPoints.length);
     const selectedPoints = optimalCount < sortedPoints.length
       ? this.selectOptimalPoints(sortedPoints, optimalCount)
       : sortedPoints;
 
-    // Преобразуем в формат TrendDataPoint
     const trendPoints: TrendDataPoint[] = selectedPoints.map(point => ({
       date: new Date(point.date).toISOString().split('T')[0],
       value: point.value
@@ -75,11 +72,11 @@ export class TrendCalculationService implements ITrendCalculationService {
   }
 
   public getOptimalDataPointsCount(totalPoints: number): number {
-    // Оптимальное количество точек для отображения тренда
+    
     if (totalPoints <= 7) return totalPoints;
     if (totalPoints <= 14) return 7;
     if (totalPoints <= 30) return 10;
-    return 14; // Максимум для читаемости
+    return 14; 
   }
 
   private selectOptimalPoints(points: Array<{ date: string | Date; value: number }>, count: number): Array<{ date: string | Date; value: number }> {
@@ -94,7 +91,6 @@ export class TrendCalculationService implements ITrendCalculationService {
       selected.push(points[i]);
     }
 
-    // Всегда включаем последнюю точку
     if (selected[selected.length - 1] !== points[points.length - 1]) {
       selected[selected.length - 1] = points[points.length - 1];
     }
@@ -102,41 +98,4 @@ export class TrendCalculationService implements ITrendCalculationService {
     return selected;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

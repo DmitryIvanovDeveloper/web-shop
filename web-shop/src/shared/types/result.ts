@@ -1,7 +1,4 @@
-/**
- * Result Pattern implementation for Clean Architecture
- * Used to handle success and error cases without exceptions
- */
+
 
 export class Result<T, E extends Error = Error> {
   private constructor(
@@ -54,5 +51,4 @@ export class Result<T, E extends Error = Error> {
     return Result.fail(this.error);
   }
 }
-
 

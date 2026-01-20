@@ -31,10 +31,7 @@ export async function GET(
   const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseServiceRoleKey) {
-    console.error(
-      '[Analytics API] Supabase environment variables are not configured'
-    );
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Supabase is not configured on the server' },
       { status: 500 }
     );
@@ -50,29 +47,22 @@ export async function GET(
       .single();
 
     if (error) {
-      console.error('[Analytics API] Failed to load analytics payload', {
-        key,
-        error,
-      });
-      return NextResponse.json(
+            return NextResponse.json(
         { error: 'Failed to load analytics payload from Supabase' },
         { status: 500 }
       );
     }
 
     if (!data || typeof data.payload === 'undefined') {
-      console.error('[Analytics API] No payload found for key', { key });
-      return NextResponse.json(
+            return NextResponse.json(
         { error: 'Analytics payload not found' },
         { status: 404 }
       );
     }
 
-    // Return payload as-is so existing repositories can keep using fromApiResponse
     return NextResponse.json(data.payload);
   } catch (error) {
-    console.error('[Analytics API] Unexpected error', { key, error });
-    return NextResponse.json(
+        return NextResponse.json(
       { error: 'Unexpected error while loading analytics payload' },
       { status: 500 }
     );

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 
 export interface PurchaseRow {
   id: string;
-  createdAt: string; // ISO date
+  createdAt: string; 
   userId: string;
   productId: string;
   productTitle?: string;

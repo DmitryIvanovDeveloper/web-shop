@@ -2,7 +2,7 @@ import { Result, Success, Failure } from '../../../../../../shared/domain/result
 import { InvalidArgumentError } from '../../../../../../shared/domain/errors/invalid-argument.error';
 
 export interface GeoFilterProps {
-  countries: string[]; // ISO country codes: US, UK, DE, etc.
+  countries: string[]; 
 }
 
 export class GeoFilter {
@@ -13,7 +13,6 @@ export class GeoFilter {
       return new Failure(new InvalidArgumentError('At least one country must be selected'));
     }
 
-    // Validate country codes (2-letter ISO)
     const invalidCodes = props.countries.filter((code) => code.length !== 2);
     if (invalidCodes.length > 0) {
       return new Failure(new InvalidArgumentError(`Invalid country codes: ${invalidCodes.join(', ')}`));
@@ -47,5 +46,4 @@ export class GeoFilter {
     return GeoFilter.create({ countries });
   }
 }
-
 

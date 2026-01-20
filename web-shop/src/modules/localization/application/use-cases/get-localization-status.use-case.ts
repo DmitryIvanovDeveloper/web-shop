@@ -20,19 +20,17 @@ export class GetLocalizationStatusUseCase {
     _request: GetLocalizationStatusRequest
   ): Promise<Result<LocalizationStatusResponse, Error>> {
     try {
-      // Get active language
+      
       const activeLanguageResult = await this._languageRepository.getActiveLanguage();
       if (activeLanguageResult.isFailure) {
         return Failure.fail(activeLanguageResult.error || new Error('Unknown error'));
       }
 
-      // Get all supported languages
       const supportedLanguagesResult = await this._languageRepository.getAllLanguages();
       if (supportedLanguagesResult.isFailure) {
         return Failure.fail(supportedLanguagesResult.error || new Error('Unknown error'));
       }
 
-      // Calculate translation coverage
       const coverageResult = await this._calculateTranslationCoverage();
       if (coverageResult.isFailure) {
         return Failure.fail(coverageResult.error || new Error('Unknown error'));
@@ -58,15 +56,14 @@ export class GetLocalizationStatusUseCase {
     incompleteLanguages: LocalizationStatusResponse['incompleteLanguages'];
   }, Error>> {
     try {
-      // Get all translations to find unique keys
+      
       const allTranslationsResult = await this._translationRepository.findAll();
       if (allTranslationsResult.isFailure) {
         return Failure.fail(allTranslationsResult.error || new Error('Failed to get all translations'));
       }
 
       const allTranslations = allTranslationsResult.value!;
-      
-      // Get all unique translation keys from database
+
       const allKeysSet = new Set<string>();
       allTranslations.forEach(t => {
         if (t.key && t.key.value) {
@@ -86,7 +83,6 @@ export class GetLocalizationStatusUseCase {
         });
       }
 
-      // Get all supported languages that actually have translations
       const languagesWithTranslations = new Set<string>();
       allTranslations.forEach(t => {
         if (t.languageCode && t.languageCode.value) {
@@ -94,25 +90,22 @@ export class GetLocalizationStatusUseCase {
         }
       });
 
-      // Get all supported languages from repository
       const supportedLanguagesResult = await this._languageRepository.getAllLanguages();
       if (supportedLanguagesResult.isFailure) {
         return Failure.fail(supportedLanguagesResult.error || new Error('Failed to get supported languages'));
       }
 
       const supportedLanguages = supportedLanguagesResult.value!;
-      
-      // Filter to only languages that have translations in the database
+
       const languagesToCheck = supportedLanguages.filter(lang => 
         languagesWithTranslations.has(lang.code.value)
       );
 
       const totalKeys = allKeys.length;
       const totalLanguages = languagesToCheck.length;
-      let fullyTranslatedKeys = 0; // Keys translated in ALL languages with translations
+      let fullyTranslatedKeys = 0; 
       const incompleteLanguages: LocalizationStatusResponse['incompleteLanguages'] = [];
 
-      // Group translations by key for efficient lookup
       const translationsByKey = new Map<string, Map<string, boolean>>();
       allTranslations.forEach(t => {
         const key = t.key.value;
@@ -124,7 +117,6 @@ export class GetLocalizationStatusUseCase {
         translationsByKey.get(key)!.set(langCode, hasTranslation);
       });
 
-      // For each key, check if it's translated in all languages that have translations
       for (const key of allKeys) {
         const keyTranslations = translationsByKey.get(key) || new Map();
         let translatedInAllLanguages = true;
@@ -143,7 +135,7 @@ export class GetLocalizationStatusUseCase {
         if (translatedInAllLanguages) {
           fullyTranslatedKeys++;
         } else {
-          // Add to incomplete languages
+          
           for (const langCode of missingInLanguages) {
             const language = languagesToCheck.find(l => l.code.value === langCode);
             if (language) {

@@ -59,9 +59,6 @@ const headerButtonStyle: React.CSSProperties = {
   transition: 'transform 0.15s ease, box-shadow 0.15s ease',
 };
 
-// Removed toConfigurationProps - products are now saved automatically via checkboxes
-// in "Products by Condition" section through updateScenarioProducts
-
 export function OffersPage({ appId }: OffersPageProps): JSX.Element {
   const presenter = useMemo(
     () => appContainer.get<OffersPresenter>(OFFER_TYPES.OffersPresenter),
@@ -78,18 +75,18 @@ export function OffersPage({ appId }: OffersPageProps): JSX.Element {
     });
 
     presenter.init(appId).catch(() => {
-      // Presenter already logs failure via LoggerPort
+      
     });
 
     presenter.loadProducts().catch(() => {
-      // Presenter already logs failure via LoggerPort
+      
     });
 
     return () => {
       unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [appId]); // presenter is stable from useMemo, no need to include it
+    
+  }, [appId]); 
 
   const handleScenarioSelect = (slug: string): void => {
     presenter.selectScenario(slug);
@@ -107,9 +104,6 @@ export function OffersPage({ appId }: OffersPageProps): JSX.Element {
       setIsPublishing(false);
     }
   };
-
-  // Removed handleSaveConfiguration - products are now saved automatically via checkboxes
-  // in "Products by Condition" section through updateScenarioProducts
 
   return (
     <div style={containerStyle}>
@@ -220,17 +214,13 @@ export function OffersPage({ appId }: OffersPageProps): JSX.Element {
                   <p style={{ color: '#94A3B8', marginTop: '6px', fontSize: '14px' }}>
                     {viewModel.selectedScenario.description}
                   </p>
-                  {/* Removed "Configured Conditions" section - this information is already visible
-                      in the "Products by Condition" tabs below with counters showing product counts */}
-                  {/* Removed Condition description - it's technical information (e.g., "user.flags.isNew === false")
-                      that's not needed for users. They already see the scenario title and can select products. */}
+                  {}
+                  {}
                 </header>
 
-                {/* Removed "Offer IDs" text field - products are now selected via checkboxes 
-                    in "Products by Condition" section below. Changes are saved automatically. */}
+                {}
 
-                {/* Removed Tags section - tags are not used for any functionality (filtering, searching, etc.)
-                    They are only stored as metadata but not displayed or editable in the UI */}
+                {}
 
                 <div style={{ marginBottom: '20px' }}>
                   <strong style={{ color: '#CBD5F5', display: 'block', marginBottom: '12px' }}>
@@ -239,8 +229,7 @@ export function OffersPage({ appId }: OffersPageProps): JSX.Element {
                   <OffersProductsList viewModel={viewModel} presenter={presenter} />
                 </div>
 
-                {/* Removed Configuration section - it only showed "Selected Products" which is already visible
-                    in the Products section above with checkboxes and "Selected: ..." summary */}
+                {}
               </>
             ) : (
               <EmptyState
@@ -250,8 +239,7 @@ export function OffersPage({ appId }: OffersPageProps): JSX.Element {
             )}
           </section>
 
-          {/* Removed Rule Tree preview - it shows technical JSON that users don't need to see.
-              Users just select products and publish, they don't need to see the internal rule tree structure. */}
+          {}
         </div>
       )}
 
@@ -273,14 +261,4 @@ export function OffersPage({ appId }: OffersPageProps): JSX.Element {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
 

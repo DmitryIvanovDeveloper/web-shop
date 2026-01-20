@@ -14,7 +14,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const databaseClient = container.get<DatabaseClientPort>(TYPES.DatabaseClient);
 
-    // Update the patch note to published status
     const { data, error } = await databaseClient
       .from('patch_notes')
       .update({
@@ -28,21 +27,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .single();
 
     if (error) {
-      console.error('[POST /api/merchant-admin/patch-notes/publish] Failed to publish patch note', error);
-      return NextResponse.json({ error: 'Failed to publish patch note' }, { status: 500 });
+            return NextResponse.json({ error: 'Failed to publish patch note' }, { status: 500 });
     }
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('[POST /api/merchant-admin/patch-notes/publish] Unexpected error', error);
-    return NextResponse.json({ error: 'Unexpected error while publishing patch note' }, { status: 500 });
+        return NextResponse.json({ error: 'Unexpected error while publishing patch note' }, { status: 500 });
   }
 }
-
-
-
-
-
-
-
 

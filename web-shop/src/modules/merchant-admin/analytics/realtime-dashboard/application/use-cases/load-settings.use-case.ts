@@ -11,7 +11,7 @@ export interface LoadSettingsInput {
 @injectable()
 export class LoadSettingsUseCase {
   execute(input: LoadSettingsInput): Result<DashboardSettings, Error> {
-    // First try to load from URL query params
+    
     if (input.queryParams && input.queryParams.toString()) {
       const settingsResult = DashboardSettings.fromQueryParams(input.queryParams);
       if (settingsResult.success) {
@@ -19,7 +19,6 @@ export class LoadSettingsUseCase {
       }
     }
 
-    // Then try localStorage
     if (typeof localStorage !== 'undefined') {
       const key = `dashboard-settings-${input.userId}`;
       const stored = localStorage.getItem(key);
@@ -35,12 +34,11 @@ export class LoadSettingsUseCase {
             return new Success(settingsResult.data);
           }
         } catch {
-          // Fall through to default
+          
         }
       }
     }
 
-    // Default settings
     return new Success(DashboardSettings.createDefault());
   }
 }

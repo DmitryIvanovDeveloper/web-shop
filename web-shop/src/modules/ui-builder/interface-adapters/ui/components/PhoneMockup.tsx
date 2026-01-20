@@ -64,7 +64,6 @@ const StatusBar: React.FC<StatusBarProps> = ({
 }: StatusBarProps) => {
   const isLandscape = orientation === 'landscape';
 
-  // Simple height model: iPad ниже, iPhone выше, в landscape почти нет высоты
   const baseHeight = device === 'ipad' ? 24 : 44;
   const height = isLandscape ? 0 : baseHeight;
 
@@ -114,7 +113,6 @@ export function PhoneMockup({
     }
   }, [onIframeRef]);
 
-  // Calculate dimensions based on orientation
   const isLandscape = orientation === 'landscape';
   const screenWidth = isLandscape ? spec.height : spec.width;
   const screenHeight = isLandscape ? spec.width : spec.height;
@@ -122,12 +120,11 @@ export function PhoneMockup({
   const totalWidth = screenWidth + frameWidth * 2;
   const totalHeight = screenHeight + frameWidth * 2;
 
-  // Calculate scale to fit viewport (only scale down, never up)
   const maxViewportHeight = typeof window !== 'undefined' ? window.innerHeight - 250 : 800;
   const maxViewportWidth = typeof window !== 'undefined' ? window.innerWidth - 100 : 1200;
   const scaleX = maxViewportWidth / totalWidth;
   const scaleY = maxViewportHeight / totalHeight;
-  const scale = Math.min(scaleX, scaleY, 1); // Don't scale up, only down
+  const scale = Math.min(scaleX, scaleY, 1); 
 
   return (
     <div
@@ -145,7 +142,7 @@ export function PhoneMockup({
           transformOrigin: 'center center',
         }}
       >
-        {/* Phone Frame */}
+        {}
         <div
           className="relative"
           style={{
@@ -163,7 +160,7 @@ export function PhoneMockup({
             border: `1px solid rgba(255, 255, 255, 0.05)`,
           }}
         >
-          {/* Notch for iPhone models - Portrait */}
+          {}
           {spec.notch && !isLandscape && (
             <div
               className="absolute top-0 left-1/2 -translate-x-1/2 z-10"
@@ -180,7 +177,7 @@ export function PhoneMockup({
             />
           )}
 
-          {/* Notch for iPhone models - Landscape (on the left side) */}
+          {}
           {spec.notch && isLandscape && (
             <div
               className="absolute left-0 top-1/2 -translate-y-1/2 z-10"
@@ -197,7 +194,7 @@ export function PhoneMockup({
             />
           )}
 
-          {/* Screen Container */}
+          {}
           <div
             className="relative overflow-hidden bg-black"
             style={{
@@ -207,12 +204,12 @@ export function PhoneMockup({
               boxShadow: 'inset 0 0 20px rgba(0, 0, 0, 0.5)',
             }}
           >
-            {/* Status Bar for iPhone and iPad */}
+            {}
             {(device === 'iphone-15-pro' || device === 'iphone-14-pro' || device === 'iphone-se' || device === 'ipad') && (
               <StatusBar device={device} orientation={orientation} screenWidth={screenWidth} screenHeight={screenHeight} />
             )}
 
-            {/* Iframe positioned below status bar area */}
+            {}
             {(() => {
               const hasStatusBar = device === 'iphone-15-pro' || device === 'iphone-14-pro' || device === 'iphone-se' || device === 'ipad';
               const statusBarHeight = hasStatusBar 
@@ -241,7 +238,7 @@ export function PhoneMockup({
             })()}
           </div>
 
-          {/* Home Indicator for iPhone - Portrait (bottom) */}
+          {}
           {spec.notch && !isLandscape && (
             <div
               className="absolute bottom-0 left-1/2 -translate-x-1/2 z-10"
@@ -255,7 +252,7 @@ export function PhoneMockup({
             />
           )}
 
-          {/* Home Indicator for iPhone - Landscape (right side) */}
+          {}
           {spec.notch && isLandscape && (
             <div
               className="absolute right-0 top-1/2 -translate-y-1/2 z-10"

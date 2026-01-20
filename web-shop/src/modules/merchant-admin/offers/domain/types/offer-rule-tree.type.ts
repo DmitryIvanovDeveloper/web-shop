@@ -21,4 +21,3 @@ export interface OfferRuleTree {
   readonly scenarios: readonly OfferRuleTreeScenarioMetadata[];
 }
 
-

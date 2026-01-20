@@ -26,12 +26,7 @@ export class UpdatePromoCodeUseCase {
   ) {}
 
   public async execute(input: UpdatePromoCodeInput): Promise<Result<PromoCode, Error>> {
-    this.logger.info('[UpdatePromoCodeUseCase] Updating promo code', {
-      id: input.id,
-      appId: input.appId,
-    });
-
-    const existingResult = await this.promoCodeRepository.findById(input.id);
+        const existingResult = await this.promoCodeRepository.findById(input.id);
     if (existingResult.isFailure()) {
       return Result.error(existingResult.error!);
     }
@@ -61,5 +56,4 @@ export class UpdatePromoCodeUseCase {
     return saveResult;
   }
 }
-
 

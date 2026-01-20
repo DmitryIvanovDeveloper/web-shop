@@ -235,7 +235,7 @@ export class UIBuilderPresenter {
           ...this.vm,
           config: appConfig as unknown as Record<string, unknown>,
           isLoading: false,
-          isDraft: true, // Template configs are treated as drafts
+          isDraft: true, 
           version: versionValue
         };
 
@@ -256,7 +256,7 @@ export class UIBuilderPresenter {
             ...this.vm,
             config: appConfig.config as unknown as Record<string, unknown>,
             isLoading: false,
-            isDraft: appConfig.isDraft ?? false, // Set isDraft from AppConfig
+            isDraft: appConfig.isDraft ?? false, 
             version: versionValue
           };
 
@@ -405,11 +405,10 @@ export class UIBuilderPresenter {
     this.vm.isLoading = true;
     this.vm.appId = appId;
     this.notify();
-    // Placeholder for real load via use case; keep current config
+    
     this.vm.isLoading = false;
     this.notify();
   }
-
 
   public updateTheme(colors: Record<string, string>): void {
     if (!this.vm.config) {
@@ -504,7 +503,7 @@ export class UIBuilderPresenter {
     if (!elementId) {
       this.selectedElementArea = null;
       this.vm = { ...this.vm, selectedElement: null };
-      // Clear element selection in iframe
+      
       this.preview.selectElement(null);
       this.notify();
       return;
@@ -734,7 +733,6 @@ export class UIBuilderPresenter {
 
     const newId = generateElementId('button');
 
-    // Copy styles from the last button or use defaults
     const defaultStyles = {
       backgroundColor: '#1d4ed8',
       textColor: '#ffffff',
@@ -755,7 +753,7 @@ export class UIBuilderPresenter {
     };
 
     layout.children.push(node);
-    // Иммутабельное обновление, чтобы React отследил изменения
+    
     const clonedConfig = JSON.parse(JSON.stringify(this.vm.config || {}));
     this.vm = {
       ...this.vm,
@@ -766,8 +764,7 @@ export class UIBuilderPresenter {
     this.selectedElementArea = 'sidebar';
     this.selectElement(newId);
     this.sendConfigToIframe();
-    
-    // Save to Supabase
+
     this.saveConfigToSupabase();
   }
 
@@ -775,10 +772,8 @@ export class UIBuilderPresenter {
     const layout = (this.vm.config as any)?.modules?.uiRenderer?.sidebar?.layout;
     if (!layout || !Array.isArray(layout.children)) return;
 
-    // Filter out the button with the matching ID
     layout.children = layout.children.filter((child: any) => child.id !== buttonId);
 
-    // Clear selection if the deleted button was selected
     if (this.vm.selectedElement?.id === buttonId) {
       this.selectedElementArea = null;
       this.vm = { ...this.vm, selectedElement: null };
@@ -790,7 +785,7 @@ export class UIBuilderPresenter {
   }
 
   public async saveDraft(): Promise<boolean> {
-    // stub success
+    
     this.vm.isDraft = true;
     this.notify();
     return true;
@@ -801,12 +796,11 @@ export class UIBuilderPresenter {
     this.notify();
 
     try {
-      // Always use version 0 to publish the latest draft
-      // Using a specific version can fail if that draft was already published
+
       const result = await this._publishDraftUseCase.execute({
         appId: this.vm.appId,
-        merchantId: this.vm.appId, // Use appId as merchantId for now
-        draftVersion: 0, // Always use 0 to get the latest draft
+        merchantId: this.vm.appId, 
+        draftVersion: 0, 
       });
 
       if (result.isSuccess && result.value) {
@@ -823,7 +817,7 @@ export class UIBuilderPresenter {
           });
 
           if (newDraftResult.isSuccess) {
-            // Reload the new draft to get the updated version
+            
             const draftLoadResult = await this._loadDraftConfigUseCase.execute(this.vm.appId);
             if (draftLoadResult.isSuccess && draftLoadResult.value) {
               const appConfig = draftLoadResult.value as any;
@@ -964,8 +958,6 @@ export class UIBuilderPresenter {
     node.styles = { ...(node.styles || {}), ...colors };
   }
 
-
-
   private findNodeInLayout(layoutKey: 'sidebar' | 'rightSidebar', elementId: string): any | null {
     const layout = (this.vm.config as any)?.modules?.uiRenderer?.[layoutKey]?.layout;
     if (!layout) {
@@ -1039,24 +1031,22 @@ export class UIBuilderPresenter {
       return 'rightSidebar';
     }
 
-    // 3. Check in offer cards (if PageConstructorPresenter is provided)
     if (pageConstructorPresenter) {
       const pageVm = pageConstructorPresenter.getViewModel();
       if (pageVm?.offerCards) {
         for (const offerCard of pageVm.offerCards) {
-          // Check if elementId matches offer card ID (could be "offer-card-123" or just the ID)
+          
           if (offerCard.id === elementId || elementId === offerCard.id || elementId.startsWith('offer-card-')) {
             return 'offerCard';
           }
         }
       }
-      // Also check if elementId looks like an offer card ID even if not in the list
+      
       if (elementId.startsWith('offer-card-')) {
         return 'offerCard';
       }
     }
 
-    // 4. Check for authentication elements
     if (elementId === 'auth-button' || elementId === 'login-button' || elementId.includes('auth-button')) {
       return 'authButton';
     }
@@ -1071,7 +1061,7 @@ export class UIBuilderPresenter {
       const pageVm = pageConstructorPresenter.getViewModel();
       if (pageVm?.sections) {
         for (const section of pageVm.sections) {
-          // Check if elementId matches the section ID
+          
           if (section.id === elementId) {
             return 'page';
           }
@@ -1352,5 +1342,4 @@ export class UIBuilderPresenter {
     }
   }
 }
-
 

@@ -155,14 +155,6 @@ export class DashboardPresenter {
   private handleRealtimeUpdate(channel: string, data: unknown): void {
     if (this._viewModel.realtimePaused || !this._viewModel.dashboard) return;
 
-    // Update dashboard based on channel
-    // For now, we only emit a lightweight debug entry through LoggerPort
-    this.logger.debug?.('[DashboardPresenter] Realtime update received', {
-      channel,
-      hasData: data != null,
-    });
-    
-    // Notify view to re-render
     this.notifyViewModelChanged();
   }
 
@@ -184,8 +176,7 @@ export class DashboardPresenter {
 
     this._viewModel.settings = settings;
     this._viewModel.settingsPreview = null;
-      
-      // Update URL with query params
+
       if (typeof window !== 'undefined') {
         const params = settings.toQueryParams();
         const newUrl = `${window.location.pathname}?${params.toString()}`;
@@ -203,8 +194,7 @@ export class DashboardPresenter {
 
     this._viewModel.settings = result.data!;
     this._viewModel.settingsPreview = null;
-      
-      // Clear URL query params
+
       if (typeof window !== 'undefined') {
         window.history.pushState({}, '', window.location.pathname);
       }
@@ -249,7 +239,6 @@ export class DashboardPresenter {
       return;
     }
 
-      // Reload presets to include the new one
       await this.loadFilterPresets();
     this._viewModel.currentPresetId = result.data.id;
       this.notifyViewModelChanged();
@@ -257,7 +246,7 @@ export class DashboardPresenter {
 
   public applyFilters(filterSet: FilterSet): void {
     this._viewModel.filterSet = filterSet;
-    this._viewModel.currentPresetId = undefined; // Clear preset when manually changing filters
+    this._viewModel.currentPresetId = undefined; 
     this.updateUrlWithFilters();
     this.notifyViewModelChanged();
   }
@@ -265,8 +254,7 @@ export class DashboardPresenter {
   public resetFilters(): void {
     this._viewModel.filterSet = FilterSet.createDefault();
     this._viewModel.currentPresetId = undefined;
-    
-    // Clear URL query params
+
     if (typeof window !== 'undefined') {
       window.history.pushState({}, '', window.location.pathname);
     }
@@ -282,8 +270,7 @@ export class DashboardPresenter {
     }
 
     this._viewModel.filterSet = filterSetResult.data!;
-      
-      // Check if this matches a preset
+
       const presetId = queryParams.get('preset');
       if (presetId) {
       this._viewModel.currentPresetId = presetId;
@@ -305,8 +292,7 @@ export class DashboardPresenter {
     try {
       return await this._loadRecentPurchasesUseCase.execute(limit);
     } catch (error) {
-      this.logger.error('[DashboardPresenter] Failed to load recent purchases', error as Error);
-      return [];
+            return [];
     }
   }
 
@@ -315,9 +301,8 @@ export class DashboardPresenter {
       try {
         callback();
       } catch (error) {
-        // Swallow subscriber errors to avoid breaking presenter logic
-        this.logger.error('[DashboardPresenter] Error in subscriber callback', error as Error);
-      }
+        
+              }
     });
   }
 }

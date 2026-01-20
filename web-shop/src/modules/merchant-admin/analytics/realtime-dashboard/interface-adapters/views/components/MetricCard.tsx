@@ -38,7 +38,6 @@ export function MetricCard({
     ? formatter(value)
     : value;
 
-  // Shimmer skeleton loader
   if (loading) {
     return (
       <div
@@ -53,7 +52,6 @@ export function MetricCard({
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div
@@ -70,7 +68,6 @@ export function MetricCard({
     );
   }
 
-  // Определяем, является ли карточка позитивной (рост > 0)
   const isPositive = comparison?.direction === 'up' && comparison?.percent > 0;
 
   return (

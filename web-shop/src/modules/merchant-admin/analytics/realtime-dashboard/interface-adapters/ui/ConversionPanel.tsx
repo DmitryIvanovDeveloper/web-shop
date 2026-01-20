@@ -21,7 +21,7 @@ export const ConversionPanel: React.FC<ConversionPanelProps> = ({ conversionSumm
 
   return (
     <div className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200/60 rounded-xl p-6 shadow-lg">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg shadow-md">
@@ -36,7 +36,7 @@ export const ConversionPanel: React.FC<ConversionPanelProps> = ({ conversionSumm
         </div>
       </div>
 
-      {/* KPI Card for Conversion Rate */}
+      {}
       <div className="mb-6">
         <KPICard
           title="Conversion Rate"
@@ -50,7 +50,7 @@ export const ConversionPanel: React.FC<ConversionPanelProps> = ({ conversionSumm
         />
       </div>
 
-      {/* Bar Chart for channels */}
+      {}
       <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 border border-orange-200/30">
         <BarChart
           data={channelData}
@@ -66,5 +66,4 @@ export const ConversionPanel: React.FC<ConversionPanelProps> = ({ conversionSumm
 };
 
 export default ConversionPanel;
-
 

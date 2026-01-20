@@ -10,13 +10,12 @@ import { ActivateDailyRewardUseCase } from '../../application/use-cases/activate
 import { DeactivateDailyRewardUseCase } from '../../application/use-cases/deactivate-daily-reward.use-case';
 
 export function bindDailyRewards(container: Container): void {
-  // Repositories
+  
   container
     .bind(DAILY_REWARDS_TYPES.DailyRewardRepository)
     .to(DailyRewardApiRepository)
     .inSingletonScope();
 
-  // Use Cases
   container
     .bind(DAILY_REWARDS_TYPES.CreateDailyRewardUseCase)
     .to(CreateDailyRewardUseCase);

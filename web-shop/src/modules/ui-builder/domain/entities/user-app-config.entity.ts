@@ -33,13 +33,3 @@ export interface UpdateUserAppConfigInput {
   config?: Record<string, unknown>;
 }
 
-
-
-
-
-
-
-
-
-
-

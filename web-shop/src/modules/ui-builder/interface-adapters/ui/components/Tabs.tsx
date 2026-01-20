@@ -18,7 +18,7 @@ interface TabsProps {
 export function Tabs({ tabs, activeTab, onTabChange, children }: TabsProps) {
   return (
     <div className="flex flex-col h-full">
-      {/* Tab Headers */}
+      {}
       <div className="flex border-b border-gray-200 bg-white overflow-x-auto">
         {tabs.map((tab) => (
           <button
@@ -38,7 +38,7 @@ export function Tabs({ tabs, activeTab, onTabChange, children }: TabsProps) {
         ))}
       </div>
 
-      {/* Tab Content */}
+      {}
       <div className="flex-1 overflow-y-auto">
         {children}
       </div>
