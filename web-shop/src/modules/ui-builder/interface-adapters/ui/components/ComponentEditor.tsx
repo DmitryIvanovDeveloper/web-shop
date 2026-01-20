@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import type { ComponentNode } from '../../../domain/entities/page-section.entity';
 import { ButtonEditor } from './ButtonEditor';
 import { TextEditor } from './TextEditor';
@@ -12,9 +12,12 @@ interface ComponentEditorProps {
   pages?: string[];
 }
 
-export function ComponentEditor({ component, onUpdate, onRemove, pages = [] }: ComponentEditorProps): JSX.Element {
-  const [isImageUploading, setIsImageUploading] = useState(false);
-
+export function ComponentEditor({
+  component,
+  onUpdate,
+  onRemove,
+  pages = [],
+}: ComponentEditorProps): JSX.Element {
   const renderPropsEditor = () => {
     switch (component.type) {
       case 'Text': {
@@ -30,42 +33,27 @@ export function ComponentEditor({ component, onUpdate, onRemove, pages = [] }: C
         };
 
         const handleTextColorChange = (value: string) => {
-          const updatedStyles = {
-            ...textStyles,
-            textColor: value,
-          };
+          const updatedStyles = { ...textStyles, textColor: value };
           onUpdate(component.props ?? {}, updatedStyles);
         };
 
         const handleFontSizeChange = (value: string) => {
-          const updatedStyles = {
-            ...textStyles,
-            fontSize: value,
-          };
+          const updatedStyles = { ...textStyles, fontSize: value };
           onUpdate(component.props ?? {}, updatedStyles);
         };
 
         const handleFontWeightChange = (value: string) => {
-          const updatedStyles = {
-            ...textStyles,
-            fontWeight: value,
-          };
+          const updatedStyles = { ...textStyles, fontWeight: value };
           onUpdate(component.props ?? {}, updatedStyles);
         };
 
         const handleTextAlignChange = (value: string) => {
-          const updatedStyles = {
-            ...textStyles,
-            textAlign: value,
-          };
+          const updatedStyles = { ...textStyles, textAlign: value };
           onUpdate(component.props ?? {}, updatedStyles);
         };
 
         const handleTextDecorationChange = (value: string) => {
-          const updatedStyles = {
-            ...textStyles,
-            textDecoration: value,
-          };
+          const updatedStyles = { ...textStyles, textDecoration: value };
           onUpdate(component.props ?? {}, updatedStyles);
         };
 
@@ -93,11 +81,11 @@ export function ComponentEditor({ component, onUpdate, onRemove, pages = [] }: C
         const buttonTextColor = buttonStyles.textColor || '#ffffff';
         const borderColor = buttonStyles.borderColor || '#ffffff';
 
-        const handleColorChange = (colorKey: 'backgroundColor' | 'textColor' | 'borderColor', newColor: string) => {
-          const updatedStyles = {
-            ...buttonStyles,
-            [colorKey]: newColor,
-          };
+        const handleColorChange = (
+          colorKey: 'backgroundColor' | 'textColor' | 'borderColor',
+          newColor: string,
+        ) => {
+          const updatedStyles = { ...buttonStyles, [colorKey]: newColor };
           onUpdate(component.props || {}, updatedStyles);
         };
 
@@ -132,18 +120,12 @@ export function ComponentEditor({ component, onUpdate, onRemove, pages = [] }: C
         };
 
         const handleBorderRadiusChange = (value: string) => {
-          const updatedStyles = {
-            ...buttonStyles,
-            borderRadius: value,
-          };
+          const updatedStyles = { ...buttonStyles, borderRadius: value };
           onUpdate(component.props || {}, updatedStyles);
         };
 
         const handleTextAlignChange = (value: string) => {
-          const updatedStyles = {
-            ...buttonStyles,
-            textAlign: value,
-          };
+          const updatedStyles = { ...buttonStyles, textAlign: value };
           onUpdate(component.props || {}, updatedStyles);
         };
 
@@ -164,10 +146,7 @@ export function ComponentEditor({ component, onUpdate, onRemove, pages = [] }: C
             onActionChange={handleActionChange}
             padding={(buttonStyles.padding as string) || undefined}
             onPaddingChange={(value) => {
-              const updatedStyles = {
-                ...buttonStyles,
-                padding: value,
-              };
+              const updatedStyles = { ...buttonStyles, padding: value };
               onUpdate(component.props || {}, updatedStyles);
             }}
             borderRadius={(buttonStyles.borderRadius as string) || undefined}
@@ -178,50 +157,12 @@ export function ComponentEditor({ component, onUpdate, onRemove, pages = [] }: C
         );
       }
 
-      case 'Image':
-        const handleImageFileUpload = async (event: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
-          const file = event.target.files?.[0];
-          if (!file) return;
-
-          if (!file.type.startsWith('image/')) {
-            alert('Please select an image file');
-            return;
-          }
-
-          if (file.size > 5 * 1024 * 1024) {
-            alert('File size must be less than 5MB');
-            return;
-          }
-
-          setIsImageUploading(true);
-
-          try {
-            
-            const base64String = await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => {
-                if (typeof reader.result === 'string') {
-                  resolve(reader.result);
-                } else {
-                  reject(new Error('Failed to read file as base64'));
-                }
-              };
-              reader.onerror = () => reject(new Error('Error reading file'));
-              reader.readAsDataURL(file);
-            });
-
-            onUpdate({ ...component.props, src: base64String });
-          } catch (error) {
-            alert(`Failed to process image: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          } finally {
-            setIsImageUploading(false);
-            
-            event.target.value = '';
-          }
-        };
-
+      case 'Image': {
         const imageSrc = (component.props?.src as string) || '';
-        const isBase64Image = imageSrc.startsWith('data:image/');
+
+        const handleImageUrlChange = (value: string) => {
+          onUpdate({ ...component.props, src: value.trim() });
+        };
 
         return (
           <div className="space-y-3">
@@ -231,51 +172,34 @@ export function ComponentEditor({ component, onUpdate, onRemove, pages = [] }: C
               </label>
               <input
                 type="text"
-                value={(() => {
-                  
-                  if (isBase64Image) {
-                    const match = imageSrc.match(/data:image\/([^;]+);base64,/);
-                    const type = match ? match[1] : 'image';
-                    const sizeKB = Math.round(imageSrc.length / 1024);
-                    return `[Base64 ${type.toUpperCase()} - ${sizeKB}KB]`;
-                  }
-                  return imageSrc;
-                })()}
-                onChange={(e) => {
-                  const url = e.target.value.trim();
-                  
-                  if (url.startsWith('[Base64')) {
-                    return;
-                  }
-                  onUpdate({ ...component.props, src: url });
-                }}
-                disabled={isBase64Image}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono disabled:opacity-50 disabled:cursor-not-allowed"
-                placeholder="https:
+                value={imageSrc}
+                onChange={(e) => handleImageUrlChange(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+                placeholder="https://images.example.com/your-image.png"
               />
               <p className="text-xs text-gray-400 mt-1">
-                {isBase64Image
-                  ? 'Base64 image stored in component. Upload a new file to replace.'
-                  : 'Enter image URL or upload a file (will be stored as base64 in component)'}
+                Enter image URL. (File upload is temporarily disabled in this simplified editor.)
               </p>
             </div>
+          </div>
+        );
+      }
 
-            {}
-            <div>
-              <label className="text-xs font-medium text-gray-600 block mb-1.5">
-                Upload Image
-              </label>
-              <div className="flex items-center gap-2">
-                <label className="flex-1 cursor-pointer">
-                  <input
-                    type="file"
-                    accept="image}
+      default:
+        return (
+          <div className="text-xs text-gray-500">
+            No editor available for component type: <code>{component.type}</code>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">Component Settings</h3>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {component.type}
-          </p>
+          <p className="text-xs text-gray-500 mt-0.5">{component.type}</p>
         </div>
         <button
           onClick={onRemove}
@@ -286,17 +210,15 @@ export function ComponentEditor({ component, onUpdate, onRemove, pages = [] }: C
         </button>
       </div>
 
-      {}
       <div className="space-y-4">
-        <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Properties</h4>
+        <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+          Properties
+        </h4>
         {renderPropsEditor()}
       </div>
 
-      {}
       <div className="pt-4 border-t border-gray-200">
-        <div className="text-xs text-gray-400 font-mono">
-          ID: {component.id}
-        </div>
+        <div className="text-xs text-gray-400 font-mono">ID: {component.id}</div>
       </div>
     </div>
   );
