@@ -40,6 +40,12 @@ import { ApplyUserAppConfigUseCase } from '../../application/use-cases/apply-use
 import { UIBuilderPresenter } from '../../interface-adapters/presenters/ui-builder.presenter';
 import { PageConstructorPresenter } from '../../interface-adapters/presenters/page-constructor.presenter';
 import { TemplatesPresenter } from '../../interface-adapters/presenters/templates.presenter';
+import { TemplatesGrapePresenter } from '../../interface-adapters/presenters/templates-grape.presenter';
+
+// GrapeJS Templates
+import { SupabaseTemplateGrapeRepository } from '../storage/supabase-template-grape.repository';
+import { ListTemplatesGrapeUseCase } from '../../application/use-cases/list-templates-grape.use-case';
+import { GetTemplateGrapeDetailsUseCase } from '../../application/use-cases/get-template-grape-details.use-case';
 
 export function bindUIBuilder(container: Container): void {
   
@@ -205,6 +211,29 @@ export function bindUIBuilder(container: Container): void {
   container
     .bind<TemplatesPresenter>(UI_BUILDER_TYPES.TemplatesPresenter)
     .to(TemplatesPresenter)
+    .inSingletonScope();
+
+  // GrapeJS Templates
+  container
+    .bind<import('../../application/ports/template-grape-repository.port').TemplateGrapeRepositoryPort>(
+      UI_BUILDER_TYPES.TemplateGrapeRepository
+    )
+    .to(SupabaseTemplateGrapeRepository)
+    .inSingletonScope();
+
+  container
+    .bind<ListTemplatesGrapeUseCase>(UI_BUILDER_TYPES.ListTemplatesGrapeUseCase)
+    .to(ListTemplatesGrapeUseCase)
+    .inSingletonScope();
+
+  container
+    .bind<GetTemplateGrapeDetailsUseCase>(UI_BUILDER_TYPES.GetTemplateGrapeDetailsUseCase)
+    .to(GetTemplateGrapeDetailsUseCase)
+    .inSingletonScope();
+
+  container
+    .bind<TemplatesGrapePresenter>(UI_BUILDER_TYPES.TemplatesGrapePresenter)
+    .to(TemplatesGrapePresenter)
     .inSingletonScope();
 }
 

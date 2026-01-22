@@ -16,6 +16,8 @@ import { Tabs, type Tab } from '../components/Tabs';
 import { SlideOutSidebar } from '../components/SlideOutSidebar';
 import { SectionPalette } from '../components/SectionPalette';
 import { CreateTemplateModal } from '../components/CreateTemplateModal';
+import { GrapesJsEditor } from '../components/GrapesJsEditor';
+import { TemplatesGrapeList } from '../components/TemplatesGrapeList';
 import type { SidebarElement } from '../../../domain/types/sidebar-element.types';
 import type { AppConfigStructure } from '../../../domain/entities/app-config.entity';
 import type { PageConstructorPresenter } from '../../presenters/page-constructor.presenter';
@@ -101,7 +103,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
   const [activeSection, setActiveSection] = useState<
-    'background' | 'sidebar' | 'leftSidebar' | 'rightSidebar' | 'authButton' | 'authPopup' | 'pageConstructor' | 'offerCards' | 'templates'
+    'background' | 'sidebar' | 'leftSidebar' | 'rightSidebar' | 'authButton' | 'authPopup' | 'pageConstructor' | 'offerCards' | 'templates' | 'grapesjs' | 'grapeTemplates'
   >('leftSidebar');
   const [activeTab, setActiveTab] = useState<string>('leftSidebar');
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -128,6 +130,10 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       setActiveTab('offerCards');
     } else if (activeSection === 'templates') {
       setActiveTab('templates');
+    } else if (activeSection === 'grapesjs') {
+      setActiveTab('grapesjs');
+    } else if (activeSection === 'grapeTemplates') {
+      setActiveTab('grapeTemplates');
     }
   }, [activeSection]);
 
@@ -800,6 +806,12 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     if (activeSection === 'rightSidebar') {
       return 'Right Sidebar Editor';
     }
+    if (activeSection === 'grapesjs') {
+      return 'GrapeJS Visual Editor';
+    }
+    if (activeSection === 'grapeTemplates') {
+      return 'GrapeJS Templates Gallery';
+    }
     return 'Left Sidebar Editor';
   })();
 
@@ -809,11 +821,14 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
     { id: 'rightSidebar', label: 'Right Sidebar' },
     { id: 'authentication', label: 'Authentication' },
     { id: 'pages', label: 'Pages' },
+    { id: 'grapeTemplates', label: 'GrapeJS Templates' },
     { id: 'offerCards', label: 'Offer Cards' },
     { id: 'templates', label: 'Templates' },
+    { id: 'grapesjs', label: 'GrapeJS' },
   ];
 
   const handleTabChange = (tabId: string) => {
+    console.log('handleTabChange called with:', tabId);
     setActiveTab(tabId);
 
     switch (tabId) {
@@ -869,6 +884,24 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
       case 'templates':
         setActiveSection('templates');
         
+        presenter.selectElement(null);
+        pageConstructorPresenter.selectSection(null);
+        pageConstructorPresenter.selectComponent(null, null);
+        pageConstructorPresenter.selectOfferCard(null);
+        setSelectedOfferCardId(null);
+        break;
+      case 'grapesjs':
+        setActiveSection('grapesjs');
+
+        presenter.selectElement(null);
+        pageConstructorPresenter.selectSection(null);
+        pageConstructorPresenter.selectComponent(null, null);
+        pageConstructorPresenter.selectOfferCard(null);
+        setSelectedOfferCardId(null);
+        break;
+      case 'grapeTemplates':
+        setActiveSection('grapeTemplates');
+
         presenter.selectElement(null);
         pageConstructorPresenter.selectSection(null);
         pageConstructorPresenter.selectComponent(null, null);
@@ -1118,6 +1151,38 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           </div>
         );
 
+      case 'grapesjs':
+        return (
+          <div className="p-3 space-y-3">
+            <div className="mb-1">
+              <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">GrapeJS Editor</h3>
+            </div>
+            <div className="text-[11px] text-gray-500 space-y-2">
+              <p>Visual editor для создания layouts с drag & drop</p>
+              <div className="bg-blue-50 p-2 rounded">
+                <p className="font-semibold text-blue-900 mb-1">💡 Консоль браузера:</p>
+                <code className="text-[10px] block bg-white p-1 rounded">window.gjsEditor</code>
+              </div>
+              <div className="space-y-1">
+                <p className="font-semibold text-gray-700">Методы:</p>
+                <ul className="text-[10px] space-y-0.5 ml-3">
+                  <li>• getProjectData() - JSON</li>
+                  <li>• loadProjectData(json)</li>
+                  <li>• getHtml() / getCss()</li>
+                  <li>• addComponents()</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'grapeTemplates':
+        return (
+          <div className="p-3 text-[11px] text-gray-500">
+            Browse and manage GrapeJS templates from database. Select a template to view details.
+          </div>
+        );
+
       default:
         return null;
     }
@@ -1338,7 +1403,7 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
           )}
 
           {}
-          {activeTab !== 'pages' && activeTab !== 'offerCards' && activeTab !== 'templates' && activeTab !== 'authentication' && activeSection !== 'pageConstructor' && (
+          {activeTab !== 'pages' && activeTab !== 'offerCards' && activeTab !== 'templates' && activeTab !== 'authentication' && activeTab !== 'grapesjs' && activeTab !== 'grapeTemplates' && activeSection !== 'pageConstructor' && (
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[11px] text-gray-500">Manage buttons</span>
@@ -1408,23 +1473,40 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                 )}
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto bg-gray-50 p-4 flex items-center justify-center">
-              {isClient && iframeSrc ? (
-                <PhoneMockup
-                  iframeSrc={iframeSrc}
-                  device={device}
-                  orientation={orientation}
-                  onIframeRef={handleIframeRef}
+            {activeTab === 'grapesjs' ? (
+              <div className="flex-1 flex overflow-hidden bg-white">
+                <GrapesJsEditor 
+                  onChange={(projectData) => {
+                    console.log('GrapeJS project changed:', projectData);
+                  }}
+                  onReady={(editor) => {
+                    console.log('GrapeJS ready:', editor);
+                  }}
                 />
-              ) : (
-                <div className="text-center p-8">
-                  <p className="text-sm text-gray-500 mb-2">Preview not available</p>
-                  <p className="text-xs text-gray-400">
-                    {!clientUrl ? 'NEXT_PUBLIC_CLIENT_URL is not configured' : 'Loading...'}
-                  </p>
-                </div>
-              )}
-            </div>
+              </div>
+            ) : activeTab === 'grapeTemplates' ? (
+              <div className="flex-1 overflow-y-auto bg-white">
+                <TemplatesGrapeList />
+              </div>
+            ) : (
+              <div className="flex-1 overflow-y-auto bg-gray-50 p-4 flex items-center justify-center">
+                  {isClient && iframeSrc ? (
+                    <PhoneMockup
+                      iframeSrc={iframeSrc}
+                      device={device}
+                      orientation={orientation}
+                      onIframeRef={handleIframeRef}
+                    />
+                  ) : (
+                    <div className="text-center p-8">
+                      <p className="text-sm text-gray-500 mb-2">Preview not available</p>
+                      <p className="text-xs text-gray-400">
+                        {!clientUrl ? 'NEXT_PUBLIC_CLIENT_URL is not configured' : 'Loading...'}
+                      </p>
+                    </div>
+                  )}
+              </div>
+            )}
           </div>
         </Tabs>
       </div>
@@ -1791,6 +1873,77 @@ export function UIBuilderPage({ presenter, appId }: UIBuilderPageProps): JSX.Ele
                     </li>
                   ))}
                 </ul>
+              </div>
+            )}
+
+            {activeSection === 'grapeTemplates' && (
+              <div className="bg-white rounded-lg shadow p-4 space-y-3">
+                <h4 className="text-xs font-semibold text-gray-800 mb-2">GrapeJS Templates</h4>
+                <div className="text-[11px] text-gray-600">
+                  <p>Select a template from the list to view its details and load it into the GrapeJS editor.</p>
+                </div>
+              </div>
+            )}
+
+            {activeSection === 'grapesjs' && (
+              <div className="bg-white rounded-lg shadow p-4 space-y-3">
+                <h4 className="text-xs font-semibold text-gray-800 mb-2">GrapeJS Controls</h4>
+                <div className="space-y-3 text-xs text-gray-700">
+                  <div className="bg-blue-50 p-3 rounded">
+                    <p className="font-semibold text-blue-900 mb-2">💡 Консоль:</p>
+                    <code className="block bg-white p-2 rounded text-[11px] font-mono">
+                      window.gjsEditor
+                    </code>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <p className="font-semibold">Export/Import:</p>
+                    <button
+                      onClick={() => {
+                        const editor = (window as any).gjsEditor;
+                        if (editor) {
+                          const json = editor.getProjectData();
+                          const blob = new Blob([JSON.stringify(json, null, 2)], 
+                            { type: 'application/json' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `grapesjs-${Date.now()}.json`;
+                          a.click();
+                        }
+                      }}
+                      className="w-full px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-xs font-medium"
+                    >
+                      📥 Export JSON
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        const editor = (window as any).gjsEditor;
+                        if (editor) {
+                          const json = editor.getProjectData();
+                          navigator.clipboard.writeText(JSON.stringify(json, null, 2));
+                          alert('✅ JSON скопирован в буфер обмена!');
+                        }
+                      }}
+                      className="w-full px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-xs font-medium"
+                    >
+                      📋 Copy JSON
+                    </button>
+                  </div>
+                  
+                  <div className="border-t pt-3">
+                    <p className="font-semibold mb-2">📚 API Methods:</p>
+                    <ul className="text-[11px] space-y-1 text-gray-600">
+                      <li>• <code>getProjectData()</code> - весь проект</li>
+                      <li>• <code>loadProjectData(json)</code> - загрузить</li>
+                      <li>• <code>getHtml()</code> - только HTML</li>
+                      <li>• <code>getCss()</code> - только CSS</li>
+                      <li>• <code>addComponents()</code> - добавить</li>
+                      <li>• <code>getComponents()</code> - компоненты</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             )}
           </div>

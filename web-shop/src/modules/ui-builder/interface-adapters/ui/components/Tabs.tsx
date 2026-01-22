@@ -16,6 +16,8 @@ interface TabsProps {
 }
 
 export function Tabs({ tabs, activeTab, onTabChange, children }: TabsProps) {
+  console.log('Tabs rendered:', { tabs: tabs.length, activeTab, onTabChange: !!onTabChange });
+
   return (
     <div className="flex flex-col h-full">
       {}
@@ -23,7 +25,10 @@ export function Tabs({ tabs, activeTab, onTabChange, children }: TabsProps) {
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => onTabChange(tab.id)}
+            onClick={() => {
+              console.log('Tab clicked:', tab.id);
+              onTabChange(tab.id);
+            }}
             className={`
               px-3 py-2 text-xs font-medium whitespace-nowrap border-b-2 transition-colors
               ${activeTab === tab.id

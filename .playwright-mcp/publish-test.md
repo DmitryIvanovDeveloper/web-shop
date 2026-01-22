@@ -1,0 +1,176 @@
+### Page state
+- Page URL: http://localhost:3000/app-builder?appId=APP123&merchantId=550e8400-e29b-41d4-a716-446655440000
+- Page Title: Web Shop
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - heading "App Builder" [level=1] [ref=e5]
+        - paragraph [ref=e6]: Визуальный редактор для создания шаблонов приложений
+    - generic [ref=e7]:
+      - generic [ref=e9]:
+        - heading "📚 Шаблоны" [level=2] [ref=e10]
+        - table [ref=e37]:
+          - rowgroup [ref=e38]:
+            - row "Название Описание Обновлено Действия" [ref=e39]:
+              - columnheader "Название" [ref=e40]
+              - columnheader "Описание" [ref=e41]
+              - columnheader "Обновлено" [ref=e42]
+              - columnheader "Действия" [ref=e43]
+          - rowgroup [ref=e44]:
+            - row "Three Column Layout GrapeJS template with left sidebar (navigation), main content area, and right sidebar (account) 21.01.2026 Apply" [ref=e45] [cursor=pointer]:
+              - cell "Three Column Layout" [ref=e46]:
+                - generic [ref=e48]: Three Column Layout
+              - cell "GrapeJS template with left sidebar (navigation), main content area, and right sidebar (account)" [ref=e49]:
+                - generic [ref=e50]: GrapeJS template with left sidebar (navigation), main content area, and right sidebar (account)
+              - cell "21.01.2026" [ref=e51]
+              - cell "Apply" [ref=e52]:
+                - button "Apply" [ref=e53]
+      - generic [ref=e182]:
+        - heading "Ошибка загрузки" [level=3] [ref=e183]
+        - paragraph [ref=e184]: Config not found
+        - button "Повторить" [ref=e185] [cursor=pointer]
+      - generic [ref=e94]:
+        - iframe [ref=e99]:
+          - generic [ref=f15e3]:
+            - complementary [ref=f15e4]:
+              - heading "Navigation" [level=2] [ref=f15e6]
+              - navigation [ref=f15e7]:
+                - button "🏠 Home" [ref=f15e8] [cursor=pointer]:
+                  - generic [ref=f15e9]: 🏠
+                  - generic [ref=f15e10]: Home
+                - button "🛒 Store" [ref=f15e11] [cursor=pointer]:
+                  - generic [ref=f15e12]: 🛒
+                  - generic [ref=f15e13]: Store
+                - button "🎁 Daily Rewards" [ref=f15e14] [cursor=pointer]:
+                  - generic [ref=f15e15]: 🎁
+                  - generic [ref=f15e16]: Daily Rewards
+                - button "🎉 Events" [ref=f15e17] [cursor=pointer]:
+                  - generic [ref=f15e18]: 🎉
+                  - generic [ref=f15e19]: Events
+            - main [ref=f15e20]:
+              - generic [ref=f15e21]:
+                - heading "Welcome to Web Shop" [level=1] [ref=f15e22]
+                - paragraph [ref=f15e23]: This is the main content area. Add your components here.
+                - generic [ref=f15e24]:
+                  - generic [ref=f15e25]:
+                    - generic [ref=f15e26]: 🎨
+                    - heading "Feature 1" [level=3] [ref=f15e27]
+                    - paragraph [ref=f15e28]: Description of feature 1
+                  - generic [ref=f15e29]:
+                    - generic [ref=f15e30]: ⚡
+                    - heading "Feature 2" [level=3] [ref=f15e31]
+                    - paragraph [ref=f15e32]: Description of feature 2
+                  - generic [ref=f15e33]:
+                    - generic [ref=f15e34]: 🚀
+                    - heading "Feature 3" [level=3] [ref=f15e35]
+                    - paragraph [ref=f15e36]: Description of feature 3
+            - complementary [ref=f15e37]:
+              - heading "Account" [level=3] [ref=f15e39]
+              - generic [ref=f15e40]:
+                - generic [ref=f15e41]: 👤
+                - generic [ref=f15e42]:
+                  - paragraph [ref=f15e43]: Player Name
+                  - paragraph [ref=f15e44]: Level 25
+              - generic [ref=f15e45]:
+                - heading "Statistics" [level=4] [ref=f15e46]
+                - generic [ref=f15e47]:
+                  - generic [ref=f15e48]: "Points:"
+                  - generic [ref=f15e49]: 1,250
+                - generic [ref=f15e50]:
+                  - generic [ref=f15e51]: "Coins:"
+                  - generic [ref=f15e52]: "580"
+              - generic [ref=f15e53]:
+                - button "Settings" [ref=f15e54] [cursor=pointer]
+                - button "Logout" [ref=f15e55] [cursor=pointer]
+        - generic:
+          - generic [ref=e104]:
+            - img [ref=e106] [cursor=pointer]
+            - img [ref=e109] [cursor=pointer]
+            - img [ref=e112] [cursor=pointer]
+          - generic [ref=e115]:
+            - generic "View components" [ref=e116] [cursor=pointer]:
+              - img [ref=e117]
+            - generic "Preview" [ref=e119] [cursor=pointer]:
+              - img [ref=e120]
+            - generic "Fullscreen" [ref=e122] [cursor=pointer]:
+              - img [ref=e123]
+            - generic "View code" [ref=e125] [cursor=pointer]:
+              - img [ref=e126]
+            - img [ref=e129] [cursor=pointer]
+            - img [ref=e132] [cursor=pointer]
+            - img [ref=e135] [cursor=pointer]
+            - img [ref=e138] [cursor=pointer]
+          - generic [ref=e141]:
+            - generic "Open Style Manager" [ref=e142] [cursor=pointer]:
+              - img [ref=e143]
+            - generic "Settings" [ref=e145] [cursor=pointer]:
+              - img [ref=e146]
+            - generic "Open Layer Manager" [ref=e148] [cursor=pointer]:
+              - img [ref=e149]
+            - generic "Open Blocks" [ref=e151] [cursor=pointer]:
+              - img [ref=e152]
+          - generic [ref=e157]:
+            - generic [ref=e158]:
+              - generic [ref=e159] [cursor=pointer]:
+                - generic [ref=e160]: 
+                - text: Basic
+              - generic [ref=e161]:
+                - generic "Link Block" [ref=e162]:
+                  - generic:
+                    - img
+                  - generic: Link Block
+                - generic "Quote" [ref=e163]:
+                  - generic:
+                    - img
+                  - generic: Quote
+                - generic "Text section" [ref=e164]:
+                  - generic:
+                    - img
+                  - generic: Text section
+            - generic [ref=e165]:
+              - generic [ref=e166] [cursor=pointer]:
+                - generic [ref=e167]: 
+                - text: Layout
+              - generic [ref=e168]:
+                - generic "Container" [ref=e169]:
+                  - generic:
+                    - img
+                  - generic: Container
+                - generic "2 Columns" [ref=e170]:
+                  - generic:
+                    - img
+                  - generic: 2 Columns
+            - generic [ref=e171]:
+              - generic [ref=e172] [cursor=pointer]:
+                - generic [ref=e173]: 
+                - text: Sections
+              - generic "Hero" [ref=e175]:
+                - generic:
+                  - img
+                - generic: Hero
+            - generic [ref=e176]:
+              - generic [ref=e177] [cursor=pointer]:
+                - generic [ref=e178]: 
+                - text: UI
+              - generic [ref=e179]:
+                - generic "Card" [ref=e180]:
+                  - generic:
+                    - img
+                  - generic: Card
+                - generic "% Daily Reward" [ref=e181]:
+                  - generic:
+                    - img:
+                      - generic: "%"
+                  - generic: Daily Reward
+  - status [ref=e25]:
+    - generic [ref=e26]:
+      - img [ref=e28]
+      - generic [ref=e30]:
+        - text: Static route
+        - button "Hide static indicator" [ref=e31] [cursor=pointer]:
+          - img [ref=e32]
+  - alert [ref=e35]
+```

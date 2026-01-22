@@ -50,6 +50,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
         const separator = query ? '&' : '?';
         return `/ui-builder${query}${separator}pageSlug=store`;
       })(),
+      'app-builder': `/app-builder${buildQuery()}`,
     };
   }, [appId, merchantId]);
 

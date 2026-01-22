@@ -676,7 +676,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             />
           )}
 
-          <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex relative h-screen md:h-screen" style={{ height: isMobile ? 'calc(100vh - 56px)' : '100vh' }}>
+          <div
+            className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex relative h-screen md:h-screen"
+            style={{
+              height: isMobile ? 'calc(100vh - 56px)' : '100vh',
+              maxWidth: '1900px',
+              margin: '0 auto',
+              width: '100%',
+            }}
+          >
             { }
             {!isMobile && (
               <aside
@@ -714,7 +722,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             )}
 
             { }
-            <main className="flex-1 overflow-y-auto w-full px-4 md:px-8">
+            <main className="flex-1 overflow-y-auto w-full px-4 md:px-8" style={{ maxWidth: '1900px', margin: '0 auto' }}>
               {children}
             </main>
 

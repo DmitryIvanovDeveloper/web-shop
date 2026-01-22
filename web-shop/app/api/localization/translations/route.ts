@@ -28,22 +28,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const allKeys = (data || []).map((t: any) => t.key);
     const navKeys = (data || []).filter((t: any) => t.key && t.key.startsWith('nav.')).map((t: any) => t.key);
-    const allNavTranslations = (data || []).filter((t: any) => t.key && t.key.startsWith('nav.')).map((t: any) => ({ key: t.key, value: t.value }));
     const expectedNavKeys = ['nav.home', 'nav.store', 'nav.patchNotes', 'nav.dailyRewards', 'nav.loyaltyProgram', 'nav.news', 'nav.updates', 'nav.events'];
-    const missingNavKeys = expectedNavKeys.filter(key => !navKeys.includes(key));
-    
-    .length,
-      allKeys: allKeys.slice(0, 20), 
-      navKeys: navKeys,
-      navKeysCount: navKeys.length,
-      allNavTranslations: allNavTranslations,
-      expectedNavKeys: expectedNavKeys,
-      missingNavKeys: missingNavKeys,
-      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL
-    });
-
+  
     const translations = data.map(translation => ({
       key: translation.key,
       languageCode: translation.language_code,

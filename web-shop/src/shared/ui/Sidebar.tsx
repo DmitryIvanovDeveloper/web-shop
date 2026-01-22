@@ -19,7 +19,8 @@ const menuItems: Array<{ key: string; label: string; icon: string; href: string 
   { key: "merchant-admin-promo-codes", label: "Promo Codes", icon: "🎫", href: "/merchant-admin/promo-codes" },
   { key: "merchant-admin-patch-notes", label: "Patch Notes", icon: "📋", href: "/merchant-admin/patch-notes" },
   { key: "merchant-admin-localization", label: "Localization", icon: "🌐", href: "/merchant-admin/localization" },
-  { key: "ui-builder", label: "Builder", icon: "🛠️", href: "/ui-builder?pageSlug=store" },
+  { key: "app-builder", label: "App Builder", icon: "🎨", href: "/app-builder" },
+  { key: "ui-builder", label: "UI Builder", icon: "🛠️", href: "/ui-builder?pageSlug=store" },
 ];
 
 export function Sidebar({ children, widthClassName = "w-64", title = "Navigation", onSelect }: SidebarProps): JSX.Element {
@@ -39,6 +40,9 @@ export function Sidebar({ children, widthClassName = "w-64", title = "Navigation
     padding: 24,
     boxSizing: "border-box",
     zIndex: 50,
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
   };
 
   const listStyle: React.CSSProperties = {
@@ -47,6 +51,8 @@ export function Sidebar({ children, widthClassName = "w-64", title = "Navigation
     gap: 8,
     margin: 0,
     paddingTop: 8,
+    overflowY: "auto",
+    flex: 1,
   };
 
   const itemStyle = (active?: boolean): React.CSSProperties => ({

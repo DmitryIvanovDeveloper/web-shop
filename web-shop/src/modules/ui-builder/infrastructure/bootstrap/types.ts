@@ -39,5 +39,11 @@ export const UI_BUILDER_TYPES = {
   UIBuilderPresenter: Symbol.for('UIBuilder.UIBuilderPresenter'),
   PageConstructorPresenter: Symbol.for('UIBuilder.PageConstructorPresenter'),
   TemplatesPresenter: Symbol.for('UIBuilder.TemplatesPresenter'),
+
+  // GrapeJS Templates
+  TemplateGrapeRepository: Symbol.for('UIBuilder.TemplateGrapeRepository'),
+  ListTemplatesGrapeUseCase: Symbol.for('UIBuilder.ListTemplatesGrapeUseCase'),
+  GetTemplateGrapeDetailsUseCase: Symbol.for('UIBuilder.GetTemplateGrapeDetailsUseCase'),
+  TemplatesGrapePresenter: Symbol.for('UIBuilder.TemplatesGrapePresenter'),
 };
 

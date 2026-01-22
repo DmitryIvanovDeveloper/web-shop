@@ -1,0 +1,634 @@
+{
+  "pages": [
+    {
+      "id": "store-page",
+      "type": "main",
+      "frames": [
+        {
+          "component": {
+            "type": "wrapper",
+            "stylable": [
+              "background",
+              "background-color",
+              "background-image",
+              "background-repeat",
+              "background-attachment",
+              "background-size",
+              "background-position"
+            ],
+            "attributes": {
+              "class": "store-page"
+            },
+            "components": [
+              {
+                "type": "section",
+                "attributes": {
+                  "class": "store-header"
+                },
+                "stylable": [
+                  "background",
+                  "background-color",
+                  "padding",
+                  "margin",
+                  "text-align"
+                ],
+                "components": [
+                  {
+                    "type": "text",
+                    "attributes": {
+                      "class": "store-title"
+                    },
+                    "stylable": [
+                      "font-family",
+                      "font-size",
+                      "font-weight",
+                      "color",
+                      "text-align",
+                      "margin",
+                      "padding"
+                    ],
+                    "content": "Store"
+                  }
+                ]
+              },
+              {
+                "type": "section",
+                "attributes": {
+                  "class": "store-grid"
+                },
+                "stylable": [
+                  "display",
+                  "grid-template-columns",
+                  "gap",
+                  "padding",
+                  "margin",
+                  "max-width",
+                  "margin-left",
+                  "margin-right"
+                ],
+                "components": [
+                  {
+                    "type": "store-card",
+                    "attributes": {
+                      "data-card-variant": "default-vertical",
+                      "data-card-item-id": "itm_winner-bundle"
+                    },
+                    "components": [
+                      {
+                        "type": "badge-container",
+                        "components": [
+                          {
+                            "type": "discount-badge",
+                            "content": "-85%"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "product-image",
+                        "attributes": {
+                          "src": "https://static-platform.aghanim.com/cdn-cgi/image/width=600,quality=90,fit=scale-down,format=webp,dpr=4/sku/ec5527e4-9cb3-4c84-8226-cdbfc2c4b650.webp",
+                          "alt": "Winner Bundle"
+                        }
+                      },
+                      {
+                        "type": "spacer",
+                        "attributes": {
+                          "class": "spacer-3"
+                        }
+                      },
+                      {
+                        "type": "bundle-grid",
+                        "components": [
+                          {
+                            "type": "bundle-item",
+                            "attributes": {
+                              "src": "https://static-platform.aghanim.com/cdn-cgi/image/width=600,quality=90,fit=scale-down,format=webp,dpr=4/sku/d5fa8a86-4134-4b4c-85fa-fd5d4e401edf.webp"
+                            },
+                            "components": [
+                              {
+                                "type": "quantity-badge",
+                                "content": "x750"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "bundle-item",
+                            "attributes": {
+                              "src": "https://static-platform.aghanim.com/cdn-cgi/image/width=600,quality=90,fit=scale-down,format=webp,dpr=4/hub/8c/89/5d/54/8c895d54-d0f4-54af-3e3d-836868608b64.webp"
+                            },
+                            "components": [
+                              {
+                                "type": "quantity-badge",
+                                "content": "x600"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "bundle-item",
+                            "attributes": {
+                              "src": "https://static-platform.aghanim.com/cdn-cgi/image/width=600,quality=90,fit=scale-down,format=webp,dpr=4/hub/b0/47/39/1b/b047391b-8287-7557-cff8-f9bb07a78c92.webp"
+                            },
+                            "components": [
+                              {
+                                "type": "quantity-badge",
+                                "content": "x600"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "bundle-more",
+                            "content": "+3"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "spacer",
+                        "attributes": {
+                          "class": "spacer-3"
+                        }
+                      },
+                      {
+                        "type": "product-name",
+                        "content": "Набор Победителя"
+                      },
+                      {
+                        "type": "spacer",
+                        "attributes": {
+                          "class": "spacer-3"
+                        }
+                      },
+                      {
+                        "type": "badges-row",
+                        "components": [
+                          {
+                            "type": "limited-badge",
+                            "content": "1/1 Left"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "points-badges",
+                        "components": [
+                          {
+                            "type": "rp-badge",
+                            "content": "+8"
+                          },
+                          {
+                            "type": "lp-badge",
+                            "content": "+8"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "buy-button",
+                        "components": [
+                          {
+                            "type": "price-display",
+                            "components": [
+                              {
+                                "type": "current-price",
+                                "content": "$8.25"
+                              },
+                              {
+                                "type": "old-price",
+                                "content": "$74.99"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "store-card",
+                    "attributes": {
+                      "data-card-variant": "default-vertical",
+                      "data-card-item-id": "itm_fighter-bundle"
+                    },
+                    "components": [
+                      {
+                        "type": "badge-container",
+                        "components": [
+                          {
+                            "type": "discount-badge",
+                            "content": "-75%"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "product-image",
+                        "attributes": {
+                          "src": "https://static-platform.aghanim.com/cdn-cgi/image/width=600,quality=90,fit=scale-down,format=webp,dpr=4/hub/e0ec7727-3a6a-4e9a-9b2a-055f93557f7e.webp",
+                          "alt": "Fighter Bundle"
+                        }
+                      },
+                      {
+                        "type": "spacer",
+                        "attributes": {
+                          "class": "spacer-3"
+                        }
+                      },
+                      {
+                        "type": "bundle-grid",
+                        "components": [
+                          {
+                            "type": "bundle-item",
+                            "attributes": {
+                              "src": "https://static-platform.aghanim.com/cdn-cgi/image/width=600,quality=90,fit=scale-down,format=webp,dpr=4/hub/f9/14/ad/98/f914ad98-1ac1-2640-7f6f-62fffcd02791.webp"
+                            },
+                            "components": [
+                              {
+                                "type": "quantity-badge",
+                                "content": "x6K"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "bundle-item",
+                            "attributes": {
+                              "src": "https://static-platform.aghanim.com/cdn-cgi/image/width=600,quality=90,fit=scale-down,format=webp,dpr=4/hub/8c/89/5d/54/8c895d54-d0f4-54af-3e3d-836868608b64.webp"
+                            },
+                            "components": [
+                              {
+                                "type": "quantity-badge",
+                                "content": "x6K"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "bundle-item",
+                            "attributes": {
+                              "src": "https://static-platform.aghanim.com/cdn-cgi/image/width=600,quality=90,fit=scale-down,format=webp,dpr=4/hub/b0/47/39/1b/b047391b-8287-7557-cff8-f9bb07a78c92.webp"
+                            },
+                            "components": [
+                              {
+                                "type": "quantity-badge",
+                                "content": "x6K"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "bundle-more",
+                            "content": "+3"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "spacer",
+                        "attributes": {
+                          "class": "spacer-3"
+                        }
+                      },
+                      {
+                        "type": "product-name",
+                        "content": "Набор Бойца"
+                      },
+                      {
+                        "type": "spacer",
+                        "attributes": {
+                          "class": "spacer-3"
+                        }
+                      },
+                      {
+                        "type": "badges-row",
+                        "components": [
+                          {
+                            "type": "limited-badge",
+                            "content": "1/1 Left"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "points-badges",
+                        "components": [
+                          {
+                            "type": "rp-badge",
+                            "content": "+5"
+                          },
+                          {
+                            "type": "lp-badge",
+                            "content": "+5"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "buy-button",
+                        "components": [
+                          {
+                            "type": "price-display",
+                            "components": [
+                              {
+                                "type": "current-price",
+                                "content": "$4.95"
+                              },
+                              {
+                                "type": "old-price",
+                                "content": "$32.99"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "styles": [
+    {
+      "selectors": [".store-page"],
+      "style": {
+        "background": "linear-gradient(135deg, #131521 0%, #1a1e2d 100%)",
+        "min-height": "100vh",
+        "padding": "20px"
+      }
+    },
+    {
+      "selectors": [".store-header"],
+      "style": {
+        "text-align": "center",
+        "margin-bottom": "40px",
+        "padding": "20px 0"
+      }
+    },
+    {
+      "selectors": [".store-title"],
+      "style": {
+        "font-family": "'Russo One', sans-serif",
+        "font-size": "2.5rem",
+        "font-weight": "600",
+        "color": "#ffd300",
+        "margin": "0",
+        "text-shadow": "2px 2px 4px rgba(0,0,0,0.5)"
+      }
+    },
+    {
+      "selectors": [".store-grid"],
+      "style": {
+        "display": "grid",
+        "grid-template-columns": "repeat(auto-fit, minmax(300px, 1fr))",
+        "gap": "20px",
+        "max-width": "1200px",
+        "margin": "0 auto"
+      }
+    },
+    {
+      "selectors": [".store-card"],
+      "style": {
+        "background": "#242a42",
+        "border": "1px solid #373c53",
+        "border-radius": "12px",
+        "padding": "16px",
+        "display": "flex",
+        "flex-direction": "column",
+        "gap": "12px",
+        "transition": "transform 0.2s ease, box-shadow 0.2s ease",
+        "cursor": "pointer",
+        "box-shadow": "0 4px 6px rgba(0,0,0,0.3)"
+      }
+    },
+    {
+      "selectors": [".store-card:hover"],
+      "style": {
+        "transform": "scale(1.02)",
+        "box-shadow": "0 8px 15px rgba(0,0,0,0.4)"
+      }
+    },
+    {
+      "selectors": [".badge-container"],
+      "style": {
+        "display": "flex",
+        "gap": "8px",
+        "margin-bottom": "8px"
+      }
+    },
+    {
+      "selectors": [".discount-badge"],
+      "style": {
+        "background": "#ef3f2b",
+        "color": "#ffffff",
+        "padding": "4px 8px",
+        "border-radius": "6px",
+        "font-size": "0.875rem",
+        "font-weight": "600",
+        "display": "inline-block",
+        "position": "relative",
+        "overflow": "hidden"
+      }
+    },
+    {
+      "selectors": [".discount-badge::before"],
+      "style": {
+        "content": "''",
+        "position": "absolute",
+        "top": "0",
+        "left": "-100%",
+        "width": "100%",
+        "height": "100%",
+        "background": "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)",
+        "animation": "shine 2s infinite"
+      }
+    },
+    {
+      "selectors": [".product-image"],
+      "style": {
+        "width": "100%",
+        "aspect-ratio": "3/2",
+        "border-radius": "8px",
+        "overflow": "hidden",
+        "background": "#1a1e2d"
+      }
+    },
+    {
+      "selectors": [".product-image img"],
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "object-fit": "contain"
+      }
+    },
+    {
+      "selectors": [".spacer-3"],
+      "style": {
+        "height": "12px"
+      }
+    },
+    {
+      "selectors": [".bundle-grid"],
+      "style": {
+        "display": "grid",
+        "grid-template-columns": "repeat(4, 1fr)",
+        "gap": "4px"
+      }
+    },
+    {
+      "selectors": [".bundle-item"],
+      "style": {
+        "aspect-ratio": "1",
+        "border-radius": "6px",
+        "overflow": "hidden",
+        "background": "#373c53",
+        "position": "relative"
+      }
+    },
+    {
+      "selectors": [".bundle-item img"],
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "object-fit": "cover"
+      }
+    },
+    {
+      "selectors": [".quantity-badge"],
+      "style": {
+        "position": "absolute",
+        "bottom": "0",
+        "right": "0",
+        "background": "rgba(0,0,0,0.7)",
+        "color": "#ffffff",
+        "padding": "2px 4px",
+        "border-radius": "4px",
+        "font-size": "0.75rem",
+        "font-weight": "600"
+      }
+    },
+    {
+      "selectors": [".bundle-more"],
+      "style": {
+        "aspect-ratio": "1",
+        "border-radius": "6px",
+        "background": "#494d63",
+        "display": "flex",
+        "align-items": "center",
+        "justify-content": "center",
+        "color": "#ffffff",
+        "font-size": "0.875rem",
+        "font-weight": "600"
+      }
+    },
+    {
+      "selectors": [".product-name"],
+      "style": {
+        "font-family": "'Russo One', sans-serif",
+        "font-size": "1rem",
+        "font-weight": "600",
+        "color": "#ffffff",
+        "text-align": "center",
+        "margin": "0",
+        "line-height": "1.2"
+      }
+    },
+    {
+      "selectors": [".badges-row"],
+      "style": {
+        "display": "flex",
+        "justify-content": "center",
+        "gap": "4px"
+      }
+    },
+    {
+      "selectors": [".limited-badge"],
+      "style": {
+        "background": "#50525c",
+        "color": "#ffffff",
+        "padding": "2px 6px",
+        "border-radius": "4px",
+        "font-size": "0.75rem",
+        "font-weight": "500"
+      }
+    },
+    {
+      "selectors": [".points-badges"],
+      "style": {
+        "display": "flex",
+        "justify-content": "center",
+        "gap": "8px",
+        "margin": "4px 0"
+      }
+    },
+    {
+      "selectors": [".rp-badge, .lp-badge"],
+      "style": {
+        "display": "flex",
+        "align-items": "center",
+        "gap": "4px",
+        "background": "#373c53",
+        "color": "#8b8e9c",
+        "padding": "4px 8px",
+        "border-radius": "6px",
+        "font-size": "0.875rem",
+        "font-weight": "500"
+      }
+    },
+    {
+      "selectors": [".rp-badge svg, .lp-badge svg"],
+      "style": {
+        "width": "16px",
+        "height": "16px",
+        "fill": "currentColor"
+      }
+    },
+    {
+      "selectors": [".buy-button"],
+      "style": {
+        "width": "100%",
+        "background": "linear-gradient(180deg, #ffd300 0%, #e3bc0d 100%)",
+        "border": "none",
+        "border-radius": "8px",
+        "padding": "12px",
+        "cursor": "pointer",
+        "transition": "all 0.2s ease",
+        "box-shadow": "0 2px 4px rgba(0,0,0,0.3)"
+      }
+    },
+    {
+      "selectors": [".buy-button:hover"],
+      "style": {
+        "transform": "translateY(-1px)",
+        "box-shadow": "0 4px 8px rgba(0,0,0,0.4)"
+      }
+    },
+    {
+      "selectors": [".price-display"],
+      "style": {
+        "display": "flex",
+        "align-items": "center",
+        "justify-content": "center",
+        "gap": "8px",
+        "font-family": "'Russo One', sans-serif",
+        "font-weight": "600",
+        "color": "#131521"
+      }
+    },
+    {
+      "selectors": [".current-price"],
+      "style": {
+        "font-size": "1.125rem",
+        "color": "#131521"
+      }
+    },
+    {
+      "selectors": [".old-price"],
+      "style": {
+        "font-size": "0.875rem",
+        "color": "#666666",
+        "text-decoration": "line-through",
+        "opacity": "0.7"
+      }
+    },
+    {
+      "selectors": ["@keyframes shine"],
+      "style": {
+        "0%": { "left": "-100%" },
+        "100%": { "left": "100%" }
+      }
+    }
+  ],
+  "assets": []
+}

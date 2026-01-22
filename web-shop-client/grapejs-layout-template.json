@@ -1,0 +1,619 @@
+{
+  "pages": [
+    {
+      "frames": [
+        {
+          "component": {
+            "type": "wrapper",
+            "stylable": [
+              "background",
+              "background-color"
+            ],
+            "components": [
+              {
+                "tagName": "div",
+                "attributes": {
+                  "id": "main-layout",
+                  "data-layout": "three-column"
+                },
+                "classes": ["app-layout"],
+                "components": [
+                  {
+                    "tagName": "aside",
+                    "attributes": {
+                      "id": "left-sidebar",
+                      "data-element-id": "left-sidebar"
+                    },
+                    "classes": ["sidebar", "left-sidebar"],
+                    "components": [
+                      {
+                        "tagName": "div",
+                        "classes": ["sidebar-header"],
+                        "components": [
+                          {
+                            "tagName": "h2",
+                            "type": "text",
+                            "content": "Navigation"
+                          }
+                        ]
+                      },
+                      {
+                        "tagName": "nav",
+                        "classes": ["sidebar-nav"],
+                        "components": [
+                          {
+                            "tagName": "button",
+                            "classes": ["nav-button"],
+                            "attributes": {
+                              "data-action": "navigate",
+                              "data-page": "home"
+                            },
+                            "components": [
+                              {
+                                "tagName": "span",
+                                "classes": ["button-icon"],
+                                "content": "🏠"
+                              },
+                              {
+                                "tagName": "span",
+                                "classes": ["button-text"],
+                                "content": "Home"
+                              }
+                            ]
+                          },
+                          {
+                            "tagName": "button",
+                            "classes": ["nav-button"],
+                            "attributes": {
+                              "data-action": "navigate",
+                              "data-page": "store"
+                            },
+                            "components": [
+                              {
+                                "tagName": "span",
+                                "classes": ["button-icon"],
+                                "content": "🛒"
+                              },
+                              {
+                                "tagName": "span",
+                                "classes": ["button-text"],
+                                "content": "Store"
+                              }
+                            ]
+                          },
+                          {
+                            "tagName": "button",
+                            "classes": ["nav-button"],
+                            "attributes": {
+                              "data-action": "navigate",
+                              "data-page": "rewards"
+                            },
+                            "components": [
+                              {
+                                "tagName": "span",
+                                "classes": ["button-icon"],
+                                "content": "🎁"
+                              },
+                              {
+                                "tagName": "span",
+                                "classes": ["button-text"],
+                                "content": "Daily Rewards"
+                              }
+                            ]
+                          },
+                          {
+                            "tagName": "button",
+                            "classes": ["nav-button"],
+                            "attributes": {
+                              "data-action": "navigate",
+                              "data-page": "events"
+                            },
+                            "components": [
+                              {
+                                "tagName": "span",
+                                "classes": ["button-icon"],
+                                "content": "🎉"
+                              },
+                              {
+                                "tagName": "span",
+                                "classes": ["button-text"],
+                                "content": "Events"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "tagName": "main",
+                    "attributes": {
+                      "id": "main-content",
+                      "data-element-id": "main-body"
+                    },
+                    "classes": ["main-content"],
+                    "components": [
+                      {
+                        "tagName": "div",
+                        "classes": ["content-container"],
+                        "components": [
+                          {
+                            "tagName": "h1",
+                            "type": "text",
+                            "classes": ["page-title"],
+                            "content": "Welcome to Web Shop"
+                          },
+                          {
+                            "tagName": "p",
+                            "type": "text",
+                            "classes": ["page-description"],
+                            "content": "This is the main content area. Add your components here."
+                          },
+                          {
+                            "tagName": "div",
+                            "classes": ["cards-grid"],
+                            "components": [
+                              {
+                                "tagName": "div",
+                                "classes": ["card"],
+                                "components": [
+                                  {
+                                    "tagName": "div",
+                                    "classes": ["card-image"],
+                                    "content": "🎨"
+                                  },
+                                  {
+                                    "tagName": "h3",
+                                    "classes": ["card-title"],
+                                    "content": "Feature 1"
+                                  },
+                                  {
+                                    "tagName": "p",
+                                    "classes": ["card-text"],
+                                    "content": "Description of feature 1"
+                                  }
+                                ]
+                              },
+                              {
+                                "tagName": "div",
+                                "classes": ["card"],
+                                "components": [
+                                  {
+                                    "tagName": "div",
+                                    "classes": ["card-image"],
+                                    "content": "⚡"
+                                  },
+                                  {
+                                    "tagName": "h3",
+                                    "classes": ["card-title"],
+                                    "content": "Feature 2"
+                                  },
+                                  {
+                                    "tagName": "p",
+                                    "classes": ["card-text"],
+                                    "content": "Description of feature 2"
+                                  }
+                                ]
+                              },
+                              {
+                                "tagName": "div",
+                                "classes": ["card"],
+                                "components": [
+                                  {
+                                    "tagName": "div",
+                                    "classes": ["card-image"],
+                                    "content": "🚀"
+                                  },
+                                  {
+                                    "tagName": "h3",
+                                    "classes": ["card-title"],
+                                    "content": "Feature 3"
+                                  },
+                                  {
+                                    "tagName": "p",
+                                    "classes": ["card-text"],
+                                    "content": "Description of feature 3"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "tagName": "aside",
+                    "attributes": {
+                      "id": "right-sidebar",
+                      "data-element-id": "right-sidebar"
+                    },
+                    "classes": ["sidebar", "right-sidebar"],
+                    "components": [
+                      {
+                        "tagName": "div",
+                        "classes": ["sidebar-header"],
+                        "components": [
+                          {
+                            "tagName": "h3",
+                            "type": "text",
+                            "content": "Account"
+                          }
+                        ]
+                      },
+                      {
+                        "tagName": "div",
+                        "classes": ["user-info"],
+                        "components": [
+                          {
+                            "tagName": "div",
+                            "classes": ["avatar"],
+                            "content": "👤"
+                          },
+                          {
+                            "tagName": "div",
+                            "classes": ["user-details"],
+                            "components": [
+                              {
+                                "tagName": "p",
+                                "classes": ["user-name"],
+                                "content": "Player Name"
+                              },
+                              {
+                                "tagName": "p",
+                                "classes": ["user-level"],
+                                "content": "Level 25"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "tagName": "div",
+                        "classes": ["stats-section"],
+                        "components": [
+                          {
+                            "tagName": "h4",
+                            "content": "Statistics"
+                          },
+                          {
+                            "tagName": "div",
+                            "classes": ["stat-item"],
+                            "components": [
+                              {
+                                "tagName": "span",
+                                "classes": ["stat-label"],
+                                "content": "Points:"
+                              },
+                              {
+                                "tagName": "span",
+                                "classes": ["stat-value"],
+                                "content": "1,250"
+                              }
+                            ]
+                          },
+                          {
+                            "tagName": "div",
+                            "classes": ["stat-item"],
+                            "components": [
+                              {
+                                "tagName": "span",
+                                "classes": ["stat-label"],
+                                "content": "Coins:"
+                              },
+                              {
+                                "tagName": "span",
+                                "classes": ["stat-value"],
+                                "content": "580"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "tagName": "div",
+                        "classes": ["quick-actions"],
+                        "components": [
+                          {
+                            "tagName": "button",
+                            "classes": ["action-button"],
+                            "content": "Settings"
+                          },
+                          {
+                            "tagName": "button",
+                            "classes": ["action-button"],
+                            "content": "Logout"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "type": "main",
+      "id": "main-page"
+    }
+  ],
+  "styles": [
+    {
+      "selectors": [".app-layout"],
+      "style": {
+        "display": "flex",
+        "min-height": "100vh",
+        "width": "100%",
+        "background": "#0D1117"
+      }
+    },
+    {
+      "selectors": [".sidebar"],
+      "style": {
+        "display": "flex",
+        "flex-direction": "column",
+        "width": "280px",
+        "padding": "24px",
+        "overflow-y": "auto"
+      }
+    },
+    {
+      "selectors": [".left-sidebar"],
+      "style": {
+        "background": "linear-gradient(180deg, #1a1f2e 0%, #0f1419 100%)",
+        "border-right": "1px solid rgba(255, 255, 255, 0.1)"
+      }
+    },
+    {
+      "selectors": [".right-sidebar"],
+      "style": {
+        "background": "linear-gradient(180deg, #1a1f2e 0%, #0f1419 100%)",
+        "border-left": "1px solid rgba(255, 255, 255, 0.1)"
+      }
+    },
+    {
+      "selectors": [".main-content"],
+      "style": {
+        "flex": "1",
+        "overflow-y": "auto",
+        "padding": "32px",
+        "max-width": "1900px",
+        "margin": "0 auto"
+      }
+    },
+    {
+      "selectors": [".sidebar-header"],
+      "style": {
+        "margin-bottom": "24px",
+        "padding-bottom": "16px",
+        "border-bottom": "1px solid rgba(255, 255, 255, 0.1)"
+      }
+    },
+    {
+      "selectors": [".sidebar-header h2", ".sidebar-header h3"],
+      "style": {
+        "color": "#ffffff",
+        "font-size": "18px",
+        "font-weight": "600",
+        "margin": "0"
+      }
+    },
+    {
+      "selectors": [".sidebar-nav"],
+      "style": {
+        "display": "flex",
+        "flex-direction": "column",
+        "gap": "8px"
+      }
+    },
+    {
+      "selectors": [".nav-button"],
+      "style": {
+        "display": "flex",
+        "align-items": "center",
+        "gap": "12px",
+        "padding": "12px 16px",
+        "background": "rgba(59, 90, 254, 0.1)",
+        "border": "1px solid rgba(59, 90, 254, 0.3)",
+        "border-radius": "8px",
+        "color": "#ffffff",
+        "font-size": "14px",
+        "font-weight": "500",
+        "cursor": "pointer",
+        "transition": "all 0.2s ease"
+      }
+    },
+    {
+      "selectors": [".nav-button:hover"],
+      "style": {
+        "background": "rgba(59, 90, 254, 0.2)",
+        "border-color": "rgba(59, 90, 254, 0.5)",
+        "transform": "translateX(4px)"
+      }
+    },
+    {
+      "selectors": [".button-icon"],
+      "style": {
+        "font-size": "20px"
+      }
+    },
+    {
+      "selectors": [".page-title"],
+      "style": {
+        "color": "#ffffff",
+        "font-size": "36px",
+        "font-weight": "700",
+        "margin": "0 0 16px 0"
+      }
+    },
+    {
+      "selectors": [".page-description"],
+      "style": {
+        "color": "#a0a0a0",
+        "font-size": "16px",
+        "margin": "0 0 32px 0"
+      }
+    },
+    {
+      "selectors": [".cards-grid"],
+      "style": {
+        "display": "grid",
+        "grid-template-columns": "repeat(auto-fill, minmax(280px, 1fr))",
+        "gap": "24px",
+        "margin-top": "24px"
+      }
+    },
+    {
+      "selectors": [".card"],
+      "style": {
+        "background": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        "border-radius": "16px",
+        "padding": "24px",
+        "box-shadow": "0 8px 24px rgba(0, 0, 0, 0.3)",
+        "transition": "transform 0.2s ease"
+      }
+    },
+    {
+      "selectors": [".card:hover"],
+      "style": {
+        "transform": "translateY(-4px)"
+      }
+    },
+    {
+      "selectors": [".card-image"],
+      "style": {
+        "font-size": "48px",
+        "text-align": "center",
+        "margin-bottom": "16px"
+      }
+    },
+    {
+      "selectors": [".card-title"],
+      "style": {
+        "color": "#ffffff",
+        "font-size": "20px",
+        "font-weight": "600",
+        "margin": "0 0 8px 0"
+      }
+    },
+    {
+      "selectors": [".card-text"],
+      "style": {
+        "color": "rgba(255, 255, 255, 0.8)",
+        "font-size": "14px",
+        "margin": "0"
+      }
+    },
+    {
+      "selectors": [".user-info"],
+      "style": {
+        "display": "flex",
+        "align-items": "center",
+        "gap": "12px",
+        "padding": "16px",
+        "background": "rgba(255, 255, 255, 0.05)",
+        "border-radius": "12px",
+        "margin-bottom": "24px"
+      }
+    },
+    {
+      "selectors": [".avatar"],
+      "style": {
+        "width": "48px",
+        "height": "48px",
+        "background": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        "border-radius": "50%",
+        "display": "flex",
+        "align-items": "center",
+        "justify-content": "center",
+        "font-size": "24px"
+      }
+    },
+    {
+      "selectors": [".user-name"],
+      "style": {
+        "color": "#ffffff",
+        "font-size": "14px",
+        "font-weight": "600",
+        "margin": "0"
+      }
+    },
+    {
+      "selectors": [".user-level"],
+      "style": {
+        "color": "#a0a0a0",
+        "font-size": "12px",
+        "margin": "4px 0 0 0"
+      }
+    },
+    {
+      "selectors": [".stats-section"],
+      "style": {
+        "margin-bottom": "24px"
+      }
+    },
+    {
+      "selectors": [".stats-section h4"],
+      "style": {
+        "color": "#ffffff",
+        "font-size": "14px",
+        "font-weight": "600",
+        "margin": "0 0 12px 0"
+      }
+    },
+    {
+      "selectors": [".stat-item"],
+      "style": {
+        "display": "flex",
+        "justify-content": "space-between",
+        "padding": "8px 0",
+        "border-bottom": "1px solid rgba(255, 255, 255, 0.05)"
+      }
+    },
+    {
+      "selectors": [".stat-label"],
+      "style": {
+        "color": "#a0a0a0",
+        "font-size": "13px"
+      }
+    },
+    {
+      "selectors": [".stat-value"],
+      "style": {
+        "color": "#ffffff",
+        "font-size": "13px",
+        "font-weight": "600"
+      }
+    },
+    {
+      "selectors": [".quick-actions"],
+      "style": {
+        "display": "flex",
+        "flex-direction": "column",
+        "gap": "8px"
+      }
+    },
+    {
+      "selectors": [".action-button"],
+      "style": {
+        "padding": "10px 16px",
+        "background": "rgba(59, 90, 254, 0.1)",
+        "border": "1px solid rgba(59, 90, 254, 0.3)",
+        "border-radius": "6px",
+        "color": "#ffffff",
+        "font-size": "13px",
+        "cursor": "pointer",
+        "transition": "all 0.2s ease"
+      }
+    },
+    {
+      "selectors": [".action-button:hover"],
+      "style": {
+        "background": "rgba(59, 90, 254, 0.2)",
+        "border-color": "rgba(59, 90, 254, 0.5)"
+      }
+    }
+  ],
+  "assets": []
+}

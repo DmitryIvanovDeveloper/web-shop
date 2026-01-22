@@ -1,0 +1,207 @@
+### New console messages
+- [LOG] Editor: Config loaded successfully: {id: c25125ad-c31f-43a7-b7f4-6a9eec4b94eb, appId: APP123, ...
+- [LOG] Editor: Editor loaded Editor @ webpack-internal:///(app-pages-browser)/./src/modules/app-build...
+- [LOG] Editor: Applying initial config to canvas: {pages: Array(1), assets: Array(0), styles: Array(3...
+- [LOG] Editor: Configuration applied successfully @ webpack-internal:///(app-pages-browser)/./src/mod...
+- [LOG] Editor ready: Editor @ webpack-internal:///(app-pages-browser)/./app/app-builder/page.tsx:274
+- [LOG] loadActiveConfig: Starting to load active config... @ webpack-internal:///(app-pages-browser)/...
+- [LOG] loadActiveConfig: Loading draft config into editor {pages: Array(1), assets: Array(0), styles:...
+- [LOG] Active configuration loaded successfully @ webpack-internal:///(app-pages-browser)/./app/app-b...
+- [LOG] Template data changed: {dataSources: Array(0), assets: Array(0), styles: Array(31), pages: Arr...
+
+### Page state
+- Page URL: http://localhost:3000/app-builder?appId=APP123&merchantId=550e8400-e29b-41d4-a716-446655440000
+- Page Title: Web Shop
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - heading "App Builder" [level=1] [ref=e5]
+        - paragraph [ref=e6]: Визуальный редактор для создания шаблонов приложений
+    - generic [ref=e7]:
+      - generic [ref=e9]:
+        - heading "📚 Шаблоны" [level=2] [ref=e10]
+        - table [ref=e37]:
+          - rowgroup [ref=e38]:
+            - row "Название Описание Обновлено Действия" [ref=e39]:
+              - columnheader "Название" [ref=e40]
+              - columnheader "Описание" [ref=e41]
+              - columnheader "Обновлено" [ref=e42]
+              - columnheader "Действия" [ref=e43]
+          - rowgroup [ref=e44]:
+            - row "Three Column Layout GrapeJS template with left sidebar (navigation), main content area, and right sidebar (account) 21.01.2026 Apply" [ref=e45] [cursor=pointer]:
+              - cell "Three Column Layout" [ref=e46]:
+                - generic [ref=e48]: Three Column Layout
+              - cell "GrapeJS template with left sidebar (navigation), main content area, and right sidebar (account)" [ref=e49]:
+                - generic [ref=e50]: GrapeJS template with left sidebar (navigation), main content area, and right sidebar (account)
+              - cell "21.01.2026" [ref=e51]
+              - cell "Apply" [ref=e52]:
+                - button "Apply" [ref=e53]
+      - generic [ref=e16]:
+        - heading "💾 Сохраненные конфигурации" [level=3] [ref=e54]
+        - table [ref=e56]:
+          - rowgroup [ref=e57]:
+            - row "Версия Статус Дата Содержимое Опубликовать Удалить" [ref=e58]:
+              - columnheader "Версия" [ref=e59]
+              - columnheader "Статус" [ref=e60]
+              - columnheader "Дата" [ref=e61]
+              - columnheader "Содержимое" [ref=e62]
+              - columnheader "Опубликовать" [ref=e63]
+              - columnheader "Удалить" [ref=e64]
+          - rowgroup [ref=e65]:
+            - row "v1 Активная 22.01.2026 1 стр, 0 асс 🚀 🗑️" [ref=e66] [cursor=pointer]:
+              - cell "v1" [ref=e67]:
+                - generic [ref=e69]: v1
+              - cell "Активная" [ref=e70]:
+                - generic [ref=e71]: Активная
+              - cell "22.01.2026" [ref=e72]
+              - cell "1 стр, 0 асс" [ref=e73]:
+                - generic [ref=e74]: 1 стр, 0 асс
+              - cell "🚀" [ref=e75]:
+                - button "🚀" [ref=e76]
+              - cell "🗑️" [ref=e77]:
+                - button "🗑️" [ref=e78]
+      - generic [ref=e81]:
+        - iframe [ref=e86]:
+          - generic [ref=f3e3]:
+            - complementary [ref=f3e4]:
+              - heading "Navigation" [level=2] [ref=f3e6]
+              - navigation [ref=f3e7]:
+                - button "🏠 Home" [ref=f3e8] [cursor=pointer]:
+                  - generic [ref=f3e9]: 🏠
+                  - generic [ref=f3e10]: Home
+                - button "🛒 Store" [ref=f3e11] [cursor=pointer]:
+                  - generic [ref=f3e12]: 🛒
+                  - generic [ref=f3e13]: Store
+                - button "🎁 Daily Rewards" [ref=f3e14] [cursor=pointer]:
+                  - generic [ref=f3e15]: 🎁
+                  - generic [ref=f3e16]: Daily Rewards
+                - button "🎉 Events" [ref=f3e17] [cursor=pointer]:
+                  - generic [ref=f3e18]: 🎉
+                  - generic [ref=f3e19]: Events
+            - main [ref=f3e20]:
+              - generic [ref=f3e21]:
+                - heading "Welcome to Web Shop" [level=1] [ref=f3e22]
+                - paragraph [ref=f3e23]: This is the main content area. Add your components here.
+                - generic [ref=f3e24]:
+                  - generic [ref=f3e25]:
+                    - generic [ref=f3e26]: 🎨
+                    - heading "Feature 1" [level=3] [ref=f3e27]
+                    - paragraph [ref=f3e28]: Description of feature 1
+                  - generic [ref=f3e29]:
+                    - generic [ref=f3e30]: ⚡
+                    - heading "Feature 2" [level=3] [ref=f3e31]
+                    - paragraph [ref=f3e32]: Description of feature 2
+                  - generic [ref=f3e33]:
+                    - generic [ref=f3e34]: 🚀
+                    - heading "Feature 3" [level=3] [ref=f3e35]
+                    - paragraph [ref=f3e36]: Description of feature 3
+            - complementary [ref=f3e37]:
+              - heading "Account" [level=3] [ref=f3e39]
+              - generic [ref=f3e40]:
+                - generic [ref=f3e41]: 👤
+                - generic [ref=f3e42]:
+                  - paragraph [ref=f3e43]: Player Name
+                  - paragraph [ref=f3e44]: Level 25
+              - generic [ref=f3e45]:
+                - heading "Statistics" [level=4] [ref=f3e46]
+                - generic [ref=f3e47]:
+                  - generic [ref=f3e48]: "Points:"
+                  - generic [ref=f3e49]: 1,250
+                - generic [ref=f3e50]:
+                  - generic [ref=f3e51]: "Coins:"
+                  - generic [ref=f3e52]: "580"
+              - generic [ref=f3e53]:
+                - button "Settings" [ref=f3e54] [cursor=pointer]
+                - button "Logout" [ref=f3e55] [cursor=pointer]
+        - generic:
+          - generic [ref=e91]:
+            - img [ref=e93] [cursor=pointer]
+            - img [ref=e96] [cursor=pointer]
+            - img [ref=e99] [cursor=pointer]
+          - generic [ref=e102]:
+            - generic "View components" [ref=e103] [cursor=pointer]:
+              - img [ref=e104]
+            - generic "Preview" [ref=e106] [cursor=pointer]:
+              - img [ref=e107]
+            - generic "Fullscreen" [ref=e109] [cursor=pointer]:
+              - img [ref=e110]
+            - generic "View code" [ref=e112] [cursor=pointer]:
+              - img [ref=e113]
+            - img [ref=e116] [cursor=pointer]
+            - img [ref=e119] [cursor=pointer]
+            - img [ref=e122] [cursor=pointer]
+            - img [ref=e125] [cursor=pointer]
+          - generic [ref=e128]:
+            - generic "Open Style Manager" [ref=e129] [cursor=pointer]:
+              - img [ref=e130]
+            - generic "Settings" [ref=e132] [cursor=pointer]:
+              - img [ref=e133]
+            - generic "Open Layer Manager" [ref=e135] [cursor=pointer]:
+              - img [ref=e136]
+            - generic "Open Blocks" [ref=e138] [cursor=pointer]:
+              - img [ref=e139]
+          - generic [ref=e144]:
+            - generic [ref=e145]:
+              - generic [ref=e146] [cursor=pointer]:
+                - generic [ref=e147]: 
+                - text: Basic
+              - generic [ref=e148]:
+                - generic "Link Block" [ref=e149]:
+                  - generic:
+                    - img
+                  - generic: Link Block
+                - generic "Quote" [ref=e150]:
+                  - generic:
+                    - img
+                  - generic: Quote
+                - generic "Text section" [ref=e151]:
+                  - generic:
+                    - img
+                  - generic: Text section
+            - generic [ref=e152]:
+              - generic [ref=e153] [cursor=pointer]:
+                - generic [ref=e154]: 
+                - text: Layout
+              - generic [ref=e155]:
+                - generic "Container" [ref=e156]:
+                  - generic:
+                    - img
+                  - generic: Container
+                - generic "2 Columns" [ref=e157]:
+                  - generic:
+                    - img
+                  - generic: 2 Columns
+            - generic [ref=e158]:
+              - generic [ref=e159] [cursor=pointer]:
+                - generic [ref=e160]: 
+                - text: Sections
+              - generic "Hero" [ref=e162]:
+                - generic:
+                  - img
+                - generic: Hero
+            - generic [ref=e163]:
+              - generic [ref=e164] [cursor=pointer]:
+                - generic [ref=e165]: 
+                - text: UI
+              - generic [ref=e166]:
+                - generic "Card" [ref=e167]:
+                  - generic:
+                    - img
+                  - generic: Card
+                - generic "% Daily Reward" [ref=e168]:
+                  - generic:
+                    - img:
+                      - generic: "%"
+                  - generic: Daily Reward
+  - status [ref=e25]:
+    - generic [ref=e26]:
+      - img [ref=e28]
+      - generic [ref=e30]:
+        - text: Static route
+        - button "Hide static indicator" [ref=e31] [cursor=pointer]:
+          - img [ref=e32]
+  - alert [ref=e35]
+```

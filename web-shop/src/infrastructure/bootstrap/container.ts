@@ -13,6 +13,7 @@ import { ConsoleLogger } from '../logging/console-logger';
 import { MockRealtimeClient } from '../realtime/mock-realtime-client';
 import { SupabaseClient } from '../database/supabase-client';
 import { bindUIBuilder } from '@/modules/ui-builder/infrastructure/bootstrap/bind.ui-builder';
+import { bindAppBuilder } from '@/modules/app-builder/infrastructure/bootstrap/bind.app-builder';
 import { bindMerchantAdminOffers } from '@/modules/merchant-admin/offers/infrastructure/bootstrap/offers.container';
 import { bindMerchantAdminProducts } from '@/modules/merchant-admin/products/infrastructure/bootstrap/products.container';
 import { bindMerchantAdminPromoCodes } from '@/modules/merchant-admin/promo-codes/infrastructure/bootstrap/promo-codes.container';
@@ -38,6 +39,7 @@ container.bind<RealtimeClientPort>(TYPES.RealtimeClient).to(MockRealtimeClient).
 container.bind<DatabaseClientPort>(TYPES.DatabaseClient).to(SupabaseClient).inSingletonScope();
 
 bindUIBuilder(container);
+bindAppBuilder(container);
 bindMerchantAdminOffers(container);
 bindMerchantAdminProducts(container);
 bindMerchantAdminPatchNotes(container);
