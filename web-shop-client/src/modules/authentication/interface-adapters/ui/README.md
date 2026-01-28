@@ -1,33 +1,33 @@
 # Authentication UI Components
 
-Переиспользуемые UI компоненты для модуля авторизации.
+Reusable UI components for the authentication module.
 
-## Архитектура
+## Architecture
 
-Компоненты разделены на три уровня:
+Components are divided into three levels:
 
-### 1. Базовые компоненты (Atomic)
-- **`AuthPopup`** - модальное окно авторизации
+### 1. Basic Components (Atomic)
+- **`AuthPopup`** - authentication modal window
 
-## Хуки
+## Hooks
 
 ### `useAuth()`
-Основной хук для работы с авторизацией:
+Main hook for working with authentication:
 ```typescript
 const { isAuthenticated, currentUser, initializeAuth, logout } = useAuth();
 ```
 
 
 ### `useAuthPopup()`
-Хук для управления состоянием popup:
+Hook for managing popup state:
 ```typescript
 const { isOpen, openPopup, closePopup, togglePopup } = useAuthPopup();
 ```
 
-## Примеры использования
+## Usage Examples
 
 
-### Использование только хуков
+### Using Hooks Only
 ```tsx
 import { useAuth } from './hooks';
 
@@ -37,35 +37,35 @@ function AuthStatus() {
   if (isAuthenticated) {
     return (
       <div>
-        <p>Привет, {currentUser?.username}!</p>
-        <button onClick={logout}>Выйти</button>
+        <p>Hello, {currentUser?.username}!</p>
+        <button onClick={logout}>Logout</button>
       </div>
     );
   }
 
-  return <p>Не авторизован</p>;
+  return <p>Not authenticated</p>;
 }
 ```
 
-## Принципы переиспользования
+## Reusability Principles
 
-1. **Разделение ответственности**: каждый компонент отвечает за одну задачу
-2. **Композиция**: сложные компоненты собираются из простых
-3. **Гибкость**: возможность кастомизации через пропсы
-4. **Обратная совместимость**: старые компоненты продолжают работать
-5. **Простота**: избегаем лишних абстракций и вложенных функций
-6. **Читаемость**: упрощаем множественные условия через функции и цепочки
+1. **Separation of Concerns**: each component is responsible for one task
+2. **Composition**: complex components are assembled from simple ones
+3. **Flexibility**: ability to customize through props
+4. **Backward Compatibility**: old components continue to work
+5. **Simplicity**: avoid unnecessary abstractions and nested functions
+6. **Readability**: simplify multiple conditions through functions and chains
 
-## Структура файлов
+## File Structure
 
 ```
 ui/
-├── components/           # Переиспользуемые компоненты
+├── components/           # Reusable components
 │   └── index.ts
-├── hooks/               # Переиспользуемые хуки
+├── hooks/               # Reusable hooks
 │   ├── use-auth.hook.ts
 │   ├── use-auth-popup.hook.ts
 │   └── index.ts
-├── auth-module.tsx      # Основной модуль
-└── README.md           # Документация
+├── auth-module.tsx      # Main module
+└── README.md           # Documentation
 ```

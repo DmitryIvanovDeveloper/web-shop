@@ -1,49 +1,49 @@
 # Shared UI Types
 
-Типы для универсального UI Renderer Service.
+Types for the universal UI Renderer Service.
 
-## 📦 Структура
+## 📦 Structure
 
 ```
 shared/ui/
-├── ui-descriptor.ts        # Контракт между модулем и сервисом
-├── component-node.ts       # Узел UI дерева
-├── theme-config.ts         # Конфигурация темы
-├── style-config.ts         # Типобезопасные стили
+├── ui-descriptor.ts        # Contract between module and service
+├── component-node.ts       # UI tree node
+├── theme-config.ts         # Theme configuration
+├── style-config.ts         # Type-safe styles
 ├── actions-config.ts       # Actions (onClick, onChange, etc.)
-├── action-context.ts       # Контекст обработчиков
-├── component-types.ts      # Каталог доступных компонентов
-├── builders/               # Утилиты для создания UI
+├── action-context.ts       # Handler context
+├── component-types.ts      # Available components catalog
+├── builders/               # UI creation utilities
 │   ├── ui-builder.ts       # Fluent API builder
-│   └── grid-template.ts    # Готовые шаблоны
-└── index.ts                # Общий экспорт
+│   └── grid-template.ts    # Ready-made templates
+└── index.ts                # Common export
 ```
 
-## 🎯 Основные концепции
+## 🎯 Core Concepts
 
 ### UIDescriptor
-Контракт между модулем и UI Renderer Service:
-- `layout` - что рендерить (ComponentNode)
-- `theme` - как стилизовать (ThemeConfig)
-- `context` - как обрабатывать события (ActionContext)
+Contract between module and UI Renderer Service:
+- `layout` - what to render (ComponentNode)
+- `theme` - how to style (ThemeConfig)
+- `context` - how to handle events (ActionContext)
 
 ### ComponentNode
-Узел в дереве UI компонентов:
-- `id` - уникальный идентификатор
-- `type` - тип компонента ('Button', 'Container', etc.)
-- `props` - свойства компонента
-- `styles` - стили (StyleConfig)
-- `children` - вложенные узлы
-- `actions` - обработчики событий
+Node in the UI component tree:
+- `id` - unique identifier
+- `type` - component type ('Button', 'Container', etc.)
+- `props` - component properties
+- `styles` - styles (StyleConfig)
+- `children` - nested nodes
+- `actions` - event handlers
 
 ### ThemeConfig
-Глобальная тема:
-- `colors` - палитра цветов
-- `spacing` - значения отступов
-- `typography` - типографика
+Global theme:
+- `colors` - color palette
+- `spacing` - spacing values
+- `typography` - typography
 
 ### StyleConfig
-Типобезопасные стили:
+Type-safe styles:
 - Layout (flex, grid)
 - Spacing (padding, margin)
 - Colors (backgroundColor, textColor)
@@ -51,9 +51,9 @@ shared/ui/
 - Position (absolute, relative)
 - Visual (border, shadow)
 
-## 🔧 Примеры использования
+## 🔧 Usage Examples
 
-### Пример 1: Простой UI
+### Example 1: Simple UI
 
 ```typescript
 import type { UIDescriptor } from '@/shared/ui';
@@ -106,7 +106,7 @@ const descriptor: UIDescriptor = {
 };
 ```
 
-### Пример 2: С UIBuilder
+### Example 2: With UIBuilder
 
 ```typescript
 import { UIBuilder } from '@/shared/ui/builders';
@@ -127,7 +127,7 @@ const descriptor: UIDescriptor = {
 };
 ```
 
-### Пример 3: С GridTemplate
+### Example 3: With GridTemplate
 
 ```typescript
 import { GridTemplate } from '@/shared/ui/builders';
@@ -146,20 +146,20 @@ const grid = GridTemplate.createProductGrid(items, 4, 16);
 
 ## 📝 Type Safety
 
-Все типы строго типизированы:
+All types are strictly typed:
 - ✅ No `any`
-- ✅ Readonly где нужно
-- ✅ Discriminated unions для actions
-- ✅ Type guards где необходимо
-- ✅ Branded types для spacing/colors
+- ✅ Readonly where needed
+- ✅ Discriminated unions for actions
+- ✅ Type guards where necessary
+- ✅ Branded types for spacing/colors
 
-## 🚀 Использование в модулях
+## 🚀 Usage in Modules
 
-Модуль НЕ использует UI Renderer напрямую.
-Presenter создаёт UIDescriptor и передаёт в сервис.
+Modules do NOT use UI Renderer directly.
+Presenter creates UIDescriptor and passes it to the service.
 
 ```typescript
-// В Presenter модуля
+// In module Presenter
 class ProductsPresenter {
   public createUIDescriptor(products: Product[]): UIDescriptor {
     const layout: ComponentNode = {

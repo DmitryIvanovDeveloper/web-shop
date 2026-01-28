@@ -1,42 +1,42 @@
 # UI Renderer Service
 
-Универсальный сервис для рендеринга UI из ComponentNode структуры.
+Universal service for rendering UI from ComponentNode structure.
 
-## 🎯 Назначение
+## 🎯 Purpose
 
-UI Renderer Service - это **Infrastructure Service**, который:
-- ✅ Принимает UIDescriptor от модулей
-- ✅ Рендерит JSX.Element из ComponentNode
-- ✅ НЕ владеет данными
-- ✅ НЕ загружает конфигурацию
-- ✅ Просто технический исполнитель
+UI Renderer Service is an **Infrastructure Service** that:
+- ✅ Accepts UIDescriptor from modules
+- ✅ Renders JSX.Element from ComponentNode
+- ✅ Does NOT own data
+- ✅ Does NOT load configuration
+- ✅ Simply a technical executor
 
-## 📦 Архитектура
+## 📦 Architecture
 
 ```
 ┌────────────────────────────────────────┐
 │      UI RENDERER SERVICE               │
 │   (Infrastructure Layer)               │
 │                                        │
-│  Принимает:  UIDescriptor              │
-│  Возвращает: JSX.Element               │
+│  Accepts:  UIDescriptor               │
+│  Returns:  JSX.Element                │
 │                                        │
-│  Не знает:                             │
-│  - Откуда данные                       │
-│  - Какая бизнес-логика                 │
-│  - Зачем рендерить                     │
+│  Does not know:                       │
+│  - Where data comes from              │
+│  - What business logic                │
+│  - Why rendering                      │
 └────────────────────────────────────────┘
 ```
 
-## 🔧 Использование
+## 🔧 Usage
 
-### Базовый пример
+### Basic Example
 
 ```typescript
 import { UIRendererService } from '@/infrastructure/services/ui-renderer';
 import type { UIDescriptor } from '@/shared/ui';
 
-// Модуль создаёт UIDescriptor
+// Module creates UIDescriptor
 const descriptor: UIDescriptor = {
   layout: {
     id: 'products-list',
@@ -62,16 +62,16 @@ const descriptor: UIDescriptor = {
   },
   context: {
     handleBuyProduct: (productId) => {
-      // UseCase модуля
+      // Module UseCase
     }
   }
 };
 
-// Сервис рендерит
+// Service renders
 const element = uiRendererService.renderUI(descriptor);
 ```
 
-### С использованием UIBuilder
+### With UIBuilder
 
 ```typescript
 import { UIBuilder } from '@/shared/ui/builders';
@@ -85,29 +85,29 @@ const descriptor = new UIBuilder()
   .build();
 ```
 
-## 🏗️ Компоненты сервиса
+## 🏗️ Service Components
 
 ### UIRendererService
-Главный сервис, orchestrator
+Main service, orchestrator
 
 ### UIComponentRegistry
-Регистрация React компонентов
+React component registration
 
 ### UIStyleBuilder
-Преобразование StyleConfig → CSS
+StyleConfig → CSS transformation
 
 ### UIActionHandler
-Обработка actions (onClick, etc.)
+Action handling (onClick, etc.)
 
-## 🧪 Тестирование
+## 🧪 Testing
 
 ```bash
 npm run test -- src/infrastructure/services/ui-renderer
 ```
 
-## 📝 Примечание
+## 📝 Note
 
-Сервис создан, но **НЕ используется** в модулях.
-Будет постепенная миграция модулей на использование сервиса.
+Service is created, but **NOT used** in modules yet.
+There will be gradual migration of modules to use the service.
 
 
