@@ -1,124 +1,75 @@
 import { injectable, inject } from 'inversify';
 import { TYPES } from '../bootstrap/types';
 import type { Logger } from '../../application/ports/logger.port';
-import type { DatabaseClientPort } from '../../application/ports/database-client.port';
-import type { AppConfig } from '../../shared/config/app-config.types';
-
-interface AppConfigRow {
-  id: string;
-  app_id: string;
-  merchant_id: string;
-  version: number;
-  is_active: boolean;
-  is_draft?: boolean;
-  config: unknown;
-  created_at?: string;
-  updated_at?: string;
-}
+import type { AppConfigRepositoryPort } from '../../modules/app-config/application/ports/app-config-repository.port';
+import type { GrapeJsAppConfig } from '../../shared/config/grapejs-app-config.types';
+import { isFailure } from '../../shared/result/result';
 
 @injectable()
 export class SupabaseConfigLoader {
   constructor(
     @inject(TYPES.Logger) private readonly _logger: Logger,
-    @inject(TYPES.DatabaseClient) private readonly _db: DatabaseClientPort
+    @inject(TYPES.AppConfigRepository) private readonly _repository: AppConfigRepositoryPort
   ) {}
 
   public isConfigured(): boolean {
-    try {
-            (this._db as any).getClient?.();
-      return true;
-    } catch (e) {
-      this._logger.error('[SupabaseConfigLoader] Not configured', e);
-      return false;
-    }
+    // Since we're now using HTTP API, we consider it configured by default
+    return true;
   }
 
-  public async loadConfig(appId: string): Promise<AppConfig | null> {
-    this._logger.info('[SupabaseConfigLoader] Loading active config', { appId });
+  public async loadConfig(appId: string): Promise<GrapeJsAppConfig | null> {
+    this._logger.info('[SupabaseConfigLoader] Loading active config via HTTP', { appId });
 
-    this._logger.info('[SupabaseConfigLoader] Making query to Supabase', {
-      appId,
-      table: 'app_configs',
-      filters: { app_id: appId, is_active: true, is_draft: false }
-    });
+    const result = await this._repository.loadActiveConfig(appId);
 
-    const { data, error } = await this._db
-      .from('app_configs')
-      .select('*')
-      .eq('app_id', appId)
-      .eq('is_active', true)
-      .eq('is_draft', false)       .order('version', { ascending: false })       .limit(1);
-
-    this._logger.info('[SupabaseConfigLoader] Query result', {
-      dataFound: !!data,
-      dataLength: data?.length,
-      error: !!error,
-      errorMessage: error?.message
-    });
-
-    if (error) {
-      this._logger.error('[SupabaseConfigLoader] Failed to load config', error);
-      this._logger.error('[SupabaseConfigLoader] Error details:', {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint
-      });
-      throw error;
+    if (isFailure(result)) {
+      this._logger.error('[SupabaseConfigLoader] Failed to load active config', result.error);
+      throw result.error;
     }
 
-    const row = (Array.isArray(data) ? (data[0] as AppConfigRow | undefined) : undefined);
-    if (!row) {
-      this._logger.warn('[SupabaseConfigLoader] No active config found', { appId });
-      return null;
-    }
+    const config = result.data;
 
-        const config = row.config as AppConfig;
-    
-        this._logger.info('[SupabaseConfigLoader] Config loaded from database', {
+    console.log('[SupabaseConfigLoader] Full result object:', result);
+    console.log('[SupabaseConfigLoader] result.data type:', typeof config);
+    console.log('[SupabaseConfigLoader] result.data is null:', config === null);
+    console.log('[SupabaseConfigLoader] result.data is undefined:', config === undefined);
+    console.log('[SupabaseConfigLoader] result.data keys:', config ? Object.keys(config) : 'N/A');
+
+
+    this._logger.info('[SupabaseConfigLoader] Active GrapeJS config loaded successfully', {
       appId,
       hasConfig: !!config,
-      configKeys: config ? Object.keys(config) : [],
-      hasModules: config && 'modules' in config ? !!config.modules : false,
-      modulesKeys: config && 'modules' in config && config.modules ? Object.keys(config.modules) : []
+      pagesCount: config?.pages?.length || 0,
+      stylesCount: config?.styles?.length || 0,
+      assetsCount: config?.assets?.length || 0,
+      symbolsCount: config?.symbols?.length || 0
     });
-    
-    return config ?? null;
+
+    return config;
   }
 
-  public async loadDraftConfig(appId: string): Promise<AppConfig | null> {
-    this._logger.info('[SupabaseConfigLoader] Loading draft config', { appId });
+  public async loadDraftConfig(appId: string): Promise<GrapeJsAppConfig | null> {
+    this._logger.info('[SupabaseConfigLoader] Loading draft config via HTTP', { appId });
 
-    const { data, error } = await this._db
-      .from('app_configs')
-      .select('*')
-      .eq('app_id', appId)
-      .eq('is_draft', true)
-      .order('created_at', { ascending: false })
-      .limit(1);
+    const result = await this._repository.loadDraftConfig(appId);
 
-    if (error) {
-      this._logger.error('[SupabaseConfigLoader] Failed to load draft config', error);
-      throw error;
+    if (isFailure(result)) {
+      this._logger.error('[SupabaseConfigLoader] Failed to load draft config', result.error);
+      throw result.error;
     }
 
-    const row = (Array.isArray(data) ? (data[0] as AppConfigRow | undefined) : undefined);
-    if (!row) {
-      this._logger.warn('[SupabaseConfigLoader] No draft config found', { appId });
-      return null;
-    }
+    const config = result.data;
 
-        const config = row.config as AppConfig;
-    
-        this._logger.info('[SupabaseConfigLoader] Draft config loaded from database', {
+    this._logger.info('[SupabaseConfigLoader] Draft GrapeJS config loaded successfully', {
       appId,
       hasConfig: !!config,
-      configKeys: config ? Object.keys(config) : [],
-      hasModules: config && 'modules' in config ? !!config.modules : false,
-      modulesKeys: config && 'modules' in config && config.modules ? Object.keys(config.modules) : []
+      pagesCount: config?.pages?.length || 0,
+      stylesCount: config?.styles?.length || 0,
+      assetsCount: config?.assets?.length || 0,
+      symbolsCount: config?.symbols?.length || 0
     });
-    
-    return config ?? null;
+
+    return config;
   }
 }
 

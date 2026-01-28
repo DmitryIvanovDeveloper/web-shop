@@ -1,0 +1,439 @@
+### New console messages
+- [LOG] [TryAuthenticateUseCase] ensureUserExists result: {isSuccess: true, isFailure: false, hasData:...
+- [LOG] [AuthPresenter] isUserAuthenticated called: {isAuthenticated: true, currentUser: Object, times...
+- [LOG] [AuthHandler] Authentication state updated in presenter {isAuthenticated: true, username: test...
+- [LOG] [AuthPresenter] isUserAuthenticated called: {isAuthenticated: true, currentUser: Object, times...
+- [LOG] [TryAuthenticateUseCase] ensureUserExists result: {isSuccess: true, isFailure: false, hasData:...
+- [LOG] [AuthPresenter] isUserAuthenticated called: {isAuthenticated: true, currentUser: Object, times...
+- [LOG] [AuthHandler] Authentication state updated in presenter {isAuthenticated: true, username: test...
+- [LOG] [AuthPresenter] isUserAuthenticated called: {isAuthenticated: true, currentUser: Object, times...
+- [LOG] [EvaluateOffersUseCase] Evaluating scenarios (sorted by priority, highest first): {totalScenar...
+- [LOG] [EvaluateOffersUseCase] Scenario reactivation-offer-inactive_30_days (inactive_30_days): {cond...
+- [LOG] [EvaluateOffersUseCase] Scenario vip-offer-high_spender (high_spender): {conditionResult: fals...
+- [LOG] [EvaluateOffersUseCase] Scenario welcome-new-user-new_user_welcome (new_user_welcome): {condit...
+- [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @...
+- [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @...
+- [LOG] [TryAuthenticateUseCase] Returning success result: {isSuccess: true, hasData: true, userId: te...
+- [LOG] [AuthPresenter] tryAuthenticate UseCase result: {isSuccess: true, hasData: true, userId: test-...
+- [LOG] [TryAuthenticateUseCase] Returning success result: {isSuccess: true, hasData: true, userId: te...
+- [LOG] [AuthPresenter] tryAuthenticate UseCase result: {isSuccess: true, hasData: true, userId: test-...
+- [LOG] [EvaluateOffersUseCase] Evaluating scenarios (sorted by priority, highest first): {totalScenar...
+- [LOG] [EvaluateOffersUseCase] Skipping scenario reactivation-offer-inactive_30_days (not in allowedS...
+- [LOG] [EvaluateOffersUseCase] Skipping scenario vip-offer-high_spender (not in allowedScenarios) @ w...
+- [LOG] [EvaluateOffersUseCase] Skipping scenario cart-recovery-offer (not in allowedScenarios) @ webp...
+- [LOG] [EvaluateOffersUseCase] Skipping scenario subscription-retention (not in allowedScenarios) @ w...
+- [LOG] [EvaluateOffersUseCase] Scenario welcome-new-user-new_user_welcome (new_user_welcome): {condit...
+- [LOG] [EvaluateOffersUseCase] First matching scenario found: welcome-new-user-new_user_welcome (prio...
+- [LOG] [EvaluateOffersUseCase] Evaluating scenarios (sorted by priority, highest first): {totalScenar...
+- [LOG] [EvaluateOffersUseCase] Scenario reactivation-offer-inactive_30_days (inactive_30_days): {cond...
+- [LOG] [EvaluateOffersUseCase] Scenario vip-offer-high_spender (high_spender): {conditionResult: fals...
+- [LOG] [EvaluateOffersUseCase] Scenario welcome-new-user-new_user_welcome (new_user_welcome): {condit...
+- [LOG] [EvaluateOffersUseCase] Scenario category-follow-up-repeat_purchaser (repeat_purchaser): {cond...
+- [LOG] [EvaluateOffersUseCase] First matching scenario found: category-follow-up-repeat_purchaser (pr...
+- [LOG] [AppConfigHttpRepository] HTTP response received {status: 200, hasData: true, dataKeys: Array(...
+- [LOG] [AppConfigHttpRepository] Extracted config from response {hasConfig: true, configType: object,...
+- [LOG] [AppConfigHttpRepository] Active config loaded successfully {appId: APP123} @ webpack-internal...
+- [ERROR] [LoadAppConfigUseCase] Error during config load TypeError: result.isFailure is not a functio...
+- [LOG] [SidebarRendererPresenter] getSidebar called, currentPathname: /store _configs exists: false _...
+- [LOG] [SidebarRendererPresenter] Button texts in default config: {home: Home, store: Store, patchNot...
+- [LOG] [SidebarRendererPresenter] _convertToPageConfig called for sidebar with config: {hasConfig: tr...
+- [LOG] [SidebarRendererPresenter] _isButtonActive(home): currentPath=/store, isActive=false @ webpack...
+- [LOG] [SidebarRendererPresenter] _isButtonActive(patch-notes): currentPath=/store, isActive=false @ ...
+- [LOG] [SidebarRendererPresenter] _isButtonActive(daily-rewards): currentPath=/store, isActive=false ...
+- [LOG] [SidebarRendererPresenter] _isButtonActive(loyalty-program): currentPath=/store, isActive=fals...
+- [LOG] [SidebarRendererPresenter] _isButtonActive(news): currentPath=/store, isActive=false @ webpack...
+- [LOG] [SidebarRendererPresenter] _isButtonActive(updates): currentPath=/store, isActive=false @ webp...
+- [LOG] [SidebarRendererPresenter] _isButtonActive(events): currentPath=/store, isActive=false @ webpa...
+- [LOG] [SidebarRendererPresenter] getSidebar called, currentPathname: /store _configs exists: false _...
+- [LOG] [SidebarRendererPresenter] Button texts in default config: {home: Home, store: Store, patchNot...
+- [LOG] [SidebarRendererPresenter] _convertToPageConfig called for sidebar with config: {hasConfig: tr...
+- [LOG] [SidebarRendererPresenter] _isButtonActive(home): currentPath=/store, isActive=false @ webpack...
+- [LOG] [SidebarRendererPresenter] _isButtonActive(patch-notes): currentPath=/store, isActive=false @ ...
+- [LOG] [SidebarRendererPresenter] _isButtonActive(daily-rewards): currentPath=/store, isActive=false ...
+- [LOG] [SidebarRendererPresenter] _isButtonActive(loyalty-program): currentPath=/store, isActive=fals...
+- [LOG] [SidebarRendererPresenter] _isButtonActive(news): currentPath=/store, isActive=false @ webpack...
+- [LOG] [SidebarRendererPresenter] _isButtonActive(updates): currentPath=/store, isActive=false @ webp...
+- [LOG] [SidebarRendererPresenter] _isButtonActive(events): currentPath=/store, isActive=false @ webpa...
+- [LOG] [DynamicRenderer] Rendering node {nodeId: sidebar-container, nodeType: Container, props: Objec...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(8), backgroundColo...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(7), backgroundColor: #161B22, ba...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Container, nodeId: sidebar-container...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(14), backgroundCol...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(12), backgroundColor: undefined,...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Button, nodeId: home-button, hasStyl...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(16), backgroundCol...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(13), backgroundColor: #5C6BC0, b...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Button, nodeId: store-button, hasSty...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(14), backgroundCol...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(12), backgroundColor: undefined,...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Button, nodeId: patch-notes-button, ...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(14), backgroundCol...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(12), backgroundColor: undefined,...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Button, nodeId: daily-rewards-button...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(14), backgroundCol...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(12), backgroundColor: undefined,...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Button, nodeId: loyalty-program-butt...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(14), backgroundCol...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(12), backgroundColor: undefined,...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Button, nodeId: news-button, hasStyl...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(14), backgroundCol...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(12), backgroundColor: undefined,...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Button, nodeId: updates-button, hasS...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(14), backgroundCol...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(12), backgroundColor: undefined,...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Button, nodeId: events-button, hasSt...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(10), backgroundCol...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(7), backgroundColor: #161B22, ba...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Select, nodeId: language-selector, h...
+- [LOG] [DynamicRenderer] Rendering node {nodeId: sidebar-container, nodeType: Container, props: Objec...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(8), backgroundColo...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(7), backgroundColor: #161B22, ba...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Container, nodeId: sidebar-container...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(14), backgroundCol...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(12), backgroundColor: undefined,...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Button, nodeId: home-button, hasStyl...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(16), backgroundCol...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(13), backgroundColor: #5C6BC0, b...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Button, nodeId: store-button, hasSty...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(14), backgroundCol...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(12), backgroundColor: undefined,...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Button, nodeId: patch-notes-button, ...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(14), backgroundCol...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(12), backgroundColor: undefined,...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Button, nodeId: daily-rewards-button...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(14), backgroundCol...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(12), backgroundColor: undefined,...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Button, nodeId: loyalty-program-butt...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(14), backgroundCol...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(12), backgroundColor: undefined,...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Button, nodeId: news-button, hasStyl...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(14), backgroundCol...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(12), backgroundColor: undefined,...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Button, nodeId: updates-button, hasS...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(14), backgroundCol...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(12), backgroundColor: undefined,...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Button, nodeId: events-button, hasSt...
+- [LOG] [UIStyleBuilder] Building inline styles {hasStyles: true, stylesKeys: Array(10), backgroundCol...
+- [LOG] [UIStyleBuilder] Built inline styles {inlineStylesKeys: Array(7), backgroundColor: #161B22, ba...
+- [LOG] [UIRendererService] Rendering node with styles {nodeType: Select, nodeId: language-selector, h...
+- [LOG] [EvaluateOffersUseCase] Evaluating scenarios (sorted by priority, highest first): {totalScenar...
+- [LOG] [EvaluateOffersUseCase] Skipping scenario reactivation-offer-inactive_30_days (not in allowedS...
+- [LOG] [EvaluateOffersUseCase] Skipping scenario vip-offer-high_spender (not in allowedScenarios) @ w...
+- [LOG] [EvaluateOffersUseCase] Skipping scenario cart-recovery-offer (not in allowedScenarios) @ webp...
+- [LOG] [EvaluateOffersUseCase] Skipping scenario subscription-retention (not in allowedScenarios) @ w...
+- [LOG] [EvaluateOffersUseCase] Scenario welcome-new-user-new_user_welcome (new_user_welcome): {condit...
+- [LOG] [EvaluateOffersUseCase] First matching scenario found: welcome-new-user-new_user_welcome (prio...
+- [LOG] [EvaluateOffersUseCase] Scenario category-follow-up-repeat_purchaser (repeat_purchaser): {cond...
+- [LOG] [EvaluateOffersUseCase] First matching scenario found: category-follow-up-repeat_purchaser (pr...
+
+### Page state
+- Page URL: http://localhost:3001/store?appId=APP123&userId=test-user-123
+- Page Title: Web Shop
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e5]:
+    - complementary [ref=e6]:
+      - complementary [ref=e7]:
+        - button "🏠 Home" [ref=e8] [cursor=pointer]:
+          - generic [ref=e9]: 🏠
+          - text: Home
+        - button "🛒 Store" [ref=e10] [cursor=pointer]:
+          - generic [ref=e11]: 🛒
+          - text: Store
+        - button "📋 Patch Notes" [ref=e12] [cursor=pointer]:
+          - generic [ref=e13]: 📋
+          - text: Patch Notes
+        - button "🎁 Daily Rewards" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: 🎁
+          - text: Daily Rewards
+        - button "⭐ Loyalty Program" [ref=e16] [cursor=pointer]:
+          - generic [ref=e17]: ⭐
+          - text: Loyalty Program
+        - button "📰 News" [ref=e18] [cursor=pointer]:
+          - generic [ref=e19]: 📰
+          - text: News
+        - button "🔄 Updates" [ref=e20] [cursor=pointer]:
+          - generic [ref=e21]: 🔄
+          - text: Updates
+        - button "🎉 Events" [ref=e22] [cursor=pointer]:
+          - generic [ref=e23]: 🎉
+          - text: Events
+        - combobox [ref=e24]:
+          - option "🌐 Language" [disabled]
+          - option "Arabic (العربية)"
+          - option "English (English)" [selected]
+    - main [ref=e25]:
+      - main [ref=e26]:
+        - generic [ref=e28]:
+          - heading "Products" [level=2] [ref=e188]
+          - generic [ref=e30]:
+            - generic [ref=e190]:
+              - generic [ref=e191]: BUY 2 GET 1
+              - generic [ref=e192]: 1 per player
+              - img "Product" [ref=e194]
+              - generic [ref=e195]:
+                - heading "Wisdom Scroll 12" [level=3] [ref=e197]
+                - button "$749.38" [ref=e200] [cursor=pointer]
+            - generic [ref=e202]:
+              - img "Product" [ref=e204]
+              - generic [ref=e205]:
+                - heading "1 Month" [level=3] [ref=e207]
+                - generic [ref=e210]: PURCHASED
+            - generic [ref=e212]:
+              - img "Product" [ref=e214]
+              - generic [ref=e215]:
+                - heading "3 Month" [level=3] [ref=e217]
+                - generic [ref=e220]: PURCHASED
+            - generic [ref=e222]:
+              - generic [ref=e223]: 25.10.2025, 19:02:56
+              - img "Product" [ref=e225]
+              - generic [ref=e226]:
+                - heading "1 Month" [level=3] [ref=e228]
+                - button "$43.01" [ref=e231] [cursor=pointer]
+            - generic [ref=e233]:
+              - generic [ref=e234]: 11.02.2026, 14:38:47
+              - img "Product" [ref=e236]
+              - generic [ref=e237]:
+                - heading "Ancient Scroll 1" [level=3] [ref=e239]
+                - button "$407.59" [ref=e242] [cursor=pointer]
+            - generic [ref=e244]:
+              - generic [ref=e245]: 20% OFF
+              - generic [ref=e246]: 5 per player
+              - img "Product" [ref=e248]
+              - generic [ref=e249]:
+                - heading "Lucky Charm 15" [level=3] [ref=e251]
+                - button "$636.22" [ref=e254] [cursor=pointer]
+            - generic [ref=e256]:
+              - generic [ref=e257]: FLASH SALE
+              - generic [ref=e258]: 2 per player
+              - img "Product" [ref=e260]
+              - generic [ref=e261]:
+                - heading "Ancient Scroll 23" [level=3] [ref=e263]
+                - button "$949.18" [ref=e266] [cursor=pointer]
+            - generic [ref=e268]:
+              - generic [ref=e269]: 50% OFF
+              - generic [ref=e270]: 5 per player
+              - img "Product" [ref=e272]
+              - generic [ref=e273]:
+                - heading "Assassin's Cloak 25" [level=3] [ref=e275]
+                - button "$42.59" [ref=e278] [cursor=pointer]
+            - generic [ref=e280]:
+              - generic [ref=e281]: FLASH SALE
+              - generic [ref=e282]: 10 per player
+              - img "Product" [ref=e284]
+              - generic [ref=e285]:
+                - heading "Berserker's Gauntlets 19" [level=3] [ref=e287]
+                - button "$618.19" [ref=e290] [cursor=pointer]
+            - generic [ref=e292]:
+              - generic [ref=e293]: 50% OFF
+              - generic [ref=e294]: 10 per player
+              - img "Product" [ref=e296]
+              - generic [ref=e297]:
+                - heading "Crystal Ring 17" [level=3] [ref=e299]
+                - button "$801.18" [ref=e302] [cursor=pointer]
+            - generic [ref=e304]:
+              - generic [ref=e305]: 20% OFF
+              - generic [ref=e306]: 1 per player
+              - img "Product" [ref=e308]
+              - generic [ref=e309]:
+                - heading "Health Elixir 2" [level=3] [ref=e311]
+                - button "$598.15" [ref=e314] [cursor=pointer]
+            - generic [ref=e316]:
+              - generic [ref=e317]: BUY 2 GET 1
+              - generic [ref=e318]: 10 per player
+              - img "Product" [ref=e320]
+              - generic [ref=e321]:
+                - heading "Health Elixir 6" [level=3] [ref=e323]
+                - button "$849.20" [ref=e326] [cursor=pointer]
+            - generic [ref=e328]:
+              - generic [ref=e329]: FLASH SALE
+              - img "Product" [ref=e331]
+              - generic [ref=e332]:
+                - heading "Legendary Bow 26" [level=3] [ref=e334]
+                - button "$747.41" [ref=e337] [cursor=pointer]
+            - generic [ref=e339]:
+              - img "Product" [ref=e341]
+              - generic [ref=e342]:
+                - heading "Limited Offer Test Product - Updated" [level=3] [ref=e344]
+                - button "$39.99" [ref=e347] [cursor=pointer]
+            - generic [ref=e349]:
+              - generic [ref=e350]: 2 per player
+              - img "Product" [ref=e352]
+              - generic [ref=e353]:
+                - heading "Paladin's Plate 21" [level=3] [ref=e355]
+                - button "$452.42" [ref=e358] [cursor=pointer]
+            - generic [ref=e360]:
+              - generic [ref=e361]: 10% OFF
+              - generic [ref=e362]: 5 per player
+              - img "Product" [ref=e364]
+              - generic [ref=e365]:
+                - heading "Premium Sword 20" [level=3] [ref=e367]
+                - button "$37.61" [ref=e370] [cursor=pointer]
+            - generic [ref=e372]:
+              - generic [ref=e373]: 20% OFF
+              - generic [ref=e374]: 10 per player
+              - img "Product" [ref=e376]
+              - generic [ref=e377]:
+                - heading "Priest's Cross 16" [level=3] [ref=e379]
+                - button "$154.14" [ref=e382] [cursor=pointer]
+            - generic [ref=e384]:
+              - generic [ref=e385]: 30% OFF
+              - generic [ref=e386]: Unlimited
+              - img "Product" [ref=e388]
+              - generic [ref=e389]:
+                - heading "Rogue's Dagger 28" [level=3] [ref=e391]
+                - button "$803.52" [ref=e394] [cursor=pointer]
+            - generic [ref=e396]:
+              - generic [ref=e397]: 30% OFF
+              - generic [ref=e398]: Unlimited
+              - img "Product" [ref=e400]
+              - generic [ref=e401]:
+                - heading "Speed Boost 24" [level=3] [ref=e403]
+                - button "$590.74" [ref=e406] [cursor=pointer]
+            - generic [ref=e408]:
+              - generic [ref=e409]: 20% OFF
+              - generic [ref=e410]: 2 per player
+              - img "Product" [ref=e412]
+              - generic [ref=e413]:
+                - heading "Speed Boost 5" [level=3] [ref=e415]
+                - button "$164.90" [ref=e418] [cursor=pointer]
+            - generic [ref=e420]:
+              - generic [ref=e421]: 20% OFF
+              - generic [ref=e422]: 2 per player
+              - generic [ref=e423]: 20.01.2026, 14:38:50
+              - img "Product" [ref=e425]
+              - generic [ref=e426]:
+                - heading "Strength Tonic 8" [level=3] [ref=e428]
+                - button "$113.03" [ref=e431] [cursor=pointer]
+            - generic [ref=e433]:
+              - img "Product" [ref=e435]
+              - generic [ref=e436]:
+                - heading "Test Product After Migration" [level=3] [ref=e438]
+                - button "$29.99" [ref=e441] [cursor=pointer]
+            - generic [ref=e443]:
+              - generic [ref=e444]: 50% OFF
+              - generic [ref=e445]: 10 per player
+              - img "Product" [ref=e447]
+              - generic [ref=e448]:
+                - heading "Berserker's Gauntlets 22" [level=3] [ref=e450]
+                - button "$912.29" [ref=e453] [cursor=pointer]
+            - generic [ref=e455]:
+              - generic [ref=e456]: FLASH SALE
+              - generic [ref=e457]: 10 per player
+              - img "Product" [ref=e459]
+              - generic [ref=e460]:
+                - heading "Health Elixir 3" [level=3] [ref=e462]
+                - button "$458.04" [ref=e465] [cursor=pointer]
+            - generic [ref=e467]:
+              - generic [ref=e468]: BUY 2 GET 1
+              - generic [ref=e469]: 5 per player
+              - img "Product" [ref=e471]
+              - generic [ref=e472]:
+                - heading "Hero's Blade 27" [level=3] [ref=e474]
+                - button "$309.56" [ref=e477] [cursor=pointer]
+            - generic [ref=e479]:
+              - generic [ref=e480]: BUY 2 GET 1
+              - generic [ref=e481]: 2 per player
+              - img "Product" [ref=e483]
+              - generic [ref=e484]:
+                - heading "Legendary Bow 9" [level=3] [ref=e486]
+                - button "$272.88" [ref=e489] [cursor=pointer]
+            - generic [ref=e491]:
+              - generic [ref=e492]: 30% OFF
+              - generic [ref=e493]: Unlimited
+              - generic [ref=e494]: 02.02.2026, 14:38:53
+              - img "Product" [ref=e496]
+              - generic [ref=e497]:
+                - heading "Necromancer's Skull 14" [level=3] [ref=e499]
+                - button "$546.44" [ref=e502] [cursor=pointer]
+            - generic [ref=e504]:
+              - generic [ref=e505]: FLASH SALE
+              - generic [ref=e506]: 2 per player
+              - img "Product" [ref=e508]
+              - generic [ref=e509]:
+                - heading "Power Amulet 13" [level=3] [ref=e511]
+                - button "$572.02" [ref=e514] [cursor=pointer]
+            - generic [ref=e516]:
+              - generic [ref=e517]: 30% OFF
+              - generic [ref=e518]: Unlimited
+              - img "Product" [ref=e520]
+              - generic [ref=e521]:
+                - heading "Power Amulet 29" [level=3] [ref=e523]
+                - button "$600.48" [ref=e526] [cursor=pointer]
+            - generic [ref=e528]:
+              - generic [ref=e529]: 20% OFF
+              - generic [ref=e530]: 2 per player
+              - img "Product" [ref=e532]
+              - generic [ref=e533]:
+                - heading "Priest's Cross 18" [level=3] [ref=e535]
+                - button "$309.11" [ref=e538] [cursor=pointer]
+            - generic [ref=e540]:
+              - generic [ref=e541]: FLASH SALE
+              - generic [ref=e542]: 10 per player
+              - img "Product" [ref=e544]
+              - generic [ref=e545]:
+                - heading "Speed Boost 10" [level=3] [ref=e547]
+                - button "$186.10" [ref=e550] [cursor=pointer]
+            - generic [ref=e552]:
+              - generic [ref=e553]: 30% OFF
+              - generic [ref=e554]: 2 per player
+              - generic [ref=e555]: 05.02.2026, 14:38:49
+              - img "Product" [ref=e557]
+              - generic [ref=e558]:
+                - heading "Speed Boost 4" [level=3] [ref=e560]
+                - button "$296.97" [ref=e563] [cursor=pointer]
+            - generic [ref=e565]:
+              - generic [ref=e566]: 5 per player
+              - img "Product" [ref=e568]
+              - generic [ref=e569]:
+                - heading "Treasure Chest 7" [level=3] [ref=e571]
+                - button "$849.14" [ref=e574] [cursor=pointer]
+            - generic [ref=e576]:
+              - generic [ref=e577]: 50% OFF
+              - img "Product" [ref=e579]
+              - generic [ref=e580]:
+                - heading "Warrior's Axe 11" [level=3] [ref=e582]
+                - button "$577.85" [ref=e585] [cursor=pointer]
+            - generic [ref=e587]:
+              - generic [ref=e588]: FLASH SALE
+              - generic [ref=e589]: 1 per player
+              - generic [ref=e590]: 31.01.2026, 14:39:01
+              - img "Product" [ref=e592]
+              - generic [ref=e593]:
+                - heading "Wisdom Scroll 30" [level=3] [ref=e595]
+                - button "$227.14" [ref=e598] [cursor=pointer]
+    - complementary [ref=e169]:
+      - generic [ref=e170]:
+        - generic [ref=e600]:
+          - generic [ref=e601]:
+            - generic "test-user-123" [ref=e603]:
+              - generic [ref=e605]: T
+            - button "Menu"
+          - generic [ref=e606]: test-user-123
+        - generic [ref=e175]: Configuration not loaded yet
+  - generic:
+    - generic [ref=e609] [cursor=pointer]:
+      - img [ref=e610]
+      - generic [ref=e612]: 3 errors
+      - button "Hide Errors" [ref=e613]:
+        - img [ref=e614]
+    - status [ref=e176]:
+      - generic [ref=e177]:
+        - img [ref=e179]
+        - generic [ref=e181]:
+          - text: Static route
+          - button "Hide static indicator" [ref=e182] [cursor=pointer]:
+            - img [ref=e183]
+  - alert [ref=e186]
+  - generic [ref=e618]:
+    - button "×" [ref=e619] [cursor=pointer]
+    - generic [ref=e620]:
+      - heading "🎁 Special Offers" [level=2] [ref=e622]
+      - generic [ref=e626]:
+        - generic [ref=e627]: Sat Oct 25 2025 19:02:56 GMT+0300 (Москва, стандартное время)
+        - img "Product" [ref=e629]
+        - generic [ref=e630]:
+          - heading "3 Month" [level=3] [ref=e632]
+          - button "59.00 $" [ref=e635] [cursor=pointer]
+```

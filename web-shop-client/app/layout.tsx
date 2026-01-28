@@ -147,6 +147,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [isMobile, setIsMobile] = useState(false);
   const [isConfigLoading, setIsConfigLoading] = useState(true);
   const [isUIBuilderMode, setIsUIBuilderMode] = useState(false);
+  const [isSiteBuilderPage, setIsSiteBuilderPage] = useState(false);
 
   const [viewportMode, setViewportMode] = useState<'mobile' | 'tablet' | 'desktop' | null>(null);
 
@@ -191,7 +192,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       try {
         const url = new URL(window.location.href);
         const isUIBuilder = url.searchParams.get('uibuilder') === 'true';
+        const isSiteBuilder = window.location.pathname === '/site-builder';
         setIsUIBuilderMode(isUIBuilder);
+        setIsSiteBuilderPage(isSiteBuilder);
       } catch (err) {
       }
     }
@@ -350,7 +353,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         const localizationPresenter = container.get(LOCALIZATION_TYPES.LocalizationPresenter) as any;
         await localizationPresenter.loadLocalization();
         const isUIBuilderPreview = getIsUIBuilderFromQuery();
-        if (!isUIBuilderPreview) {
+        const isSiteBuilderPage = typeof window !== 'undefined' && window.location.pathname === '/site-builder';
+
+        if (!isUIBuilderPreview && !isSiteBuilderPage) {
           const appId = getAppIdFromEnvironment();
           if (appId) {
             const subscribeToUpdatesUseCase = container.get<SubscribeToConfigUpdatesUseCase>(TYPES.SubscribeToConfigUpdates);
@@ -601,7 +606,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <PersonalOffersWidget />
 
           { }
-          {isMobile && (
+          {isMobile && !isSiteBuilderPage && (
             <header
               className="px-4 flex items-center justify-between relative"
               style={(() => {
@@ -677,8 +682,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           )}
 
           <div
-            className="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex relative h-screen md:h-screen"
-            style={{
+            className={isSiteBuilderPage ? "flex relative h-screen w-full" : "bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex relative h-screen md:h-screen"}
+            style={isSiteBuilderPage ? {
+              height: '100vh',
+              width: '100%',
+            } : {
               height: isMobile ? 'calc(100vh - 56px)' : '100vh',
               maxWidth: '1900px',
               margin: '0 auto',
@@ -686,7 +694,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             }}
           >
             { }
-            {!isMobile && (
+            {!isMobile && !isSiteBuilderPage && (
               <aside
                 data-element-id="left-sidebar"
                 className={(() => {
@@ -722,12 +730,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             )}
 
             { }
-            <main className="flex-1 overflow-y-auto w-full px-4 md:px-8" style={{ maxWidth: '1900px', margin: '0 auto' }}>
+            <main className={isSiteBuilderPage ? "w-full h-full" : "flex-1 overflow-y-auto w-full px-4 md:px-8"} style={isSiteBuilderPage ? {} : { maxWidth: '1900px', margin: '0 auto' }}>
               {children}
             </main>
 
             { }
-            {!isMobile && (
+            {!isMobile && !isSiteBuilderPage && (
               <aside
                 data-element-id="right-sidebar"
                 className={isUIBuilderMode ? "block w-64 border-l border-yellow-400/30 flex-shrink-0" : "hidden xl:block w-64 border-l border-yellow-400/30 flex-shrink-0"}

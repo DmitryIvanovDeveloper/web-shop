@@ -123,20 +123,29 @@ export default function StorePage(): JSX.Element {
   useEffect(() => {
     const loadAppConfig = async () => {
       try {
+        console.log('[StorePage] Starting config load', { appId, previewMode });
         setCurrentAppId(appId);
 
         const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
+        console.log('[StorePage] Environment check', { isInIframe, previewMode });
 
         if (appId) {
+          console.log('[StorePage] Getting LoadAppConfigUseCase from container');
           const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
 
+          console.log('[StorePage] Executing use case', { isDraft: previewMode || isInIframe, appId });
+
           if (previewMode || isInIframe) {
-            await loadAppConfigUseCase.execute(true);
+            await loadAppConfigUseCase.execute(true, appId);
           } else {
-            await loadAppConfigUseCase.execute(false);
+            await loadAppConfigUseCase.execute(false, appId);
           }
+          console.log('[StorePage] Config load completed successfully');
+        } else {
+          console.warn('[StorePage] No appId provided, skipping config load');
         }
       } catch (error) {
+        console.error('[StorePage] Failed to load app config', error);
       }
     };
 

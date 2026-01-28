@@ -42,15 +42,15 @@ export class SupabaseConfigSubscriptionAdapter implements ConfigSubscriptionPort
 				return () => {};
 			}
 			
-						const channelName = `app_configs:${appId}`;
-			
+						const channelName = `app_configs_grape:${appId}`;
+
 						const channel = supabaseClient
 			.channel(channelName)
 			.on(
 				'postgres_changes',
 				{
 					event: '*', 					schema: 'public',
-					table: 'app_configs',
+					table: 'app_configs_grape',
 					filter: `app_id=eq.${appId}`,
 				},
 				async (payload: any) => {
@@ -127,11 +127,12 @@ export class SupabaseConfigSubscriptionAdapter implements ConfigSubscriptionPort
 
 	private async _loadActiveConfig(appId: string): Promise<AppConfig | null> {
 		const { data, error } = await this._db
-			.from('app_configs')
+			.from('app_configs_grape')
 			.select('*')
 			.eq('app_id', appId)
 			.eq('is_active', true)
-			.order('created_at', { ascending: false })
+			.eq('is_draft', false)
+			.order('version', { ascending: false })
 			.limit(1);
 
 		if (error) {
@@ -150,11 +151,11 @@ export class SupabaseConfigSubscriptionAdapter implements ConfigSubscriptionPort
 
 	private async _loadDraftConfig(appId: string): Promise<AppConfig | null> {
 		const { data, error } = await this._db
-			.from('app_configs')
+			.from('app_configs_grape')
 			.select('*')
 			.eq('app_id', appId)
 			.eq('is_draft', true)
-			.order('created_at', { ascending: false })
+			.order('version', { ascending: false })
 			.limit(1);
 
 		if (error) {

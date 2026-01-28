@@ -28,12 +28,24 @@ export class ProductsAppConfigLoadedHandler implements IAsyncEventHandler<AppCon
 	}
 
 	public async handleAsync(event: AppConfigLoadedEvent): Promise<void> {
+		console.log('[ProductsAppConfigLoadedHandler] Handler called!', {
+			eventType: event.type,
+			hasConfig: !!event.config,
+			configKeys: event.config ? Object.keys(event.config) : [],
+			hasOfferCards: !!(event.config as any)?.offerCards
+		});
 		this._logger.info('[ProductsAppConfigLoadedHandler] Processing AppConfigLoadedEvent');
 
 		try {
 			const offerCards = Array.isArray((event.config as { offerCards?: OfferCardTemplate[] })?.offerCards)
 				? ((event.config as { offerCards?: OfferCardTemplate[] }).offerCards as OfferCardTemplate[])
 				: [];
+
+			console.log('[ProductsAppConfigLoadedHandler] Extracted offerCards', {
+				offerCardsCount: offerCards.length,
+				offerCardIds: offerCards.map(card => card.id),
+				lookingFor: PRIMARY_OFFER_CARD_ID
+			});
 
 			const matchingCard =
 				offerCards.find(card => card.id === PRIMARY_OFFER_CARD_ID) ??
@@ -56,11 +68,16 @@ export class ProductsAppConfigLoadedHandler implements IAsyncEventHandler<AppCon
 
 			this._productStyleService.applyAppConfigStyles(matchingCard);
 			await this._productsListPresenter.refreshStyles();
+			console.log('[ProductsAppConfigLoadedHandler] Styles applied successfully', {
+				matchingCardId: matchingCard.id,
+				matchingCardName: matchingCard.name
+			});
 			this._logger.info('[ProductsAppConfigLoadedHandler] App-config styles applied from offerCards array', {
 				cardId: matchingCard.id,
 				cardName: matchingCard.name
 			});
 		} catch (error) {
+			console.error('[ProductsAppConfigLoadedHandler] Exception during handling', error);
 			this._logger.error('[ProductsAppConfigLoadedHandler] Error handling event', error);
 		}
 	}

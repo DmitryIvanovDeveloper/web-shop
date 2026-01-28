@@ -20,12 +20,12 @@ export async function GET(request: Request) {
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
         const { data: configs, error: configError } = await supabase
-      .from('app_configs')
+      .from('app_configs_grape')
       .select('*')
       .eq('app_id', appId);
 
     if (configError) {
-      return NextResponse.json({ error: 'Failed to query app_configs', details: configError }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to query app_configs_grape', details: configError }, { status: 500 });
     }
 
         const { data: patchNotes, error: patchNotesError } = await supabase

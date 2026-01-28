@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrapeJS Basic Test</title>
+    <script src="https://unpkg.com/grapesjs@0.22.14/dist/grapes.min.js"></script>
+    <style>
+        body { margin: 20px; font-family: Arial, sans-serif; }
+        #editor { height: 200px; border: 1px solid #ddd; margin: 10px 0; }
+        button { margin: 5px; padding: 10px 15px; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Basic GrapeJS Test</h1>
+
+    <div id="status"></div>
+
+    <button onclick="testGrapeJS()">Test GrapeJS Loading</button>
+    <button onclick="testBasicRender()">Test Basic Render</button>
+
+    <div id="editor"></div>
+
+    <div id="output"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const status = document.getElementById('status');
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            status.appendChild(div);
+            console.log(message);
+        }
+
+        function testGrapeJS() {
+            log('Testing GrapeJS availability...');
+
+            if (typeof grapesjs === 'undefined') {
+                log('❌ GrapeJS is not loaded!', 'error');
+                return;
+            }
+
+            log('✅ GrapeJS is loaded: ' + grapesjs.version, 'success');
+
+            try {
+                const editor = grapesjs.init({
+                    container: '#editor',
+                    headless: true,
+                    components: '',
+                    style: '',
+                    storageManager: false,
+                    assetManager: { assets: [] },
+                    blockManager: false,
+                    layerManager: false,
+                    traitManager: false,
+                    selectorManager: false,
+                    styleManager: false,
+                    deviceManager: false,
+                    panels: false,
+                    modal: false,
+                    commands: false,
+                    keymaps: false,
+                });
+
+                log('✅ GrapeJS editor initialized successfully', 'success');
+
+                // Test basic operations
+                const html = editor.getHtml();
+                const css = editor.getCss();
+
+                log('✅ getHtml() works: ' + (html !== undefined), 'success');
+                log('✅ getCss() works: ' + (css !== undefined), 'success');
+
+                editor.destroy();
+                log('✅ Editor destroyed successfully', 'success');
+
+            } catch (error) {
+                log('❌ Error initializing GrapeJS: ' + error.message, 'error');
+            }
+        }
+
+        function testBasicRender() {
+            log('Testing basic rendering...');
+
+            try {
+                const editor = grapesjs.init({
+                    container: '#editor',
+                    headless: true,
+                    components: '',
+                    style: '',
+                    storageManager: false,
+                    assetManager: { assets: [] },
+                    blockManager: false,
+                    layerManager: false,
+                    traitManager: false,
+                    selectorManager: false,
+                    styleManager: false,
+                    deviceManager: false,
+                    panels: false,
+                    modal: false,
+                    commands: false,
+                    keymaps: false,
+                });
+
+                // Test with sample data
+                const sampleData = {
+                    pages: [{
+                        frames: [{
+                            component: {
+                                type: "text",
+                                content: "Hello from GrapeJS!"
+                            }
+                        }]
+                    }],
+                    styles: [{
+                        selectors: ["body"],
+                        style: { color: "blue" }
+                    }]
+                };
+
+                editor.loadProjectData(sampleData);
+                log('✅ Sample data loaded', 'success');
+
+                const html = editor.getHtml();
+                const css = editor.getCss();
+
+                log('Generated HTML: ' + html.substring(0, 100) + '...', 'success');
+                log('Generated CSS: ' + css.substring(0, 50) + '...', 'success');
+
+                // Show in output
+                document.getElementById('output').innerHTML = `
+                    <h3>Rendered HTML:</h3>
+                    <pre>${html}</pre>
+                    <h3>Rendered CSS:</h3>
+                    <pre>${css}</pre>
+                `;
+
+                editor.destroy();
+                log('✅ Basic rendering test completed successfully', 'success');
+
+            } catch (error) {
+                log('❌ Basic rendering error: ' + error.message, 'error');
+            }
+        }
+
+        // Auto-test on load
+        window.addEventListener('load', function() {
+            log('Page loaded, testing GrapeJS...');
+            setTimeout(testGrapeJS, 1000);
+        });
+    </script>
+</body>
+</html>

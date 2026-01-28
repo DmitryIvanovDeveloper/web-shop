@@ -1,0 +1,81 @@
+### Page state
+- Page URL: http://localhost:3001/site-builder?appId=app123
+- Page Title: Web Shop
+- Page Snapshot:
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e5]:
+    - complementary [ref=e6]:
+      - complementary [ref=e7]:
+        - button "🏠 Home" [ref=e8] [cursor=pointer]:
+          - generic [ref=e9]: 🏠
+          - text: Home
+        - button "🛒 Store" [active] [ref=e10] [cursor=pointer]:
+          - generic [ref=e11]: 🛒
+          - text: Store
+        - button "📋 Patch Notes" [ref=e12] [cursor=pointer]:
+          - generic [ref=e13]: 📋
+          - text: Patch Notes
+        - button "🎁 Daily Rewards" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: 🎁
+          - text: Daily Rewards
+        - button "⭐ Loyalty Program" [ref=e16] [cursor=pointer]:
+          - generic [ref=e17]: ⭐
+          - text: Loyalty Program
+        - button "📰 News" [ref=e18] [cursor=pointer]:
+          - generic [ref=e19]: 📰
+          - text: News
+        - button "🔄 Updates" [ref=e20] [cursor=pointer]:
+          - generic [ref=e21]: 🔄
+          - text: Updates
+        - button "🎉 Events" [ref=e22] [cursor=pointer]:
+          - generic [ref=e23]: 🎉
+          - text: Events
+        - combobox [ref=e24]:
+          - option "🌐 Language" [disabled]
+          - option "Arabic (العربية)"
+          - option "English (English)" [selected]
+    - main [ref=e25]:
+      - generic [ref=e78]:
+        - generic [ref=e79]:
+          - heading "Site Builder" [level=1] [ref=e80]
+          - paragraph [ref=e81]: Рендеринг сайтов из GrapeJS конфигураций из таблицы app_configs_grape
+        - generic [ref=e82]:
+          - heading "Настройки рендеринга" [level=2] [ref=e83]
+          - generic [ref=e84]:
+            - generic [ref=e85]: App ID
+            - textbox "Введите App ID" [ref=e86]: app123
+          - paragraph [ref=e88]:
+            - text: Рендерер ищет активную конфигурацию в таблице
+            - code [ref=e89]: app_configs_grape
+        - generic [ref=e91]:
+          - generic [ref=e92]:
+            - generic [ref=e93]:
+              - generic [ref=e94]: "Site: app123"
+              - generic [ref=e95]: "Rendered: 23.01.2026, 13:20:23"
+            - generic [ref=e96]: "Version: 1769163623855-291"
+          - iframe [ref=e98]:
+            - generic [active] [ref=f16e1]: Welcome to App123 Store!
+          - generic [ref=e100]:
+            - generic [ref=e101]: "HTML: 37 chars"
+            - generic [ref=e102]: "CSS: 47 chars"
+            - generic [ref=e103]: "Assets: 0"
+        - generic [ref=e104]:
+          - heading "Сайт успешно отрендерен" [level=3] [ref=e105]
+          - generic [ref=e106]:
+            - generic [ref=e107]: "App ID: app123"
+            - generic [ref=e108]: "HTML: 37 символов"
+            - generic [ref=e109]: "CSS: 47 символов"
+            - generic [ref=e110]: "Assets: 0"
+          - generic [ref=e111]: "Версия рендеринга: 1769163623855-291"
+    - complementary [ref=e43]:
+      - generic [ref=e45]: Configuration not loaded yet
+  - status [ref=e66]:
+    - generic [ref=e67]:
+      - img [ref=e69]
+      - generic [ref=e71]:
+        - text: Static route
+        - button "Hide static indicator" [ref=e72] [cursor=pointer]:
+          - img [ref=e73]
+  - alert [ref=e46]
+```

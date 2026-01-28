@@ -1,0 +1,311 @@
+### Page state
+- Page URL: http://localhost:3001/?userId=test-user-123&appId=APP123
+- Page Title: Web Shop
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e5]:
+    - complementary [ref=e6]:
+      - complementary [ref=e7]:
+        - button "🏠 Home" [ref=e8] [cursor=pointer]:
+          - generic [ref=e9]: 🏠
+          - text: Home
+        - button "🛒 Store" [ref=e10] [cursor=pointer]:
+          - generic [ref=e11]: 🛒
+          - text: Store
+        - button "📋 Patch Notes" [ref=e12] [cursor=pointer]:
+          - generic [ref=e13]: 📋
+          - text: Patch Notes
+        - button "🎁 Daily Rewards" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: 🎁
+          - text: Daily Rewards
+        - button "⭐ Loyalty Program" [ref=e16] [cursor=pointer]:
+          - generic [ref=e17]: ⭐
+          - text: Loyalty Program
+        - button "📰 News" [ref=e18] [cursor=pointer]:
+          - generic [ref=e19]: 📰
+          - text: News
+        - button "🔄 Updates" [ref=e20] [cursor=pointer]:
+          - generic [ref=e21]: 🔄
+          - text: Updates
+        - button "🎉 Events" [ref=e22] [cursor=pointer]:
+          - generic [ref=e23]: 🎉
+          - text: Events
+        - combobox [ref=e24]:
+          - option "🌐 Language" [disabled]
+          - option "Arabic (العربية)"
+          - option "English (English)" [selected]
+    - main [ref=e25]:
+      - main [ref=e26]:
+        - generic [ref=e28]:
+          - heading "Products" [level=2] [ref=e173]
+          - generic [ref=e30]:
+            - generic [ref=e175]:
+              - generic [ref=e176]: BUY 2 GET 1
+              - generic [ref=e177]: 1 per player
+              - img "Product" [ref=e179]
+              - generic [ref=e180]:
+                - heading "Wisdom Scroll 12" [level=3] [ref=e182]
+                - button "$749.38" [ref=e185] [cursor=pointer]
+            - generic [ref=e187]:
+              - img "Product" [ref=e189]
+              - generic [ref=e190]:
+                - heading "1 Month" [level=3] [ref=e192]
+                - generic [ref=e195]: PURCHASED
+            - generic [ref=e197]:
+              - img "Product" [ref=e199]
+              - generic [ref=e200]:
+                - heading "3 Month" [level=3] [ref=e202]
+                - generic [ref=e205]: PURCHASED
+            - generic [ref=e207]:
+              - generic [ref=e208]: 25.10.2025, 19:02:56
+              - img "Product" [ref=e210]
+              - generic [ref=e211]:
+                - heading "1 Month" [level=3] [ref=e213]
+                - button "$43.01" [ref=e216] [cursor=pointer]
+            - generic [ref=e218]:
+              - generic [ref=e219]: 11.02.2026, 14:38:47
+              - img "Product" [ref=e221]
+              - generic [ref=e222]:
+                - heading "Ancient Scroll 1" [level=3] [ref=e224]
+                - button "$407.59" [ref=e227] [cursor=pointer]
+            - generic [ref=e229]:
+              - generic [ref=e230]: 20% OFF
+              - generic [ref=e231]: 5 per player
+              - img "Product" [ref=e233]
+              - generic [ref=e234]:
+                - heading "Lucky Charm 15" [level=3] [ref=e236]
+                - button "$636.22" [ref=e239] [cursor=pointer]
+            - generic [ref=e241]:
+              - generic [ref=e242]: FLASH SALE
+              - generic [ref=e243]: 2 per player
+              - img "Product" [ref=e245]
+              - generic [ref=e246]:
+                - heading "Ancient Scroll 23" [level=3] [ref=e248]
+                - button "$949.18" [ref=e251] [cursor=pointer]
+            - generic [ref=e253]:
+              - generic [ref=e254]: 50% OFF
+              - generic [ref=e255]: 5 per player
+              - img "Product" [ref=e257]
+              - generic [ref=e258]:
+                - heading "Assassin's Cloak 25" [level=3] [ref=e260]
+                - button "$42.59" [ref=e263] [cursor=pointer]
+            - generic [ref=e265]:
+              - generic [ref=e266]: FLASH SALE
+              - generic [ref=e267]: 10 per player
+              - img "Product" [ref=e269]
+              - generic [ref=e270]:
+                - heading "Berserker's Gauntlets 19" [level=3] [ref=e272]
+                - button "$618.19" [ref=e275] [cursor=pointer]
+            - generic [ref=e277]:
+              - generic [ref=e278]: 50% OFF
+              - generic [ref=e279]: 10 per player
+              - img "Product" [ref=e281]
+              - generic [ref=e282]:
+                - heading "Crystal Ring 17" [level=3] [ref=e284]
+                - button "$801.18" [ref=e287] [cursor=pointer]
+            - generic [ref=e289]:
+              - generic [ref=e290]: 20% OFF
+              - generic [ref=e291]: 1 per player
+              - img "Product" [ref=e293]
+              - generic [ref=e294]:
+                - heading "Health Elixir 2" [level=3] [ref=e296]
+                - button "$598.15" [ref=e299] [cursor=pointer]
+            - generic [ref=e301]:
+              - generic [ref=e302]: BUY 2 GET 1
+              - generic [ref=e303]: 10 per player
+              - img "Product" [ref=e305]
+              - generic [ref=e306]:
+                - heading "Health Elixir 6" [level=3] [ref=e308]
+                - button "$849.20" [ref=e311] [cursor=pointer]
+            - generic [ref=e313]:
+              - generic [ref=e314]: FLASH SALE
+              - img "Product" [ref=e316]
+              - generic [ref=e317]:
+                - heading "Legendary Bow 26" [level=3] [ref=e319]
+                - button "$747.41" [ref=e322] [cursor=pointer]
+            - generic [ref=e324]:
+              - img "Product" [ref=e326]
+              - generic [ref=e327]:
+                - heading "Limited Offer Test Product - Updated" [level=3] [ref=e329]
+                - button "$39.99" [ref=e332] [cursor=pointer]
+            - generic [ref=e334]:
+              - generic [ref=e335]: 2 per player
+              - img "Product" [ref=e337]
+              - generic [ref=e338]:
+                - heading "Paladin's Plate 21" [level=3] [ref=e340]
+                - button "$452.42" [ref=e343] [cursor=pointer]
+            - generic [ref=e345]:
+              - generic [ref=e346]: 10% OFF
+              - generic [ref=e347]: 5 per player
+              - img "Product" [ref=e349]
+              - generic [ref=e350]:
+                - heading "Premium Sword 20" [level=3] [ref=e352]
+                - button "$37.61" [ref=e355] [cursor=pointer]
+            - generic [ref=e357]:
+              - generic [ref=e358]: 20% OFF
+              - generic [ref=e359]: 10 per player
+              - img "Product" [ref=e361]
+              - generic [ref=e362]:
+                - heading "Priest's Cross 16" [level=3] [ref=e364]
+                - button "$154.14" [ref=e367] [cursor=pointer]
+            - generic [ref=e369]:
+              - generic [ref=e370]: 30% OFF
+              - generic [ref=e371]: Unlimited
+              - img "Product" [ref=e373]
+              - generic [ref=e374]:
+                - heading "Rogue's Dagger 28" [level=3] [ref=e376]
+                - button "$803.52" [ref=e379] [cursor=pointer]
+            - generic [ref=e381]:
+              - generic [ref=e382]: 30% OFF
+              - generic [ref=e383]: Unlimited
+              - img "Product" [ref=e385]
+              - generic [ref=e386]:
+                - heading "Speed Boost 24" [level=3] [ref=e388]
+                - button "$590.74" [ref=e391] [cursor=pointer]
+            - generic [ref=e393]:
+              - generic [ref=e394]: 20% OFF
+              - generic [ref=e395]: 2 per player
+              - img "Product" [ref=e397]
+              - generic [ref=e398]:
+                - heading "Speed Boost 5" [level=3] [ref=e400]
+                - button "$164.90" [ref=e403] [cursor=pointer]
+            - generic [ref=e405]:
+              - generic [ref=e406]: 20% OFF
+              - generic [ref=e407]: 2 per player
+              - generic [ref=e408]: 20.01.2026, 14:38:50
+              - img "Product" [ref=e410]
+              - generic [ref=e411]:
+                - heading "Strength Tonic 8" [level=3] [ref=e413]
+                - button "$113.03" [ref=e416] [cursor=pointer]
+            - generic [ref=e418]:
+              - img "Product" [ref=e420]
+              - generic [ref=e421]:
+                - heading "Test Product After Migration" [level=3] [ref=e423]
+                - button "$29.99" [ref=e426] [cursor=pointer]
+            - generic [ref=e428]:
+              - generic [ref=e429]: 50% OFF
+              - generic [ref=e430]: 10 per player
+              - img "Product" [ref=e432]
+              - generic [ref=e433]:
+                - heading "Berserker's Gauntlets 22" [level=3] [ref=e435]
+                - button "$912.29" [ref=e438] [cursor=pointer]
+            - generic [ref=e440]:
+              - generic [ref=e441]: FLASH SALE
+              - generic [ref=e442]: 10 per player
+              - img "Product" [ref=e444]
+              - generic [ref=e445]:
+                - heading "Health Elixir 3" [level=3] [ref=e447]
+                - button "$458.04" [ref=e450] [cursor=pointer]
+            - generic [ref=e452]:
+              - generic [ref=e453]: BUY 2 GET 1
+              - generic [ref=e454]: 5 per player
+              - img "Product" [ref=e456]
+              - generic [ref=e457]:
+                - heading "Hero's Blade 27" [level=3] [ref=e459]
+                - button "$309.56" [ref=e462] [cursor=pointer]
+            - generic [ref=e464]:
+              - generic [ref=e465]: BUY 2 GET 1
+              - generic [ref=e466]: 2 per player
+              - img "Product" [ref=e468]
+              - generic [ref=e469]:
+                - heading "Legendary Bow 9" [level=3] [ref=e471]
+                - button "$272.88" [ref=e474] [cursor=pointer]
+            - generic [ref=e476]:
+              - generic [ref=e477]: 30% OFF
+              - generic [ref=e478]: Unlimited
+              - generic [ref=e479]: 02.02.2026, 14:38:53
+              - img "Product" [ref=e481]
+              - generic [ref=e482]:
+                - heading "Necromancer's Skull 14" [level=3] [ref=e484]
+                - button "$546.44" [ref=e487] [cursor=pointer]
+            - generic [ref=e489]:
+              - generic [ref=e490]: FLASH SALE
+              - generic [ref=e491]: 2 per player
+              - img "Product" [ref=e493]
+              - generic [ref=e494]:
+                - heading "Power Amulet 13" [level=3] [ref=e496]
+                - button "$572.02" [ref=e499] [cursor=pointer]
+            - generic [ref=e501]:
+              - generic [ref=e502]: 30% OFF
+              - generic [ref=e503]: Unlimited
+              - img "Product" [ref=e505]
+              - generic [ref=e506]:
+                - heading "Power Amulet 29" [level=3] [ref=e508]
+                - button "$600.48" [ref=e511] [cursor=pointer]
+            - generic [ref=e513]:
+              - generic [ref=e514]: 20% OFF
+              - generic [ref=e515]: 2 per player
+              - img "Product" [ref=e517]
+              - generic [ref=e518]:
+                - heading "Priest's Cross 18" [level=3] [ref=e520]
+                - button "$309.11" [ref=e523] [cursor=pointer]
+            - generic [ref=e525]:
+              - generic [ref=e526]: FLASH SALE
+              - generic [ref=e527]: 10 per player
+              - img "Product" [ref=e529]
+              - generic [ref=e530]:
+                - heading "Speed Boost 10" [level=3] [ref=e532]
+                - button "$186.10" [ref=e535] [cursor=pointer]
+            - generic [ref=e537]:
+              - generic [ref=e538]: 30% OFF
+              - generic [ref=e539]: 2 per player
+              - generic [ref=e540]: 05.02.2026, 14:38:49
+              - img "Product" [ref=e542]
+              - generic [ref=e543]:
+                - heading "Speed Boost 4" [level=3] [ref=e545]
+                - button "$296.97" [ref=e548] [cursor=pointer]
+            - generic [ref=e550]:
+              - generic [ref=e551]: 5 per player
+              - img "Product" [ref=e553]
+              - generic [ref=e554]:
+                - heading "Treasure Chest 7" [level=3] [ref=e556]
+                - button "$849.14" [ref=e559] [cursor=pointer]
+            - generic [ref=e561]:
+              - generic [ref=e562]: 50% OFF
+              - img "Product" [ref=e564]
+              - generic [ref=e565]:
+                - heading "Warrior's Axe 11" [level=3] [ref=e567]
+                - button "$577.85" [ref=e570] [cursor=pointer]
+            - generic [ref=e572]:
+              - generic [ref=e573]: FLASH SALE
+              - generic [ref=e574]: 1 per player
+              - generic [ref=e575]: 31.01.2026, 14:39:01
+              - img "Product" [ref=e577]
+              - generic [ref=e578]:
+                - heading "Wisdom Scroll 30" [level=3] [ref=e580]
+                - button "$227.14" [ref=e583] [cursor=pointer]
+    - complementary [ref=e169]:
+      - generic [ref=e170]:
+        - generic [ref=e586]:
+          - generic [ref=e587]:
+            - generic "test-user-123" [ref=e589]:
+              - generic [ref=e591]: T
+            - button "Menu"
+          - generic [ref=e592]: test-user-123
+        - generic [ref=e171]: Configuration not loaded yet
+  - generic:
+    - generic [ref=e595] [cursor=pointer]:
+      - img [ref=e596]
+      - generic [ref=e598]: 3 errors
+      - button "Hide Errors" [ref=e599]:
+        - img [ref=e600]
+    - status [ref=e603]:
+      - generic [ref=e604]:
+        - img [ref=e606]
+        - generic [ref=e608]:
+          - text: Static route
+          - button "Hide static indicator" [ref=e609] [cursor=pointer]:
+            - img [ref=e610]
+  - alert [ref=e613]
+  - generic [ref=e615]:
+    - button "×" [ref=e616] [cursor=pointer]
+    - generic [ref=e617]:
+      - heading "🎁 Special Offers" [level=2] [ref=e619]
+      - generic [ref=e623]:
+        - generic [ref=e624]: Sat Oct 25 2025 19:02:56 GMT+0300 (Москва, стандартное время)
+        - img "Product" [ref=e626]
+        - generic [ref=e627]:
+          - heading "3 Month" [level=3] [ref=e629]
+          - button "59.00 $" [ref=e632] [cursor=pointer]
+```

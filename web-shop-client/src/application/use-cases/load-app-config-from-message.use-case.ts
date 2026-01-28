@@ -4,6 +4,7 @@ import type { Logger } from '../ports/logger.port';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { AppConfigLoadedEvent } from '../../shared/events/app-config-events';
 import type { AppConfig } from '../../shared/config/app-config.types';
+import { GrapeJsToLegacyAdapter } from '../../shared/adapters/grapejs-to-legacy.adapter';
 
 
 @injectable()

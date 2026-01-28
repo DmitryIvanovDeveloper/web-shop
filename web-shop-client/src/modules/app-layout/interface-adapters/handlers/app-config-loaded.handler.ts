@@ -20,10 +20,22 @@ export class AppLayoutConfigLoadedHandler implements IAsyncEventHandler<AppConfi
 	}
 
 	public async handleAsync(event: AppConfigLoadedEvent): Promise<void> {
+		console.log('[AppLayoutConfigLoadedHandler] Processing AppConfigLoadedEvent', {
+			hasConfig: !!event.config,
+			hasModules: !!event.config?.modules,
+			hasUiRenderer: !!event.config?.modules?.uiRenderer
+		});
 		this._logger.info('[AppLayoutConfigLoadedHandler] Processing AppConfigLoadedEvent');
 
 		try {
 						const appLayoutConfig = event.config?.modules?.uiRenderer || {};
+
+			console.log('[AppLayoutConfigLoadedHandler] Extracted uiRenderer config', {
+				hasConfig: !!appLayoutConfig,
+				hasSidebar: !!(appLayoutConfig as any)?.sidebar,
+				sidebarChildrenCount: (appLayoutConfig as any)?.sidebar?.layout?.children?.length || 0,
+				configKeys: Object.keys(appLayoutConfig)
+			});
 
 			this._logger.info('[AppLayoutConfigLoadedHandler] Extracted uiRenderer config', {
 				hasConfig: !!appLayoutConfig,
@@ -31,11 +43,14 @@ export class AppLayoutConfigLoadedHandler implements IAsyncEventHandler<AppConfi
 				sidebarChildrenCount: (appLayoutConfig as any)?.sidebar?.layout?.children?.length || 0
 			});
 
+						console.log('[AppLayoutConfigLoadedHandler] Setting App Layout configs in presenter');
 						this._logger.info('[AppLayoutConfigLoadedHandler] Setting App Layout configs in presenter');
 			this._presenter.setConfigs(appLayoutConfig as any);
 
+			console.log('[AppLayoutConfigLoadedHandler] App Layout configs successfully applied');
 			this._logger.info('[AppLayoutConfigLoadedHandler] App Layout configs successfully applied');
 		} catch (error) {
+			console.error('[AppLayoutConfigLoadedHandler] Error handling event', error);
 			this._logger.error('[AppLayoutConfigLoadedHandler] Error handling event', error);
 		}
 	}

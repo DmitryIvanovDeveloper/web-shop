@@ -1,0 +1,73 @@
+### Page state
+- Page URL: http://localhost:3001/site-builder?appId=app123
+- Page Title: Web Shop
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e5]:
+    - complementary [ref=e6]:
+      - complementary [ref=e7]:
+        - button "🏠 Home" [ref=e8] [cursor=pointer]:
+          - generic [ref=e9]: 🏠
+          - text: Home
+        - button "🛒 Store" [ref=e10] [cursor=pointer]:
+          - generic [ref=e11]: 🛒
+          - text: Store
+        - button "📋 Patch Notes" [ref=e12] [cursor=pointer]:
+          - generic [ref=e13]: 📋
+          - text: Patch Notes
+        - button "🎁 Daily Rewards" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: 🎁
+          - text: Daily Rewards
+        - button "⭐ Loyalty Program" [ref=e16] [cursor=pointer]:
+          - generic [ref=e17]: ⭐
+          - text: Loyalty Program
+        - button "📰 News" [ref=e18] [cursor=pointer]:
+          - generic [ref=e19]: 📰
+          - text: News
+        - button "🔄 Updates" [ref=e20] [cursor=pointer]:
+          - generic [ref=e21]: 🔄
+          - text: Updates
+        - button "🎉 Events" [ref=e22] [cursor=pointer]:
+          - generic [ref=e23]: 🎉
+          - text: Events
+        - combobox [ref=e24]:
+          - option "🌐 Language" [disabled]
+          - option "Arabic (العربية)"
+          - option "English (English)" [selected]
+    - main [ref=e25]:
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - heading "Site Builder" [level=1] [ref=e29]
+          - paragraph [ref=e30]: Рендеринг сайтов из GrapeJS конфигураций из таблицы app_configs_grape
+        - generic [ref=e31]:
+          - heading "Настройки рендеринга" [level=2] [ref=e32]
+          - generic [ref=e33]:
+            - generic [ref=e34]:
+              - generic [ref=e35]: App ID
+              - textbox "Введите App ID" [ref=e36]: app123
+            - generic [ref=e37]:
+              - checkbox "Использовать черновик (draft)" [ref=e38]
+              - generic [ref=e39]: Использовать черновик (draft)
+          - paragraph [ref=e41]:
+            - text: Рендерер будет искать конфигурацию в таблице
+            - code [ref=e42]: app_configs_grape
+            - text: с флагом is_active = true
+        - generic [ref=e49]:
+          - heading "Rendering Error" [level=3] [ref=e50]
+          - paragraph [ref=e51]: Unknown error occurred
+          - button "Retry" [ref=e52] [cursor=pointer]
+        - generic [ref=e53]:
+          - heading "Ошибка рендеринга" [level=3] [ref=e54]
+          - paragraph [ref=e55]: Unknown error occurred
+    - complementary [ref=e46]:
+      - generic [ref=e48]: Configuration not loaded yet
+  - status [ref=e56]:
+    - generic [ref=e57]:
+      - img [ref=e59]
+      - generic [ref=e61]:
+        - text: Static route
+        - button "Hide static indicator" [ref=e62] [cursor=pointer]:
+          - img [ref=e63]
+  - alert [ref=e66]
+```

@@ -1,0 +1,1351 @@
+### Page state
+- Page URL: http://localhost:3001/site-builder?appId=APP123
+- Page Title: 
+- Page Snapshot:
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e5]:
+    - complementary [ref=e6]:
+      - complementary [ref=e7]:
+        - button "🏠 Home" [ref=e8] [cursor=pointer]:
+          - generic [ref=e9]: 🏠
+          - text: Home
+        - button "🛒 Store" [ref=e10] [cursor=pointer]:
+          - generic [ref=e11]: 🛒
+          - text: Store
+        - button "📋 Patch Notes" [ref=e12] [cursor=pointer]:
+          - generic [ref=e13]: 📋
+          - text: Patch Notes
+        - button "🎁 Daily Rewards" [ref=e14] [cursor=pointer]:
+          - generic [ref=e15]: 🎁
+          - text: Daily Rewards
+        - button "⭐ Loyalty Program" [ref=e16] [cursor=pointer]:
+          - generic [ref=e17]: ⭐
+          - text: Loyalty Program
+        - button "📰 News" [ref=e18] [cursor=pointer]:
+          - generic [ref=e19]: 📰
+          - text: News
+        - button "🔄 Updates" [ref=e20] [cursor=pointer]:
+          - generic [ref=e21]: 🔄
+          - text: Updates
+        - button "🎉 Events" [ref=e22] [cursor=pointer]:
+          - generic [ref=e23]: 🎉
+          - text: Events
+        - combobox [ref=e24] [cursor=pointer]:
+          - option "🌐 Language" [disabled]
+          - option "Arabic (العربية)"
+          - option "English (English)" [selected]
+    - main [ref=e25]:
+      - generic [ref=e29] [cursor=pointer]:
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - complementary [ref=e33]:
+              - generic [ref=e37]:
+                - link "Pixel Gun Hub Pixel Gun Hub Official Page" [ref=e38]:
+                  - /url: /
+                  - generic [ref=e39]:
+                    - img "Pixel Gun Hub" [ref=e41]
+                    - generic [ref=e42]:
+                      - generic [ref=e43]: Pixel Gun Hub
+                      - generic [ref=e45]: Official Page
+                - generic [ref=e47]:
+                  - link "Home" [ref=e48]:
+                    - /url: /
+                    - generic [ref=e52]: Home
+                  - link "Store" [ref=e53]:
+                    - /url: /store
+                    - generic [ref=e57]: Store
+                  - link "Daily Rewards" [ref=e58]:
+                    - /url: /daily-rewards
+                    - generic [ref=e64]: Daily Rewards
+                  - link "Loyalty Program" [ref=e65]:
+                    - /url: /loyalty-program
+                    - generic [ref=e69]: Loyalty Program
+                  - link "Redeem Code" [ref=e70]:
+                    - /url: /redeem-coupon
+                    - generic [ref=e74]: Redeem Code
+                  - link "News" [ref=e75]:
+                    - /url: /news
+                    - generic [ref=e79]: News
+                  - link "Updates" [ref=e80]:
+                    - /url: /updates
+                    - generic [ref=e84]: Updates
+                  - link "Events" [ref=e85]:
+                    - /url: /events
+                    - generic [ref=e89]: Events
+                  - link "Database" [ref=e90]:
+                    - /url: /database
+                    - generic [ref=e94]: Database
+                  - link "Achievements" [ref=e95]:
+                    - /url: /achievements
+                    - generic [ref=e99]: Achievements
+                - generic [ref=e100]:
+                  - link [ref=e101]:
+                    - /url: https://discord.com/invite/pixelgun3d
+                  - link [ref=e104]:
+                    - /url: https://www.youtube.com/channel/UCsClw1gnMrmF6ssIB_166_Q
+                  - link [ref=e107]:
+                    - /url: https://www.instagram.com/pixelgun3d_official/
+                  - link [ref=e110]:
+                    - /url: https://www.tiktok.com/@pixelgununiverse
+                  - link [ref=e113]:
+                    - /url: https://www.facebook.com/PixelGun3DOfficial/
+                  - link [ref=e116]:
+                    - /url: https://twitter.com/PixelGun3D
+                - generic [ref=e119]:
+                  - link "app_store" [ref=e120]:
+                    - /url: https://apps.apple.com/app/pixel-gun-3d-online-shooter/id640111933
+                    - img "app_store" [ref=e122]
+                  - link "google_play" [ref=e123]:
+                    - /url: https://play.google.com/store/apps/details?id=com.pixel.gun3d&pcampaignid=web_share
+                    - img "google_play" [ref=e125]
+                  - link "steam" [ref=e126]:
+                    - /url: https://store.steampowered.com/app/2524890/Pixel_Gun_3D_PC_Edition/
+                    - img "steam" [ref=e128]
+                  - link "huawei" [ref=e129]:
+                    - /url: https://appgallery.huawei.com/app/C103060353
+                    - img "huawei" [ref=e131]
+                  - link "amazon" [ref=e132]:
+                    - /url: https://www.amazon.com/Pixel-Gun-3D-Pocket-multiplayer/dp/B00I6IKSZ0
+                    - img "amazon" [ref=e134]
+                - combobox [ref=e136]:
+                  - generic [ref=e137]:
+                    - generic [ref=e139]: en
+                    - generic [ref=e140]: English
+                - generic [ref=e142]:
+                  - link "Terms of Use" [ref=e143]:
+                    - /url: https://aghanim.com/end-user-service
+                    - generic [ref=e145]: Terms of Use
+                  - link "Privacy Policy" [ref=e146]:
+                    - /url: https://aghanim.com/privacy
+                    - generic [ref=e148]: Privacy Policy
+                  - link "Consent Preferences" [ref=e149]:
+                    - /url: "#"
+                    - generic [ref=e151]: Consent Preferences
+                  - generic:
+                    - paragraph: © Copyright 2026 Aghanim All Rights Reserved
+            - generic [ref=e152]:
+              - img "image-banner" [ref=e156]
+              - generic [ref=e158]:
+                - generic [ref=e159]:
+                  - img "Keys" [ref=e160]
+                  - heading "Maximize Your Bonus" [level=1] [ref=e161]
+                  - paragraph [ref=e162]: The More You Add, the More You Get!
+                - generic [ref=e165]:
+                  - generic [ref=e166]:
+                    - paragraph [ref=e167]: Bonus
+                    - heading "20%" [level=2] [ref=e168]
+                    - generic [ref=e169]:
+                      - generic [ref=e170]: $10
+                      - generic [ref=e171]: "-"
+                      - generic [ref=e172]: $19.98
+                  - generic [ref=e173]:
+                    - paragraph [ref=e174]: Bonus
+                    - heading "30%" [level=2] [ref=e175]
+                    - generic [ref=e176]:
+                      - generic [ref=e177]: $20
+                      - generic [ref=e178]: "-"
+                      - generic [ref=e179]: $49
+                  - generic [ref=e180]:
+                    - paragraph [ref=e181]: Bonus
+                    - heading "40%" [level=2] [ref=e182]
+                    - generic [ref=e183]:
+                      - generic [ref=e184]: $50
+                      - generic [ref=e185]: "-"
+                      - generic [ref=e186]: $74
+                  - generic [ref=e187]:
+                    - paragraph [ref=e188]: Bonus
+                    - heading "46%" [level=2] [ref=e189]
+                    - generic [ref=e190]:
+                      - generic [ref=e191]: $75
+                      - generic [ref=e192]: "-"
+                      - generic [ref=e193]: $99
+                  - generic [ref=e194]:
+                    - paragraph [ref=e195]: Bonus
+                    - heading "60%" [level=2] [ref=e196]
+                    - generic [ref=e197]:
+                      - generic [ref=e198]: $100
+                      - generic [ref=e199]: "-"
+                      - generic [ref=e200]: $249
+                  - generic [ref=e201]:
+                    - paragraph [ref=e202]: Bonus
+                    - heading "65%" [level=2] [ref=e203]
+                    - generic [ref=e204]:
+                      - generic [ref=e205]: $250
+                      - generic [ref=e206]: "-"
+                      - generic [ref=e207]: $500
+                - generic [ref=e209]:
+                  - generic [ref=e211]:
+                    - generic [ref=e212]:
+                      - generic [ref=e213]: Amount
+                      - generic [ref=e214]:
+                        - img "Keys" [ref=e215]
+                        - generic [ref=e216]: 25,000
+                    - generic [ref=e217]:
+                      - paragraph [ref=e218]: Bonus 65%
+                      - generic [ref=e219]:
+                        - img "Keys" [ref=e220]
+                        - generic [ref=e221]: 16,250
+                  - generic [ref=e223]:
+                    - paragraph: Enter the amount
+                    - generic:
+                      - paragraph [ref=e224]: $
+                      - textbox: "500"
+                  - generic [ref=e225]:
+                    - generic [ref=e227]:
+                      - paragraph [ref=e228]: Total with bonus
+                      - heading "Keys 41,250" [level=2] [ref=e229]:
+                        - img "Keys" [ref=e230]
+                        - generic [ref=e231]: 41,250
+                    - button "Buy Now" [ref=e232]:
+                      - generic [ref=e234]: Buy Now
+                - generic [ref=e235]:
+                  - generic [ref=e237]:
+                    - paragraph [ref=e238]: Enter the amount
+                    - generic [ref=e239]:
+                      - paragraph [ref=e240]: $
+                      - textbox [ref=e241]: "500"
+                  - generic [ref=e242]:
+                    - generic [ref=e243]:
+                      - generic [ref=e244]:
+                        - generic [ref=e245]: Amount
+                        - generic [ref=e246]:
+                          - img "Keys" [ref=e247]
+                          - generic [ref=e248]: 25,000
+                      - generic [ref=e249]:
+                        - paragraph [ref=e250]: Bonus 65%
+                        - generic [ref=e251]:
+                          - img "Keys" [ref=e252]
+                          - generic [ref=e253]: 16,250
+                    - generic [ref=e254]:
+                      - paragraph [ref=e255]: Total with bonus
+                      - heading "Keys 41,250" [level=2] [ref=e256]:
+                        - img "Keys" [ref=e257]
+                        - generic [ref=e258]: 41,250
+                  - button "Buy Now" [ref=e259]:
+                    - generic [ref=e261]: Buy Now
+              - generic [ref=e263]:
+                - generic [ref=e264]:
+                  - heading "Store" [level=1] [ref=e265]:
+                    - generic [ref=e266]: Store
+                  - generic [ref=e268]:
+                    - button "Top Seller" [ref=e269]:
+                      - generic [ref=e270]: Top Seller
+                    - button "Offers" [ref=e271]:
+                      - generic [ref=e272]: Offers
+                    - button "Unique bundles" [ref=e273]:
+                      - generic [ref=e274]: Unique bundles
+                    - button "Gems" [ref=e275]:
+                      - generic [ref=e276]: Gems
+                    - button "Coins" [ref=e277]:
+                      - generic [ref=e278]: Coins
+                    - button "PP Tickets" [ref=e279]:
+                      - generic [ref=e280]: PP Tickets
+                    - button "Free Gifts" [ref=e281]:
+                      - generic [ref=e282]: Free Gifts
+                    - button "Reward Points Store" [ref=e283]:
+                      - generic [ref=e284]: Reward Points Store
+                - generic [ref=e285]:
+                  - heading "Хиты Продаж" [level=2] [ref=e288]
+                  - generic [ref=e289]:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e293]: "-92%"
+                          - generic [ref=e294]:
+                            - generic:
+                              - generic:
+                                - generic [ref=e295]:
+                                  - generic [ref=e297]: x2K
+                                  - generic [ref=e299]: x1.5K
+                                  - generic [ref=e301]: x1.2K
+                                  - generic [ref=e304]: "+3"
+                                - generic [ref=e308]: Набор Доминатора
+                                - generic [ref=e310]:
+                                  - generic [ref=e311]: 1/1
+                                  - text: Left
+                                - generic [ref=e312]:
+                                  - generic:
+                                    - generic [ref=e315]: "+16"
+                                    - generic [ref=e318]: "+16"
+                                - generic:
+                                  - generic:
+                                    - button "$16.00 $199.99" [disabled]:
+                                      - generic:
+                                        - generic:
+                                          - generic:
+                                            - generic: $16.00
+                                            - generic: $199.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e322]: "-89%"
+                          - generic [ref=e323]:
+                            - generic:
+                              - generic:
+                                - generic [ref=e324]:
+                                  - generic [ref=e326]: x750
+                                  - generic [ref=e328]: x600
+                                  - generic [ref=e330]: x600
+                                  - generic [ref=e333]: "+3"
+                                - generic [ref=e337]: Набор Победителя
+                                - generic [ref=e339]:
+                                  - generic [ref=e340]: 1/1
+                                  - text: Left
+                                - generic [ref=e341]:
+                                  - generic:
+                                    - generic [ref=e344]: "+8"
+                                    - generic [ref=e347]: "+8"
+                                - generic:
+                                  - generic:
+                                    - button "$8.25 $74.99" [disabled]:
+                                      - generic:
+                                        - generic:
+                                          - generic:
+                                            - generic: $8.25
+                                            - generic: $74.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e351]: "-85%"
+                          - generic [ref=e352]:
+                            - generic:
+                              - generic:
+                                - generic [ref=e353]:
+                                  - generic [ref=e355]: x350
+                                  - generic [ref=e357]: x300
+                                  - generic [ref=e359]: x300
+                                  - generic [ref=e362]: "+3"
+                                - generic [ref=e366]: Набор Бойца
+                                - generic [ref=e368]:
+                                  - generic [ref=e369]: 1/1
+                                  - text: Left
+                                - generic [ref=e370]:
+                                  - generic:
+                                    - generic [ref=e373]: "+5"
+                                    - generic [ref=e376]: "+5"
+                                - generic:
+                                  - generic:
+                                    - button "$4.95 $32.99" [disabled]:
+                                      - generic:
+                                        - generic:
+                                          - generic:
+                                            - generic: $4.95
+                                            - generic: $32.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e380]: "-75%"
+                          - generic [ref=e381]:
+                            - generic:
+                              - generic:
+                                - generic [ref=e382]:
+                                  - generic [ref=e384]: x6K
+                                  - generic [ref=e386]: x6K
+                                  - generic [ref=e388]: x8K
+                                  - generic [ref=e391]: "+3"
+                                - generic [ref=e395]: Ультимативный набор
+                                - generic [ref=e397]:
+                                  - generic [ref=e398]: 1/1
+                                  - text: Left
+                                - generic [ref=e399]:
+                                  - generic:
+                                    - generic [ref=e402]: "+200"
+                                    - generic [ref=e405]: "+200"
+                                - generic:
+                                  - generic:
+                                    - button "$200.00 $799.99" [disabled]:
+                                      - generic:
+                                        - generic:
+                                          - generic:
+                                            - generic: $200.00
+                                            - generic: $799.99
+                - generic [ref=e406]:
+                  - heading "Акции" [level=2] [ref=e409]
+                  - generic [ref=e410]:
+                    - generic [ref=e412]:
+                      - generic:
+                        - generic:
+                          - generic [ref=e413]:
+                            - generic [ref=e415]: 10%
+                            - generic [ref=e417]: 30%
+                            - generic [ref=e419]: 60%
+                          - generic [ref=e423]: Фортуна Героя
+                          - button "10/10 Left" [disabled]:
+                            - generic [ref=e425]:
+                              - generic [ref=e426]: 10/10
+                              - text: Left
+                          - generic [ref=e427]:
+                            - generic:
+                              - generic [ref=e430]: "+4"
+                              - generic [ref=e433]: "+10"
+                          - generic:
+                            - generic:
+                              - button "$3.99" [disabled]:
+                                - generic:
+                                  - generic:
+                                    - generic:
+                                      - generic: $3.99
+                    - generic [ref=e435]:
+                      - generic:
+                        - generic:
+                          - button [disabled]
+                          - button [disabled]
+                          - button "8% 8% 8% +9" [disabled]:
+                            - generic [ref=e436]:
+                              - generic [ref=e438]: 8%
+                              - generic [ref=e440]: 8%
+                              - generic [ref=e442]: 8%
+                              - generic [ref=e445]: "+9"
+                          - button [disabled]
+                          - button "Мифический Сундук Альфа" [disabled]:
+                            - generic [ref=e449]: Мифический Сундук Альфа
+                          - button [disabled]
+                          - button "+20 +20" [disabled]:
+                            - generic [ref=e450]:
+                              - generic:
+                                - generic [ref=e453]: "+20"
+                                - generic [ref=e456]: "+20"
+                          - button "$19.99" [disabled]:
+                            - generic:
+                              - button "$19.99" [disabled]:
+                                - generic:
+                                  - generic:
+                                    - generic:
+                                      - generic: $19.99
+                - generic [ref=e457]:
+                  - heading "Уникальные наборы" [level=2] [ref=e460]
+                  - generic [ref=e461]:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e465]: "-92%"
+                          - generic [ref=e466]:
+                            - generic:
+                              - generic:
+                                - generic [ref=e467]:
+                                  - generic [ref=e469]: x2K
+                                  - generic [ref=e471]: x1.5K
+                                  - generic [ref=e473]: x1.2K
+                                  - generic [ref=e476]: "+3"
+                                - generic [ref=e480]: Набор Доминатора
+                                - generic [ref=e482]:
+                                  - generic [ref=e483]: 1/1
+                                  - text: Left
+                                - generic [ref=e484]:
+                                  - generic:
+                                    - generic [ref=e487]: "+16"
+                                    - generic [ref=e490]: "+16"
+                                - generic:
+                                  - generic:
+                                    - button "$16.00 $199.99" [disabled]:
+                                      - generic:
+                                        - generic:
+                                          - generic:
+                                            - generic: $16.00
+                                            - generic: $199.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e494]: "-89%"
+                          - generic [ref=e495]:
+                            - generic:
+                              - generic:
+                                - generic [ref=e496]:
+                                  - generic [ref=e498]: x750
+                                  - generic [ref=e500]: x600
+                                  - generic [ref=e502]: x600
+                                  - generic [ref=e505]: "+3"
+                                - generic [ref=e509]: Набор Победителя
+                                - generic [ref=e511]:
+                                  - generic [ref=e512]: 1/1
+                                  - text: Left
+                                - generic [ref=e513]:
+                                  - generic:
+                                    - generic [ref=e516]: "+8"
+                                    - generic [ref=e519]: "+8"
+                                - generic:
+                                  - generic:
+                                    - button "$8.25 $74.99" [disabled]:
+                                      - generic:
+                                        - generic:
+                                          - generic:
+                                            - generic: $8.25
+                                            - generic: $74.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e523]: "-85%"
+                          - generic [ref=e524]:
+                            - generic:
+                              - generic:
+                                - generic [ref=e525]:
+                                  - generic [ref=e527]: x350
+                                  - generic [ref=e529]: x300
+                                  - generic [ref=e531]: x300
+                                  - generic [ref=e534]: "+3"
+                                - generic [ref=e538]: Набор Бойца
+                                - generic [ref=e540]:
+                                  - generic [ref=e541]: 1/1
+                                  - text: Left
+                                - generic [ref=e542]:
+                                  - generic:
+                                    - generic [ref=e545]: "+5"
+                                    - generic [ref=e548]: "+5"
+                                - generic:
+                                  - generic:
+                                    - button "$4.95 $32.99" [disabled]:
+                                      - generic:
+                                        - generic:
+                                          - generic:
+                                            - generic: $4.95
+                                            - generic: $32.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e552]: "-75%"
+                          - generic [ref=e553]:
+                            - generic:
+                              - generic:
+                                - generic [ref=e554]:
+                                  - generic [ref=e556]: x6K
+                                  - generic [ref=e558]: x6K
+                                  - generic [ref=e560]: x8K
+                                  - generic [ref=e563]: "+3"
+                                - generic [ref=e567]: Ультимативный набор
+                                - generic [ref=e569]:
+                                  - generic [ref=e570]: 1/1
+                                  - text: Left
+                                - generic [ref=e571]:
+                                  - generic:
+                                    - generic [ref=e574]: "+200"
+                                    - generic [ref=e577]: "+200"
+                                - generic:
+                                  - generic:
+                                    - button "$200.00 $799.99" [disabled]:
+                                      - generic:
+                                        - generic:
+                                          - generic:
+                                            - generic: $200.00
+                                            - generic: $799.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e581]: "-71%"
+                          - generic [ref=e582]:
+                            - generic:
+                              - generic:
+                                - generic [ref=e583]:
+                                  - generic [ref=e585]: x4K
+                                  - generic [ref=e587]: x2.5K
+                                  - generic [ref=e589]: x5K
+                                  - generic [ref=e592]: "+3"
+                                - generic [ref=e596]: Продвинутый набор
+                                - generic [ref=e598]:
+                                  - generic [ref=e599]: 1/1
+                                  - text: Left
+                                - generic [ref=e600]:
+                                  - generic:
+                                    - generic [ref=e603]: "+160"
+                                    - generic [ref=e606]: "+160"
+                                - generic:
+                                  - generic:
+                                    - button "$159.50 $549.99" [disabled]:
+                                      - generic:
+                                        - generic:
+                                          - generic:
+                                            - generic: $159.50
+                                            - generic: $549.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e610]: "-65%"
+                          - generic [ref=e611]:
+                            - generic:
+                              - generic:
+                                - generic [ref=e612]:
+                                  - generic [ref=e614]: x3K
+                                  - generic [ref=e616]: x2K
+                                  - generic [ref=e618]: x2.4K
+                                  - generic [ref=e621]: "+2"
+                                - generic [ref=e625]: Обычный набор
+                                - generic [ref=e627]:
+                                  - generic [ref=e628]: 1/1
+                                  - text: Left
+                                - generic [ref=e629]:
+                                  - generic:
+                                    - generic [ref=e632]: "+100"
+                                    - generic [ref=e635]: "+100"
+                                - generic:
+                                  - generic:
+                                    - button "$99.75 $284.99" [disabled]:
+                                      - generic:
+                                        - generic:
+                                          - generic:
+                                            - generic: $99.75
+                                            - generic: $284.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e639]: "-60%"
+                          - generic [ref=e640]:
+                            - generic:
+                              - generic:
+                                - generic [ref=e641]:
+                                  - generic [ref=e643]: x1.5K
+                                  - generic [ref=e645]: x1K
+                                  - generic [ref=e647]: x1.8K
+                                  - generic [ref=e649]: x1.5K
+                                - generic [ref=e653]: Базовый набор
+                                - generic [ref=e655]:
+                                  - generic [ref=e656]: 1/1
+                                  - text: Left
+                                - generic [ref=e657]:
+                                  - generic:
+                                    - generic [ref=e660]: "+48"
+                                    - generic [ref=e663]: "+48"
+                                - generic:
+                                  - generic:
+                                    - button "$48.00 $119.99" [disabled]:
+                                      - generic:
+                                        - generic:
+                                          - generic:
+                                            - generic: $48.00
+                                            - generic: $119.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e667]: "-50%"
+                          - generic [ref=e668]:
+                            - generic:
+                              - generic:
+                                - generic [ref=e669]:
+                                  - generic [ref=e671]: x600
+                                  - generic [ref=e673]: x600
+                                  - generic [ref=e675]: x1K
+                                - generic [ref=e679]: Стартовый пакет
+                                - generic [ref=e681]:
+                                  - generic [ref=e682]: 1/1
+                                  - text: Left
+                                - generic [ref=e683]:
+                                  - generic:
+                                    - generic [ref=e686]: "+25"
+                                    - generic [ref=e689]: "+25"
+                                - button "$25.00 $49.99" [ref=e690]:
+                                  - generic [ref=e693]:
+                                    - generic [ref=e694]: $25.00
+                                    - generic [ref=e695]: $49.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e696]:
+                            - generic:
+                              - button "-83%" [disabled]:
+                                - generic [ref=e699]: "-83%"
+                          - generic [ref=e700]:
+                            - generic:
+                              - generic:
+                                - button [disabled]
+                                - button [disabled]
+                                - button "x500" [disabled]:
+                                  - generic [ref=e705]: x500
+                                - button [disabled]
+                                - button "Набор Разрушения" [disabled]:
+                                  - generic [ref=e709]: Набор Разрушения
+                                - button [disabled]
+                                - button "1/1 Left" [disabled]:
+                                  - generic [ref=e711]:
+                                    - generic [ref=e712]: 1/1
+                                    - text: Left
+                                - button "+5 +5" [disabled]:
+                                  - generic [ref=e713]:
+                                    - generic:
+                                      - generic [ref=e716]: "+5"
+                                      - generic [ref=e719]: "+5"
+                                - button "$5.10 $29.99" [disabled]:
+                                  - generic:
+                                    - button "$5.10 $29.99" [disabled]:
+                                      - generic:
+                                        - generic:
+                                          - generic:
+                                            - generic: $5.10
+                                            - generic: $29.99
+                - generic [ref=e720]:
+                  - heading "Алмазы" [level=2] [ref=e723]
+                  - generic [ref=e724]:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e727]:
+                            - generic [ref=e728]: +17%
+                            - text: Bonus
+                          - generic [ref=e729]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic [ref=e732]:
+                                      - generic [ref=e733]: "175"
+                                      - generic [ref=e734]: "150"
+                                    - generic [ref=e735]:
+                                      - generic: Алмазы
+                                - generic [ref=e736]:
+                                  - generic:
+                                    - generic [ref=e739]: "+5"
+                                    - generic [ref=e742]: "+5"
+                                - button "$4.99" [ref=e743]:
+                                  - generic [ref=e747]: $4.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e750]:
+                            - generic [ref=e751]: +25%
+                            - text: Bonus
+                          - generic [ref=e752]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic [ref=e755]:
+                                      - generic [ref=e756]: "375"
+                                      - generic [ref=e757]: "300"
+                                    - generic [ref=e758]:
+                                      - generic: Алмазы
+                                - generic [ref=e759]:
+                                  - generic:
+                                    - generic [ref=e762]: "+10"
+                                    - generic [ref=e765]: "+10"
+                                - button "$9.99" [ref=e766]:
+                                  - generic [ref=e770]: $9.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e773]:
+                            - generic [ref=e774]: +33%
+                            - text: Bonus
+                          - generic [ref=e775]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic [ref=e778]:
+                                      - generic [ref=e779]: "800"
+                                      - generic [ref=e780]: "600"
+                                    - generic [ref=e781]:
+                                      - generic: Алмазы
+                                - generic [ref=e782]:
+                                  - generic:
+                                    - generic [ref=e785]: "+20"
+                                    - generic [ref=e788]: "+20"
+                                - button "$19.99" [ref=e789]:
+                                  - generic [ref=e793]: $19.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e796]:
+                            - generic [ref=e797]: +43%
+                            - text: Bonus
+                          - generic [ref=e798]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic [ref=e801]:
+                                      - generic [ref=e802]: 2,150
+                                      - generic [ref=e803]: 1,500
+                                    - generic [ref=e804]:
+                                      - generic: Алмазы
+                                - generic [ref=e805]:
+                                  - generic:
+                                    - generic [ref=e808]: "+50"
+                                    - generic [ref=e811]: "+50"
+                                - button "$49.99" [ref=e812]:
+                                  - generic [ref=e816]: $49.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e819]:
+                            - generic [ref=e820]: +44%
+                            - text: Bonus
+                          - generic [ref=e821]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic [ref=e824]:
+                                      - generic [ref=e825]: 3,250
+                                      - generic [ref=e826]: 2,250
+                                    - generic [ref=e827]:
+                                      - generic: Алмазы
+                                - generic [ref=e828]:
+                                  - generic:
+                                    - generic [ref=e831]: "+75"
+                                    - generic [ref=e834]: "+75"
+                                - button "$74.99" [ref=e835]:
+                                  - generic [ref=e839]: $74.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e842]:
+                            - generic [ref=e843]: +50%
+                            - text: Bonus
+                          - generic [ref=e844]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic [ref=e847]:
+                                      - generic [ref=e848]: 4,500
+                                      - generic [ref=e849]: 3,000
+                                    - generic [ref=e850]:
+                                      - generic: Алмазы
+                                - generic [ref=e851]:
+                                  - generic:
+                                    - generic [ref=e854]: "+100"
+                                    - generic [ref=e857]: "+100"
+                                - button "$99.99" [ref=e858]:
+                                  - generic [ref=e862]: $99.99
+                - generic [ref=e863]:
+                  - heading "Монеты" [level=2] [ref=e866]
+                  - generic [ref=e867]:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e870]:
+                            - generic [ref=e871]: +10%
+                            - text: Bonus
+                          - generic [ref=e872]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic [ref=e875]:
+                                      - generic [ref=e876]: "275"
+                                      - generic [ref=e877]: "250"
+                                    - generic [ref=e878]:
+                                      - generic: Монеты
+                                - generic [ref=e879]:
+                                  - generic:
+                                    - generic [ref=e882]: "+5"
+                                    - generic [ref=e885]: "+5"
+                                - button "$4.99" [ref=e886]:
+                                  - generic [ref=e890]: $4.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e893]:
+                            - generic [ref=e894]: +20%
+                            - text: Bonus
+                          - generic [ref=e895]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic [ref=e898]:
+                                      - generic [ref=e899]: "600"
+                                      - generic [ref=e900]: "500"
+                                    - generic [ref=e901]:
+                                      - generic: Монеты
+                                - generic [ref=e902]:
+                                  - generic:
+                                    - generic [ref=e905]: "+10"
+                                    - generic [ref=e908]: "+10"
+                                - button "$9.99" [ref=e909]:
+                                  - generic [ref=e913]: $9.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e916]:
+                            - generic [ref=e917]: +25%
+                            - text: Bonus
+                          - generic [ref=e918]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic [ref=e921]:
+                                      - generic [ref=e922]: 1,250
+                                      - generic [ref=e923]: 1,000
+                                    - generic [ref=e924]:
+                                      - generic: Монеты
+                                - generic [ref=e925]:
+                                  - generic:
+                                    - generic [ref=e928]: "+20"
+                                    - generic [ref=e931]: "+20"
+                                - button "$19.99" [ref=e932]:
+                                  - generic [ref=e936]: $19.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e939]:
+                            - generic [ref=e940]: +30%
+                            - text: Bonus
+                          - generic [ref=e941]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic [ref=e944]:
+                                      - generic [ref=e945]: 3,250
+                                      - generic [ref=e946]: 2,500
+                                    - generic [ref=e947]:
+                                      - generic: Монеты
+                                - generic [ref=e948]:
+                                  - generic:
+                                    - generic [ref=e951]: "+50"
+                                    - generic [ref=e954]: "+50"
+                                - button "$49.99" [ref=e955]:
+                                  - generic [ref=e959]: $49.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e962]:
+                            - generic [ref=e963]: +33%
+                            - text: Bonus
+                          - generic [ref=e964]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic [ref=e967]:
+                                      - generic [ref=e968]: 5,000
+                                      - generic [ref=e969]: 3,750
+                                    - generic [ref=e970]:
+                                      - generic: Монеты
+                                - generic [ref=e971]:
+                                  - generic:
+                                    - generic [ref=e974]: "+75"
+                                    - generic [ref=e977]: "+75"
+                                - button "$74.99" [ref=e978]:
+                                  - generic [ref=e982]: $74.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e985]:
+                            - generic [ref=e986]: +40%
+                            - text: Bonus
+                          - generic [ref=e987]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic [ref=e990]:
+                                      - generic [ref=e991]: 7,000
+                                      - generic [ref=e992]: 5,000
+                                    - generic [ref=e993]:
+                                      - generic: Монеты
+                                - generic [ref=e994]:
+                                  - generic:
+                                    - generic [ref=e997]: "+100"
+                                    - generic [ref=e1000]: "+100"
+                                - button "$99.99" [ref=e1001]:
+                                  - generic [ref=e1005]: $99.99
+                - generic [ref=e1006]:
+                  - heading "Билеты Pixel Pass" [level=2] [ref=e1009]
+                  - generic [ref=e1010]:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e1013]:
+                            - generic [ref=e1014]: +17%
+                            - text: Bonus
+                          - generic [ref=e1015]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic [ref=e1018]:
+                                      - generic [ref=e1019]: "350"
+                                      - generic [ref=e1020]: "300"
+                                    - generic [ref=e1021]:
+                                      - generic: Билеты Pixel Pass
+                                - generic [ref=e1022]:
+                                  - generic:
+                                    - generic [ref=e1025]: "+5"
+                                    - generic [ref=e1028]: "+5"
+                                - button "$4.99" [ref=e1029]:
+                                  - generic [ref=e1033]: $4.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e1036]:
+                            - generic [ref=e1037]: +25%
+                            - text: Bonus
+                          - generic [ref=e1038]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic [ref=e1041]:
+                                      - generic [ref=e1042]: "750"
+                                      - generic [ref=e1043]: "600"
+                                    - generic [ref=e1044]:
+                                      - generic: Билеты Pixel Pass
+                                - generic [ref=e1045]:
+                                  - generic:
+                                    - generic [ref=e1048]: "+10"
+                                    - generic [ref=e1051]: "+10"
+                                - button "$9.99" [ref=e1052]:
+                                  - generic [ref=e1056]: $9.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e1059]:
+                            - generic [ref=e1060]: +32%
+                            - text: Bonus
+                          - generic [ref=e1061]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic [ref=e1064]:
+                                      - generic [ref=e1065]: 1,650
+                                      - generic [ref=e1066]: 1,250
+                                    - generic [ref=e1067]:
+                                      - generic: Билеты Pixel Pass
+                                - generic [ref=e1068]:
+                                  - generic:
+                                    - generic [ref=e1071]: "+20"
+                                    - generic [ref=e1074]: "+20"
+                                - button "$19.99" [ref=e1075]:
+                                  - generic [ref=e1079]: $19.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e1082]:
+                            - generic [ref=e1083]: +42%
+                            - text: Bonus
+                          - generic [ref=e1084]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic [ref=e1087]:
+                                      - generic [ref=e1088]: 4,250
+                                      - generic [ref=e1089]: 3,000
+                                    - generic [ref=e1090]:
+                                      - generic: Билеты Pixel Pass
+                                - generic [ref=e1091]:
+                                  - generic:
+                                    - generic [ref=e1094]: "+50"
+                                    - generic [ref=e1097]: "+50"
+                                - button "$49.99" [ref=e1098]:
+                                  - generic [ref=e1102]: $49.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e1105]:
+                            - generic [ref=e1106]: +44%
+                            - text: Bonus
+                          - generic [ref=e1107]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic [ref=e1110]:
+                                      - generic [ref=e1111]: 6,500
+                                      - generic [ref=e1112]: 4,500
+                                    - generic [ref=e1113]:
+                                      - generic: Билеты Pixel Pass
+                                - generic [ref=e1114]:
+                                  - generic:
+                                    - generic [ref=e1117]: "+75"
+                                    - generic [ref=e1120]: "+75"
+                                - button "$74.99" [ref=e1121]:
+                                  - generic [ref=e1125]: $74.99
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic [ref=e1126]:
+                            - generic:
+                              - button "+50% Bonus" [disabled]:
+                                - generic [ref=e1128]:
+                                  - generic [ref=e1129]: +50%
+                                  - text: Bonus
+                          - generic [ref=e1130]:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic [ref=e1133]:
+                                      - generic [ref=e1134]: 9,000
+                                      - generic [ref=e1135]: 6,000
+                                    - generic [ref=e1136]:
+                                      - generic: Билеты Pixel Pass
+                                - button "+100 +100" [disabled]:
+                                  - generic [ref=e1137]:
+                                    - generic:
+                                      - generic [ref=e1140]: "+100"
+                                      - generic [ref=e1143]: "+100"
+                                - button "$99.99" [ref=e1144]:
+                                  - generic [ref=e1148]: $99.99
+                - generic [ref=e1149]:
+                  - heading "Бесплатные подарки" [level=2] [ref=e1152]
+                  - generic [ref=e1155]:
+                    - generic:
+                      - generic:
+                        - generic [ref=e1158]:
+                          - generic [ref=e1159]: 1/1
+                          - text: Left
+                        - generic [ref=e1163]: Сундук Хаба
+                        - generic [ref=e1165]: Еженедельные Подарки
+                        - button "Claim" [ref=e1166]:
+                          - generic [ref=e1168]: Claim
+                - generic [ref=e1169]:
+                  - heading "Магазин Очков Наград" [level=2] [ref=e1172]
+                  - generic [ref=e1173]:
+                    - generic [ref=e1175]:
+                      - generic:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic [ref=e1179]: "5"
+                              - generic [ref=e1180]:
+                                - generic: Алмазы
+                          - generic [ref=e1182]:
+                            - generic [ref=e1183]: 1/1
+                            - text: Left
+                          - button "1" [ref=e1184]:
+                            - generic [ref=e1191]: "1"
+                    - generic [ref=e1193]:
+                      - generic:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic [ref=e1197]: "15"
+                              - generic [ref=e1198]:
+                                - generic: Алмазы
+                          - button "5" [ref=e1199]:
+                            - generic [ref=e1206]: "5"
+                    - generic [ref=e1208]:
+                      - generic:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic [ref=e1212]: "60"
+                              - generic [ref=e1213]:
+                                - generic: Алмазы
+                          - button "20" [ref=e1214]:
+                            - generic [ref=e1221]: "20"
+                    - generic [ref=e1223]:
+                      - generic:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic [ref=e1227]: "300"
+                              - generic [ref=e1228]:
+                                - generic: Алмазы
+                          - button "100" [ref=e1229]:
+                            - generic [ref=e1236]: "100"
+                    - generic [ref=e1238]:
+                      - generic:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic [ref=e1242]: "15"
+                              - generic [ref=e1243]:
+                                - generic: Монеты
+                          - generic [ref=e1245]:
+                            - generic [ref=e1246]: 1/1
+                            - text: Left
+                          - button "1" [ref=e1247]:
+                            - generic [ref=e1254]: "1"
+                    - generic [ref=e1256]:
+                      - generic:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic [ref=e1260]: "25"
+                              - generic [ref=e1261]:
+                                - generic: Монеты
+                          - button "5" [ref=e1262]:
+                            - generic [ref=e1269]: "5"
+                    - generic [ref=e1271]:
+                      - generic:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic [ref=e1275]: "100"
+                              - generic [ref=e1276]:
+                                - generic: Монеты
+                          - button "20" [ref=e1277]:
+                            - generic [ref=e1284]: "20"
+                    - generic [ref=e1286]:
+                      - generic:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic [ref=e1290]: "500"
+                              - generic [ref=e1291]:
+                                - generic: Монеты
+                          - button "100" [ref=e1292]:
+                            - generic [ref=e1299]: "100"
+                    - generic [ref=e1301]:
+                      - generic:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic [ref=e1305]: "20"
+                              - generic [ref=e1306]:
+                                - generic: ПП Билеты
+                          - generic [ref=e1308]:
+                            - generic [ref=e1309]: 1/1
+                            - text: Left
+                          - button "1" [ref=e1310]:
+                            - generic [ref=e1317]: "1"
+                    - generic [ref=e1319]:
+                      - generic:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic [ref=e1323]: "30"
+                              - generic [ref=e1324]:
+                                - generic: ПП Билеты
+                          - button "5" [ref=e1325]:
+                            - generic [ref=e1332]: "5"
+                    - generic [ref=e1334]:
+                      - generic:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic [ref=e1338]: "180"
+                              - generic [ref=e1339]:
+                                - generic: ПП Билеты
+                          - button "20" [ref=e1340]:
+                            - generic [ref=e1347]: "20"
+                    - generic [ref=e1349]:
+                      - generic:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic [ref=e1353]: "900"
+                              - generic [ref=e1354]:
+                                - generic: ПП Билеты
+                          - button "100" [ref=e1355]:
+                            - generic [ref=e1362]: "100"
+                    - generic [ref=e1364]:
+                      - generic:
+                        - generic:
+                          - generic [ref=e1368]: Бустер опыта 100%
+                          - generic [ref=e1370]:
+                            - generic [ref=e1371]: 1/1
+                            - text: Left
+                          - button "1" [ref=e1372]:
+                            - generic [ref=e1379]: "1"
+                    - generic [ref=e1381]:
+                      - generic:
+                        - generic:
+                          - generic [ref=e1385]: Преследование Ракетами Трейл
+                          - generic [ref=e1387]:
+                            - generic [ref=e1388]: 1/1
+                            - text: Left
+                          - button "50" [ref=e1389]:
+                            - generic [ref=e1396]: "50"
+                    - generic [ref=e1398]:
+                      - generic:
+                        - generic:
+                          - generic [ref=e1402]: Спец. Службы Тактический Мех
+                          - generic [ref=e1404]:
+                            - generic [ref=e1405]: 1/1
+                            - text: Left
+                          - button "50" [ref=e1406]:
+                            - generic [ref=e1413]: "50"
+                    - generic [ref=e1415]:
+                      - generic:
+                        - generic:
+                          - generic [ref=e1419]: Босс
+                          - generic [ref=e1421]:
+                            - generic [ref=e1422]: 1/1
+                            - text: Left
+                          - button "50" [ref=e1423]:
+                            - generic [ref=e1430]: "50"
+                    - generic [ref=e1432]:
+                      - generic:
+                        - generic:
+                          - generic [ref=e1436]: Зак Барретт
+                          - generic [ref=e1438]:
+                            - generic [ref=e1439]: 1/1
+                            - text: Left
+                          - button "50" [ref=e1440]:
+                            - generic [ref=e1447]: "50"
+                    - generic [ref=e1449]:
+                      - generic:
+                        - generic:
+                          - button [disabled]
+                          - button [disabled]
+                          - button "Один" [disabled]:
+                            - generic [ref=e1453]: Один
+                          - button [disabled]
+                          - button "1/1 Left" [disabled]:
+                            - generic [ref=e1455]:
+                              - generic [ref=e1456]: 1/1
+                              - text: Left
+                          - button "50" [disabled]:
+                            - button "50" [disabled] [ref=e1457]:
+                              - generic [ref=e1464]: "50"
+            - complementary [ref=e1465]:
+              - generic [ref=e1469]:
+                - generic [ref=e1470]:
+                  - generic [ref=e1472]:
+                    - img "Avatar" [ref=e1473]
+                    - button [ref=e1474]
+                  - generic [ref=e1477]:
+                    - heading "Храбрый Лев" [level=4] [ref=e1478]
+                    - generic [ref=e1481]: "0"
+                - link "daily reward Claim your Daily Rewards 1" [ref=e1482]:
+                  - /url: /daily-rewards
+                  - generic [ref=e1483]:
+                    - img "daily reward" [ref=e1484]
+                    - generic [ref=e1485]:
+                      - generic "Claim your" [ref=e1487]
+                      - generic [ref=e1488]: Daily Rewards
+                    - generic [ref=e1490]: "1"
+                - link "loyalty level Lvl. 1 0 / 2 2 until next lvl" [ref=e1491]:
+                  - /url: /loyalty-program
+                  - generic [ref=e1492]:
+                    - img "loyalty level" [ref=e1493]
+                    - generic [ref=e1494]:
+                      - paragraph [ref=e1495]: Lvl. 1
+                      - generic [ref=e1498]:
+                        - generic [ref=e1499]: "0"
+                        - generic [ref=e1500]: /
+                        - generic [ref=e1501]: "2"
+                  - paragraph [ref=e1505]: 2 until next lvl
+                - generic [ref=e1506]:
+                  - heading "Events" [level=5] [ref=e1507]
+                  - link "Lore Database Achievements 6 days ago" [ref=e1508]:
+                    - /url: /events/lore-database-achievements
+                    - generic [ref=e1509]:
+                      - generic [ref=e1510]: Lore Database Achievements
+                      - generic "1/16/2026, 2:00:00 PM" [ref=e1512]: 6 days ago
+                  - link "Lock & Load Event 13 days ago" [ref=e1513]:
+                    - /url: /events/lock-load-event-4
+                    - generic [ref=e1514]:
+                      - generic [ref=e1515]: Lock & Load Event
+                      - generic "1/9/2026, 4:00:00 PM" [ref=e1517]: 13 days ago
+                  - link "Rioters Lottery & AI Arena Host Set 15 days ago" [ref=e1518]:
+                    - /url: /events/rioters-lottery-ai-arena-host-set
+                    - generic [ref=e1519]:
+                      - generic [ref=e1520]: Rioters Lottery & AI Arena Host Set
+                      - generic "1/7/2026, 7:00:00 PM" [ref=e1522]: 15 days ago
+                  - link "Digital Arena Season 16 days ago" [ref=e1523]:
+                    - /url: /events/digital-arena-season
+                    - generic [ref=e1524]:
+                      - generic [ref=e1525]: Digital Arena Season
+                      - generic "1/6/2026, 1:00:00 PM" [ref=e1527]: 16 days ago
+                - button "Customer Support" [ref=e1528]:
+                  - generic [ref=e1530]: Customer Support
+                - paragraph [ref=e1533]: Operated by Aghanim
+          - region "Notifications alt+T"
+        - status [ref=e1534]
+    - complementary [ref=e1535]:
+      - generic [ref=e1537]: Configuration not loaded yet
+  - status [ref=e1538]:
+    - generic [ref=e1539]:
+      - img [ref=e1541]
+      - generic [ref=e1543]:
+        - text: Static route
+        - button "Hide static indicator" [ref=e1544] [cursor=pointer]:
+          - img [ref=e1545]
+  - alert [ref=e1548]
+```

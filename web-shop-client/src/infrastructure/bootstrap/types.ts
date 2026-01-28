@@ -43,9 +43,11 @@ export const TYPES = {
 	UIActionHandler: Symbol.for('UIActionHandler'),
 	LoadAppConfig: Symbol.for('LoadAppConfig'),
 	LoadAppConfigFromMessage: Symbol.for('LoadAppConfigFromMessage'),
+	LoadGrapeJsConfig: Symbol.for('LoadGrapeJsConfig'),
 	SupabaseConfigLoader: Symbol.for('SupabaseConfigLoader'),
 	ConfigSubscriptionPort: Symbol.for('ConfigSubscriptionPort'),
 	SubscribeToConfigUpdates: Symbol.for('SubscribeToConfigUpdates'),
+	AppConfigRepository: Symbol.for('AppConfigRepository'),
 	AppContext: Symbol.for('AppContext'),
 	GetAppContext: Symbol.for('GetAppContext')
 } as const;

@@ -3,7 +3,8 @@ import type { EventBus } from '../ports/event-bus.port';
 import type { Logger } from '../ports/logger.port';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { AppConfigLoadedEvent } from '../../shared/events/app-config-events';
-import type { AppConfig } from '../../shared/config/app-config.types';
+import type { GrapeJsAppConfig } from '../../shared/config/grapejs-app-config.types';
+import { GrapeJsToLegacyAdapter } from '../../shared/adapters/grapejs-to-legacy.adapter';
 import type { SupabaseConfigLoader } from '../../infrastructure/config/supabase-config-loader';
 
 @injectable()
@@ -18,6 +19,8 @@ export class LoadAppConfigUseCase {
   ) { }
 
   public async execute(isDraft?: boolean, appId?: string): Promise<void> {
+    console.log('[LoadAppConfigUseCase] Execute called', { isDraft, appId });
+
     let shouldLoadDraft = typeof isDraft === 'boolean'
       ? isDraft
       : this._shouldLoadDraftFromEnvironment();
@@ -27,23 +30,35 @@ export class LoadAppConfigUseCase {
       shouldLoadDraft = true;
     }
 
+    console.log('[LoadAppConfigUseCase] Config load parameters', {
+      shouldLoadDraft,
+      isUIBuilderMode,
+      appId
+    });
+
     try {
       if (!appId) {
         throw new Error('[LoadAppConfigUseCase] appId is required but was not provided');
       }
 
-      let config: AppConfig | null = null;
+      let config: GrapeJsAppConfig | null = null;
+
+      console.log('[LoadAppConfigUseCase] Loading config', { shouldLoadDraft });
 
       if (shouldLoadDraft) {
+        console.log('[LoadAppConfigUseCase] Loading draft config');
         config = await this._supabaseLoader.loadDraftConfig(appId);
 
         if (!config && !isUIBuilderMode) {
+          console.log('[LoadAppConfigUseCase] Draft config not found, loading active config');
           config = await this._supabaseLoader.loadConfig(appId);
         }
       } else {
+        console.log('[LoadAppConfigUseCase] Loading active config');
         config = await this._supabaseLoader.loadConfig(appId);
 
         if (!config) {
+          console.log('[LoadAppConfigUseCase] Active config not found, loading draft config');
           config = await this._supabaseLoader.loadDraftConfig(appId);
         }
       }
@@ -55,8 +70,31 @@ export class LoadAppConfigUseCase {
         );
       }
 
-      await this._eventBus.publishAsync(new AppConfigLoadedEvent(config as AppConfig));
+      console.log('[LoadAppConfigUseCase] Config loaded successfully', {
+        hasConfig: !!config,
+        configType: shouldLoadDraft ? 'draft' : 'active',
+        pagesCount: config.pages?.length || 0,
+        stylesCount: config.styles?.length || 0
+      });
+
+      // Преобразуем GrapeJS данные в совместимый формат AppConfig
+      console.log('[LoadAppConfigUseCase] Converting GrapeJS config to legacy format');
+      const legacyConfig = GrapeJsToLegacyAdapter.convert(config);
+      console.log('[LoadAppConfigUseCase] Legacy config created', {
+        hasTheme: !!legacyConfig.theme,
+        hasModules: !!legacyConfig.modules,
+        modulesKeys: legacyConfig.modules ? Object.keys(legacyConfig.modules) : [],
+        offerCardsCount: (legacyConfig as any)?.offerCards?.length || 0
+      });
+
+      console.log('[LoadAppConfigUseCase] Publishing AppConfigLoadedEvent');
+      const event = new AppConfigLoadedEvent(legacyConfig);
+      console.log('[LoadAppConfigUseCase] Event created', { eventType: event.type });
+      await this._eventBus.publishAsync(event);
+
+      console.log('[LoadAppConfigUseCase] Config load completed successfully');
     } catch (error) {
+      console.error('[LoadAppConfigUseCase] Error during config load', error);
       throw error;
     }
   }

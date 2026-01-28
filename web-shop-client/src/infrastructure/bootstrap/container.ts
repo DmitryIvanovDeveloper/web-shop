@@ -28,10 +28,13 @@ import { UIActionHandler } from '../services/ui-renderer/action-handler.service'
 import type { UIRendererPort } from '../../application/ports/ui-renderer.port';
 import { LoadAppConfigUseCase } from '../../application/use-cases/load-app-config.use-case';
 import { LoadAppConfigFromMessageUseCase } from '../../application/use-cases/load-app-config-from-message.use-case';
+import { LoadGrapeJsConfigUseCase } from '../../application/use-cases/load-grapejs-config.use-case';
 import { SupabaseConfigLoader } from '../config/supabase-config-loader';
 import { ConfigSubscriptionPort } from '../../application/ports/config-subscription.port';
 import { SupabaseConfigSubscriptionAdapter } from '../config/supabase-config-subscription.adapter';
 import { SubscribeToConfigUpdatesUseCase } from '../../application/use-cases/subscribe-to-config-updates.use-case';
+import { AppConfigHttpRepository } from '../../modules/app-config/infrastructure/repositories/app-config-http.repository';
+import type { AppConfigRepositoryPort } from '../../modules/app-config/application/ports/app-config-repository.port';
 import { UIConfigLoadedHandler } from '../handlers/ui-config-loaded.handler';
 import { ApplyBackgroundOnConfigHandler } from '../handlers/apply-background-on-config.handler';
 import { IAsyncEventHandler } from '../events/events-handler.plugin';
@@ -83,9 +86,15 @@ bindPatchNotes(container);
 
 bindDailyRewards(container);
 
+
+container.bind<AppConfigRepositoryPort>(TYPES.AppConfigRepository)
+  .to(AppConfigHttpRepository)
+  .inSingletonScope();
+
 container.bind(TYPES.SupabaseConfigLoader).to(SupabaseConfigLoader).inSingletonScope();
 container.bind(TYPES.LoadAppConfig).to(LoadAppConfigUseCase).inSingletonScope();
 container.bind(TYPES.LoadAppConfigFromMessage).to(LoadAppConfigFromMessageUseCase).inSingletonScope();
+container.bind(TYPES.LoadGrapeJsConfig).to(LoadGrapeJsConfigUseCase).inSingletonScope();
 
 container.bind<ConfigSubscriptionPort>(TYPES.ConfigSubscriptionPort).to(SupabaseConfigSubscriptionAdapter).inSingletonScope();
 container.bind(TYPES.SubscribeToConfigUpdates).to(SubscribeToConfigUpdatesUseCase).inSingletonScope();

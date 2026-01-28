@@ -1,0 +1,16 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Site Renderer Test</title>
+</head>
+<body>
+    <h1>Rendered Site Preview</h1>
+    <iframe src="http://localhost:3000/api/render-site?appId=test-app" width="100%" height="600px" style="border:1px solid #ccc;"></iframe>
+    
+    <h2>Preview Mode</h2>
+    <iframe src="http://localhost:3000/api/render-site?appId=test-app&mode=preview" width="100%" height="400px" style="border:1px solid #ccc;"></iframe>
+    
+    <h2>Direct Link</h2>
+    <p><a href="http://localhost:3000/api/render-site?appId=test-app" target="_blank">Open rendered site</a></p>
+</body>
+</html>
