@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { container } from '@/infrastructure/bootstrap/container';
 import { TYPES } from '@/infrastructure/bootstrap/types';
 import type { DatabaseClientPort } from '@/application/ports/database-client.port';

@@ -69,8 +69,9 @@ export async function POST(request: NextRequest) {
           results.push({ key, success: true });
           console.log(`Successfully updated translation for key: ${key}`);
         }
-      } catch (error) {
-              }
+      } catch {
+        console.error(`Unexpected error updating translation for key: ${key}`);
+      }
     }
 
         return NextResponse.json({

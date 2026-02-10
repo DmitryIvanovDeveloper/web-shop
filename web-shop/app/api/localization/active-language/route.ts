@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '../../_lib/supabase-server-client';
 
 export async function GET() {
@@ -27,8 +27,8 @@ export async function GET() {
     } : null;
 
     return NextResponse.json(activeLanguage);
-  } catch (error) {
-        return NextResponse.json(
+  } catch {
+    return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );

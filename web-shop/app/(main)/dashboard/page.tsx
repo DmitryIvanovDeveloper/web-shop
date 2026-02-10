@@ -77,7 +77,8 @@ export default function DashboardPage() {
 
     try {
       resolveDeps();
-    } catch (e) {
+    } catch {
+      // Ignore dependency resolution errors during development
     }
 
     return () => {

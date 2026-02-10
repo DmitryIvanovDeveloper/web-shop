@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '../../../_lib/supabase-server-client';
 
+interface LanguageUpdateData {
+  updated_at: string;
+  name?: string;
+  native_name?: string;
+  fallback_code?: string;
+}
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ code: string }> }
@@ -19,7 +26,7 @@ export async function PUT(
 
     const supabase = getSupabaseServerClient();
 
-    const updateData: any = {
+    const updateData: LanguageUpdateData = {
       updated_at: new Date().toISOString()
     };
 

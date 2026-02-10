@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '../../_lib/supabase-server-client';
 
+interface LanguageRow {
+  id: string;
+  code: string;
+  name: string;
+  native_name: string;
+  direction: string;
+  is_active: boolean;
+  fallback_code: string | null;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -51,7 +61,7 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      const languages = data.map((language: any) => ({
+      const languages = data.map((language: LanguageRow) => ({
         id: language.id,
         code: language.code,
         name: language.name,

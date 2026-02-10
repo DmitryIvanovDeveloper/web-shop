@@ -43,8 +43,8 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Language deactivated successfully'
     });
-  } catch (error) {
-        return NextResponse.json(
+  } catch {
+    return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );
