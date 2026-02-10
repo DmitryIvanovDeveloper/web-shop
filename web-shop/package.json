@@ -15,9 +15,12 @@
     "migrate:data:check": "node scripts/migrate-all-data.js"
   },
   "dependencies": {
+    "@grapesjs/react": "^3.0.0",
     "@nivo/line": "^0.99.0",
     "@supabase/supabase-js": "^2.76.1",
     "@tailwindcss/line-clamp": "^0.4.4",
+    "grapesjs": "^0.21.10",
+    "grapesjs-preset-webpage": "^0.1.11",
     "inversify": "^7.10.2",
     "lucide-react": "^0.546.0",
     "next": "15.1.2",
