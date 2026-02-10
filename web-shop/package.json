@@ -15,7 +15,7 @@
     "migrate:data:check": "node scripts/migrate-all-data.js"
   },
   "dependencies": {
-    "@grapesjs/react": "^3.0.0",
+    "@grapesjs/react": "^2.0.1",
     "@nivo/line": "^0.99.0",
     "@supabase/supabase-js": "^2.76.1",
     "@tailwindcss/line-clamp": "^0.4.4",
