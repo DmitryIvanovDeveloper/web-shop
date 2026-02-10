@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const results = [];
+    const results: Array<{ key: string; success: boolean; error?: string }> = [];
     for (const translation of translations) {
       const { key, value, context } = translation;
 
@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
 
         if (result.error) {
           console.error(`Failed to update translation for key: ${key}`, result.error);
+          results.push({ key, success: false, error: result.error.message });
         } else {
           results.push({ key, success: true });
           console.log(`Successfully updated translation for key: ${key}`);

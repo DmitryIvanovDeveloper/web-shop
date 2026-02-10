@@ -149,6 +149,62 @@ export class SupabaseRevenueRepository implements RevenueRepositoryPort {
     }
   }
 
+  async getRevenueTrend(startDate: Date, endDate: Date, interval: string): Promise<TrendDataPoint[]> {
+    try {
+      const startDateStr = startDate.toISOString();
+      const endDateStr = endDate.toISOString();
+
+      const { data, error } = await this._supabase
+        .from('transactions')
+        .select('created_at, amount')
+        .gte('created_at', startDateStr)
+        .lte('created_at', endDateStr)
+        .eq('status', 'completed');
+
+      if (error) {
+        this._logger.error('Failed to fetch revenue trend data', error);
+        return [];
+      }
+
+      // Group by interval
+      const trendMap = new Map<string, number>();
+
+      (data || []).forEach(item => {
+        let key: string;
+        const date = new Date(item.created_at);
+
+        switch (interval) {
+          case 'hour':
+            key = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}-${date.getHours()}`;
+            break;
+          case 'day':
+            key = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+            break;
+          case 'week':
+            const weekStart = new Date(date);
+            weekStart.setDate(date.getDate() - date.getDay());
+            key = `${weekStart.getFullYear()}-${weekStart.getMonth() + 1}-${weekStart.getDate()}`;
+            break;
+          case 'month':
+            key = `${date.getFullYear()}-${date.getMonth() + 1}`;
+            break;
+          default:
+            key = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+        }
+
+        trendMap.set(key, (trendMap.get(key) || 0) + item.amount);
+      });
+
+      return Array.from(trendMap.entries()).map(([date, value]) => ({
+        timestamp: new Date(date),
+        value
+      })).sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    } catch (error) {
+      this._logger.error('Failed to fetch revenue trend data', error);
+      return [];
+    }
+  }
+
   private getLast30DaysDate(): string {
     const date = new Date();
     date.setDate(date.getDate() - 30);

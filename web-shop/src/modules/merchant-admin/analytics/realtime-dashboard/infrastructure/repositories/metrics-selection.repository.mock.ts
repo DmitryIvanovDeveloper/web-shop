@@ -5,17 +5,14 @@ export interface MetricsSelection {
 }
 
 import type { Logger } from '../../../../../../application/ports/logger.port';
-import { ROOT_TYPES } from '../../../../../../infrastructure/bootstrap/types';
-import { inject, injectable } from 'inversify';
 
-@injectable()
 export class MetricsSelectionRepositoryMock {
   private selection: MetricsSelection | null = null;
+  private logger: Logger;
 
-  constructor(
-    @inject(ROOT_TYPES.Logger)
-    private readonly logger: Logger
-  ) {}
+  constructor(logger: Logger) {
+    this.logger = logger;
+  }
 
   async load(): Promise<MetricsSelection | null> {
     try {
@@ -57,4 +54,9 @@ export class MetricsSelectionRepositoryMock {
   }
 }
 
-export const metricsSelectionRepository = new MetricsSelectionRepositoryMock();
+export const metricsSelectionRepository = new MetricsSelectionRepositoryMock({
+  info: () => {},
+  warn: () => {},
+  debug: () => {},
+  error: () => {},
+});
