@@ -11,6 +11,19 @@ interface PageProps {
   }>;
 }
 
+interface DailyRewardDto {
+  id: string;
+  appId: string;
+  type: string;
+  title: string;
+  description: string;
+  points: number;
+  isActive: boolean;
+  dayNumber: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const containerStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
@@ -55,10 +68,10 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
   const appId = params?.appId;
 
   const [isLoading, setIsLoading] = useState(true);
-  const [rewards, setRewards] = useState<any[]>([]);
+  const [rewards, setRewards] = useState<DailyRewardDto[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingReward, setEditingReward] = useState<any | null>(null);
+  const [editingReward, setEditingReward] = useState<DailyRewardDto | null>(null);
 
   const loadRewards = useCallback(async (): Promise<void> => {
     setIsLoading(true);
@@ -105,7 +118,7 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
   const handleCreateReward = async (formData: FormData): Promise<void> => {
     try {
       const dayNumberValue = formData.get('dayNumber');
-      const data: any = {
+      const data: Omit<DailyRewardDto, 'id' | 'isActive' | 'createdAt' | 'updatedAt'> = {
         appId,
         type: formData.get('type'),
         title: formData.get('title'),
@@ -138,7 +151,7 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
           }
   };
 
-  const handleEditReward = (reward: any): void => {
+  const handleEditReward = (reward: DailyRewardDto): void => {
     setEditingReward(reward);
   };
 
@@ -147,7 +160,7 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
 
     try {
       const dayNumberValue = formData.get('dayNumber');
-      const data: any = {
+      const data: Partial<Pick<DailyRewardDto, 'title' | 'description' | 'points' | 'isActive' | 'dayNumber'>> = {
         title: formData.get('title'),
         description: formData.get('description'),
         points: parseInt(formData.get('points') as string),

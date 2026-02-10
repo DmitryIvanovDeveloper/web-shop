@@ -88,8 +88,8 @@ export async function POST(request: NextRequest) {
       updatedCount,
       createdCount
     });
-  } catch (error) {
-        return NextResponse.json(
+  } catch {
+    return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );

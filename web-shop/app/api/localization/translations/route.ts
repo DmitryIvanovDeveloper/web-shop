@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '../../_lib/supabase-server-client';
 
+interface Translation {
+  key: string;
+  value: string;
+  language_code: string;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -28,9 +34,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const allKeys = (data || []).map((t: any) => t.key);
-    const navKeys = (data || []).filter((t: any) => t.key && t.key.startsWith('nav.')).map((t: any) => t.key);
-    const allNavTranslations = (data || []).filter((t: any) => t.key && t.key.startsWith('nav.')).map((t: any) => ({ key: t.key, value: t.value }));
+    const allKeys = (data || []).map((t: Translation) => t.key);
+    const navKeys = (data || []).filter((t: Translation) => t.key && t.key.startsWith('nav.')).map((t: Translation) => t.key);
+    const allNavTranslations = (data || []).filter((t: Translation) => t.key && t.key.startsWith('nav.')).map((t: Translation) => ({ key: t.key, value: t.value }));
     const expectedNavKeys = ['nav.home', 'nav.store', 'nav.patchNotes', 'nav.dailyRewards', 'nav.loyaltyProgram', 'nav.news', 'nav.updates', 'nav.events'];
     const missingNavKeys = expectedNavKeys.filter(key => !navKeys.includes(key));
 
@@ -129,8 +135,8 @@ export async function POST(request: NextRequest) {
       message: 'Bulk translation update completed',
       results
     });
-  } catch (error) {
-        return NextResponse.json(
+  } catch {
+    return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     );

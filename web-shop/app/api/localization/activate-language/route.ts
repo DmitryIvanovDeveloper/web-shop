@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       message: 'Language activated successfully',
       languageCode
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
