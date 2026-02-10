@@ -10,9 +10,9 @@ interface CheckDailyRewardAvailabilityInput {
 interface CheckDailyRewardAvailabilityOutput {
   canClaim: boolean;
   reward: DailyRewardOutput | null;
-  lastClaimDate: Date | undefined;
-  lastClaimRewardId: string | undefined;
-  nextClaimDate: Date | undefined;
+  lastClaimDate: Date | null;
+  lastClaimRewardId: string | null;
+  nextClaimDate: Date | null;
 }
 
 interface DailyRewardOutput {
@@ -54,9 +54,9 @@ export class CheckDailyRewardAvailabilityUseCase {
       return Result.ok({
         canClaim: availability.canClaim,
         reward: availability.reward ? this.mapRewardToOutput(availability.reward) : null,
-        lastClaimDate: availability.lastClaimDate || undefined,
-        lastClaimRewardId: availability.lastClaimRewardId || undefined,
-        nextClaimDate: availability.nextClaimDate || undefined
+        lastClaimDate: availability.lastClaimDate,
+        lastClaimRewardId: availability.lastClaimRewardId,
+        nextClaimDate: availability.nextClaimDate
       });
     } catch (error) {
       return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
