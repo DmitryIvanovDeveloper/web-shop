@@ -9,6 +9,9 @@ interface LanguageRow {
   direction: string;
   is_active: boolean;
   fallback_code: string | null;
+  flag: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export async function GET(request: NextRequest) {

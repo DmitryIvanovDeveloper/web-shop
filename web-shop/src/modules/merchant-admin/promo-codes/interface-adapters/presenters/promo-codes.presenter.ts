@@ -315,6 +315,16 @@ export class PromoCodesPresenter {
     };
     this._notify();
 
+    if (!this._viewModel.editingId) {
+      this._viewModel = {
+        ...this._viewModel,
+        isSaving: false,
+        errorMessage: 'No promo code selected for editing',
+      };
+      this._notify();
+      return;
+    }
+
     const result = await this.updatePromoCodeUseCase.execute({
       id: this._viewModel.editingId,
       appId: this._appId,

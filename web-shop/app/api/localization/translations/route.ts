@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL
     });
 
-    const translations = data.map(translation => ({
+    const translations = (data || []).map(translation => ({
       key: translation.key,
       languageCode: translation.language_code,
       value: translation.value,
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const results = [];
+    const results: Array<{ key: string; languageCode: string; success: boolean; error?: string }> = [];
 
     for (const update of updates) {
       const { key, languageCode, value } = update;

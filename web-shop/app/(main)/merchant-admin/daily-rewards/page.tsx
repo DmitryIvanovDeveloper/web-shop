@@ -116,21 +116,31 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
   }, [params.appId, loadRewards]);
 
   const handleCreateReward = async (formData: FormData): Promise<void> => {
+    if (!appId) {
+      setError('App ID is required');
+      return;
+    }
+
     try {
       const dayNumberValue = formData.get('dayNumber');
+      const typeValue = formData.get('type');
+      const titleValue = formData.get('title');
+      const descriptionValue = formData.get('description');
+      const pointsValue = formData.get('points');
+
+      if (!typeValue || !titleValue || !descriptionValue || !pointsValue) {
+        setError('All fields are required');
+        return;
+      }
+
       const data: Omit<DailyRewardDto, 'id' | 'isActive' | 'createdAt' | 'updatedAt'> = {
         appId,
-        type: formData.get('type'),
-        title: formData.get('title'),
-        description: formData.get('description'),
-        points: parseInt(formData.get('points') as string),
+        type: typeValue as string,
+        title: titleValue as string,
+        description: descriptionValue as string,
+        points: parseInt(pointsValue as string),
+        dayNumber: dayNumberValue && dayNumberValue !== '' ? parseInt(dayNumberValue as string) : null,
       };
-
-      if (dayNumberValue && dayNumberValue !== '') {
-        data.dayNumber = parseInt(dayNumberValue as string);
-      } else {
-        data.dayNumber = null;
-      }
 
       const response = await fetch('/api/merchant-admin/daily-rewards', {
         method: 'POST',
@@ -160,10 +170,12 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
 
     try {
       const dayNumberValue = formData.get('dayNumber');
+      const pointsValue = formData.get('points');
+
       const data: Partial<Pick<DailyRewardDto, 'title' | 'description' | 'points' | 'isActive' | 'dayNumber'>> = {
-        title: formData.get('title'),
-        description: formData.get('description'),
-        points: parseInt(formData.get('points') as string),
+        title: formData.get('title') as string | undefined,
+        description: formData.get('description') as string | undefined,
+        points: pointsValue ? parseInt(pointsValue as string) : undefined,
         isActive: formData.get('isActive') === 'true',
       };
 
@@ -208,6 +220,17 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
       setError('Failed to delete reward');
           }
   };
+
+  if (!appId) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Error</h1>
+          <p className="text-gray-600">App ID is required</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={containerStyle}>
@@ -496,7 +519,7 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
                     name="dayNumber"
                     type="number"
                     min="1"
-                    defaultValue={editingReward.day_number ?? ''}
+                    defaultValue={editingReward.dayNumber ?? ''}
                     placeholder="Leave empty for non-day-specific reward"
                     style={{
                       width: '100%',
@@ -517,7 +540,7 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
                   </label>
                   <select
                     name="isActive"
-                    defaultValue={editingReward.is_active ? 'true' : 'false'}
+                    defaultValue={editingReward.isActive ? 'true' : 'false'}
                     style={{
                       width: '100%',
                       padding: '8px 12px',
@@ -605,7 +628,7 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
                           {reward.type === 'points' ? '💰' : reward.type === 'currency' ? '💎' : '📦'}
                         </span>
                         <h3 style={{ fontSize: '16px', fontWeight: 600 }}>{reward.title}</h3>
-                        {reward.day_number && (
+                        {reward.dayNumber && (
                           <span
                             style={{
                               padding: '4px 8px',
@@ -616,7 +639,7 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
                               fontWeight: 600,
                             }}
                           >
-                            DAY {reward.day_number}
+                            DAY {reward.dayNumber}
                           </span>
                         )}
                         <span
@@ -624,11 +647,11 @@ export default function DailyRewardsPage({ searchParams }: PageProps): JSX.Eleme
                             padding: '4px 8px',
                             borderRadius: '6px',
                             fontSize: '12px',
-                            background: reward.is_active ? 'rgba(34, 197, 94, 0.2)' : 'rgba(156, 163, 175, 0.2)',
-                            color: reward.is_active ? '#22C55E' : '#9CA3AF',
+                            background: reward.isActive ? 'rgba(34, 197, 94, 0.2)' : 'rgba(156, 163, 175, 0.2)',
+                            color: reward.isActive ? '#22C55E' : '#9CA3AF',
                           }}
                         >
-                          {reward.is_active ? 'Active' : 'Inactive'}
+                          {reward.isActive ? 'Active' : 'Inactive'}
                         </span>
                       </div>
                       <p style={{ color: '#94A3B8', fontSize: '14px', marginBottom: '8px' }}>

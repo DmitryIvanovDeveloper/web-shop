@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import type { Result } from '../../../../../shared/result/result';
+import type { Result } from '../../../../shared/result/result';
 import type { PatchNoteRepositoryPort } from '../ports/patch-note-repository.port';
 import type { PatchNoteOutput } from '../types/patch-note.types';
 import { MERCHANT_ADMIN_PATCH_NOTES_TYPES } from '../../infrastructure/bootstrap/types';
@@ -21,14 +21,14 @@ export class PublishPatchNoteUseCase {
       
       const findResult = await this._patchNoteRepository.findById(input.id, input.appId);
       if (!findResult.isSuccess) {
-        return findResult;
+        return Result.fail(findResult.error);
       }
 
-      if (!findResult.data) {
-        return { isSuccess: false, error: new Error('Patch note not found') };
+      if (!findResult.value) {
+        return Result.fail(new Error('Patch note not found'));
       }
 
-      const patchNote = findResult.data;
+      const patchNote = findResult.value;
 
       if (patchNote.status === 'published') {
         return { isSuccess: false, error: new Error('Patch note is already published') };
@@ -39,17 +39,17 @@ export class PublishPatchNoteUseCase {
 
       const updateResult = await this._patchNoteRepository.update(patchNote);
       if (!updateResult.isSuccess) {
-        return updateResult;
+        return Result.fail(updateResult.error);
       }
 
-      const updatedNote = updateResult.data;
+      const updatedNote = updateResult.value;
 
       const output: PatchNoteOutput = {
         id: updatedNote.id.value,
         version: updatedNote.version.value,
         title: updatedNote.title,
         description: updatedNote.description,
-        changes: updatedNote.changes.map(change => ({
+        changes: updatedNote.changes.map((change: any) => ({
           type: change.type,
           description: change.description
         })),
@@ -60,10 +60,10 @@ export class PublishPatchNoteUseCase {
         scheduledFor: updatedNote.scheduledFor?.toISOString()
       };
 
-      return { isSuccess: true, data: output };
+      return Result.ok(output);
 
     } catch (error) {
-      return { isSuccess: false, error: error instanceof Error ? error : new Error('Unknown error') };
+      return Result.fail(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 }

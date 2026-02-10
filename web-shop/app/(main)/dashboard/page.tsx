@@ -112,6 +112,21 @@ export default function DashboardPage() {
     }
   };
 
+  const handleToggleFullscreen = (panelId: string) => {
+    console.log('Toggle fullscreen for panel:', panelId);
+    // TODO: Implement fullscreen toggle
+  };
+
+  const handleDrillDown = (data: any) => {
+    console.log('Drill down with data:', data);
+    // TODO: Implement drill down functionality
+  };
+
+  const handleExport = (format: string) => {
+    console.log('Export dashboard in format:', format);
+    // TODO: Implement export functionality
+  };
+
   const handleLoadFilterPreset = (presetId: string) => {
     if (presenter) {
       presenter.loadFilterPreset(presetId);
@@ -133,6 +148,9 @@ export default function DashboardPage() {
           onResetSettings={handleResetSettings}
           onApplyFilters={handleApplyFilters}
           onResetFilters={handleResetFilters}
+          onToggleFullscreen={handleToggleFullscreen}
+          onDrillDown={handleDrillDown}
+          onExport={handleExport}
           onLoadFilterPreset={handleLoadFilterPreset}
           onSaveFilterPreset={handleSaveFilterPreset}
           labels={{
