@@ -1,6 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { Result } from '@/shared/result/result';
 // Import types would be needed here, but since this is a client-side module, we'll use simplified types
+// Updated for Vercel compatibility - ensuring Date | null types are properly handled
 
 interface CheckDailyRewardAvailabilityInput {
   userId: string;
