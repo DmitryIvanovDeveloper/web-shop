@@ -62,8 +62,7 @@ export async function POST(request: NextRequest) {
         const result = await uploadUseCase.execute({ file });
 
     if (result.isFailure()) {
-      ),
-      });
+      console.error('Failed to upload image:', result.error);
       return NextResponse.json(
         { error: result.error?.message || 'Failed to upload image' },
         { status: 500 }

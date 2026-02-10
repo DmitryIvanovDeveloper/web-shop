@@ -132,9 +132,11 @@ export async function PUT(request: NextRequest) {
     if (product.main_image) {
       if (product.main_image.startsWith('data:')) {
         const imageSize = product.main_image.length;
-              } else if (product.main_image.startsWith('http')) {
-              } else {
-        );
+        // TODO: Process base64 image data
+      } else if (product.main_image.startsWith('http')) {
+        // TODO: Process external image URL
+      } else {
+        // TODO: Process local image path
       }
     }
 

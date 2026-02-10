@@ -96,7 +96,8 @@ export const POST = async (request: NextRequest) => {
     const scenariosJson = JSON.stringify(ruleTree.scenarios);
     const scenariosSizeBytes = Buffer.byteLength(scenariosJson, 'utf8');
 
-    .toFixed(2)} KB`,
+    console.log('Rule tree size statistics:', {
+      ruleSetSizeBytes: `${(ruleSetSizeBytes / 1024).toFixed(2)} KB`,
       scenariosSizeBytes: `${(scenariosSizeBytes / 1024).toFixed(2)} KB`,
       metadataSizeBytes: `${((ruleTreeSizeBytes - ruleSetSizeBytes - scenariosSizeBytes) / 1024).toFixed(2)} KB`,
       totalSizeBytes: ruleTreeSizeBytes,
@@ -105,9 +106,9 @@ export const POST = async (request: NextRequest) => {
     });
 
     if (ruleTreeSizeBytes > 10 * 1024 * 1024) {
-      , this may cause performance issues');
+      console.warn('Rule tree is very large, this may cause performance issues');
     } else if (ruleTreeSizeBytes > 1 * 1024 * 1024) {
-      , consider optimizing');
+      console.warn('Rule tree is large, consider optimizing');
     }
 
     const savePayload = {

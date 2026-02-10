@@ -23,11 +23,6 @@ export async function GET(
     if (imagePath.startsWith('Images/')) {
       imagePath = imagePath.substring('Images/'.length);
     }
-    
-    ,
-      imagePath,
-      bucket: 'Images',
-    });
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 

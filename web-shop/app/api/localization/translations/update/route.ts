@@ -64,9 +64,10 @@ export async function POST(request: NextRequest) {
         }
 
         if (result.error) {
-                  } else {
+          console.error(`Failed to update translation for key: ${key}`, result.error);
+        } else {
           results.push({ key, success: true });
-          + '...' });
+          console.log(`Successfully updated translation for key: ${key}`);
         }
       } catch (error) {
               }

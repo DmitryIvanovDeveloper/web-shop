@@ -33,9 +33,11 @@ export async function GET(request: NextRequest) {
     const allNavTranslations = (data || []).filter((t: any) => t.key && t.key.startsWith('nav.')).map((t: any) => ({ key: t.key, value: t.value }));
     const expectedNavKeys = ['nav.home', 'nav.store', 'nav.patchNotes', 'nav.dailyRewards', 'nav.loyaltyProgram', 'nav.news', 'nav.updates', 'nav.events'];
     const missingNavKeys = expectedNavKeys.filter(key => !navKeys.includes(key));
-    
-    .length,
-      allKeys: allKeys.slice(0, 20), 
+
+    return NextResponse.json({
+      translations: data || [],
+      totalCount: (data || []).length,
+      allKeys: allKeys.slice(0, 20),
       navKeys: navKeys,
       navKeysCount: navKeys.length,
       allNavTranslations: allNavTranslations,
