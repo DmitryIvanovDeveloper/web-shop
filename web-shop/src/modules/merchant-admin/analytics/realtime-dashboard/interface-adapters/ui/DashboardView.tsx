@@ -12,15 +12,26 @@ interface DashboardViewProps {
   onToggleFullscreen: (panelId: string) => void;
   onDrillDown: (data: any) => void;
   onExport: (format: string) => void;
+  onLoadFilterPreset?: (presetId: string) => void;
+  onSaveFilterPreset?: (name: string) => void;
+  labels?: {
+    title?: string;
+    loading?: string;
+    error?: string;
+    noData?: string;
+  };
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   viewModel,
+  onLoadFilterPreset,
+  onSaveFilterPreset,
+  labels,
 }) => {
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-lg p-6 shadow">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Analytics Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">{labels?.title || 'Analytics Dashboard'}</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-blue-50 p-4 rounded-lg">
             <div className="text-sm text-blue-600 font-medium">Total Sales</div>
