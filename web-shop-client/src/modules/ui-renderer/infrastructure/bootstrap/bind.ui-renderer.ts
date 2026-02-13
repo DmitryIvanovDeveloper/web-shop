@@ -8,7 +8,7 @@ import { UIRendererTranslationsConfigHandler } from '../../interface-adapters/ha
 import { UIRendererLanguageChangedHandler } from '../../interface-adapters/handlers/language-changed.handler';
 import { AppConfigLoadedEvent } from '../../../../shared/events/app-config-events';
 import { TranslationsConfigEvent } from '../../../localization/domain/events/translations-config.event';
-import { LanguageChangedEvent } from '@/modules/localization/domain/events/language-changed.event';
+import { LanguageChangedEvent } from '../../../localization/domain/events/language-changed.event';
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
 import { UI_RENDERER_TYPES } from './types';
 
