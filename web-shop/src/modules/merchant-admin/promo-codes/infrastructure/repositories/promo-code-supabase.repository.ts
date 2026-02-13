@@ -2,7 +2,7 @@ import { inject, injectable } from 'inversify';
 import type { Logger } from '../../../../../application/ports/logger.port';
 import type { HttpClient } from '../../../../../application/ports/http-client.port';
 import { ROOT_TYPES, TYPES } from '../../../../../infrastructure/bootstrap/types';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import type {
   PaginatedResult,
   PaginationParams,
@@ -120,11 +120,11 @@ export class PromoCodeSupabaseRepository implements PromoCodeRepositoryPort {
       }
 
       const entityResult = mapDtoToEntity(dto);
-      if (entityResult.isFailure()) {
+      if (entityResult.isFailure) {
         return Result.error(entityResult.error!);
       }
 
-      return Result.ok(entityResult.data!);
+      return Result.ok(entityResult.value!);
     } catch (error) {
             return Result.error(error as Error);
     }
@@ -153,11 +153,11 @@ export class PromoCodeSupabaseRepository implements PromoCodeRepositoryPort {
       }
 
       const entityResult = mapDtoToEntity(dto);
-      if (entityResult.isFailure()) {
+      if (entityResult.isFailure) {
         return Result.error(entityResult.error!);
       }
 
-      return Result.ok(entityResult.data!);
+      return Result.ok(entityResult.value!);
     } catch (error) {
             return Result.error(error as Error);
     }
@@ -165,11 +165,11 @@ export class PromoCodeSupabaseRepository implements PromoCodeRepositoryPort {
 
   public async existsByCode(appId: string, code: string): Promise<Result<boolean, Error>> {
     const foundResult = await this.findByCode(appId, code);
-    if (foundResult.isFailure()) {
+    if (foundResult.isFailure) {
       return Result.error(foundResult.error!);
     }
 
-    return Result.ok(!!foundResult.data);
+    return Result.ok(!!foundResult.value);
   }
 
   public async search(
@@ -215,10 +215,10 @@ export class PromoCodeSupabaseRepository implements PromoCodeRepositoryPort {
 
       for (const row of rows) {
         const entityResult = mapDtoToEntity(row);
-        if (entityResult.isFailure()) {
+        if (entityResult.isFailure) {
                     continue;
         }
-        items.push(entityResult.data!);
+        items.push(entityResult.value!);
       }
 
       return Result.ok({
@@ -253,11 +253,11 @@ export class PromoCodeSupabaseRepository implements PromoCodeRepositoryPort {
       }
 
       const entityResult = mapDtoToEntity(createdDto);
-      if (entityResult.isFailure()) {
+      if (entityResult.isFailure) {
         return Result.error(entityResult.error!);
       }
 
-      return Result.ok(entityResult.data!);
+      return Result.ok(entityResult.value!);
     } catch (error) {
             return Result.error(error as Error);
     }
@@ -286,14 +286,18 @@ export class PromoCodeSupabaseRepository implements PromoCodeRepositoryPort {
       }
 
       const entityResult = mapDtoToEntity(updatedDto);
-      if (entityResult.isFailure()) {
+      if (entityResult.isFailure) {
         return Result.error(entityResult.error!);
       }
 
-      return Result.ok(entityResult.data!);
+      return Result.ok(entityResult.value!);
     } catch (error) {
             return Result.error(error as Error);
     }
   }
 }
+
+
+
+
 

@@ -33,7 +33,7 @@ export function RevenuePanel({ presenter }: RevenuePanelProps) {
     
   }, [presenter]);
 
-  const trend = state?.data?.trend ?? [];
+  const trend = state?.data?.trend?.dataPoints ?? [];
   
   const comparison = state?.data
     ? {
@@ -55,7 +55,7 @@ export function RevenuePanel({ presenter }: RevenuePanelProps) {
           icon={DollarSign}
           value={state?.data ? MetricFormatter.formatCurrency(state.data.totalRevenue) : '—'}
           comparison={comparison}
-          trend={trend.map((p: any) => ({ date: p.timestamp.toISOString().split('T')[0], value: p.value }))}
+          trend={trend?.map((p: any) => ({ date: p.timestamp.toISOString().split('T')[0], value: p.value }))}
           loading={state?.loading}
           error={state?.error}
         />

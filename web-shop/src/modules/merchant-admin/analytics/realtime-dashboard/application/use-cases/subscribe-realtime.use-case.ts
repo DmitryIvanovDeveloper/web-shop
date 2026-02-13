@@ -1,7 +1,7 @@
 import { injectable, inject } from 'inversify';
-import type { RealtimeClientPort } from '../../../../../../application/ports/realtime-client.port';
-import type { Logger } from '../../../../../../application/ports/logger.port';
-import { ROOT_TYPES } from '../../../../../../infrastructure/bootstrap/types';
+import type { RealtimeClientPort } from '@/application/ports/realtime-client.port';
+import type { Logger } from '@/application/ports/logger.port';
+import { ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 
 @injectable()
 export class SubscribeRealtimeUseCase {

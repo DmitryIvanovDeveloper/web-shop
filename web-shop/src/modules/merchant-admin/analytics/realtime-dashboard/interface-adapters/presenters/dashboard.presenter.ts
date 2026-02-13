@@ -1,6 +1,8 @@
 import { injectable, inject } from 'inversify';
 import { Dashboard } from '../../domain/entities/dashboard.entity';
 import type { LoadDashboardUseCase } from '../../application/use-cases/load-dashboard.use-case';
+import type { LoadSalesUseCase } from '../../application/use-cases/load-sales.use-case';
+import type { LoadRevenueUseCase } from '../../application/use-cases/load-revenue.use-case';
 import type { SubscribeRealtimeUseCase } from '../../application/use-cases/subscribe-realtime.use-case';
 import type { UnsubscribeRealtimeUseCase } from '../../application/use-cases/unsubscribe-realtime.use-case';
 import type { ApplySettingsUseCase } from '../../application/use-cases/apply-settings.use-case';
@@ -27,7 +29,17 @@ export interface DashboardViewModel {
   settingsPreview: DashboardSettings | null;
   filterSet: FilterSet;
   filterPresets: FilterPreset[];
-  currentPresetId?: string;
+  currentPresetId: string | undefined;
+  revenue: {
+    data: any;
+    loading: boolean;
+    error: any;
+  } | null;
+  sales: {
+    data: any;
+    loading: boolean;
+    error: any;
+  } | null;
 }
 
 @injectable()
@@ -42,7 +54,17 @@ export class DashboardPresenter {
     settingsPreview: null,
     filterSet: FilterSet.createDefault(),
     filterPresets: [],
-    currentPresetId: undefined
+    currentPresetId: undefined,
+    revenue: {
+      data: null,
+      loading: false,
+      error: null
+    },
+    sales: {
+      data: null,
+      loading: false,
+      error: null
+    }
   };
 
   private readonly _subscribers = new Set<() => void>();
@@ -56,6 +78,10 @@ export class DashboardPresenter {
   public constructor(
     @inject(TYPES.LoadDashboardUseCase)
     private readonly _loadDashboardUseCase: LoadDashboardUseCase,
+    @inject(TYPES.LoadSalesUseCase)
+    private readonly _loadSalesUseCase: LoadSalesUseCase,
+    @inject(TYPES.LoadRevenueUseCase)
+    private readonly _loadRevenueUseCase: LoadRevenueUseCase,
     @inject(TYPES.SubscribeRealtimeUseCase)
     private readonly _subscribeRealtimeUseCase: SubscribeRealtimeUseCase,
     @inject(TYPES.UnsubscribeRealtimeUseCase)
@@ -160,17 +186,17 @@ export class DashboardPresenter {
 
   async loadSettings(userId: string, queryParams?: URLSearchParams): Promise<void> {
     const settingsResult = this._loadSettingsUseCase.execute({ userId, queryParams });
-    if (!settingsResult.isSuccess()) {
+    if (!settingsResult.isSuccess) {
       return;
     }
 
-    this._viewModel.settings = settingsResult.data!;
+    this._viewModel.settings = settingsResult.value!;
       this.notifyViewModelChanged();
     }
 
   public applySettings(userId: string, settings: DashboardSettings): void {
     const result = this._applySettingsUseCase.execute({ settings, userId });
-    if (!result.isSuccess()) {
+    if (!result.isSuccess) {
       return;
     }
 
@@ -188,11 +214,11 @@ export class DashboardPresenter {
 
   public resetSettings(userId: string): void {
     const result = this._resetSettingsUseCase.execute({ userId });
-    if (!result.isSuccess()) {
+    if (!result.isSuccess) {
       return;
     }
 
-    this._viewModel.settings = result.data!;
+    this._viewModel.settings = result.value!;
     this._viewModel.settingsPreview = null;
 
       if (typeof window !== 'undefined') {
@@ -209,21 +235,21 @@ export class DashboardPresenter {
 
   public async loadFilterPresets(): Promise<void> {
     const presetsResult = await this._loadPresetsUseCase.execute();
-    if (!presetsResult.isSuccess()) {
+    if (!presetsResult.isSuccess) {
       return;
     }
 
-    this._viewModel.filterPresets = presetsResult.data;
+    this._viewModel.filterPresets = presetsResult.value!;
     this.notifyViewModelChanged();
   }
 
   public async loadFilterPreset(presetId: string): Promise<void> {
     const presetResult = await this._loadPresetsUseCase.executeById(presetId);
-    if (!presetResult.isSuccess()) {
+    if (!presetResult.isSuccess) {
       return;
     }
 
-    this._viewModel.filterSet = presetResult.data.filterSet;
+    this._viewModel.filterSet = presetResult.value!.filterSet;
     this._viewModel.currentPresetId = presetId;
       this.updateUrlWithFilters();
       this.notifyViewModelChanged();
@@ -235,12 +261,12 @@ export class DashboardPresenter {
       filterSet: this._viewModel.filterSet,
     });
     
-    if (!result.isSuccess()) {
+    if (!result.isSuccess) {
       return;
     }
 
       await this.loadFilterPresets();
-    this._viewModel.currentPresetId = result.data.id;
+    this._viewModel.currentPresetId = result.value!.id;
       this.notifyViewModelChanged();
     }
 
@@ -264,12 +290,12 @@ export class DashboardPresenter {
 
   public loadFiltersFromUrl(queryParams: URLSearchParams): void {
     const filterSetResult = FilterSet.fromQueryParams(Object.fromEntries(queryParams));
-    
-    if (!filterSetResult.isSuccess()) {
+
+    if (!filterSetResult.isSuccess) {
       return;
     }
 
-    this._viewModel.filterSet = filterSetResult.data!;
+    this._viewModel.filterSet = filterSetResult.value!;
 
       const presetId = queryParams.get('preset');
       if (presetId) {
@@ -294,6 +320,32 @@ export class DashboardPresenter {
     } catch (error) {
             return [];
     }
+  }
+
+  public get state(): DashboardViewModel {
+    return { ...this._viewModel };
+  }
+
+  public async loadRevenue(): Promise<void> {
+    this._viewModel.revenue!.loading = true;
+    // Simulate loading
+    this._viewModel.revenue!.loading = false;
+    this._viewModel.revenue!.data = {}; // Mock data
+    this.notifyViewModelChanged();
+  }
+
+  public async loadSales(): Promise<void> {
+    this._viewModel.sales!.loading = true;
+    // Simulate loading
+    this._viewModel.sales!.loading = false;
+    this._viewModel.sales!.data = {}; // Mock data
+    this.notifyViewModelChanged();
+  }
+
+  public async loadAllData(): Promise<void> {
+    await this.loadDashboard('default-user');
+    await this.loadRevenue();
+    await this.loadSales();
   }
 
   private notifyViewModelChanged(): void {

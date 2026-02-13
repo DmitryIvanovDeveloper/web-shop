@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import type { OfferScenario } from '../../domain/entities/offer-scenario.entity';
 import type { OfferRuleTree } from '../../domain/types/offer-rule-tree.type';
 import type { OfferScenarioQueryServicePort } from '../ports/offer-scenario-query-service.port';
@@ -29,7 +29,7 @@ export class LoadOfferScenariosUseCase {
     input: LoadOfferScenariosInput
   ): Promise<Result<LoadOfferScenariosOutput, Error>> {
     const scenariosResult = await this._queryService.loadScenarios(input.appId);
-    if (scenariosResult.isFailure()) {
+    if (scenariosResult.isFailure) {
       return Result.error(scenariosResult.error!);
     }
 
@@ -37,16 +37,21 @@ export class LoadOfferScenariosUseCase {
 
     if (input.includeRuleTree) {
       const ruleTreeResult = await this._ruleRepository.loadRuleTree(input.appId);
-      if (ruleTreeResult.isFailure()) {
+      if (ruleTreeResult.isFailure) {
         return Result.error(ruleTreeResult.error!);
       }
-      ruleTree = ruleTreeResult.data ?? null;
+      ruleTree = ruleTreeResult.value ?? null;
     }
 
     return Result.ok({
-      scenarios: scenariosResult.data ?? [],
+      scenarios: scenariosResult.value ?? [],
       ruleTree,
     });
   }
 }
+
+
+
+
+
 

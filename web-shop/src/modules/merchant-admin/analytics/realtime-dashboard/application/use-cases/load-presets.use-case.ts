@@ -1,5 +1,5 @@
 import { injectable, inject } from 'inversify';
-import type { Result } from '../../../../../../shared/domain/result/result';
+import type { Result } from '@/shared/result/result';
 import { TYPES } from '../../infrastructure/bootstrap/realtime-dashboard.types';
 import { FilterPreset } from '../../domain/entities/filter-preset.entity';
 import type { FilterPresetRepositoryPort } from '../ports/filter-preset-repository.port';

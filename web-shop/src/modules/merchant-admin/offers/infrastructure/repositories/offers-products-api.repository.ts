@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import type { HttpClient } from '../../../../../application/ports/http-client.port';
 import type { Logger } from '../../../../../application/ports/logger.port';
 import { ROOT_TYPES, TYPES } from '../../../../../infrastructure/bootstrap/types';
@@ -33,4 +33,9 @@ export class OffersProductsApiRepository implements ProductQueryServicePort {
     }
   }
 }
+
+
+
+
+
 

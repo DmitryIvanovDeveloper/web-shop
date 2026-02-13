@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SubscribeRealtimeUseCase } from '../../application/use-cases/subscribe-realtime.use-case';
 import { UnsubscribeRealtimeUseCase } from '../../application/use-cases/unsubscribe-realtime.use-case';
-import { MockRealtimeClient } from '../../../../infrastructure/realtime/mock-realtime-client';
-import { ConsoleLogger } from '../../../../infrastructure/logging/console-logger';
+import { MockRealtimeClient } from '@/infrastructure/realtime/mock-realtime-client';
+import { ConsoleLogger } from '@/infrastructure/logging/console-logger';
 
 describe('Realtime Subscribe/Unsubscribe Integration', () => {
   let realtimeClient: MockRealtimeClient;

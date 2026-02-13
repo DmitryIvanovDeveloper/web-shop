@@ -57,3 +57,9 @@ export function bindMerchantAdminProducts(container: Container): void {
   container.bind(PRODUCT_TYPES.ProductsPresenter).toService(ProductsPresenter);
 }
 
+
+
+
+
+
+

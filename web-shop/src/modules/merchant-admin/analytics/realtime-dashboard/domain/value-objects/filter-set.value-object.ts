@@ -1,4 +1,4 @@
-import { Result, Success, Failure } from '../../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import { InvalidArgumentError } from '../../../../../../shared/domain/errors/invalid-argument.error';
 import { DateRangeFilter } from './date-range-filter.value-object';
 import { GeoFilter } from './geo-filter.value-object';
@@ -25,10 +25,10 @@ export class FilterSet {
 
   public static create(props: FilterSetProps): Result<FilterSet, InvalidArgumentError> {
     if (!props.dateRange) {
-      return new Failure(new InvalidArgumentError('Date range filter is required'));
+      return Result.error(new InvalidArgumentError('Date range filter is required'));
     }
 
-    return new Success(
+    return Result.ok(
       new FilterSet(
         props.dateRange,
         props.geo || GeoFilter.createEmpty(),
@@ -41,12 +41,12 @@ export class FilterSet {
 
   public static createDefault(): FilterSet {
     const dateRangeResult = DateRangeFilter.fromPreset('last7days', 'day');
-    if (dateRangeResult.isFailure()) {
+    if (dateRangeResult.isFailure) {
       throw new Error('Failed to create default date range');
     }
 
     return new FilterSet(
-      dateRangeResult.data!,
+      dateRangeResult.value!,
       GeoFilter.createEmpty(),
       PaymentFilter.createEmpty(),
       SourceFilter.createEmpty(),
@@ -81,42 +81,42 @@ export class FilterSet {
       ? DateRangeFilter.fromQueryParams(params)
       : DateRangeFilter.fromPreset('last7days', 'day');
 
-    if (dateRangeResult.isFailure()) {
-      return new Failure(dateRangeResult.error);
+    if (dateRangeResult.isFailure) {
+      return Result.error(dateRangeResult.error!);
     }
 
-    const geoResult = params.geo ? GeoFilter.fromQueryParam(params.geo) : new Success(GeoFilter.createEmpty());
-    if (geoResult.isFailure()) {
-      return new Failure(geoResult.error);
+    const geoResult = params.geo ? GeoFilter.fromQueryParam(params.geo) : Result.ok(GeoFilter.createEmpty());
+    if (geoResult.isFailure) {
+      return Result.error(geoResult.error!);
     }
 
     const paymentResult = params.payment
       ? PaymentFilter.fromQueryParam(params.payment)
-      : new Success(PaymentFilter.createEmpty());
-    if (paymentResult.isFailure()) {
-      return new Failure(paymentResult.error);
+      : Result.ok(PaymentFilter.createEmpty());
+    if (paymentResult.isFailure) {
+      return Result.error(paymentResult.error!);
     }
 
     const sourceResult = params.source
       ? SourceFilter.fromQueryParam(params.source)
-      : new Success(SourceFilter.createEmpty());
-    if (sourceResult.isFailure()) {
-      return new Failure(sourceResult.error);
+      : Result.ok(SourceFilter.createEmpty());
+    if (sourceResult.isFailure) {
+      return Result.error(sourceResult.error!);
     }
 
     const currencyResult = params.currency
       ? CurrencyFilter.fromQueryParam(params.currency)
-      : new Success(CurrencyFilter.createDefault());
-    if (currencyResult.isFailure()) {
-      return new Failure(currencyResult.error);
+      : Result.ok(CurrencyFilter.createDefault());
+    if (currencyResult.isFailure) {
+      return Result.error(currencyResult.error!);
     }
 
     return FilterSet.create({
-      dateRange: dateRangeResult.data!,
-      geo: geoResult.data!,
-      payment: paymentResult.data!,
-      source: sourceResult.data!,
-      currency: currencyResult.data!,
+      dateRange: dateRangeResult.value!,
+      geo: geoResult.value!,
+      payment: paymentResult.value!,
+      source: sourceResult.value!,
+      currency: currencyResult.value!,
     });
   }
 

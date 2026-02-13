@@ -1,6 +1,7 @@
 import { inject, injectable } from 'inversify';
 import { Result } from '@/shared/result/result';
 import { TYPES as ROOT_TYPES } from '@/infrastructure/bootstrap/types';
+import type { DatabaseClientPort } from '@/application/ports/database-client.port';
 import type { Template, TemplatePageSnapshot, TemplateMetadata } from '../../domain/entities/template.entity';
 import type {
   TemplateRepositoryPort,

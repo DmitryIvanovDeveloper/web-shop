@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Result } from '@/shared/result/result';
 import { FilterSet } from '../../domain/value-objects/filter-set.value-object';
 import { DateRangeFilter, DateRangePreset, DateGranularity } from '../../domain/value-objects/date-range-filter.value-object';
 import { GeoFilter } from '../../domain/value-objects/geo-filter.value-object';
@@ -79,31 +80,31 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       dateRangeResult = DateRangeFilter.fromPreset(preset, granularity);
     }
 
-    if (dateRangeResult.isSuccess()) {
+    if (dateRangeResult.isSuccess) {
       const newFilterSetResult = FilterSet.create({
         ...localFilterSet,
-        dateRange: dateRangeResult.data,
+        dateRange: dateRangeResult.value,
       });
 
-      if (newFilterSetResult.isSuccess()) {
-        setLocalFilterSet(newFilterSetResult.data);
+      if (newFilterSetResult.isSuccess) {
+        setLocalFilterSet(newFilterSetResult.value!);
       }
     }
   };
 
   const handleGeoChange = (countries: string[]): void => {
-    const geoResult = countries.length > 0 
-      ? GeoFilter.create({ countries }) 
-      : { isSuccess: () => true, data: GeoFilter.createEmpty() };
+    const geoResult = countries.length > 0
+      ? GeoFilter.create({ countries })
+      : Result.ok(GeoFilter.createEmpty());
 
-    if (geoResult.isSuccess()) {
+    if (geoResult.isSuccess) {
       const newFilterSetResult = FilterSet.create({
         ...localFilterSet,
-        geo: geoResult.data,
+        geo: geoResult.value,
       });
 
-      if (newFilterSetResult.isSuccess()) {
-        setLocalFilterSet(newFilterSetResult.data);
+      if (newFilterSetResult.isSuccess) {
+        setLocalFilterSet(newFilterSetResult.value!);
       }
     }
   };
@@ -111,16 +112,16 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const handlePaymentChange = (methods: string[]): void => {
     const paymentResult = methods.length > 0
       ? PaymentFilter.create({ methods: methods as PaymentMethod[] })
-      : { isSuccess: () => true, data: PaymentFilter.createEmpty() };
+      : Result.ok(PaymentFilter.createEmpty());
 
-    if (paymentResult.isSuccess()) {
+    if (paymentResult.isSuccess) {
       const newFilterSetResult = FilterSet.create({
         ...localFilterSet,
-        payment: paymentResult.data,
+        payment: paymentResult.value,
       });
 
-      if (newFilterSetResult.isSuccess()) {
-        setLocalFilterSet(newFilterSetResult.data);
+      if (newFilterSetResult.isSuccess) {
+        setLocalFilterSet(newFilterSetResult.value!);
       }
     }
   };
@@ -128,16 +129,16 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const handleSourceChange = (sources: string[]): void => {
     const sourceResult = sources.length > 0
       ? SourceFilter.create({ sources: sources as AcquisitionSource[] })
-      : { isSuccess: () => true, data: SourceFilter.createEmpty() };
+      : Result.ok(SourceFilter.createEmpty());
 
-    if (sourceResult.isSuccess()) {
+    if (sourceResult.isSuccess) {
       const newFilterSetResult = FilterSet.create({
         ...localFilterSet,
-        source: sourceResult.data,
+        source: sourceResult.value,
       });
 
-      if (newFilterSetResult.isSuccess()) {
-        setLocalFilterSet(newFilterSetResult.data);
+      if (newFilterSetResult.isSuccess) {
+        setLocalFilterSet(newFilterSetResult.value!);
       }
     }
   };
@@ -145,14 +146,14 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const handleCurrencyChange = (currency: CurrencyCode): void => {
     const currencyResult = CurrencyFilter.create({ currency });
 
-    if (currencyResult.isSuccess()) {
+    if (currencyResult.isSuccess) {
       const newFilterSetResult = FilterSet.create({
         ...localFilterSet,
-        currency: currencyResult.data,
+        currency: currencyResult.value,
       });
 
-      if (newFilterSetResult.isSuccess()) {
-        setLocalFilterSet(newFilterSetResult.data);
+      if (newFilterSetResult.isSuccess) {
+        setLocalFilterSet(newFilterSetResult.value!);
       }
     }
   };

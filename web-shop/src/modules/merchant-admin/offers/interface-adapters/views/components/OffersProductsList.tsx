@@ -87,3 +87,8 @@ export function OffersProductsList({ viewModel, presenter }: OffersProductsListP
   );
 }
 
+
+
+
+
+

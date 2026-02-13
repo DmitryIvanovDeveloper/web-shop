@@ -1,4 +1,4 @@
-import { Result } from '../../../../shared/result/result';
+import { Result } from '@/shared/result/result';
 import { DailyReward } from '../../domain/entities/daily-reward';
 import type { GetDailyRewardsInput } from '../types/daily-reward.types';
 

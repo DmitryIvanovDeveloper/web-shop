@@ -10,3 +10,8 @@ export const OFFER_TYPES = {
   OffersPresenter: Symbol.for('OffersPresenter'),
 } as const;
 
+
+
+
+
+

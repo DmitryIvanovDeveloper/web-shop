@@ -38,8 +38,8 @@ export class AlertRuleRepositoryMock implements AlertRuleRepositoryPort {
       threshold: 15, 
     });
 
-    if (refundRateRule.success) {
-      this.rules.set('rule-1', refundRateRule.data!);
+    if (refundRateRule.isSuccess) {
+      this.rules.set('rule-1', refundRateRule.value!);
     }
 
     const lowSalesRule = AlertRule.create({
@@ -49,8 +49,8 @@ export class AlertRuleRepositoryMock implements AlertRuleRepositoryPort {
       threshold: 100000,
     });
 
-    if (lowSalesRule.success) {
-      this.rules.set('rule-2', lowSalesRule.data!);
+    if (lowSalesRule.isSuccess) {
+      this.rules.set('rule-2', lowSalesRule.value!);
     }
 
     const highConversionRule = AlertRule.create({
@@ -60,8 +60,8 @@ export class AlertRuleRepositoryMock implements AlertRuleRepositoryPort {
       threshold: 5, 
     });
 
-    if (highConversionRule.success) {
-      this.rules.set('rule-3', highConversionRule.data!);
+    if (highConversionRule.isSuccess) {
+      this.rules.set('rule-3', highConversionRule.value!);
     }
   }
 }

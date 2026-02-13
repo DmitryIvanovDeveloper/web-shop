@@ -30,11 +30,11 @@ export class PeriodComparisonService implements IPeriodComparisonService {
 
     const result = Period.create(startDate, endDate, currentPeriod.granularity);
     
-    if (!result.isSuccess() || !result.data) {
+    if (!result.isSuccess || !result.value) {
       throw new Error('Failed to calculate previous period');
     }
-    
-    return result.data;
+
+    return result.value;
   }
 }
 

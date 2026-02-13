@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Success, Failure, type Result } from '../../../../../shared/result/result';
+import { Result } from '@/shared/result/result';
 import type { PatchNoteRepositoryPort } from '../ports/patch-note-repository.port';
 import type { ListPatchNotesInput, PatchNoteOutput } from '../types/patch-note.types';
 import { PatchNote } from '../../domain/entities/patch-note';
@@ -17,7 +17,7 @@ export class GetPatchNotesUseCase {
       const result = await this._patchNoteRepository.findAll(input.appId, input.status);
 
       if (!result.isSuccess) {
-        return Failure.fail(result.error);
+        return Result.error(result.error!);
       }
 
       const patchNotes = result.value || [];
@@ -25,10 +25,10 @@ export class GetPatchNotesUseCase {
 
       const outputs = sortedNotes.map(note => this.mapToOutput(note));
 
-      return Success.ok(outputs);
+      return Result.ok(outputs);
 
     } catch (error) {
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 

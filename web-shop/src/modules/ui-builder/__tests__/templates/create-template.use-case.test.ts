@@ -48,7 +48,7 @@ const createLogger = () =>
 describe('CreateTemplateUseCase', () => {
   it('creates template when input is valid and name is unique', async () => {
     const repo = new InMemoryTemplateRepository();
-    const useCase = new CreateTemplateUseCase(repo as any, createLogger());
+    const useCase = new CreateTemplateUseCase(repo as any);
 
     const result = await useCase.execute({
       name: 'My Template',
@@ -65,7 +65,7 @@ describe('CreateTemplateUseCase', () => {
   it('fails when name already exists', async () => {
     const repo = new InMemoryTemplateRepository();
     repo.templates.push({ id: 't1', name: 'Existing', appConfig: {}, pages: [], isActive: true });
-    const useCase = new CreateTemplateUseCase(repo as any, createLogger());
+    const useCase = new CreateTemplateUseCase(repo as any);
 
     const result = await useCase.execute({
       name: 'Existing',
@@ -79,7 +79,7 @@ describe('CreateTemplateUseCase', () => {
 
   it('fails when required fields are missing', async () => {
     const repo = new InMemoryTemplateRepository();
-    const useCase = new CreateTemplateUseCase(repo as any, createLogger());
+    const useCase = new CreateTemplateUseCase(repo as any);
 
     const result = await useCase.execute({
       name: '',

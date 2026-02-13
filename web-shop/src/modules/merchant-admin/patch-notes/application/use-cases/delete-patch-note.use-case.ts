@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Success, Failure, type Result } from '../../../../../shared/result/result';
+import { Result } from '@/shared/result/result';
 import type { Logger } from '../../../../../application/ports/logger.port';
 import type { EventBus } from '../../../../../application/ports/event-bus.port';
 import { TYPES } from '../../../../../infrastructure/bootstrap/types';
@@ -28,27 +28,27 @@ export class DeletePatchNoteUseCase {
       const findResult = await this._patchNoteRepository.findById(patchNoteId, input.appId);
 
       if (!findResult.isSuccess) {
-                return Failure.fail(findResult.error);
+                return Result.error(findResult.error!);
       }
 
       if (!findResult.value) {
-        return Failure.fail(new PatchNoteNotFoundError(input.id));
+        return Result.error(new PatchNoteNotFoundError(input.id));
       }
 
       const deleteResult = await this._patchNoteRepository.delete(patchNoteId, input.appId);
 
       if (!deleteResult.isSuccess) {
-                return Failure.fail(deleteResult.error);
+                return Result.error(deleteResult.error!);
       }
 
       await this._eventBus.publish(
         new PatchNoteDeletedEvent(input.id, findResult.value.version.value, input.appId)
       );
 
-            return Success.ok(undefined);
+            return Result.ok(undefined);
 
     } catch (error) {
-            return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+            return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 }

@@ -25,7 +25,7 @@ export class ListMerchantProjectsUseCase {
       const result = await this._projectRepository.findByMerchantId(merchantId);
 
       if (result.isFailure) {
-        return Result.error(result.error!);
+        return Result.error(result.error ?? new Error('Unknown error'));
       }
 
       const activeProjects = result.value!.filter((project: Project) => project.isActive());

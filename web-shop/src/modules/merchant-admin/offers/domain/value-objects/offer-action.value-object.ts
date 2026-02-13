@@ -1,4 +1,4 @@
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import { InvalidArgumentError } from '../../../../../shared/domain/errors/invalid-argument.error';
 
 export type OfferActionType =
@@ -41,11 +41,16 @@ export class OfferAction {
     const actions: OfferAction[] = [];
     for (const type of types) {
       const result = OfferAction.create(type);
-      if (result.isFailure()) {
-        return Result.error(result.error!);
+      if (result.isFailure) {
+        return Result.error(result.error ?? new Error('Unknown error'));
       }
-      actions.push(result.data!);
+      actions.push(result.value!);
     }
     return Result.ok(actions);
   }
 }
+
+
+
+
+

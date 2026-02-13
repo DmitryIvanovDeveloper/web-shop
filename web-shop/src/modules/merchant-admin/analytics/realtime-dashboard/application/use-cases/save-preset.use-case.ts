@@ -1,5 +1,5 @@
 import { injectable, inject } from 'inversify';
-import { Result, Success, Failure } from '../../../../../../shared/domain/result/result';
+import { Result, Success, Failure } from '@/shared/result/result';
 import { TYPES } from '../../infrastructure/bootstrap/realtime-dashboard.types';
 import { InvalidArgumentError } from '../../../../../../shared/domain/errors/invalid-argument.error';
 import { FilterPreset } from '../../domain/entities/filter-preset.entity';

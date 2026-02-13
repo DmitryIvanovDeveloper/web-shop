@@ -48,18 +48,7 @@ export default function DashboardPage() {
       const loadRecentPurchases = container.get<LoadRecentPurchasesUseCase>(TYPES.LoadRecentPurchasesUseCase);
       const logger = container.get<Logger>(ROOT_TYPES.Logger);
 
-      const p = new DashboardPresenter(
-        load,
-        subscribeRealtime,
-        unsubscribeRealtime,
-        applySettings,
-        resetSettings,
-        loadSettings,
-        loadPresets,
-        savePreset,
-        loadRecentPurchases,
-        logger
-      );
+      const p = container.get<DashboardPresenter>(TYPES.DashboardPresenter);
 
       unsubscribe = p.subscribe(() => {
         force((x) => x + 1);

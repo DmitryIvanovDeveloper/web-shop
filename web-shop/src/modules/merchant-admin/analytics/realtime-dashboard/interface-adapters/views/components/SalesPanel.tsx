@@ -34,7 +34,7 @@ export function SalesPanel({ presenter }: SalesPanelProps) {
     
   }, [presenter]);
 
-  const trendData = state?.data?.trend ?? [];
+  const trendData = state?.data?.trend?.dataPoints ?? [];
 
   const calculateGrowthRate = (trend: TrendDataPoint[]): number => {
     if (trend.length < 2) return 0;

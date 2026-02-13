@@ -36,25 +36,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="bg-blue-50 p-4 rounded-lg">
             <div className="text-sm text-blue-600 font-medium">Total Sales</div>
             <div className="text-2xl font-bold text-blue-900">
-              {viewModel?.dashboard?.sales?.total?.toLocaleString() || '0'}
+              {viewModel?.dashboard?.salesSummary?.totalSales?.toLocaleString() || '0'}
             </div>
           </div>
           <div className="bg-green-50 p-4 rounded-lg">
             <div className="text-sm text-green-600 font-medium">Revenue</div>
             <div className="text-2xl font-bold text-green-900">
-              ${viewModel?.dashboard?.revenue?.total?.toLocaleString() || '0'}
+              ${viewModel?.dashboard?.revenueSummary?.totalRevenue?.toLocaleString() || '0'}
             </div>
           </div>
           <div className="bg-orange-50 p-4 rounded-lg">
             <div className="text-sm text-orange-600 font-medium">Conversion Rate</div>
             <div className="text-2xl font-bold text-orange-900">
-              {viewModel?.dashboard?.conversion?.rate ? `${(viewModel.dashboard.conversion.rate * 100).toFixed(1)}%` : '0%'}
+              {viewModel?.dashboard?.conversionSummary?.conversionRate ? `${(viewModel.dashboard.conversionSummary.conversionRate * 100).toFixed(1)}%` : '0%'}
             </div>
           </div>
           <div className="bg-purple-50 p-4 rounded-lg">
             <div className="text-sm text-purple-600 font-medium">Visitors</div>
             <div className="text-2xl font-bold text-purple-900">
-              {viewModel?.dashboard?.visitors?.total?.toLocaleString() || '0'}
+              {viewModel?.dashboard?.revenueSummary?.revenuePerVisitor ? (viewModel.dashboard.revenueSummary.totalRevenue / viewModel.dashboard.revenueSummary.revenuePerVisitor).toLocaleString() : '0'}
             </div>
           </div>
         </div>
@@ -69,10 +69,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       )}
 
-      {viewModel?.error && (
+      {viewModel?.errorMessage && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="text-red-800 font-medium">Error loading dashboard</div>
-          <div className="text-red-600 text-sm mt-1">{viewModel.error}</div>
+          <div className="text-red-600 text-sm mt-1">{viewModel.errorMessage}</div>
         </div>
       )}
     </div>

@@ -1,10 +1,7 @@
 import { redirect } from 'next/navigation';
 
 interface PageProps {
-  searchParams: Promise<{
-    userId?: string;
-    [key: string]: string | undefined;
-  }>;
+  searchParams: Promise<any>;
 }
 
 export default async function PaymentHistoryPage({ searchParams }: PageProps): Promise<JSX.Element> {

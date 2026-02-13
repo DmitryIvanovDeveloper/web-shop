@@ -1119,6 +1119,7 @@ export class PageConstructorPresenter {
     try {
       const result = await this._updateOfferCardsUseCase.execute(
         this.vm.appId,
+        this.vm.merchantId,
         this.offerCards,
       );
       

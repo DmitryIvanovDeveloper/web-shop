@@ -1,4 +1,4 @@
-import { Result, Success, Failure } from '../../../../../../shared/domain/result/result';
+import { Result, Success, Failure } from '@/shared/result/result';
 
 export class DeliveryChannel {
   private constructor(public readonly type: 'email' | 'slack' | 'sms') {}

@@ -1,4 +1,4 @@
-import { Result, Success, Failure } from '../../../../../../shared/domain/result/result';
+import { Result, Success, Failure } from '@/shared/result/result';
 import { AlertRuleError, InvalidThresholdError, InvalidMetricError, InvalidScopeError } from '../errors/alert-rule.error';
 
 export type AlertOperator = 'GREATER_THAN' | 'LESS_THAN' | 'EQUALS' | 'BETWEEN';

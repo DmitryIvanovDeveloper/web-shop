@@ -1,4 +1,4 @@
-import { Result } from '../../../../shared/result/result';
+import { Result } from '@/shared/result/result';
 import { CreateDailyRewardUseCase } from '../../application/use-cases/create-daily-reward.use-case';
 import { UpdateDailyRewardUseCase } from '../../application/use-cases/update-daily-reward.use-case';
 import { DeleteDailyRewardUseCase } from '../../application/use-cases/delete-daily-reward.use-case';
@@ -189,14 +189,14 @@ export class DailyRewardsAdminPresenter {
     return {
       id: reward.id,
       appId: reward.appId,
-      type: reward.type.value,
+      type: reward.type,
       title: reward.title,
       description: reward.description,
       points: reward.points,
       isActive: reward.isActive,
       createdAt: reward.createdAt,
       updatedAt: reward.updatedAt,
-      typeIcon: this.getTypeIcon(reward.type.value),
+      typeIcon: this.getTypeIcon(reward.type),
       statusBadge: this.getStatusBadge(reward.isActive)
     };
   }

@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import type { Logger } from '../../../../../application/ports/logger.port';
 import { ROOT_TYPES } from '../../../../../infrastructure/bootstrap/types';
 import type { PromoCodeRepositoryPort } from '../ports/promo-code-repository.port';
@@ -27,11 +27,11 @@ export class UpdatePromoCodeUseCase {
 
   public async execute(input: UpdatePromoCodeInput): Promise<Result<PromoCode, Error>> {
         const existingResult = await this.promoCodeRepository.findById(input.id);
-    if (existingResult.isFailure()) {
+    if (existingResult.isFailure) {
       return Result.error(existingResult.error!);
     }
 
-    const existing = existingResult.data;
+    const existing = existingResult.value;
     if (!existing || existing.appId !== input.appId) {
       return Result.error(new Error('Promo code not found'));
     }
@@ -44,16 +44,20 @@ export class UpdatePromoCodeUseCase {
       isActive: input.isActive,
     });
 
-    if (updatedResult.isFailure()) {
+    if (updatedResult.isFailure) {
       return Result.error(updatedResult.error!);
     }
 
-    const saveResult = await this.promoCodeRepository.update(updatedResult.data!);
-    if (saveResult.isFailure()) {
+    const saveResult = await this.promoCodeRepository.update(updatedResult.value!);
+    if (saveResult.isFailure) {
       return Result.error(saveResult.error!);
     }
 
     return saveResult;
   }
 }
+
+
+
+
 

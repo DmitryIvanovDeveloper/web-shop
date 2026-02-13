@@ -60,3 +60,8 @@ export function bindMerchantAdminOffers(container: Container): void {
   container.bind(OffersPresenter).toSelf().inSingletonScope();
   container.bind(OFFER_TYPES.OffersPresenter).toService(OffersPresenter);
 }
+
+
+
+
+

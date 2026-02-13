@@ -1,4 +1,4 @@
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import { InvalidArgumentError } from '../../../../../shared/domain/errors/invalid-argument.error';
 import {
   ProductNotFoundError,
@@ -213,4 +213,10 @@ export class Product {
     };
   }
 }
+
+
+
+
+
+
 

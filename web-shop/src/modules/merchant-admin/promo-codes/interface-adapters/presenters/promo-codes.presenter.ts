@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import type { Logger } from '../../../../../application/ports/logger.port';
 import { ROOT_TYPES } from '../../../../../infrastructure/bootstrap/types';
 import { PROMO_CODE_TYPES } from '../../infrastructure/bootstrap/promo-codes.types';
@@ -132,7 +132,7 @@ export class PromoCodesPresenter {
       },
     });
 
-    if (result.isFailure()) {
+    if (result.isFailure) {
             this._viewModel = {
         ...this._viewModel,
         isLoading: false,
@@ -142,7 +142,7 @@ export class PromoCodesPresenter {
       return;
     }
 
-    const data = result.data!;
+    const data = result.value!;
 
     this._viewModel = {
       ...this._viewModel,
@@ -263,14 +263,14 @@ export class PromoCodesPresenter {
 
     const result = await this.createPromoCodeUseCase.execute(input);
 
-    if (result.isFailure()) {
+    if (result.isFailure) {
             this._viewModel = {
         ...this._viewModel,
         isSaving: false,
         errorMessage: 'Failed to create promo code',
       };
       this._notify();
-      return Result.error(result.error!);
+      return Result.error(result.error ?? new Error('Unknown error'));
     }
 
     await this.loadPage(this._appId, 1);
@@ -322,7 +322,7 @@ export class PromoCodesPresenter {
         errorMessage: 'No promo code selected for editing',
       };
       this._notify();
-      return;
+      return Result.ok(undefined);
     }
 
     const result = await this.updatePromoCodeUseCase.execute({
@@ -334,14 +334,14 @@ export class PromoCodesPresenter {
       discountValue: this._viewModel.form.discountValue,
     });
 
-    if (result.isFailure()) {
+    if (result.isFailure) {
             this._viewModel = {
         ...this._viewModel,
         isSaving: false,
         errorMessage: 'Failed to update promo code',
       };
       this._notify();
-      return Result.error(result.error!);
+      return Result.error(result.error ?? new Error('Unknown error'));
     }
 
     await this.loadPage(this._appId, this._viewModel.page);
@@ -370,13 +370,13 @@ export class PromoCodesPresenter {
       isActive: !item.isActive,
     });
 
-    if (result.isFailure()) {
+    if (result.isFailure) {
             this._viewModel = {
         ...this._viewModel,
         errorMessage: 'Failed to update promo code status',
       };
       this._notify();
-      return Result.error(result.error!);
+      return Result.error(result.error ?? new Error('Unknown error'));
     }
 
     await this.loadPage(this._appId, this._viewModel.page);
@@ -384,4 +384,8 @@ export class PromoCodesPresenter {
     return Result.ok(undefined);
   }
 }
+
+
+
+
 

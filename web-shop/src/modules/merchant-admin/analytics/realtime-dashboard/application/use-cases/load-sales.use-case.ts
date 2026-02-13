@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import { Period, DashboardFilters, DataUnavailableError } from '../../domain';
 import { SalesSummary } from '../../domain/entities/sales-summary.entity';
 import type { AnalyticsRepositoryPort } from '../ports/analytics-repository.port';
@@ -9,8 +9,10 @@ import { TYPES } from '../../infrastructure/bootstrap/types';
 @injectable()
 export class LoadSalesUseCase {
   constructor(
-    @inject(TYPES.AnalyticsRepository) private analyticsRepository: AnalyticsRepositoryPort,
-    @inject(TYPES.PeriodComparisonService) private periodComparisonService: PeriodComparisonService
+    @inject(TYPES.AnalyticsRepository)
+    private analyticsRepository: AnalyticsRepositoryPort,
+    @inject(TYPES.PeriodComparisonService)
+    private periodComparisonService: PeriodComparisonService
   ) {}
 
   async execute(period: Period, filters: DashboardFilters): Promise<Result<SalesSummary, DataUnavailableError>> {

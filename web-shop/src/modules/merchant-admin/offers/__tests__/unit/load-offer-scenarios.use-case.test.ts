@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import { OfferScenario } from '../../domain/entities/offer-scenario.entity';
 import type { OfferScenarioQueryServicePort } from '../../application/ports/offer-scenario-query-service.port';
 import type { OfferRuleEngineRepositoryPort } from '../../application/ports/offer-rule-engine-repository.port';
@@ -24,11 +24,11 @@ const createScenario = (): OfferScenario => {
     },
   });
 
-  if (result.isFailure()) {
+  if (result.isFailure) {
     throw result.error;
   }
 
-  return result.data!;
+  return result.value!;
 };
 
 class QueryServiceStub implements OfferScenarioQueryServicePort {
@@ -62,11 +62,16 @@ describe('LoadOfferScenariosUseCase', () => {
 
     const result = await useCase.execute({ appId: 'app-1', includeRuleTree: false });
 
-    expect(result.isSuccess()).toBe(true);
-    expect(result.data?.scenarios).toHaveLength(1);
-    expect(result.data?.ruleTree).toBeNull();
+    expect(result.isSuccess).toBe(true);
+    expect(result.value?.scenarios).toHaveLength(1);
+    expect(result.value?.ruleTree).toBeNull();
   });
 });
+
+
+
+
+
 
 
 

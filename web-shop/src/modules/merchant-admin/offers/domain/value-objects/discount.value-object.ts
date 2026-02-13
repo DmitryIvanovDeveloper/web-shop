@@ -1,4 +1,4 @@
-import { Failure, Result, Success } from '../../../../../shared/domain/result/result';
+import { Failure, Result, Success } from '@/shared/result/result';
 import { InvalidArgumentError } from '../../../../../shared/domain/errors/invalid-argument.error';
 
 export type DiscountType = 'percentage' | 'fixed';
@@ -41,3 +41,8 @@ export class Discount {
     return new Success(new Discount(props.type, props.value, props.currency, props.minSpend));
   }
 }
+
+
+
+
+

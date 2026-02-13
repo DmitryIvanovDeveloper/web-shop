@@ -1,4 +1,4 @@
-import type { Result } from '../../../../../shared/domain/result/result';
+import type { Result } from '@/shared/result/result';
 
 export interface Product {
   readonly id: string;
@@ -10,4 +10,9 @@ export interface Product {
 export interface ProductQueryServicePort {
   loadProducts(appId: string): Promise<Result<readonly Product[], Error>>;
 }
+
+
+
+
+
 

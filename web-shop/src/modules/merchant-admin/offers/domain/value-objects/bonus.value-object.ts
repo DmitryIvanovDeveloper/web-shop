@@ -1,4 +1,4 @@
-import { Failure, Result, Success } from '../../../../../shared/domain/result/result';
+import { Failure, Result, Success } from '@/shared/result/result';
 import { InvalidArgumentError } from '../../../../../shared/domain/errors/invalid-argument.error';
 
 export type BonusType = 'currency' | 'loyalty_points' | 'cosmetic' | 'trial_days' | 'coupon';
@@ -30,3 +30,8 @@ export class Bonus {
     return new Success(new Bonus(props.type, props.amount, props.unit, props.description));
   }
 }
+
+
+
+
+

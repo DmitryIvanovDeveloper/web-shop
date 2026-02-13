@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import { Product } from '../../domain/entities/product.entity';
 import type { ProductCommandServicePort } from '../../application/ports/product-command-service.port';
 import type { ProductQueryServicePort } from '../../application/ports/product-query-service.port';
@@ -105,10 +105,10 @@ export class ProductApiRepository implements ProductQueryServicePort, ProductCom
 
       for (const dto of dtos) {
         const productResult = mapDtoToProduct(dto);
-        if (productResult.isFailure()) {
+        if (productResult.isFailure) {
           continue;
         }
-        products.push(productResult.data!);
+        products.push(productResult.value!);
       }
 
       return Result.ok(products);
@@ -120,11 +120,11 @@ export class ProductApiRepository implements ProductQueryServicePort, ProductCom
   public async loadById(id: string, appId: string): Promise<Result<Product, Error>> {
     try {
       const allProductsResult = await this.loadAll(appId);
-      if (allProductsResult.isFailure()) {
+      if (allProductsResult.isFailure) {
         return Result.error(allProductsResult.error!);
       }
 
-      const product = allProductsResult.data?.find((p) => p.id === id);
+      const product = allProductsResult.value?.find((p) => p.id === id);
       if (!product) {
         return Result.error(new ProductNotFoundError(`Product with id ${id} not found`));
       }
@@ -159,11 +159,11 @@ export class ProductApiRepository implements ProductQueryServicePort, ProductCom
       }
 
       const productResult = mapDtoToProduct(createdDto);
-      if (productResult.isFailure()) {
+      if (productResult.isFailure) {
         return Result.error(productResult.error!);
       }
 
-      return Result.ok(productResult.data!);
+      return Result.ok(productResult.value!);
     } catch (error) {
       return Result.error(error as Error);
     }
@@ -194,11 +194,11 @@ export class ProductApiRepository implements ProductQueryServicePort, ProductCom
       }
 
       const productResult = mapDtoToProduct(updatedDto);
-      if (productResult.isFailure()) {
+      if (productResult.isFailure) {
         return Result.error(productResult.error!);
       }
 
-      return Result.ok(productResult.data!);
+      return Result.ok(productResult.value!);
     } catch (error) {
       return Result.error(error as Error);
     }
@@ -220,3 +220,9 @@ export class ProductApiRepository implements ProductQueryServicePort, ProductCom
     }
   }
 }
+
+
+
+
+
+

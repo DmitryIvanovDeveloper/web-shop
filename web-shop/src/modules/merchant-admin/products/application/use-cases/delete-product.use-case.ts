@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import type { ProductCommandServicePort } from '../ports/product-command-service.port';
 import { PRODUCT_TYPES } from '../../infrastructure/bootstrap/products.types';
 
@@ -24,7 +24,7 @@ export class DeleteProductUseCase {
   ): Promise<Result<DeleteProductOutput, Error>> {
     try {
       const deleteResult = await this.commandService.delete(input.id, input.appId);
-      if (deleteResult.isFailure()) {
+      if (deleteResult.isFailure) {
         return Result.error(deleteResult.error!);
       }
 
@@ -34,4 +34,10 @@ export class DeleteProductUseCase {
     }
   }
 }
+
+
+
+
+
+
 

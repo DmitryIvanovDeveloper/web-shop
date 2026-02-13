@@ -17,7 +17,7 @@ export const SalesPanel: React.FC<SalesPanelProps> = ({ salesSummary }) => {
     }).format(amount);
   };
 
-  const trendData: LineChartDataPoint[] = salesSummary.trend.map((point) => ({
+  const trendData: LineChartDataPoint[] = salesSummary.trend.dataPoints.map((point) => ({
     label: point.timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     value: point.value,
   }));

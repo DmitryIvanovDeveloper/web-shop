@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import type { OfferRuleEngineRepositoryPort } from '../../application/ports/offer-rule-engine-repository.port';
 import type { OfferRuleTree } from '../../domain/types/offer-rule-tree.type';
 import type { HttpClient } from '../../../../../application/ports/http-client.port';
@@ -49,4 +49,9 @@ export class OfferRuleEngineApiRepository implements OfferRuleEngineRepositoryPo
     }
   }
 }
+
+
+
+
+
 

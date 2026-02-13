@@ -99,7 +99,7 @@ export class Alert {
   }
 
   public silence(duration: number, reason?: string): Alert {
-    const newSilencePolicy = SilencePolicy.create(duration).data!;
+    const newSilencePolicy = SilencePolicy.create(duration).value!;
 
     return new Alert(
       this.id,

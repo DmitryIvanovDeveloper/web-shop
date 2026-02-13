@@ -1,4 +1,4 @@
-import { Result, Success, Failure } from '../../../../../../shared/domain/result/result';
+import { Result, Success, Failure } from '@/shared/result/result';
 import { InvalidArgumentError } from '../../../../../../shared/domain/errors/invalid-argument.error';
 
 export interface GeoFilterProps {
@@ -10,7 +10,7 @@ export class GeoFilter {
 
   public static create(props: GeoFilterProps): Result<GeoFilter, InvalidArgumentError> {
     if (!props.countries || props.countries.length === 0) {
-      return new Failure(new InvalidArgumentError('At least one country must be selected'));
+      return Result.error(new InvalidArgumentError('At least one country must be selected'));
     }
 
     const invalidCodes = props.countries.filter((code) => code.length !== 2);

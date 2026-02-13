@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import type { OfferRuleTree } from '../../domain/types/offer-rule-tree.type';
 import { buildOfferRuleTreeFromCatalog } from '../../domain/services';
 import type { OfferScenarioQueryServicePort } from '../ports/offer-scenario-query-service.port';
@@ -29,11 +29,11 @@ export class SyncOfferRuleTreeUseCase {
     input: SyncOfferRuleTreeInput
   ): Promise<Result<SyncOfferRuleTreeOutput, Error>> {
     const scenariosResult = await this._queryService.loadScenarios(input.appId);
-    if (scenariosResult.isFailure()) {
+    if (scenariosResult.isFailure) {
       return Result.error(scenariosResult.error!);
     }
 
-    const scenarios = scenariosResult.data ?? [];
+    const scenarios = scenariosResult.value ?? [];
     const overrides = scenarios.reduce<Record<string, CatalogScenarioOverride>>((acc, scenario) => {
       acc[scenario.slug] = {
         priority: scenario.priority,
@@ -50,11 +50,16 @@ export class SyncOfferRuleTreeUseCase {
     });
 
     const saveResult = await this._ruleRepository.saveRuleTree(ruleTree);
-    if (saveResult.isFailure()) {
+    if (saveResult.isFailure) {
       return Result.error(saveResult.error!);
     }
 
     return Result.ok({ ruleTree });
   }
 }
+
+
+
+
+
 

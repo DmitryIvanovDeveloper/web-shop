@@ -32,7 +32,7 @@ export class MetricsSelectionRepositoryMock {
     this.selection = selection;
   }
 
-  async loadCatalog(): Promise<any> {
+  async loadCatalog(): Promise<unknown> {
     try {
       const response = await fetch('/mocks/api/metrics/catalog.json');
       return await response.json();

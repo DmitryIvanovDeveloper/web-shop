@@ -10,10 +10,10 @@ export class HttpClientMock implements HttpClient {
 
     if (typeof window === 'undefined') {
       try {
-        
+
         const fs = require('fs');
         const path = require('path');
-        
+
         const filePath = path.join(process.cwd(), 'public', mockPath);
         const fileContent = fs.readFileSync(filePath, 'utf-8');
         const data = JSON.parse(fileContent) as T;
@@ -27,8 +27,7 @@ export class HttpClientMock implements HttpClient {
         return {
           data: ({} as unknown) as T,
           status: 404,
-          statusText: 'Not Found',
-          headers: {},
+          statusText: 'Not Found',          headers: {},
         };
       }
     }

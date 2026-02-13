@@ -55,7 +55,7 @@ export class PatchNotesAdminPresenter {
       if (!result.isSuccess) {
                 this.updateViewModel({
           status: 'error',
-          error: result.error.message
+          error: result.error!.message
         });
         return;
       }
@@ -84,10 +84,10 @@ export class PatchNotesAdminPresenter {
       const result = await this._createPatchNoteUseCase.execute(input);
 
       if (!result.isSuccess) {
-                let errorMessage = result.error.message;
-        if (result.error.message.includes('Version must follow semantic versioning format')) {
+                let errorMessage = result.error!.message;
+        if (result.error!.message.includes('Version must follow semantic versioning format')) {
           errorMessage = 'Version must be in format x.y.z (e.g., 1.0.0, 2.5.3)';
-        } else if (result.error.message.includes('already exists')) {
+        } else if (result.error!.message.includes('already exists')) {
           errorMessage = 'A patch note with this version already exists';
         }
 
@@ -162,7 +162,7 @@ export class PatchNotesAdminPresenter {
       const result = await this._updatePatchNoteUseCase.execute(input);
 
       if (!result.isSuccess) {
-                this.updateViewModel({ status: 'error', error: result.error.message });
+                this.updateViewModel({ status: 'error', error: result.error!.message });
         return false;
       }
 
@@ -187,7 +187,7 @@ export class PatchNotesAdminPresenter {
       const result = await this._deletePatchNoteUseCase.execute({ id, appId });
 
       if (!result.isSuccess) {
-                this.updateViewModel({ error: result.error.message });
+                this.updateViewModel({ error: result.error!.message });
         return false;
     }
 

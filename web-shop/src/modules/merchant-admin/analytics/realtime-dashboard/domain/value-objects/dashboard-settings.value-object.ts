@@ -1,3 +1,5 @@
+import { Result } from '@/shared/result/result';
+
 export class DashboardSettings {
   constructor(
     public readonly dateRange: string,
@@ -9,15 +11,16 @@ export class DashboardSettings {
     return new DashboardSettings('last7days', 30000, 'light');
   }
 
-  public static fromQueryParams(params: URLSearchParams): { success: boolean; data: DashboardSettings } {
-    const dateRange = params.get('dateRange') || 'last7days';
-    const refreshInterval = parseInt(params.get('refreshInterval') || '30000');
-    const theme = params.get('theme') || 'light';
+  public static fromQueryParams(params: URLSearchParams): Result<DashboardSettings, Error> {
+    try {
+      const dateRange = params.get('dateRange') || 'last7days';
+      const refreshInterval = parseInt(params.get('refreshInterval') || '30000');
+      const theme = params.get('theme') || 'light';
 
-    return {
-      success: true,
-      data: new DashboardSettings(dateRange, refreshInterval, theme)
-    };
+      return Result.ok(new DashboardSettings(dateRange, refreshInterval, theme));
+    } catch (error) {
+      return Result.error(error as Error);
+    }
   }
 
   public toQueryParams(): URLSearchParams {

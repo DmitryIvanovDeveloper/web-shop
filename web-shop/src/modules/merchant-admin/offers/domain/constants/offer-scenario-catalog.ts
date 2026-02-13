@@ -204,3 +204,8 @@ export const OFFER_SCENARIO_CATALOG: readonly OfferScenarioDefinition[] = [
     defaultActions: ['cosmetic_reward'],
   },
 ] as const;
+
+
+
+
+

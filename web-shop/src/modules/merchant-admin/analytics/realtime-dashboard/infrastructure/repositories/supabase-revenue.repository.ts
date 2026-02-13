@@ -2,7 +2,7 @@ import { injectable, inject } from 'inversify';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { RevenueRepositoryPort } from '../../application/ports/revenue-repository.port';
 import { RevenueSummary } from '../../domain/entities/revenue-summary.entity';
-import { ROOT_TYPES } from '../../../../../../infrastructure/bootstrap/types';
+import { ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import type { Logger } from '../../../../../../application/ports/logger.port';
 import { TrendDataPoint } from '../../domain/types/trend.types';
 
@@ -60,8 +60,10 @@ export class SupabaseRevenueRepository implements RevenueRepositoryPort {
         revenuePerVisitor,
         netIncome,
         monthlyGrowth,
-        'USD', 
-        trend
+        'USD',
+        averageOrderValue, // arpu
+        averageOrderValue * 2.5, // arppu (mock value)
+        { dataPoints: trend }
       );
 
             return revenueSummary;

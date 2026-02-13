@@ -1,4 +1,4 @@
-import { Result, Success, Failure } from '../result/result';
+import { Result } from '../../result/result';
 import { InvalidArgumentError } from '../errors/invalid-argument.error';
 
 export interface RetryConfigProps {
@@ -20,22 +20,22 @@ export class RetryConfig {
 
   public static create(props: RetryConfigProps): Result<RetryConfig, InvalidArgumentError> {
     if (props.maxAttempts < 1) {
-      return new Failure(new InvalidArgumentError('maxAttempts must be at least 1'));
+      return Result.error(new InvalidArgumentError('maxAttempts must be at least 1'));
     }
 
     if (props.baseDelayMs < 0) {
-      return new Failure(new InvalidArgumentError('baseDelayMs must be non-negative'));
+      return Result.error(new InvalidArgumentError('baseDelayMs must be non-negative'));
     }
 
     if (props.maxDelayMs < props.baseDelayMs) {
-      return new Failure(new InvalidArgumentError('maxDelayMs must be >= baseDelayMs'));
+      return Result.error(new InvalidArgumentError('maxDelayMs must be >= baseDelayMs'));
     }
 
     if (props.backoffMultiplier < 1) {
-      return new Failure(new InvalidArgumentError('backoffMultiplier must be at least 1'));
+      return Result.error(new InvalidArgumentError('backoffMultiplier must be at least 1'));
     }
 
-    return new Success(
+    return Result.ok(
       new RetryConfig(
         props.maxAttempts,
         props.baseDelayMs,

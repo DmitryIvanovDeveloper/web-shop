@@ -1,4 +1,4 @@
-import { Result } from '../../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 
 export type GranularityType = 'day' | 'week' | 'month';
 export type PeriodPreset = 'today' | 'last7days' | 'last30days' | 'custom';

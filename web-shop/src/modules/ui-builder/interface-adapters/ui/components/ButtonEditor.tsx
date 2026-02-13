@@ -166,7 +166,7 @@ export function ButtonEditor({
                     const iconSizeStyle = iconSize ? { width: iconSize, height: iconSize } : { width: '16px', height: '16px' };
                     const IconComponent = ICON_COMPONENTS[icon];
                     if (IconComponent) {
-                      return <IconComponent className="w-4 h-4" style={iconSizeStyle} />;
+                      return <IconComponent className="w-4 h-4" />;
                     }
                     if (icon.startsWith('data:image') || icon.startsWith('http')) {
                       return <img src={icon} alt="Icon" className="w-4 h-4" style={iconSizeStyle} />;

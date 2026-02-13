@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import { PRODUCT_TYPES } from '../../infrastructure/bootstrap/products.types';
 import type {
   ProductsPageViewModel,
@@ -101,7 +101,7 @@ export class ProductsPresenter {
     this._notifySubscribers();
 
     const result = await this._loadProductsUseCase.execute({ appId: this._appId });
-    if (result.isFailure()) {
+    if (result.isFailure) {
       this._viewModel = {
         ...this._viewModel,
         isLoading: false,
@@ -111,7 +111,7 @@ export class ProductsPresenter {
       return;
     }
 
-    const products = result.data?.products ?? [];
+    const products = result.value?.products ?? [];
     this._viewModel = {
       ...this._viewModel,
       isLoading: false,
@@ -147,7 +147,7 @@ export class ProductsPresenter {
       lp_bonus: productData.lp_bonus,
     });
 
-    if (result.isFailure()) {
+    if (result.isFailure) {
       this._viewModel = {
         ...this._viewModel,
         isSaving: false,
@@ -196,7 +196,7 @@ export class ProductsPresenter {
       lp_bonus: productData.lp_bonus,
     });
 
-    if (result.isFailure()) {
+    if (result.isFailure) {
       this._viewModel = {
         ...this._viewModel,
         isSaving: false,
@@ -206,7 +206,7 @@ export class ProductsPresenter {
       return;
     }
 
-    if (!result.data) {
+    if (!result.value) {
       this._viewModel = {
         ...this._viewModel,
         isSaving: false,
@@ -216,7 +216,7 @@ export class ProductsPresenter {
       return;
     }
 
-    const updatedProduct = result.data.product;
+    const updatedProduct = result.value.product;
     const updatedListItem = mapProductToListItem(updatedProduct);
 
     this._viewModel = {
@@ -249,7 +249,7 @@ export class ProductsPresenter {
       appId: this._appId,
     });
 
-    if (result.isFailure()) {
+    if (result.isFailure) {
       this._viewModel = {
         ...this._viewModel,
         isLoading: false,
@@ -268,12 +268,14 @@ export class ProductsPresenter {
       isSaving: false,
       selectedProduct: {
         title: '',
+        description: null,
         appid: this._appId,
         main_image: null,
         background_image: null,
         rarity: null,
         discount: null,
         player_limit: null,
+        limited_offer: null,
         expires_at: null,
         price: null,
         rp_bonus: null,
@@ -299,6 +301,7 @@ export class ProductsPresenter {
         rarity: product.rarity,
         discount: product.discount,
         player_limit: product.player_limit,
+        limited_offer: product.limited_offer,
         expires_at: product.expires_at,
         price: product.price,
         rp_bonus: product.rp_bonus,
@@ -324,11 +327,17 @@ export class ProductsPresenter {
   public async uploadProductImage(file: File): Promise<Result<string, Error>> {
     const result = await this._uploadProductImageUseCase.execute({ file });
 
-    if (result.isFailure()) {
-      return Result.error(result.error!);
+    if (result.isFailure) {
+      return Result.error(result.error ?? new Error('Unknown error'));
     }
 
-    return Result.ok(result.data!.url);
+    return Result.ok(result.value!.url);
   }
 }
+
+
+
+
+
+
 

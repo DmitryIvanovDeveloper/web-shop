@@ -1,4 +1,4 @@
-import { Result } from '../../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import { FilterPreset } from '../../domain/entities/filter-preset.entity';
 
 export interface FilterPresetRepositoryPort {

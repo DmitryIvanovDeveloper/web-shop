@@ -1,4 +1,4 @@
-import type { Result } from '../../../../../shared/domain/result/result';
+import type { Result } from '@/shared/result/result';
 import type { PromoCode } from '../../domain/entities/promo-code.entity';
 
 export interface PromoCodeSearchFilter {
@@ -36,4 +36,8 @@ export interface PromoCodeRepositoryPort {
 
   update(promoCode: PromoCode): Promise<Result<PromoCode, Error>>;
 }
+
+
+
+
 

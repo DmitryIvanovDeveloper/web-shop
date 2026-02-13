@@ -26,7 +26,7 @@ export class GetActiveProjectUseCase {
       const result = await this._projectRepository.findActiveByMerchantId(merchantId);
 
       if (result.isFailure) {
-        return Result.error(result.error!);
+        return Result.error(result.error ?? new Error('Unknown error'));
       }
 
       return Result.ok({

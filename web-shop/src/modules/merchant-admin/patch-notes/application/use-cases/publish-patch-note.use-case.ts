@@ -1,8 +1,10 @@
 import { inject, injectable } from 'inversify';
-import type { Result } from '../../../../shared/result/result';
+import { Result } from '@/shared/result/result';
 import type { PatchNoteRepositoryPort } from '../ports/patch-note-repository.port';
 import type { PatchNoteOutput } from '../types/patch-note.types';
 import { MERCHANT_ADMIN_PATCH_NOTES_TYPES } from '../../infrastructure/bootstrap/types';
+import { PatchNoteId } from '../../domain/value-objects/patch-note-id';
+import { PatchNote } from '../../domain/entities/patch-note';
 
 export interface PublishPatchNoteInput {
   id: string;
@@ -19,33 +21,45 @@ export class PublishPatchNoteUseCase {
   async execute(input: PublishPatchNoteInput): Promise<Result<PatchNoteOutput, Error>> {
     try {
       
-      const findResult = await this._patchNoteRepository.findById(input.id, input.appId);
+      const findResult = await this._patchNoteRepository.findById(PatchNoteId.fromString(input.id), input.appId);
       if (!findResult.isSuccess) {
-        return Result.fail(findResult.error);
+        return Result.error(findResult.error!);
       }
 
       if (!findResult.value) {
-        return Result.fail(new Error('Patch note not found'));
+        return Result.error(new Error('Patch note not found'));
       }
 
       const patchNote = findResult.value;
 
       if (patchNote.status === 'published') {
-        return { isSuccess: false, error: new Error('Patch note is already published') };
+        return Result.error(new Error('Patch note is already published'));
       }
 
-      patchNote.status = 'published';
-      patchNote.publishedAt = new Date();
+      const publishedPatchNote = new PatchNote(
+        patchNote.id,
+        patchNote.appId,
+        patchNote.version,
+        patchNote.title,
+        patchNote.description,
+        patchNote.changes,
+        'published',
+        patchNote.createdAt,
+        new Date(),
+        new Date(),
+        patchNote.scheduledFor
+      );
 
-      const updateResult = await this._patchNoteRepository.update(patchNote);
+      const updateResult = await this._patchNoteRepository.update(publishedPatchNote);
       if (!updateResult.isSuccess) {
-        return Result.fail(updateResult.error);
+        return Result.error(updateResult.error!);
       }
 
-      const updatedNote = updateResult.value;
+      const updatedNote = updateResult.value!;
 
       const output: PatchNoteOutput = {
         id: updatedNote.id.value,
+        appId: updatedNote.appId,
         version: updatedNote.version.value,
         title: updatedNote.title,
         description: updatedNote.description,

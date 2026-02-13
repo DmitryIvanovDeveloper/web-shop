@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import type { ProductImageStoragePort } from '../../application/ports/product-image-storage.port';
 import { PRODUCT_TYPES } from '../bootstrap/products.types';
 import type { Logger } from '../../../../../application/ports/logger.port';
@@ -22,3 +22,9 @@ export class SupabaseProductImageStorageService implements ProductImageStoragePo
         return Result.error(new Error('Delete not implemented'));
   }
 }
+
+
+
+
+
+

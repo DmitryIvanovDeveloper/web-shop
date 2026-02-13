@@ -1,4 +1,4 @@
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import { InvalidArgumentError } from '../../../../../shared/domain/errors/invalid-argument.error';
 import { OfferScenarioCategory, OfferScenarioCategoryCode } from '../value-objects/offer-scenario-category.value-object';
 import { OfferTrigger, OfferTriggerCode } from '../value-objects/offer-trigger.value-object';
@@ -65,19 +65,19 @@ export class OfferScenario {
     }
 
     const categoryResult = OfferScenarioCategory.create(props.categoryCode);
-    if (categoryResult.isFailure()) {
+    if (categoryResult.isFailure) {
       return Result.error(categoryResult.error!);
     }
 
     const triggerResult = OfferTrigger.create(props.triggerCode);
-    if (triggerResult.isFailure()) {
+    if (triggerResult.isFailure) {
       return Result.error(triggerResult.error!);
     }
 
     const actionsResult = props.defaultActions
       ? OfferAction.fromMany(props.defaultActions)
       : Result.ok<OfferAction[], InvalidArgumentError>([]);
-    if (actionsResult.isFailure()) {
+    if (actionsResult.isFailure) {
       return Result.error(actionsResult.error!);
     }
 
@@ -87,7 +87,7 @@ export class OfferScenario {
         items: props.defaultItems,
       }
     );
-    if (configurationResult.isFailure()) {
+    if (configurationResult.isFailure) {
       return Result.error(configurationResult.error!);
     }
 
@@ -97,14 +97,14 @@ export class OfferScenario {
         props.slug,
         props.title,
         props.description,
-        categoryResult.data!,
-        triggerResult.data!,
+        categoryResult.value!,
+        triggerResult.value!,
         props.priority,
         props.ruleSet,
-        actionsResult.data ?? [],
+        actionsResult.value ?? [],
         Object.freeze([...(props.tags ?? [])]),
         props.metrics,
-        configurationResult.data!
+        configurationResult.value!
       )
     );
   }
@@ -113,7 +113,7 @@ export class OfferScenario {
     configuration: OfferScenarioConfigurationProps
   ): Result<OfferScenario, OfferScenarioConfigurationError> {
     const configurationResult = OfferScenarioConfiguration.create(configuration);
-    if (configurationResult.isFailure()) {
+    if (configurationResult.isFailure) {
       return Result.error(configurationResult.error!);
     }
 
@@ -130,8 +130,13 @@ export class OfferScenario {
         this.actions,
         this.tags,
         this.metrics,
-        configurationResult.data!
+        configurationResult.value!
       )
     );
   }
 }
+
+
+
+
+

@@ -4,7 +4,7 @@ import type {
   AnalyticsRepositoryPort,
 } from '../../application/ports/analytics-repository.port';
 import type { HttpClient } from '../../../../../../application/ports/http-client.port';
-import { ROOT_TYPES } from '../../../../../../infrastructure/bootstrap/types';
+import { ROOT_TYPES } from '@/infrastructure/bootstrap/types';
 import { SalesSummary } from '../../domain/entities/sales-summary.entity';
 import { RevenueSummary } from '../../domain/entities/revenue-summary.entity';
 import { GeographySummary } from '../../domain/entities/geography-summary.entity';

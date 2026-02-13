@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Success, Failure, type Result } from '../../../../../shared/result/result';
+import { Result } from '@/shared/result/result';
 import type { Logger } from '../../../../../application/ports/logger.port';
 import type { EventBus } from '../../../../../application/ports/event-bus.port';
 import { TYPES } from '../../../../../infrastructure/bootstrap/types';
@@ -30,11 +30,11 @@ export class UpdatePatchNoteUseCase {
       const findResult = await this._patchNoteRepository.findById(patchNoteId, input.appId);
 
       if (!findResult.isSuccess) {
-                return Failure.fail(findResult.error);
+                return Result.error(findResult.error!);
       }
 
       if (!findResult.value) {
-        return Failure.fail(new PatchNoteNotFoundError(input.id));
+        return Result.error(new PatchNoteNotFoundError(input.id));
       }
 
       const existingPatchNote = findResult.value;
@@ -60,17 +60,17 @@ export class UpdatePatchNoteUseCase {
       const saveResult = await this._patchNoteRepository.update(updatedPatchNote);
 
       if (!saveResult.isSuccess) {
-                return Failure.fail(saveResult.error);
+                return Result.error(saveResult.error!);
       }
 
       await this._eventBus.publish(
         new PatchNoteUpdatedEvent(updatedPatchNote.id.value, [], input.appId)
       );
 
-            return Success.ok(this.mapToOutput(updatedPatchNote));
+            return Result.ok(this.mapToOutput(updatedPatchNote));
 
     } catch (error) {
-            return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+            return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 

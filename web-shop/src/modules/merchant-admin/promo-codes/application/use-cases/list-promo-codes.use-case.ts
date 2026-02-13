@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import type { Logger } from '../../../../../application/ports/logger.port';
 import { ROOT_TYPES } from '../../../../../infrastructure/bootstrap/types';
 import type {
@@ -33,10 +33,14 @@ export class ListPromoCodesUseCase {
       pagination
     );
 
-    if (result.isFailure()) {
+    if (result.isFailure) {
           }
 
     return result;
   }
 }
+
+
+
+
 

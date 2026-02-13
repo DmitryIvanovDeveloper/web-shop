@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import type { Product, ProductQueryServicePort } from '../ports/product-query-service.port';
 import { OFFER_TYPES } from '../../infrastructure/bootstrap/offers.types';
 
@@ -20,13 +20,18 @@ export class LoadProductsUseCase {
 
   public async execute(input: LoadProductsInput): Promise<Result<LoadProductsOutput, Error>> {
     const productsResult = await this._productQueryService.loadProducts(input.appId);
-    if (productsResult.isFailure()) {
+    if (productsResult.isFailure) {
       return Result.error(productsResult.error!);
     }
 
     return Result.ok({
-      products: productsResult.data ?? [],
+      products: productsResult.value ?? [],
     });
   }
 }
+
+
+
+
+
 

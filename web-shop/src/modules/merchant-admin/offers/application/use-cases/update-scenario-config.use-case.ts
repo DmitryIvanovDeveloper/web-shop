@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import type { OfferScenario } from '../../domain/entities/offer-scenario.entity';
 import type { OfferScenarioConfigurationProps } from '../../domain/entities/offer-scenario-configuration.entity';
 import type { OfferScenarioQueryServicePort } from '../ports/offer-scenario-query-service.port';
@@ -29,21 +29,26 @@ export class UpdateScenarioConfigUseCase {
     input: UpdateScenarioConfigInput
   ): Promise<Result<UpdateScenarioConfigOutput, Error>> {
     const scenarioResult = await this._queryService.loadScenario(input.appId, input.slug);
-    if (scenarioResult.isFailure()) {
+    if (scenarioResult.isFailure) {
       return Result.error(scenarioResult.error!);
     }
 
-    const updatedScenarioResult = scenarioResult.data!.withConfiguration(input.configuration);
-    if (updatedScenarioResult.isFailure()) {
-      return Result.error(updatedScenarioResult.error);
+    const updatedScenarioResult = scenarioResult.value!.withConfiguration(input.configuration);
+    if (updatedScenarioResult.isFailure) {
+      return Result.error(updatedScenarioResult.error!);
     }
 
-    const saveResult = await this._commandService.saveScenario(input.appId, updatedScenarioResult.data!);
-    if (saveResult.isFailure()) {
+    const saveResult = await this._commandService.saveScenario(input.appId, updatedScenarioResult.value!);
+    if (saveResult.isFailure) {
       return Result.error(saveResult.error!);
     }
 
-    return Result.ok({ scenario: saveResult.data! });
+    return Result.ok({ scenario: saveResult.value! });
   }
 }
+
+
+
+
+
 

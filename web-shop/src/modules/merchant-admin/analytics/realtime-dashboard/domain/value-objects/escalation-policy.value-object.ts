@@ -1,4 +1,4 @@
-import { Result, Success, Failure } from '../../../../../../shared/domain/result/result';
+import { Result, Success, Failure } from '@/shared/result/result';
 import { DeliveryChannel } from './delivery-channel.value-object';
 
 export class EscalationPolicy {

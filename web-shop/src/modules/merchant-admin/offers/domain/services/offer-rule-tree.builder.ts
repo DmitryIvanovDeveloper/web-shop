@@ -2,6 +2,7 @@ import { OfferRuleTreeBuildError } from '../errors/offer-rule-tree.error';
 import { OfferScenario, type OfferScenarioProps } from '../entities/offer-scenario.entity';
 import type { OfferRuleTree } from '../types/offer-rule-tree.type';
 import type { OfferRuleSet, Condition, ValueDescriptor } from '../types/offer-rule-set.type';
+import type { OfferItemProps } from '../value-objects/offer-item.value-object';
 import type { OfferTriggerCode } from '../value-objects/offer-trigger.value-object';
 import { OFFER_SCENARIO_CATALOG } from '../constants/offer-scenario-catalog';
 import {
@@ -212,7 +213,7 @@ export const buildOfferRuleTree = (input: BuildOfferRuleTreeInput): OfferRuleTre
     triggerCode: OfferTriggerCode;
     priority: number;
     offerIds: readonly string[];
-    items: readonly Array<{ id: string; title: string; type: string; metadata: Record<string, string | number | boolean> }>;
+    items: Array<{ id: string; title: string; type: string; metadata: Record<string, string | number | boolean> }>;
   }> = [];
 
   for (const scenario of input.scenarios) {
@@ -308,7 +309,7 @@ export const buildOfferRuleTree = (input: BuildOfferRuleTreeInput): OfferRuleTre
       triggerCode: expanded.triggerCode,
       priority: expanded.priority,
       offerIds: [...expanded.offerIds],
-      items: expanded.items.length > 0 ? expanded.items : undefined,
+      items: expanded.items.length > 0 ? expanded.items as readonly OfferItemProps[] : undefined,
     })),
   };
 };
@@ -355,15 +356,15 @@ export const buildScenariosFromCatalog = (
     };
 
     const scenarioResult = OfferScenario.create(scenarioProps);
-    if (scenarioResult.isFailure()) {
+    if (scenarioResult.isFailure) {
       const error = scenarioResult.error;
       if (error instanceof OfferScenarioConfigurationError) {
         throw error;
       }
-      throw new OfferScenarioValidationError(error.message);
+      throw new OfferScenarioValidationError(error!.message);
     }
 
-    scenarios.push(scenarioResult.data!);
+    scenarios.push(scenarioResult.value!);
   }
 
   return scenarios;
@@ -380,4 +381,9 @@ export const buildOfferRuleTreeFromCatalog = (
     scenarios,
   });
 };
+
+
+
+
+
 

@@ -61,7 +61,7 @@ const mapDtoToDomain = (dto: DailyRewardDto): Result<DailyReward, Error> => {
       new Date(dto.updated_at)
     ));
   } catch (error) {
-    return Result.fail(error instanceof Error ? error : new Error('Unknown mapping error'));
+    return Result.error(error instanceof Error ? error : new Error('Unknown mapping error'));
   }
 };
 
@@ -104,21 +104,21 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
       );
 
       if (response.status !== 201 && response.status !== 200) {
-                return Result.fail(new Error(`Failed to save daily reward: ${response.statusText}`));
+                return Result.error(new Error(`Failed to save daily reward: ${response.statusText}`));
       }
 
       if (!response.data?.reward) {
-        return Result.fail(new Error('Invalid response format from API'));
+        return Result.error(new Error('Invalid response format from API'));
       }
 
       const mappingResult = mapDtoToDomain(response.data.reward);
       if (mappingResult.isFailure) {
-        return Result.fail(mappingResult.error!);
+        return Result.error(mappingResult.error!);
       }
 
             return Result.ok(mappingResult.value!);
     } catch (error) {
-            return Result.fail(error instanceof Error ? error : new Error('Unknown save error'));
+            return Result.error(error instanceof Error ? error : new Error('Unknown save error'));
     }
   }
 
@@ -130,23 +130,23 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
 
       if (response.status !== 200) {
         if (response.status === 404) {
-                    return Result.fail(new Error('Daily reward not found'));
+                    return Result.error(new Error('Daily reward not found'));
         }
-                return Result.fail(new Error(`Failed to find daily reward: ${response.statusText}`));
+                return Result.error(new Error(`Failed to find daily reward: ${response.statusText}`));
       }
 
       if (!response.data?.reward) {
-        return Result.fail(new Error('Invalid response format from API'));
+        return Result.error(new Error('Invalid response format from API'));
       }
 
       const mappingResult = mapDtoToDomain(response.data.reward);
       if (mappingResult.isFailure) {
-        return Result.fail(mappingResult.error!);
+        return Result.error(mappingResult.error!);
       }
 
             return Result.ok(mappingResult.value!);
     } catch (error) {
-            return Result.fail(error instanceof Error ? error : new Error('Unknown find error'));
+            return Result.error(error instanceof Error ? error : new Error('Unknown find error'));
     }
   }
 
@@ -165,7 +165,7 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
       const response = await this.httpClient.get<DailyRewardsApiResponse>(url);
 
       if (response.status !== 200) {
-                return Result.fail(new Error(`Failed to find daily rewards: ${response.statusText}`));
+                return Result.error(new Error(`Failed to find daily rewards: ${response.statusText}`));
       }
 
       if (!response.data?.rewards) {
@@ -183,7 +183,7 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
 
       return Result.ok(rewards);
     } catch (error) {
-            return Result.fail(error instanceof Error ? error : new Error('Unknown findAll error'));
+            return Result.error(error instanceof Error ? error : new Error('Unknown findAll error'));
     }
   }
 
@@ -204,21 +204,21 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
       );
 
       if (response.status !== 200) {
-                return Result.fail(new Error(`Failed to update daily reward: ${response.statusText}`));
+                return Result.error(new Error(`Failed to update daily reward: ${response.statusText}`));
       }
 
       if (!response.data?.reward) {
-        return Result.fail(new Error('Invalid response format from API'));
+        return Result.error(new Error('Invalid response format from API'));
       }
 
       const mappingResult = mapDtoToDomain(response.data.reward);
       if (mappingResult.isFailure) {
-        return Result.fail(mappingResult.error!);
+        return Result.error(mappingResult.error!);
       }
 
             return Result.ok(mappingResult.value!);
     } catch (error) {
-            return Result.fail(error instanceof Error ? error : new Error('Unknown update error'));
+            return Result.error(error instanceof Error ? error : new Error('Unknown update error'));
     }
   }
 
@@ -230,14 +230,14 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
 
       if (response.status !== 200 && response.status !== 204) {
         if (response.status === 404) {
-                    return Result.fail(new Error('Daily reward not found'));
+                    return Result.error(new Error('Daily reward not found'));
         }
-                return Result.fail(new Error(`Failed to delete daily reward: ${response.statusText}`));
+                return Result.error(new Error(`Failed to delete daily reward: ${response.statusText}`));
       }
 
             return Result.ok(undefined);
     } catch (error) {
-            return Result.fail(error instanceof Error ? error : new Error('Unknown delete error'));
+            return Result.error(error instanceof Error ? error : new Error('Unknown delete error'));
     }
   }
 
@@ -248,7 +248,7 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
       );
 
       if (response.status !== 200) {
-                return Result.fail(new Error(`Failed to find active daily reward: ${response.statusText}`));
+                return Result.error(new Error(`Failed to find active daily reward: ${response.statusText}`));
       }
 
       const rewards = response.data?.rewards || [];
@@ -258,12 +258,12 @@ export class DailyRewardApiRepository implements DailyRewardRepositoryPort {
 
       const mappingResult = mapDtoToDomain(rewards[0]);
       if (mappingResult.isFailure) {
-        return Result.fail(mappingResult.error!);
+        return Result.error(mappingResult.error!);
       }
 
             return Result.ok(mappingResult.value!);
     } catch (error) {
-            return Result.fail(error instanceof Error ? error : new Error('Unknown findActive error'));
+            return Result.error(error instanceof Error ? error : new Error('Unknown findActive error'));
     }
   }
 }

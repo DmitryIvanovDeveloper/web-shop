@@ -1,4 +1,4 @@
-import { Result } from '../../../../../shared/result/result';
+import { Result } from '@/shared/result/result';
 import { InvalidArgumentError } from '../../../../../shared/domain/errors/invalid-argument.error';
 import { ProjectId, AppId, ProjectStatus, MerchantId } from '../index';
 import { InvalidProjectDataError } from '../errors/project.error';
@@ -39,7 +39,7 @@ export class Project {
       return Result.error(new InvalidProjectDataError('description', 'cannot be longer than 500 characters'));
     }
 
-    const id = ProjectId.create(crypto.randomUUID());
+    const id = ProjectId.create();
     const now = new Date();
 
     return Result.ok(new Project(

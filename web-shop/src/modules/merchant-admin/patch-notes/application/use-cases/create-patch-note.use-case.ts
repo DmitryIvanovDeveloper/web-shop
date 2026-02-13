@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Success, Failure, type Result } from '../../../../../shared/result/result';
+import { Result } from '@/shared/result/result';
 import { TYPES } from '../../../../../infrastructure/bootstrap/types';
 import type { EventBus } from '../../../../../application/ports/event-bus.port';
 import type { PatchNoteRepositoryPort } from '../ports/patch-note-repository.port';
@@ -29,8 +29,8 @@ export class CreatePatchNoteUseCase {
         input.appId
       );
 
-      if (existingPatchNote.isSuccess && existingPatchNote.data) {
-        return Failure.fail(new PatchNoteAlreadyExistsError(input.version));
+      if (existingPatchNote.isSuccess && existingPatchNote.value) {
+        return Result.error(new PatchNoteAlreadyExistsError(input.version));
       }
 
       const patchNoteId = PatchNoteId.create();
@@ -51,21 +51,21 @@ export class CreatePatchNoteUseCase {
 
       const saveResult = await this._patchNoteRepository.save(patchNote);
       if (!saveResult.isSuccess) {
-        return Failure.fail(saveResult.error);
+        return Result.error(saveResult.error!);
       }
 
       if (!saveResult.value) {
-        return Failure.fail(new Error('Save operation failed: no data returned'));
+        return Result.error(new Error('Save operation failed: no data returned'));
       }
 
       await this._eventBus.publish(
         new PatchNoteCreatedEvent(patchNoteId.value, input.version, input.title, input.appId)
       );
 
-      return Success.ok(this.mapToOutput(saveResult.value));
+      return Result.ok(this.mapToOutput(saveResult.value));
 
     } catch (error) {
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 

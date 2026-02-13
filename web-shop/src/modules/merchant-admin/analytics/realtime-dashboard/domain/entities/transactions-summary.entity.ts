@@ -14,6 +14,18 @@ export class TransactionsSummary {
     public readonly transactions: Transaction[]
   ) {}
 
+  public get totalTransactions(): number {
+    return this.transactions.length;
+  }
+
+  public get successfulTransactions(): Transaction[] {
+    return this.transactions.filter(t => t.status === 'success');
+  }
+
+  public get failedTransactions(): Transaction[] {
+    return this.transactions.filter(t => t.status === 'failed');
+  }
+
   public static fromApiResponse(response: any): TransactionsSummary {
     return new TransactionsSummary(
       response.transactions || []

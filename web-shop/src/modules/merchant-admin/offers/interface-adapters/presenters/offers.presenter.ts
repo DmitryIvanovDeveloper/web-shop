@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import { OFFER_TYPES } from '../../infrastructure/bootstrap/offers.types';
 import type {
   OfferCategoryGroupViewModel,
@@ -152,7 +152,7 @@ export class OffersPresenter {
     });
 
     const result = await this._safeLoadScenarios(appId, true);
-    if (result.isFailure()) {
+    if (result.isFailure) {
       this._setViewModel({
         ...initialOffersPageViewModel,
         errorMessage: this.labels.errorState,
@@ -160,7 +160,7 @@ export class OffersPresenter {
       return;
     }
 
-    this._applyLoadResult(result.data!);
+    this._applyLoadResult(result.value!);
   }
 
   public selectScenario(slug: string): void {
@@ -182,7 +182,7 @@ export class OffersPresenter {
     this._setViewModel({ ...this._viewModel, isLoading: true, errorMessage: null });
 
     const result = await this._safeLoadScenarios(this._appId, true);
-    if (result.isFailure()) {
+    if (result.isFailure) {
       this._setViewModel({
         ...this._viewModel,
         isLoading: false,
@@ -191,7 +191,7 @@ export class OffersPresenter {
       return;
     }
 
-    this._applyLoadResult(result.data!);
+    this._applyLoadResult(result.value!);
   }
 
   public async updateScenarioConfiguration(
@@ -210,7 +210,7 @@ export class OffersPresenter {
       configuration,
     });
 
-    if (result.isFailure()) {
+    if (result.isFailure) {
       this._setViewModel({
         ...this._viewModel,
         errorMessage: result.error?.message ?? 'Update failed',
@@ -218,7 +218,7 @@ export class OffersPresenter {
       return;
     }
 
-    const updatedScenario = result.data!.scenario;
+    const updatedScenario = result.value!.scenario;
 
     this._scenarios = this._scenarios.map((scenario) =>
       scenario.slug === updatedScenario.slug ? updatedScenario : scenario
@@ -246,7 +246,7 @@ export class OffersPresenter {
       appId: 'APP123',
     });
 
-    if (result.isFailure()) {
+    if (result.isFailure) {
       this._setViewModel({
         ...this._viewModel,
         isLoadingProducts: false,
@@ -255,7 +255,7 @@ export class OffersPresenter {
       return [];
     }
 
-    const products = [...(result.data!.products ?? [])];
+    const products = [...(result.value!.products ?? [])];
     this._setViewModel({
       ...this._viewModel,
       isLoadingProducts: false,
@@ -370,7 +370,7 @@ export class OffersPresenter {
     };
 
     const interimScenarioResult = scenario.withConfiguration(updatedConfiguration);
-    if (interimScenarioResult.isFailure()) {
+    if (interimScenarioResult.isFailure) {
       const errorMessage = interimScenarioResult.error?.message ?? 'Unknown error';
       this._setViewModel({
         ...this._viewModel,
@@ -379,7 +379,7 @@ export class OffersPresenter {
       return;
     }
 
-    const interimScenario = interimScenarioResult.data!;
+    const interimScenario = interimScenarioResult.value!;
     this._scenarios = this._scenarios.map((scenario: OfferScenario) =>
       scenario.slug === slug ? interimScenario : scenario
     );
@@ -494,7 +494,7 @@ export class OffersPresenter {
     };
 
     const interimScenarioResult = scenario.withConfiguration(updatedConfiguration);
-    if (interimScenarioResult.isFailure()) {
+    if (interimScenarioResult.isFailure) {
       const errorMessage = interimScenarioResult.error?.message ?? 'Unknown error';
       this._setViewModel({
         ...this._viewModel,
@@ -503,7 +503,7 @@ export class OffersPresenter {
       return;
     }
 
-    const interimScenario = interimScenarioResult.data!;
+    const interimScenario = interimScenarioResult.value!;
     this._scenarios = this._scenarios.map((scenario: OfferScenario) =>
       scenario.slug === slug ? interimScenario : scenario
     );
@@ -524,7 +524,7 @@ export class OffersPresenter {
     try {
       const result = await this._syncOfferRuleTreeUseCase.execute({ appId: this._appId });
 
-      if (result.isFailure()) {
+      if (result.isFailure) {
         this._setViewModel({
           ...this._viewModel,
           errorMessage: result.error?.message ?? 'Publish failed',
@@ -532,7 +532,7 @@ export class OffersPresenter {
         return;
       }
 
-      this._ruleTree = result.data!.ruleTree;
+      this._ruleTree = result.value!.ruleTree;
 
       let ruleTreeJson: string;
       try {
@@ -571,13 +571,13 @@ export class OffersPresenter {
       appId,
       includeRuleTree,
     });
-    if (loadResult.isFailure()) {
+    if (loadResult.isFailure) {
       return Result.error(loadResult.error!);
     }
 
     return Result.ok({
-      scenarios: loadResult.data?.scenarios ?? [],
-      ruleTree: loadResult.data?.ruleTree ?? null,
+      scenarios: loadResult.value?.scenarios ?? [],
+      ruleTree: loadResult.value?.ruleTree ?? null,
     });
   }
 
@@ -758,3 +758,8 @@ export class OffersPresenter {
     });
   }
 }
+
+
+
+
+

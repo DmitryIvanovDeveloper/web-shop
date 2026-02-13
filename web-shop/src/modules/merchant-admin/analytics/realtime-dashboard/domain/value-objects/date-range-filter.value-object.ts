@@ -1,4 +1,4 @@
-import { Result, Success, Failure } from '../../../../../../shared/domain/result/result';
+import { Result, Success, Failure } from '@/shared/result/result';
 import { InvalidArgumentError } from '../../../../../../shared/domain/errors/invalid-argument.error';
 
 export type DateRangePreset = 'today' | 'yesterday' | 'last7days' | 'last30days' | 'custom';

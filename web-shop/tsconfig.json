@@ -7,7 +7,7 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "noImplicitAny": false,
     "noEmit": true,
     "esModuleInterop": true,
@@ -28,13 +28,24 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@/application/*": [
+        "./src/application/*"
+      ],
+      "@/infrastructure/*": [
+        "./src/infrastructure/*"
+      ],
+      "@/modules/*": [
+        "./src/modules/*"
       ]
     },
     "target": "ES2017",
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "strictPropertyInitialization": false
   },
   "include": [
     "next-env.d.ts",
+    "src/types/**/*.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"

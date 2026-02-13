@@ -96,7 +96,7 @@ export default function InteractionsDemoPage() {
           <MetricSelector
             availableMetrics={availableMetrics}
             selectedMetrics={selectedMetrics}
-            onSelectionChange={setSelectedMetrics}
+            onSelect={setSelectedMetrics}
           />
         </div>
 

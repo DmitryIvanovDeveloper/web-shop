@@ -1,4 +1,4 @@
-import { Result, Success, Failure } from '../../../../../../shared/domain/result/result';
+import { Result, Success, Failure } from '@/shared/result/result';
 import { InvalidArgumentError } from '../../../../../../shared/domain/errors/invalid-argument.error';
 
 export type AcquisitionSource = 'organic' | 'paid' | 'referral' | 'social' | 'email' | 'direct';

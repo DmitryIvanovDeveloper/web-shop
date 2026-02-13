@@ -1,7 +1,7 @@
 import { injectable, inject } from 'inversify';
 import { DashboardSettings } from '../../domain/value-objects/dashboard-settings.value-object';
 import { ROOT_TYPES } from '../../../../../../infrastructure/bootstrap/types';
-import { Result, Success } from '../../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 
 export interface LoadSettingsInput {
   userId: string;
@@ -14,8 +14,8 @@ export class LoadSettingsUseCase {
     
     if (input.queryParams && input.queryParams.toString()) {
       const settingsResult = DashboardSettings.fromQueryParams(input.queryParams);
-      if (settingsResult.success) {
-        return new Success(settingsResult.data);
+      if (settingsResult.isSuccess) {
+        return Result.ok(settingsResult.value!);
       }
     }
 
@@ -30,15 +30,15 @@ export class LoadSettingsUseCase {
             if (parsed[key]) params.set(key, parsed[key]);
           });
           const settingsResult = DashboardSettings.fromQueryParams(params);
-          if (settingsResult.success) {
-            return new Success(settingsResult.data);
-          }
+      if (settingsResult.isSuccess) {
+        return Result.ok(settingsResult.value!);
+      }
         } catch {
           
         }
       }
     }
 
-    return new Success(DashboardSettings.createDefault());
+    return Result.ok(DashboardSettings.createDefault());
   }
 }

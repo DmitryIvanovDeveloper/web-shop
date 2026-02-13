@@ -17,7 +17,7 @@ export const RevenuePanel: React.FC<RevenuePanelProps> = ({ revenueSummary }) =>
     }).format(amount);
   };
 
-  const trendData: LineChartDataPoint[] = revenueSummary.trend.map((point) => ({
+  const trendData: LineChartDataPoint[] = revenueSummary.trend.dataPoints.map((point) => ({
     label: point.timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     value: point.value,
   }));

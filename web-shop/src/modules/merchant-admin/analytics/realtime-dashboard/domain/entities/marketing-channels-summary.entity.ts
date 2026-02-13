@@ -15,6 +15,22 @@ export class MarketingChannelsSummary {
     public readonly timeSeries: TimeSeriesPoint[]
   ) {}
 
+  public get totalSegments(): number {
+    return this.timeSeries.reduce((sum, point) => sum + point.segments.length, 0);
+  }
+
+  public getSegmentById(id: string): ChannelSegment | undefined {
+    for (const point of this.timeSeries) {
+      const segment = point.segments.find(s => s.id === id);
+      if (segment) return segment;
+    }
+    return undefined;
+  }
+
+  public getLatestPoint(): TimeSeriesPoint | undefined {
+    return this.timeSeries[this.timeSeries.length - 1];
+  }
+
   public static fromApiResponse(response: any): MarketingChannelsSummary {
     return new MarketingChannelsSummary(
       response.timeSeries || []

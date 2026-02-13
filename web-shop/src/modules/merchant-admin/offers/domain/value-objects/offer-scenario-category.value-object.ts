@@ -1,4 +1,4 @@
-import { Failure, Result, Success } from '../../../../../shared/domain/result/result';
+import { Failure, Result, Success } from '@/shared/result/result';
 import { InvalidArgumentError } from '../../../../../shared/domain/errors/invalid-argument.error';
 
 export type OfferScenarioCategoryCode =
@@ -63,3 +63,8 @@ export class OfferScenarioCategory {
     );
   }
 }
+
+
+
+
+

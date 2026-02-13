@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import type { ProductImageStoragePort } from '../../application/ports/product-image-storage.port';
 import { PRODUCT_TYPES } from '../../infrastructure/bootstrap/products.types';
 import type { Logger } from '../../../../../application/ports/logger.port';
@@ -73,3 +73,9 @@ export class ProductImageApiStorage implements ProductImageStoragePort {
         return Result.error(new Error('Delete image not implemented'));
   }
 }
+
+
+
+
+
+

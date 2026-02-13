@@ -1,7 +1,7 @@
 import { injectable, inject } from 'inversify';
 import type { DashboardSettings } from '../../domain/value-objects/dashboard-settings.value-object';
 import { ROOT_TYPES } from '../../../../../../infrastructure/bootstrap/types';
-import { Result, Success } from '../../../../../../shared/domain/result/result';
+import { Result, Success } from '@/shared/result/result';
 
 export interface ApplySettingsInput {
   settings: DashboardSettings;

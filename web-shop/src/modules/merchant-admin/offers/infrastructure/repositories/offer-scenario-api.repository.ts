@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import type { OfferScenarioQueryServicePort } from '../../application/ports/offer-scenario-query-service.port';
 import type { OfferScenarioCommandServicePort } from '../../application/ports/offer-scenario-command-service.port';
 import { buildScenariosFromCatalog } from '../../domain/services';
@@ -76,11 +76,11 @@ export class OfferScenarioApiRepository
 
   public async loadScenario(appId: string, slug: string): Promise<Result<OfferScenario, Error>> {
     const scenariosResult = await this.loadScenarios(appId);
-    if (scenariosResult.isFailure()) {
+    if (scenariosResult.isFailure) {
       return Result.error(scenariosResult.error!);
     }
 
-    const scenario = scenariosResult.data?.find((item) => item.slug === slug);
+    const scenario = scenariosResult.value?.find((item) => item.slug === slug);
     if (!scenario) {
       return Result.error(new Error(`Scenario with slug ${slug} not found`));
     }
@@ -107,4 +107,9 @@ export class OfferScenarioApiRepository
     }
   }
 }
+
+
+
+
+
 

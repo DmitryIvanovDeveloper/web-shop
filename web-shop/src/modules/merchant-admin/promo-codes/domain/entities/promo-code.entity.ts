@@ -1,4 +1,4 @@
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import { PromoCodeError } from '../errors/promo-code.error';
 
 export type PromoDiscountType = 'percent' | 'fixed_amount';
@@ -140,4 +140,8 @@ export class PromoCode {
     });
   }
 }
+
+
+
+
 

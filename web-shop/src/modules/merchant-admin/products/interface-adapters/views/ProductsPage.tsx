@@ -111,10 +111,10 @@ export function ProductsPage({ appId }: ProductsPageProps): JSX.Element {
               onCancel={handleCancel}
               onUploadImage={async (file) => {
                 const result = await presenter.uploadProductImage(file);
-                if (result.isFailure()) {
-                  throw result.error!;
+                if (result.isFailure) {
+                  throw result.error ?? new Error('Unknown error');
                 }
-                return result.data!;
+                return result.value!;
               }}
             />
           )}
@@ -123,3 +123,8 @@ export function ProductsPage({ appId }: ProductsPageProps): JSX.Element {
     </div>
   );
 }
+
+
+
+
+

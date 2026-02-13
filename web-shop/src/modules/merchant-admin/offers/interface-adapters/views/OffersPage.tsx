@@ -262,3 +262,8 @@ export function OffersPage({ appId }: OffersPageProps): JSX.Element {
   );
 }
 
+
+
+
+
+

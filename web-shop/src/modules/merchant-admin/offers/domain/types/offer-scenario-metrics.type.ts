@@ -5,3 +5,8 @@ export interface OfferScenarioMetrics {
   readonly lastTriggeredAt?: string;
   readonly lastModifiedAt?: string;
 }
+
+
+
+
+

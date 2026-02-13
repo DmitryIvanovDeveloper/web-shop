@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 
         const result = await uploadUseCase.execute({ file });
 
-    if (result.isFailure()) {
+    if (result.isFailure) {
       console.error('Failed to upload image:', result.error);
       return NextResponse.json(
         { error: result.error?.message || 'Failed to upload image' },
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-        if (!result.data || !result.data.url) {
+        if (!result.value || !result.value.url) {
             return NextResponse.json(
         { error: 'Upload succeeded but no URL returned' },
         { status: 500 }
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { url: result.data.url },
+      { url: result.value.url },
       { status: 200 }
     );
   } catch (error) {

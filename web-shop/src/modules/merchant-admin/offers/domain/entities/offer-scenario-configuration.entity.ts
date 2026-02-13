@@ -1,4 +1,4 @@
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import { OfferScenarioConfigurationError } from '../errors/offer-scenario.error';
 import { Discount, type DiscountProps } from '../value-objects/discount.value-object';
 import { Bonus, type BonusProps } from '../value-objects/bonus.value-object';
@@ -60,23 +60,23 @@ export class OfferScenarioConfiguration {
     }
 
     const discountResult = props.discount ? Discount.create(props.discount) : null;
-    if (discountResult?.isFailure()) {
-      return Result.error(new OfferScenarioConfigurationError(discountResult.error.message));
+    if (discountResult?.isFailure) {
+      return Result.error(new OfferScenarioConfigurationError(discountResult.error!.message));
     }
 
     const bonusResult = props.bonus ? Bonus.create(props.bonus) : null;
-    if (bonusResult?.isFailure()) {
-      return Result.error(new OfferScenarioConfigurationError(bonusResult.error.message));
+    if (bonusResult?.isFailure) {
+      return Result.error(new OfferScenarioConfigurationError(bonusResult.error!.message));
     }
 
     const items: OfferItem[] = [];
     if (props.items) {
       for (const itemProps of props.items) {
         const itemResult = OfferItem.create(itemProps);
-        if (itemResult.isFailure()) {
-          return Result.error(new OfferScenarioConfigurationError(itemResult.error.message));
+        if (itemResult.isFailure) {
+          return Result.error(new OfferScenarioConfigurationError(itemResult.error!.message));
         }
-        items.push(itemResult.data!);
+        items.push(itemResult.value!);
       }
     }
 
@@ -105,10 +105,10 @@ export class OfferScenarioConfiguration {
         if (conditionConfig.items) {
           for (const itemProps of conditionConfig.items) {
             const itemResult = OfferItem.create(itemProps);
-            if (itemResult.isFailure()) {
-              return Result.error(new OfferScenarioConfigurationError(itemResult.error.message));
+            if (itemResult.isFailure) {
+              return Result.error(new OfferScenarioConfigurationError(itemResult.error!.message));
             }
-            conditionItems.push(itemResult.data!);
+            conditionItems.push(itemResult.value!);
           }
         }
 
@@ -123,8 +123,8 @@ export class OfferScenarioConfiguration {
     return Result.ok(
       new OfferScenarioConfiguration(
         Object.freeze(trimmedOfferIds),
-        discountResult?.data,
-        bonusResult?.data,
+        discountResult?.value,
+        bonusResult?.value,
         Object.freeze(items),
         Object.freeze({ ...(props.metadata ?? {}) }),
         Object.freeze(conditions)
@@ -174,4 +174,9 @@ export class OfferScenarioConfiguration {
     };
   }
 }
+
+
+
+
+
 

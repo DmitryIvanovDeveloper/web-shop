@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import type { Logger } from '../../../../../application/ports/logger.port';
 import { ROOT_TYPES } from '../../../../../infrastructure/bootstrap/types';
 import type { PromoCodeRepositoryPort } from '../ports/promo-code-repository.port';
@@ -37,10 +37,10 @@ export class CreatePromoCodeUseCase {
 
   public async execute(input: CreatePromoCodeInput): Promise<Result<PromoCode, Error>> {
         const existsResult = await this.promoCodeRepository.existsByCode(input.appId, input.code);
-    if (existsResult.isFailure()) {
+    if (existsResult.isFailure) {
       return Result.error(existsResult.error!);
     }
-    if (existsResult.data) {
+    if (existsResult.value) {
       return Result.error(
         new PromoCodeError('CodeAlreadyExists', `Promo code "${input.code}" already exists for this app`)
       );
@@ -70,16 +70,20 @@ export class CreatePromoCodeUseCase {
       updatedAt: nowIso,
     });
 
-    if (promoCodeResult.isFailure()) {
+    if (promoCodeResult.isFailure) {
       return Result.error(promoCodeResult.error!);
     }
 
-    const saveResult = await this.promoCodeRepository.save(promoCodeResult.data!);
-    if (saveResult.isFailure()) {
+    const saveResult = await this.promoCodeRepository.save(promoCodeResult.value!);
+    if (saveResult.isFailure) {
       return Result.error(saveResult.error!);
     }
 
     return saveResult;
   }
 }
+
+
+
+
 

@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import { Product } from '../../domain/entities/product.entity';
 import type { ProductQueryServicePort } from '../ports/product-query-service.port';
 import type { ProductCommandServicePort } from '../ports/product-command-service.port';
@@ -39,116 +39,122 @@ export class UpdateProductUseCase {
   ): Promise<Result<UpdateProductOutput, Error>> {
         
     const loadResult = await this.queryService.loadById(input.id, input.appId);
-    if (loadResult.isFailure()) {
+    if (loadResult.isFailure) {
       return Result.error(loadResult.error!);
     }
 
-    const existingProduct = loadResult.data!;
+    const existingProduct = loadResult.value!;
 
     let updatedProduct = existingProduct;
 
     if (input.title !== undefined) {
       const titleResult = updatedProduct.withTitle(input.title);
-      if (titleResult.isFailure()) {
+      if (titleResult.isFailure) {
         return Result.error(titleResult.error!);
       }
-      updatedProduct = titleResult.data!;
+      updatedProduct = titleResult.value!;
     }
 
     if (input.description !== undefined) {
       const descriptionResult = updatedProduct.withDescription(input.description);
-      if (descriptionResult.isFailure()) {
+      if (descriptionResult.isFailure) {
         return Result.error(descriptionResult.error!);
       }
-      updatedProduct = descriptionResult.data!;
+      updatedProduct = descriptionResult.value!;
     }
 
     if (input.main_image !== undefined) {
       const imageResult = updatedProduct.withMainImage(input.main_image);
-      if (imageResult.isFailure()) {
+      if (imageResult.isFailure) {
         return Result.error(imageResult.error!);
       }
-      updatedProduct = imageResult.data!;
+      updatedProduct = imageResult.value!;
     }
 
     if (input.background_image !== undefined) {
       const bgImageResult = updatedProduct.withBackgroundImage(input.background_image);
-      if (bgImageResult.isFailure()) {
+      if (bgImageResult.isFailure) {
         return Result.error(bgImageResult.error!);
       }
-      updatedProduct = bgImageResult.data!;
+      updatedProduct = bgImageResult.value!;
     }
 
     if (input.rarity !== undefined) {
       const rarityResult = updatedProduct.withRarity(input.rarity);
-      if (rarityResult.isFailure()) {
+      if (rarityResult.isFailure) {
         return Result.error(rarityResult.error!);
       }
-      updatedProduct = rarityResult.data!;
+      updatedProduct = rarityResult.value!;
     }
 
     if (input.discount !== undefined) {
       const discountResult = updatedProduct.withDiscount(input.discount);
-      if (discountResult.isFailure()) {
+      if (discountResult.isFailure) {
         return Result.error(discountResult.error!);
       }
-      updatedProduct = discountResult.data!;
+      updatedProduct = discountResult.value!;
     }
 
     if (input.player_limit !== undefined) {
       const limitResult = updatedProduct.withPlayerLimit(input.player_limit);
-      if (limitResult.isFailure()) {
+      if (limitResult.isFailure) {
         return Result.error(limitResult.error!);
       }
-      updatedProduct = limitResult.data!;
+      updatedProduct = limitResult.value!;
     }
 
     if (input.expires_at !== undefined) {
       const expiresResult = updatedProduct.withExpiresAt(input.expires_at);
-      if (expiresResult.isFailure()) {
+      if (expiresResult.isFailure) {
         return Result.error(expiresResult.error!);
       }
-      updatedProduct = expiresResult.data!;
+      updatedProduct = expiresResult.value!;
     }
 
     if (input.price !== undefined) {
       const priceResult = updatedProduct.withPrice(input.price);
-      if (priceResult.isFailure()) {
+      if (priceResult.isFailure) {
         return Result.error(priceResult.error!);
       }
-      updatedProduct = priceResult.data!;
+      updatedProduct = priceResult.value!;
     }
 
     if (input.rp_bonus !== undefined) {
       const rpBonusResult = updatedProduct.withRpBonus(input.rp_bonus);
-      if (rpBonusResult.isFailure()) {
+      if (rpBonusResult.isFailure) {
         return Result.error(rpBonusResult.error!);
       }
-      updatedProduct = rpBonusResult.data!;
+      updatedProduct = rpBonusResult.value!;
     }
 
     if (input.lp_bonus !== undefined) {
       const lpBonusResult = updatedProduct.withLpBonus(input.lp_bonus);
-      if (lpBonusResult.isFailure()) {
+      if (lpBonusResult.isFailure) {
         return Result.error(lpBonusResult.error!);
       }
-      updatedProduct = lpBonusResult.data!;
+      updatedProduct = lpBonusResult.value!;
     }
 
     const finalProductResult = Product.create({
       ...updatedProduct.toProps(),
       updated_at: new Date().toISOString(),
     });
-    if (finalProductResult.isFailure()) {
+    if (finalProductResult.isFailure) {
       return Result.error(finalProductResult.error!);
     }
 
-    const saveResult = await this.commandService.update(finalProductResult.data!);
-    if (saveResult.isFailure()) {
+    const saveResult = await this.commandService.update(finalProductResult.value!);
+    if (saveResult.isFailure) {
       return Result.error(saveResult.error!);
     }
 
-    return Result.ok({ product: saveResult.data! });
+    return Result.ok({ product: saveResult.value! });
   }
 }
+
+
+
+
+
+
 

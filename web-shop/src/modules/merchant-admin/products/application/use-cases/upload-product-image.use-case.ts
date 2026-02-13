@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import type { ProductImageStoragePort } from '../ports/product-image-storage.port';
 import { PRODUCT_TYPES } from '../../infrastructure/bootstrap/products.types';
 import type { Logger } from '../../../../../application/ports/logger.port';
@@ -50,13 +50,19 @@ export class UploadProductImageUseCase {
       const filename = input.file.name || 'image.jpg';
 
             const uploadResult = await this.imageStorage.uploadImage(buffer, filename);
-      if (uploadResult.isFailure()) {
+      if (uploadResult.isFailure) {
                 return Result.error(uploadResult.error!);
       }
 
-            return Result.ok({ url: uploadResult.data!.url });
+            return Result.ok({ url: uploadResult.value!.url });
     } catch (error) {
             return Result.error(error as Error);
     }
   }
 }
+
+
+
+
+
+

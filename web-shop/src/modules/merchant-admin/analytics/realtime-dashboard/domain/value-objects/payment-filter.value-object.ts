@@ -1,4 +1,4 @@
-import { Result, Success, Failure } from '../../../../../../shared/domain/result/result';
+import { Result, Success, Failure } from '@/shared/result/result';
 import { InvalidArgumentError } from '../../../../../../shared/domain/errors/invalid-argument.error';
 
 export type PaymentMethod = 'card' | 'paypal' | 'crypto' | 'bank_transfer' | 'apple_pay' | 'google_pay';
@@ -21,15 +21,15 @@ export class PaymentFilter {
 
   public static create(props: PaymentFilterProps): Result<PaymentFilter, InvalidArgumentError> {
     if (!props.methods || props.methods.length === 0) {
-      return new Failure(new InvalidArgumentError('At least one payment method must be selected'));
+      return Result.error(new InvalidArgumentError('At least one payment method must be selected'));
     }
 
     const invalidMethods = props.methods.filter((method) => !PaymentFilter.VALID_METHODS.includes(method));
     if (invalidMethods.length > 0) {
-      return new Failure(new InvalidArgumentError(`Invalid payment methods: ${invalidMethods.join(', ')}`));
+      return Result.error(new InvalidArgumentError(`Invalid payment methods: ${invalidMethods.join(', ')}`));
     }
 
-    return new Success(new PaymentFilter(props.methods));
+    return Result.ok(new PaymentFilter(props.methods));
   }
 
   public static createEmpty(): PaymentFilter {

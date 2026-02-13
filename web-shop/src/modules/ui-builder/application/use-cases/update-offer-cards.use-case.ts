@@ -19,6 +19,7 @@ export class UpdateOfferCardsUseCase {
 
   async execute(
     appId: string,
+    merchantId: string,
     offerCards: OfferCardTemplate[],
   ): Promise<Result<void, Error>> {
     try {
@@ -49,6 +50,7 @@ export class UpdateOfferCardsUseCase {
 
       const saveResult = await this._saveDraftUseCase.execute({
         appId,
+        merchantId,
         config: updatedConfig as Record<string, unknown>,
       });
 

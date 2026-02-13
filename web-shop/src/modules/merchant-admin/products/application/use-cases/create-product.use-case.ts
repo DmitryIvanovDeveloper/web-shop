@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result } from '../../../../../shared/domain/result/result';
+import { Result } from '@/shared/result/result';
 import { Product, type ProductProps } from '../../domain/entities/product.entity';
 import type { ProductCommandServicePort } from '../ports/product-command-service.port';
 import { PRODUCT_TYPES } from '../../infrastructure/bootstrap/products.types';
@@ -53,16 +53,22 @@ export class CreateProductUseCase {
     };
 
     const productResult = Product.create(productProps);
-    if (productResult.isFailure()) {
+    if (productResult.isFailure) {
       return Result.error(productResult.error!);
     }
 
-    const saveResult = await this.commandService.create(productResult.data!);
-    if (saveResult.isFailure()) {
+    const saveResult = await this.commandService.create(productResult.value!);
+    if (saveResult.isFailure) {
       return Result.error(saveResult.error!);
     }
 
-    return Result.ok({ product: saveResult.data! });
+    return Result.ok({ product: saveResult.value! });
   }
 }
+
+
+
+
+
+
 
