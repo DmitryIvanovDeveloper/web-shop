@@ -1,10 +1,10 @@
 import { injectable, inject } from 'inversify';
 import type { Container } from 'inversify';
-import { IAsyncEventHandler, ISyncEventHandler } from './events-handler.plugin';
 import { EventBus as EventBusPort, IEvent } from '../../application/ports/event-bus.port';
 import { ROOT_TYPES } from '../bootstrap/types';
 import type { Logger } from '../../application/ports/logger.port';
 import { container } from '../bootstrap/container';
+import { IAsyncEventHandler, ISyncEventHandler } from './events-handler.plugin';
 
 @injectable()
 export class EventBus implements EventBusPort {
