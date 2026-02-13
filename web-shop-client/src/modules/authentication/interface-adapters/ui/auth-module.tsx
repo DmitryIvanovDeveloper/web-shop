@@ -46,16 +46,8 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 		setPopupState('idle');
 		setErrorMessage(null);
 		
-				if (userIdFromQuery) {
-			setUserIdValue(userIdFromQuery);
-		} else {
-			setUserIdValue('');
-		}
-		if (appIdFromQuery) {
-			setAppIdValue(appIdFromQuery);
-		} else {
-			setAppIdValue('');
-		}
+				setUserIdValue(userIdFromQuery || '');
+		setAppIdValue(appIdFromQuery || '');
 	}, [searchParams]);
 
 	const handleCloseAuthPopup = useCallback(() => {

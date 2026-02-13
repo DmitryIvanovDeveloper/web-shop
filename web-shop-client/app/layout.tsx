@@ -281,12 +281,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
     const appId = currentParams.get('appId') || currentParams.get('app') || url.searchParams.get('appId') || url.searchParams.get('app');
     if (appId) {
-      currentParams.set('appId', appId);
+      currentParams.set('appId', appId as string);
     }
 
     const userId = currentParams.get('userId') || url.searchParams.get('userId');
     if (userId) {
-      currentParams.set('userId', userId);
+      currentParams.set('userId', userId as string);
     }
 
     const queryString = currentParams.toString();

@@ -21,7 +21,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       PATCH_NOTES_TYPES.GetPublishedPatchNotesUseCase
     );
 
-        const result = await useCase.execute(appId);
+        const result = await useCase.execute(appId as string);
         if (!result.isSuccess) {
             return NextResponse.json(
         { error: result.error!.message },

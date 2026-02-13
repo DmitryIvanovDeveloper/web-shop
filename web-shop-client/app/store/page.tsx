@@ -116,7 +116,7 @@ export default function StorePage(): JSX.Element {
   useEffect(() => {
     const loadAppConfig = async () => {
       try {
-        setCurrentAppId(appId);
+        setCurrentAppId(appId || '');
 
         const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
 

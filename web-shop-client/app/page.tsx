@@ -125,7 +125,7 @@ export default function HomePage(): JSX.Element {
           return;
         }
 
-                setCurrentAppId(appId);
+                setCurrentAppId(appId as string);
 
                 const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
 
