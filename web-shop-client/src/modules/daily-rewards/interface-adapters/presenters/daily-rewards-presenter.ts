@@ -370,9 +370,9 @@ export class DailyRewardsPresenter {
           appId: input.appId
         });
 
-        const isAlreadyClaimedError = result.error.message.includes('already claimed') ||
-                                     result.error.message.includes('has already claimed') ||
-                                     result.error.name === 'RewardAlreadyClaimedTodayError';
+        const isAlreadyClaimedError = result.error!.message.includes('already claimed') ||
+                                     result.error!.message.includes('has already claimed') ||
+                                     result.error!.name === 'RewardAlreadyClaimedTodayError';
 
                 this._viewModel.rewards.forEach(reward => {
           if (reward instanceof DailyRewardCardViewModelImpl) {
@@ -396,7 +396,7 @@ export class DailyRewardsPresenter {
           this._viewModel = {
             ...this._viewModel,
             isLoading: false,
-            errorMessage: result.error.message || 'Failed to claim reward. Please try again.',
+            errorMessage: result.error!.message || 'Failed to claim reward. Please try again.',
           };
           this._notifySubscribers();
         }

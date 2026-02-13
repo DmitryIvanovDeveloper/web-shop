@@ -192,7 +192,7 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 				}, 1500);
 			} else {
 								setPopupState('error');
-				setErrorMessage(result.error || 'Authentication failed. Please try again.');
+				setErrorMessage(result.error?.message || 'Authentication failed. Please try again.');
 			}
 		} catch (error) {
 						setPopupState('error');

@@ -56,7 +56,7 @@ export const LocalizationDashboard: React.FC = () => {
                               setLanguages(loadedLanguages);
           setActiveLanguage(loadedActiveLanguage);
         } else {
-                    setError(result.error.message);
+                    setError(result.error!.message);
         }
       } else {
                         const mockLanguages = [

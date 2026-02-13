@@ -62,10 +62,10 @@ export class PatchNotesPublicPresenter {
     try {
       const result = await this._getPublishedPatchNotesUseCase.execute(appId);
                               if (result instanceof Failure) {
-        this._logger.error('[PatchNotesPublicPresenter] Failed to load published notes', result.error);
+        this._logger.error('[PatchNotesPublicPresenter] Failed to load published notes', result.error!);
         this.updateViewModel({
           status: 'error',
-          error: result.error.message
+          error: result.error!.message
         });
         return;
       }

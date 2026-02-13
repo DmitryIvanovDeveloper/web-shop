@@ -24,7 +24,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         const result = await useCase.execute(appId);
         if (result instanceof Failure) {
             return NextResponse.json(
-        { error: result.error.message },
+        { error: result.error!.message },
         { status: 500 }
       );
     }
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (result instanceof Failure) {
             return NextResponse.json(
-        { error: result.error.message },
+        { error: result.error!.message },
         { status: 400 }
       );
     }

@@ -23,7 +23,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (!result.isSuccess) {
             return NextResponse.json(
-        { error: result.error.message },
+        { error: result.error!.message },
         { status: 400 }
       );
     }
