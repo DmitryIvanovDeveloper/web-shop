@@ -34,3 +34,4 @@ export async function GET() {
         return NextResponse.json({ error: 'Failed to load auth UI configuration' }, { status: 500 });
   }
 }
+

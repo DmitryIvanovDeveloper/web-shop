@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { container } from '../../../../src/infrastructure/bootstrap/container';
+import { NextRequest, NextResponse } from 'next/server';
 import { PATCH_NOTES_TYPES } from '../../../../src/modules/patch-notes/infrastructure/bootstrap/types';
 import { PublishPatchNoteUseCase } from '../../../../src/modules/patch-notes/application/use-cases/publish-patch-note.use-case';
 
@@ -37,6 +37,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 }
+
 
 
 

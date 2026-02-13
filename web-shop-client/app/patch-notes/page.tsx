@@ -1,15 +1,15 @@
 'use client';
 
+import { useCallback, useEffect, useState } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+
 import { container } from '../../src/infrastructure/bootstrap/container';
 import { APP_LAYOUT_TYPES } from '../../src/modules/app-layout/infrastructure/bootstrap/types';
 import { SidebarRendererPresenter } from '../../src/modules/app-layout/interface-adapters/presenters/sidebar-renderer.presenter';
 import { SidebarRenderer } from '../../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
 import type { ActionContext } from '../../src/shared/ui/action-context';
-import { useCallback, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { PAGE_RENDERER_TYPES } from '../../src/modules/page-renderer/infrastructure/bootstrap/types';
 import { PageRendererPresenter } from '../../src/modules/page-renderer/interface-adapters/presenters/page-renderer.presenter';
-import { usePathname } from 'next/navigation';
 import type { PageRendererViewModel } from '../../src/modules/page-renderer/interface-adapters/view-models/page-renderer.view-model';
 import { LoadAppConfigFromMessageUseCase } from '../../src/application/use-cases/load-app-config-from-message.use-case';
 import { LoadAppConfigUseCase } from '../../src/application/use-cases/load-app-config.use-case';

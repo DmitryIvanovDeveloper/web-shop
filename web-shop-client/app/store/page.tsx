@@ -1,12 +1,13 @@
 'use client';
 
+import { useCallback, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+
 import { container } from '../../src/infrastructure/bootstrap/container';
 import { APP_LAYOUT_TYPES } from '../../src/modules/app-layout/infrastructure/bootstrap/types';
 import { SidebarRendererPresenter } from '../../src/modules/app-layout/interface-adapters/presenters/sidebar-renderer.presenter';
 import { SidebarRenderer } from '../../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
 import type { ActionContext } from '../../src/shared/ui/action-context';
-import { useCallback, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { PAGE_RENDERER_TYPES } from '../../src/modules/page-renderer/infrastructure/bootstrap/types';
 import { PageRendererPresenter } from '../../src/modules/page-renderer/interface-adapters/presenters/page-renderer.presenter';
 import type { PageRendererViewModel } from '../../src/modules/page-renderer/interface-adapters/view-models/page-renderer.view-model';
@@ -45,6 +46,11 @@ export default function StorePage(): JSX.Element {
   const appId = searchParams.get('appId');
   const userId = searchParams.get('userId') || 'anonymous-user';
 
+  const [previewMode, setPreviewMode] = useState(false);
+  const [elementSelectionMode, setElementSelectionMode] = useState(false);
+  const [currentAppId, setCurrentAppId] = useState<string>(appId || '');
+  const [showDailyRewardsPopup, setShowDailyRewardsPopup] = useState(false);
+
   if (!appId) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -55,11 +61,6 @@ export default function StorePage(): JSX.Element {
       </div>
     );
   }
-
-  const [previewMode, setPreviewMode] = useState(false);
-  const [elementSelectionMode, setElementSelectionMode] = useState(false);
-  const [currentAppId, setCurrentAppId] = useState<string>(appId);
-  const [showDailyRewardsPopup, setShowDailyRewardsPopup] = useState(false);
   const applyElementSelectionMode = useCallback((enabled: boolean) => {
     setElementSelectionMode(enabled);
 
