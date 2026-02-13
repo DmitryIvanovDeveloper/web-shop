@@ -1,10 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import ProjectsPage from '../src/modules/merchant-admin/projects/interface-adapters/views/ProjectsPage';
 
-export default function ProjectManagementPage() {
+function ProjectManagementContent() {
   const searchParams = useSearchParams();
   // Support both "merchantId" and "merchantid"; fallback to demo ID if missing
   const merchantIdFromQuery =
@@ -12,4 +12,12 @@ export default function ProjectManagementPage() {
   const merchantId = merchantIdFromQuery || '550e8400-e29b-41d4-a716-446655440000';
 
   return <ProjectsPage merchantId={merchantId} />;
+}
+
+export default function ProjectManagementPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProjectManagementContent />
+    </Suspense>
+  );
 }
