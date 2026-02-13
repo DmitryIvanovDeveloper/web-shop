@@ -1,5 +1,5 @@
 import { injectable, inject } from 'inversify';
-import { Result } from '../../../shared/result/result';
+import { Result } from '../../../../shared/result/result';
 import type { PageConfigRepositoryPort } from '../ports/page-config-repository.port';
 import type { EventBus } from '../../../../application/ports/event-bus.port';
 import type { Logger } from '../../../../application/ports/logger.port';
