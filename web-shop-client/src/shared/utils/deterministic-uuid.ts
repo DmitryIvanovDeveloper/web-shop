@@ -3,7 +3,8 @@ export function stringToDeterministicUuid(value: string): string {
   let hash = 0;
   for (let index = 0; index < value.length; index += 1) {
     hash = ((hash << 5) - hash) + value.charCodeAt(index);
-    hash |= 0;   }
+    hash |= 0;
+  }
 
   const hex = Math.abs(hash).toString(16).padStart(8, '0');
   const prefix = hex.substring(0, 8);
