@@ -52,19 +52,31 @@ export function UniversalVideo({
   allowFullScreen = true,
   ...rest
 }: UniversalVideoProps): JSX.Element | null {
-  const id = videoId || (url ? extractYouTubeVideoId(url) : null);
-  
-  if (!id) {
-    return null;
-  }
-
   const [iframeError, setIframeError] = useState(false);
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
+  const id = videoId || (url ? extractYouTubeVideoId(url) : null);
+
   const isShorts = url?.includes('/shorts/');
-  
+
   const usePreview = false;
+
+  useEffect(() => {
+    if (usePreview || iframeError) return;
+
+    const timer = setTimeout(() => {
+      if (!iframeLoaded) {
+        setIframeError(true);
+      }
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [iframeLoaded, usePreview, iframeError]);
+
+  if (!id) {
+    return null;
+  }
   
   let embedUrl: URL;
 
@@ -94,18 +106,6 @@ export function UniversalVideo({
   if (params.toString()) {
     embedUrl.search = params.toString();
   }
-
-  useEffect(() => {
-    if (usePreview || iframeError) return;
-    
-    const timer = setTimeout(() => {
-      if (!iframeLoaded) {
-        setIframeError(true);
-      }
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [iframeLoaded, usePreview, iframeError]);
 
   const containerStyle: CSSProperties = {
     width: typeof width === 'number' ? `${width}px` : width,
