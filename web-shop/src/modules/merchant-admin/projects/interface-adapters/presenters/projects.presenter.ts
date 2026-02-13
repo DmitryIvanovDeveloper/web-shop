@@ -2,6 +2,7 @@ import { inject, injectable } from 'inversify';
 import { PROJECT_TYPES } from '../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../../application/ports/logger.port';
 import { TYPES } from '../../../../../infrastructure/bootstrap/types';
+import { Project } from '../../domain';
 import {
   ProjectsPageViewModel,
   initialProjectsPageViewModel,
@@ -151,6 +152,7 @@ export class ProjectsPresenter {
         isLoading: false,
         error: error instanceof Error ? error.message : 'Unknown error'
       });
+      return null;
     }
   }
 

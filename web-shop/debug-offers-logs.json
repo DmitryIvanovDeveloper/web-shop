@@ -1,0 +1,167 @@
+[
+  {
+    "timestamp": "2026-02-12T12:13:53.833Z",
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:55.277Z",
+    "type": "log",
+    "text": "[OffersPresenter] init called with appId: APP123"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:55.278Z",
+    "type": "error",
+    "text": "[SERVER LOG] OfferScenarioApiRepository: Starting loadScenarios for appId: APP123"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:55.603Z",
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.264Z",
+    "type": "error",
+    "text": "[SERVER LOG] OfferScenarioApiRepository: API Response: {status: 200, scenariosCount: 6, hasData: true, hasScenarios: true}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.269Z",
+    "type": "log",
+    "text": "[OfferScenarioApiRepository] Overrides: {count: 6, slugs: Array(6), overrides: Object}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.325Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Starting with overrides: {overridesCount: 6, catalogSize: 20, overrideSlugs: Array(6)}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.326Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: welcome-new-user {hasOverride: true, configurationItems: 1, configurationConditions: 1}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.328Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: returning-trial-offer {hasOverride: true, configurationItems: 0, configurationConditions: 1}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.330Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: reactivation-offer {hasOverride: true, configurationItems: 0, configurationConditions: 1}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.332Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: motivation-offer {hasOverride: true, configurationItems: 0, configurationConditions: 1}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.334Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: subscription-retention {hasOverride: false, configurationItems: 0, configurationConditions: 0}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.334Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: category-follow-up {hasOverride: true, configurationItems: 0, configurationConditions: 1}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.335Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: vip-offer {hasOverride: true, configurationItems: 0, configurationConditions: 1}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.335Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: first-payment-upsell {hasOverride: false, configurationItems: 0, configurationConditions: 0}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.336Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: spend-milestone-bonus {hasOverride: false, configurationItems: 0, configurationConditions: 0}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.351Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: weekly-streak-reward {hasOverride: false, configurationItems: 0, configurationConditions: 0}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.352Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: product-reminder-offer {hasOverride: false, configurationItems: 0, configurationConditions: 0}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.352Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: cart-recovery-offer {hasOverride: false, configurationItems: 0, configurationConditions: 0}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.352Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: category-intent-offer {hasOverride: false, configurationItems: 0, configurationConditions: 0}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.352Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: premium-geo-package {hasOverride: false, configurationItems: 0, configurationConditions: 0}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.353Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: economy-geo-package {hasOverride: false, configurationItems: 0, configurationConditions: 0}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.354Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: mbc-exclusive-offer {hasOverride: false, configurationItems: 0, configurationConditions: 0}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.355Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: annual-upgrade-offer {hasOverride: false, configurationItems: 0, configurationConditions: 0}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.358Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: influencer-bonus-offer {hasOverride: false, configurationItems: 0, configurationConditions: 0}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.359Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: weekend-special-offer {hasOverride: false, configurationItems: 0, configurationConditions: 0}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.359Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Creating scenario: high-activity-cosmetics {hasOverride: false, configurationItems: 0, configurationConditions: 0}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.359Z",
+    "type": "log",
+    "text": "[buildScenariosFromCatalog] Completed: {scenariosCount: 20, slugs: Array(20)}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:58.359Z",
+    "type": "log",
+    "text": "[OfferScenarioApiRepository] Built scenarios: {count: 20, slugs: Array(20)}"
+  },
+  {
+    "timestamp": "2026-02-12T12:13:59.239Z",
+    "type": "log",
+    "text": "[Fast Refresh] rebuilding"
+  },
+  {
+    "timestamp": "2026-02-12T12:14:00.728Z",
+    "type": "log",
+    "text": "[Fast Refresh] done in 1489ms"
+  },
+  {
+    "timestamp": "2026-02-12T12:14:00.953Z",
+    "type": "log",
+    "text": "[OffersPresenter] Load result: {isFailure: false, error: undefined, scenariosCount: 20, hasRuleTree: true}"
+  },
+  {
+    "timestamp": "2026-02-12T12:14:00.953Z",
+    "type": "log",
+    "text": "[OffersPresenter] _applyLoadResult called with: {scenariosCount: 20, hasRuleTree: true, scenarioSlugs: Array(20)}"
+  }
+]
