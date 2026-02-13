@@ -5,7 +5,7 @@ export const UI_RENDERER_TYPES = {
   ActionHandler: Symbol.for('UIRenderer.ActionHandler'),
   AppConfigLoadedEventHandler: Symbol.for('IAsyncEventHandler<AppConfigLoadedEvent>'),
   TranslationsConfigEventHandler: Symbol.for('IAsyncEventHandler<TranslationsConfigEvent>'),
-  LanguageChangedEventHandler: Symbol.for('IAsyncEventHandler<LanguageChangedEvent>'),
+  LanguageChangedEventHandler: Symbol.for('IAsyncEventHandler<LocalizationChangedEvent>'),
 };
 
 
