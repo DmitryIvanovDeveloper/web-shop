@@ -52,16 +52,13 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
 
   const { t, currentLanguage } = getTranslation();
 
-  if (!node) {
-    return null;
-  }
-  
+  // All hooks must be declared before any conditional returns
+  const [isHovered, setIsHovered] = useState(false);
+  const [elementSelectionMode, setElementSelectionMode] = useState(false);
+
   const registry = container.get<ComponentRegistry>(UI_RENDERER_TYPES.ComponentRegistry);
   const styleBuilder = container.get<StyleBuilder>(UI_RENDERER_TYPES.StyleBuilder);
   const actionHandler = container.get<ActionHandler>(UI_RENDERER_TYPES.ActionHandler);
-
-  const [isHovered, setIsHovered] = useState(false);
-  const [elementSelectionMode, setElementSelectionMode] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -82,6 +79,19 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
       window.removeEventListener('elementSelectionModeChanged', handleModeChange as EventListener);
     };
   }, [node.id]);
+
+  const processLocalizedProps = useCallback((props: any) => {
+    if (!props) return props;
+
+    const processedProps = { ...props };
+
+    if (typeof processedProps.text === 'string' && processedProps.text.startsWith('i18n:')) {
+      const key = processedProps.text.replace('i18n:', '');
+      processedProps.text = t(key);
+    }
+
+    return processedProps;
+  }, [currentLanguage]);
 
   const Component = registry.getComponent(node.type);
   if (!Component) {
@@ -294,21 +304,6 @@ export function DynamicRenderer({ node, theme, actionContext }: DynamicRendererP
   const offersListProps = {};
 
   const previewMode = isPreviewMode();
-
-  const previewProps = node.id ? { 'data-element-id': node.id } : {};
-
-  const processLocalizedProps = useCallback((props: any) => {
-    if (!props) return props;
-
-    const processedProps = { ...props };
-
-    if (typeof processedProps.text === 'string' && processedProps.text.startsWith('i18n:')) {
-      const key = processedProps.text.replace('i18n:', '');
-      processedProps.text = t(key);
-    }
-
-    return processedProps;
-  }, [t, currentLanguage]);
 
   const processedProps = processLocalizedProps(node.props);
 

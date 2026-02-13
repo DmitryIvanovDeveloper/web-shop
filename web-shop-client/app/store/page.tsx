@@ -19,8 +19,7 @@ import { ProductsList } from '../../src/modules/products/interface-adapters/ui/c
 import { DailyRewardsPopup } from '../../src/modules/daily-rewards';
 import { DAILY_REWARDS_TYPES } from '../../src/modules/daily-rewards/infrastructure/bootstrap/types';
 import type { CheckDailyRewardAvailabilityUseCase } from '../../src/modules/daily-rewards/application/use-cases/check-daily-reward-availability.use-case';
-// Removed import - isSuccess is now a getter on Result objects
-import type { OfferCardTemplate } from '../../src/shared/config/app-config.types';
+import type { AppConfig, OfferCardTemplate } from '../../src/shared/config/app-config.types';
 
 type OfferCardWithFlags = OfferCardTemplate & {
   styles?: OfferCardTemplate['styles'] & {
@@ -46,10 +45,19 @@ export default function StorePage(): JSX.Element {
   const appId = searchParams.get('appId');
   const userId = searchParams.get('userId') || 'anonymous-user';
 
+  // All hooks must be declared before any conditional returns
   const [previewMode, setPreviewMode] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
   const [currentAppId, setCurrentAppId] = useState<string>(appId || '');
   const [showDailyRewardsPopup, setShowDailyRewardsPopup] = useState(false);
+
+  const [offerCardVm, setOfferCardVm] = useState<PageRendererViewModel>({
+    sections: [],
+    isLoading: false,
+    error: null,
+    selectedOfferCardId: null,
+    offerCards: []
+  });
 
   const applyElementSelectionMode = useCallback((enabled: boolean) => {
     setElementSelectionMode(enabled);
@@ -70,14 +78,6 @@ export default function StorePage(): JSX.Element {
       window.dispatchEvent(new CustomEvent('elementSelectionModeChanged', { detail: { enabled } }));
     }
   }, []);
-
-  const [offerCardVm, setOfferCardVm] = useState<PageRendererViewModel>({
-    sections: [],
-    isLoading: false,
-    error: null,
-    selectedOfferCardId: null,
-    offerCards: []
-  });
 
   const navigateWithQuery = (path: string) => {
     const currentSearch = searchParams.toString();
@@ -108,6 +108,7 @@ export default function StorePage(): JSX.Element {
         const isPreview = url.searchParams.get('previewMode') === 'true';
         setPreviewMode(isPreview);
       } catch (err) {
+        // Ignore URL parsing errors
       }
     }
   }, []);
@@ -129,6 +130,7 @@ export default function StorePage(): JSX.Element {
           }
         }
       } catch (error) {
+        // Ignore config loading errors
       }
     };
 
@@ -137,7 +139,7 @@ export default function StorePage(): JSX.Element {
     } else {
       setTimeout(() => loadAppConfig(), 0);
     }
-  }, [previewMode]);
+  }, [previewMode, appId]);
 
   useEffect(() => {
     if (!previewMode) return;
@@ -171,11 +173,11 @@ export default function StorePage(): JSX.Element {
             if (event.data.payload.selectedOfferCardId !== null) {
               presenter.setSelectedOfferCardId(event.data.payload.selectedOfferCardId);
             } else {
-              console.log('[StorePage] Clearing selected offer card ID (explicit null)');
               presenter.setSelectedOfferCardId(null);
             }
           }
         } catch (error) {
+          // Ignore message handling errors
         }
       } else if (event.data?.type === 'SHOW_AUTH_POPUP') {
         const visible = event.data.payload?.visible ?? false;
@@ -184,6 +186,7 @@ export default function StorePage(): JSX.Element {
             try {
               await loadAppConfigFromMessageUseCase.execute(event.data.payload.config);
             } catch (error) {
+              // Ignore config loading errors
             }
           }
 
@@ -263,12 +266,14 @@ export default function StorePage(): JSX.Element {
           });
         }
       } catch (error) {
+        // Ignore popup logic errors
       }
     };
 
     checkAndShowPopup();
   }, [previewMode, userId, appId]);
 
+  // Early return for missing appId - this must come after all hooks
   if (!appId) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -282,7 +287,6 @@ export default function StorePage(): JSX.Element {
 
   return (
     <main className="flex-1 overflow-y-auto w-full mx-auto px-4 md:px-8" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>
-      { }
       <DailyRewardsPopup
         userId={userId}
         isOpen={showDailyRewardsPopup}
@@ -290,7 +294,6 @@ export default function StorePage(): JSX.Element {
         autoShow={false}
       />
 
-      { }
       {previewMode && selectedOfferCard && (
         <div key="offer-card-demo-section" className="offer-card-demo-section" style={{ padding: '20px', marginBottom: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <h2 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: 'bold', width: '100%', textAlign: 'left' }}>
@@ -321,7 +324,6 @@ export default function StorePage(): JSX.Element {
         </div>
       )}
 
-      { }
       <div className="mt-12">
         <ProductsList />
       </div>

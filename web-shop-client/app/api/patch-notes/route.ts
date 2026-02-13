@@ -1,5 +1,5 @@
-import { container } from '../../../src/infrastructure/bootstrap/container';
 import { NextRequest, NextResponse } from 'next/server';
+import { container } from '../../../src/infrastructure/bootstrap/container';
 import { PATCH_NOTES_TYPES } from '../../../src/modules/patch-notes/infrastructure/bootstrap/types';
 import { CreatePatchNoteUseCase } from '../../../src/modules/patch-notes/application/use-cases/create-patch-note.use-case';
 import { GetPublishedPatchNotesUseCase } from '../../../src/modules/patch-notes/application/use-cases/get-published-patch-notes.use-case';

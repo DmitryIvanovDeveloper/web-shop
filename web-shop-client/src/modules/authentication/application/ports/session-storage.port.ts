@@ -1,6 +1,6 @@
 
 
-import { Result } from '../../../shared/result/result';
+import { Result } from '../../../../shared/result/result';
 import { AppUser } from '../../domain/types';
 
 export interface SessionStoragePort {
