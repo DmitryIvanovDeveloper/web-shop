@@ -17,7 +17,7 @@ export class LoadDailyRewardsUseCase {
       console.log('[LoadDailyRewardsUseCase] Repository result:', { success: rewardsResult.isSuccess });
 
       if (rewardsResult.isFailure) {
-                return Result.error(rewardsResult.error);
+                return Result.error(rewardsResult.error || new Error('Failed to load daily rewards'));
       }
 
       const rewards = rewardsResult.value!;

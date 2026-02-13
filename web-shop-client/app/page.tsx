@@ -26,16 +26,16 @@ export default function HomePage(): JSX.Element {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-    const sidebarPresenter = container.get<SidebarRendererPresenter>(
+  const sidebarPresenter = container.get<SidebarRendererPresenter>(
     APP_LAYOUT_TYPES.SidebarRendererPresenter
   );
 
-    const [previewMode, setPreviewMode] = useState(false);
+  const [previewMode, setPreviewMode] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
   const [currentAppId, setCurrentAppId] = useState<string>('');
   const [showLocalizationModal, setShowLocalizationModal] = useState(false);
 
-    const getTranslation = () => {
+  const getTranslation = () => {
     try {
       const presenter = container.get<LocalizationPresenter>(LOCALIZATION_TYPES.LocalizationPresenter);
       const vm = presenter.viewModel;
@@ -77,90 +77,90 @@ export default function HomePage(): JSX.Element {
     offerCards: []
   });
 
-    const navigateWithQuery = (path: string) => {
+  const navigateWithQuery = (path: string) => {
     const currentSearch = searchParams.toString();
     const newUrl = currentSearch ? `${path}?${currentSearch}` : path;
-        router.push(newUrl);
+    router.push(newUrl);
   };
 
-    const actionContext: ActionContext = {
-    onPopupOpen: () => {},
-    onPopupClose: () => {},
+  const actionContext: ActionContext = {
+    onPopupOpen: () => { },
+    onPopupClose: () => { },
     navigate: (url: string) => {
       if (typeof url === 'string') {
         navigateWithQuery(url);
       }
     },
     navigateToPatchNotes: () => {
-            navigateWithQuery('/patch-notes');
+      navigateWithQuery('/patch-notes');
     },
     navigateToDailyRewards: () => {
-            navigateWithQuery('/daily-rewards');
+      navigateWithQuery('/daily-rewards');
     },
     openLocalizationModal: () => {
-            setShowLocalizationModal(true);
+      setShowLocalizationModal(true);
     },
   };
 
-    useEffect(() => {
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
         const url = new URL(window.location.href);
         const isPreview = url.searchParams.get('previewMode') === 'true';
         setPreviewMode(isPreview);
-              } catch (err) {
-              }
+      } catch (err) {
+      }
     }
   }, []);
 
 
-      useEffect(() => {
+  useEffect(() => {
     const loadAppConfig = async () => {
       try {
-                const url = new URL(window.location.href);
+        const url = new URL(window.location.href);
         const appId = url.searchParams.get('appId') || url.searchParams.get('app');
 
         if (!appId) {
-                    setCurrentAppId('');
+          setCurrentAppId('');
           return;
         }
 
-                setCurrentAppId(appId as string);
+        setCurrentAppId(appId as string);
 
-                const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
+        const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
 
-                const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
+        const loadAppConfigUseCase = container.get<LoadAppConfigUseCase>(TYPES.LoadAppConfig);
 
         if (previewMode || isInIframe) {
-                    await loadAppConfigUseCase.execute(true);
-                  } else {
-                    await loadAppConfigUseCase.execute(false);
-                  }
+          await loadAppConfigUseCase.execute(true);
+        } else {
+          await loadAppConfigUseCase.execute(false);
+        }
       } catch (error) {
-              }
+      }
     };
 
-            if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
       requestIdleCallback(() => loadAppConfig());
     } else {
       setTimeout(() => loadAppConfig(), 0);
     }
   }, [previewMode]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (!previewMode) return;
 
     const presenter = container.get<PageRendererPresenter>(PAGE_RENDERER_TYPES.PageRendererPresenter);
     const loadAppConfigFromMessageUseCase = container.get<LoadAppConfigFromMessageUseCase>(TYPES.LoadAppConfigFromMessage);
 
-        const unsubscribe = presenter.subscribe((newVm) => {
+    const unsubscribe = presenter.subscribe((newVm) => {
       setOfferCardVm(newVm);
-          });
+    });
 
-        const handleMessage = async (event: MessageEvent) => {
+    const handleMessage = async (event: MessageEvent) => {
       if (event.data?.type === 'CONFIG_UPDATE') {
         try {
-                              if (event.data.payload?.config) {
+          if (event.data.payload?.config) {
             const configPayload = event.data.payload.config as AppConfig;
             await loadAppConfigFromMessageUseCase.execute(configPayload);
             const selectionModeValue =
@@ -172,31 +172,31 @@ export default function HomePage(): JSX.Element {
             applyElementSelectionMode(false);
           }
 
-                    if (event.data.payload?.offerCards) {
-                        presenter.setOfferCards(event.data.payload.offerCards);
+          if (event.data.payload?.offerCards) {
+            presenter.setOfferCards(event.data.payload.offerCards);
           }
-                    if (event.data.payload?.selectedOfferCardId !== undefined) {
+          if (event.data.payload?.selectedOfferCardId !== undefined) {
             if (event.data.payload.selectedOfferCardId !== null) {
-                            presenter.setSelectedOfferCardId(event.data.payload.selectedOfferCardId);
+              presenter.setSelectedOfferCardId(event.data.payload.selectedOfferCardId);
             } else {
               presenter.setSelectedOfferCardId(null);
             }
           }
-                  } catch (error) {
-                  }
+        } catch (error) {
+        }
       } else if (event.data?.type === 'SHOW_AUTH_POPUP') {
         const visible = event.data.payload?.visible ?? false;
-                if (visible) {
-                              if (event.data.payload?.config) {
+        if (visible) {
+          if (event.data.payload?.config) {
             try {
               await loadAppConfigFromMessageUseCase.execute(event.data.payload.config);
-                          } catch (error) {
-                          }
+            } catch (error) {
+            }
           }
-          
-                    window.dispatchEvent(new CustomEvent('showAuthPopup'));
+
+          window.dispatchEvent(new CustomEvent('showAuthPopup'));
         } else {
-                    window.dispatchEvent(new CustomEvent('closeAuthPopup'));
+          window.dispatchEvent(new CustomEvent('closeAuthPopup'));
         }
       }
     };
@@ -209,24 +209,24 @@ export default function HomePage(): JSX.Element {
     };
   }, [previewMode, applyElementSelectionMode]);
 
-    const selectedOfferCard = offerCardVm.selectedOfferCardId && offerCardVm.offerCards.length > 0
+  const selectedOfferCard = offerCardVm.selectedOfferCardId && offerCardVm.offerCards.length > 0
     ? offerCardVm.offerCards.find(card => card.id === offerCardVm.selectedOfferCardId)
     : null;
 
-    useEffect(() => {
-    }, [previewMode, offerCardVm.selectedOfferCardId, offerCardVm.offerCards, selectedOfferCard]);
+  useEffect(() => {
+  }, [previewMode, offerCardVm.selectedOfferCardId, offerCardVm.offerCards, selectedOfferCard]);
 
-    useEffect(() => {
+  useEffect(() => {
     if (previewMode && selectedOfferCard && typeof window !== 'undefined') {
-            const currentStyles = (window as any).__offerCardStyles;
+      const currentStyles = (window as any).__offerCardStyles;
 
-            (window as any).__offerCardStyles = {
+      (window as any).__offerCardStyles = {
         styles: selectedOfferCard.styles || {}
       };
 
-            window.dispatchEvent(new Event('appConfigLoaded'));
+      window.dispatchEvent(new Event('appConfigLoaded'));
 
-            return () => {
+      return () => {
         if (currentStyles !== undefined) {
           (window as any).__offerCardStyles = currentStyles;
         }
@@ -242,13 +242,13 @@ export default function HomePage(): JSX.Element {
     if (window.parent && window.parent !== window) {
       const targetOrigin = (typeof window !== 'undefined' && (window as any).__NEXT_DATA__?.env?.NEXT_PUBLIC_UI_BUILDER_URL) || '*';
       window.parent.postMessage({ type: 'PREVIEW_READY' }, targetOrigin);
-          }
+    }
   }, []);
 
 
   return (
     <main className="flex-1 overflow-y-auto w-full mx-auto px-4 md:px-8" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>
-      {}
+      { }
       {previewMode && selectedOfferCard && (
         <div key="offer-card-demo-section" className="offer-card-demo-section" style={{ padding: '20px', marginBottom: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <h2 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: 'bold', width: '100%', textAlign: 'left' }}>
@@ -262,28 +262,28 @@ export default function HomePage(): JSX.Element {
                 (selectedOfferCard.styles as any)?.purchasedBadge?.enabled === true ||
                 false;
               return (
-            <OfferCard
-              id={selectedOfferCard.id}
-              title="Offer #1"
-              includedItems={["Limited Offer🎁", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."]}
-              mainImage={selectedOfferCard.media?.mainImage ?? 'https://via.placeholder.com/400'}
-              mainImageAlt={selectedOfferCard.media?.mainImageAlt ?? 'Offer card image'}
-              discount="80%"
-              isPurchased={isPurchased}
-            />
+                <OfferCard
+                  id={selectedOfferCard.id}
+                  title="Offer #1"
+                  includedItems={["Limited Offer🎁", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."]}
+                  mainImage={selectedOfferCard.media?.mainImage ?? 'https://via.placeholder.com/400'}
+                  mainImageAlt={selectedOfferCard.media?.mainImageAlt ?? 'Offer card image'}
+                  discount="80%"
+                  isPurchased={isPurchased}
+                />
               );
             })()}
           </div>
         </div>
       )}
 
-      {}
+      { }
       <div className="mt-12">
-        {}
+        { }
         <ProductsList />
       </div>
 
-      {}
+      { }
       {showLocalizationModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
@@ -293,17 +293,17 @@ export default function HomePage(): JSX.Element {
               <button
                 onClick={async () => {
                   try {
-                                        const response = await fetch('/api/localization/translations?lang=en');
+                    const response = await fetch('/api/localization/translations?lang=en');
                     if (response.ok) {
                       const data = await response.json();
-                                                                  document.documentElement.dir = 'ltr';
+                      document.documentElement.dir = 'ltr';
                       document.documentElement.lang = 'en';
 
                       setShowLocalizationModal(false);
-                                                                  window.location.reload();
+                      window.location.reload();
                     }
                   } catch (error) {
-                                      }
+                  }
                 }}
                 className="w-full p-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors"
               >
@@ -314,17 +314,17 @@ export default function HomePage(): JSX.Element {
               <button
                 onClick={async () => {
                   try {
-                                        const response = await fetch('/api/localization/translations?lang=ar');
+                    const response = await fetch('/api/localization/translations?lang=ar');
                     if (response.ok) {
                       const data = await response.json();
-                                                                  document.documentElement.dir = 'rtl';
+                      document.documentElement.dir = 'rtl';
                       document.documentElement.lang = 'ar';
 
                       setShowLocalizationModal(false);
-                                                                  window.location.reload();
+                      window.location.reload();
                     }
                   } catch (error) {
-                                      }
+                  }
                 }}
                 className="w-full p-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors"
               >

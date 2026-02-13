@@ -151,7 +151,7 @@ export class SidebarRendererPresenter {
       for (const childData of nodeData.children) {
         const childResult = this._convertToComponentNode(childData);
         if (childResult.isFailure) {
-          return Result.error(childResult.error);
+          return Result.error(childResult.error || new UIRendererError('Unknown error in child component'));
         }
         if (childResult.isSuccess) {
           children.push(childResult.value!);

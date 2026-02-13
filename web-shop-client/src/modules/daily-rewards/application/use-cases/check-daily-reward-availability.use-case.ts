@@ -15,7 +15,7 @@ export class CheckDailyRewardAvailabilityUseCase {
     try {
                   const nextRewardResult = await this._dailyRewardRepository.findNextRewardAvailability(input.appId, input.userId);
       if (nextRewardResult.isFailure) {
-                return Result.error(nextRewardResult.error);
+                return Result.error(nextRewardResult.error || new Error('Failed to check reward availability'));
       }
 
       const availability = nextRewardResult.value!;

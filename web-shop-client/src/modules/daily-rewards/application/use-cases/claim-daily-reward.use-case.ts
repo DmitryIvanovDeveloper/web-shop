@@ -19,17 +19,17 @@ export class ClaimDailyRewardUseCase {
     try {
             const allRewardsResult = await this._dailyRewardRepository.findAllRewards(input.appId);
       if (allRewardsResult.isFailure) {
-        return Result.error(allRewardsResult.error);
+        return Result.error(allRewardsResult.error || new Error('Failed to load rewards'));
       }
 
       const allRewards = allRewardsResult.value!;
       if (!allRewards || allRewards.length === 0) {
-        return Failure.fail(new RewardNotAvailableError());
+        return Result.error(new RewardNotAvailableError());
       }
 
             const lastClaimResult = await this._rewardClaimRepository.findLastClaimByUser(input.userId);
       if (lastClaimResult.isFailure) {
-        return Result.error(lastClaimResult.error);
+        return Result.error(lastClaimResult.error || new Error('Failed to check last claim'));
       }
 
       const lastClaim = lastClaimResult.value;
@@ -45,14 +45,14 @@ export class ClaimDailyRewardUseCase {
         reward = allRewards.find(r => r.id.equals(requestedRewardId));
         
         if (!reward) {
-          return Failure.fail(new RewardNotAvailableError());
+          return Result.error(new RewardNotAvailableError());
         }
 
                 if (!reward.canBeClaimedBy(input.userId, lastClaim?.claimedAt)) {
           if (lastClaim) {
             return Result.error(new RewardAlreadyClaimedTodayError(input.userId, lastClaim.claimedAt));
           }
-          return Failure.fail(new RewardNotAvailableError());
+          return Result.error(new RewardNotAvailableError());
         }
       } else {
                 let nextDayNumber: number;
@@ -69,14 +69,14 @@ export class ClaimDailyRewardUseCase {
 
                 reward = allRewards.find(r => r.dayNumber === nextDayNumber);
         if (!reward) {
-          return Failure.fail(new RewardNotAvailableError());
+          return Result.error(new RewardNotAvailableError());
         }
 
                 if (!reward.canBeClaimedBy(input.userId, lastClaim?.claimedAt)) {
                     if (lastClaim) {
             return Result.error(new RewardAlreadyClaimedTodayError(input.userId, lastClaim.claimedAt));
           }
-                    return Failure.fail(new RewardNotAvailableError());
+                    return Result.error(new RewardNotAvailableError());
         }
       }
 
@@ -90,7 +90,7 @@ export class ClaimDailyRewardUseCase {
 
             const saveResult = await this._rewardClaimRepository.save(claim);
       if (saveResult.isFailure) {
-        return Result.error(saveResult.error);
+        return Result.error(saveResult.error || new Error('Failed to save reward claim'));
       }
 
             let nextRewardId: string | null = null;

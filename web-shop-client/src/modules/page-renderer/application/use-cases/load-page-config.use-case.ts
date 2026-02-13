@@ -36,7 +36,7 @@ export class LoadPageConfigUseCase {
     
     if (result.isFailure) {
       this._logger.error('[LoadPageConfigUseCase] Failed to load', result.error);
-      return Result.error(result.error);
+      return Result.error(result.error || new Error('Failed to load page config'));
     }
     
         await this._eventBus.publishAsync(

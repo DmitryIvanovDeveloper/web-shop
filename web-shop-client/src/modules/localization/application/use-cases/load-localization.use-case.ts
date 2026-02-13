@@ -45,7 +45,7 @@ export class LoadLocalizationUseCase {
           languageCode,
           error: translationsResult.error
         });
-        return Result.error(translationsResult.error);
+        return Result.error(translationsResult.error || new Error('Failed to load translations'));
       }
 
       const translationEntities = translationsResult.value!;
