@@ -1,4 +1,5 @@
 import { injectable, inject } from 'inversify';
+import { TranslationsConfigEvent } from '../../../localization/domain/events/translations-config.event';
 import type { UIRendererModuleConfig } from '../../../../shared/config/app-config.types';
 import { PageConfig } from '../../domain/value-objects/page-config.value-object';
 import { ThemeConfig } from '../../domain/value-objects/theme-config.value-object';
@@ -8,7 +9,6 @@ import { UIRendererError } from '../../domain/errors/ui-renderer.error';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { EventBus } from '../../../../application/ports/event-bus.port';
 import type { Logger } from '../../../../application/ports/logger.port';
-import { TranslationsConfigEvent } from '../../../localization/domain/events/translations-config.event';
 
 @injectable()
 export class SidebarRendererPresenter {

@@ -1,6 +1,8 @@
 'use client';
 
 import { createElement, useState, useEffect, useCallback } from 'react';
+import { LocalizationPresenter } from '@/modules/localization/interface-adapters/presenters/localization.presenter';
+import { LOCALIZATION_TYPES } from '@/infrastructure/bootstrap/types';
 import type { ComponentNode } from '../../../domain/value-objects/component-node.value-object';
 import type { ThemeConfig } from '../../../domain/value-objects/theme-config.value-object';
 import type { ComponentRegistry } from '../../../infrastructure/services/component-registry.service';
@@ -10,8 +12,6 @@ import type { ActionContext } from '../../../domain/types';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { UI_RENDERER_TYPES } from '../../../infrastructure/bootstrap/types';
 import { OfferCard } from '../../../../../../src/shared/components/molecules/offer-card';
-import { LocalizationPresenter } from '@/modules/localization/interface-adapters/presenters/localization.presenter';
-import { LOCALIZATION_TYPES } from '@/infrastructure/bootstrap/types';
 
 interface DynamicRendererProps {
   readonly node: ComponentNode;

@@ -3,13 +3,13 @@ import { useEffect, useState, useRef } from 'react';
 import { OfferCard } from '../../../../../shared/components/molecules/offer-card';
 import { OfferCardSkeleton } from '../../../../../shared/components/molecules/offer-card-skeleton';
 import { Grid } from '../../../../../shared/components/molecules/grid';
-import { OffersPopup } from './offers-popup';
 import type { Offer } from '../../../domain/types';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { PRODUCTS_TYPES } from '../../../../products/infrastructure/bootstrap/types';
 import type { SelectProductForPaymentUseCase } from '../../../../products/application/use-cases/select-product-for-payment.use-case';
 import { OFFERS_TYPES } from '../../../infrastructure/bootstrap/types';
 import type { OffersListPresenter } from '../../presenters/offers-list.presenter';
+import { OffersPopup } from './offers-popup';
 
 export interface OffersListProps {
   readonly className?: string;

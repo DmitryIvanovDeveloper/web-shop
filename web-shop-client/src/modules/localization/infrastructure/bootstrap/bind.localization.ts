@@ -1,5 +1,4 @@
 import type { Container } from 'inversify';
-import { LOCALIZATION_TYPES } from './types';
 
 import { LanguageHttpRepository } from '../repositories/language-http.repository';
 import { TranslationHttpRepository } from '../repositories/translation-http.repository';
@@ -12,6 +11,7 @@ import { LocalizationChangedEventHandler } from '../../interface-adapters/handle
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
 import { LocalizationLoadedEvent } from '../../domain/events/localization-loaded.event';
 import { LocalizationChangedEvent } from '../../domain/events/localization-changed.event';
+import { LOCALIZATION_TYPES } from './types';
 
 export function bindLocalization(container: Container): void {
     container

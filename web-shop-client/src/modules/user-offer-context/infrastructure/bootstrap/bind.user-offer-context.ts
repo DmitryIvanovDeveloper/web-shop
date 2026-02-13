@@ -1,5 +1,4 @@
 import { Container } from 'inversify';
-import { USER_OFFER_CONTEXT_TYPES } from './types';
 import { UserOfferContextSupabaseRepository } from '../repositories/user-offer-context.supabase-repository';
 import { HandleUserRegisteredUseCase } from '../../application/use-cases/handle-user-registered.use-case';
 import { HandleUserReturnedUseCase } from '../../application/use-cases/handle-user-returned.use-case';
@@ -38,6 +37,7 @@ import {
 import type { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
 import type { UserOfferContextDomainEvent } from '../../domain/events/user-offer-context.events';
 import { UserAuthenticatedEvent } from '../../../authentication/domain/events';
+import { USER_OFFER_CONTEXT_TYPES } from './types';
 
 export function bindUserOfferContext(container: Container): void {
     container.bind(UserOfferContextSupabaseRepository).toSelf().inSingletonScope();

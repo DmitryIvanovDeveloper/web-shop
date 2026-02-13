@@ -1,6 +1,4 @@
 import { Container } from 'inversify';
-import { PRODUCTS_TYPES } from './types';
-import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
 import { ProductsTranslationsConfigHandler } from '../../interface-adapters/handlers/translations-config.handler';
 import { ProductRepository } from '../repositories/product.repository';
@@ -24,9 +22,10 @@ import type { ProductRepositoryPort } from '../../application/ports/product-repo
 import type { PurchaseRepositoryPort } from '../../application/ports/purchase-repository.port';
 import type { BrowserPort } from '../../application/ports/browser.port';
 import type { PaymentRedirectPort } from '../../application/ports/payment-redirect.port';
-import { TYPES } from '../../../../infrastructure/bootstrap/types';
+import { TYPES, ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { UIComponentRegistry } from '../../../../infrastructure/services/ui-renderer/component-registry.service';
 import { ProductsList } from '../../interface-adapters/ui/components/products-list';
+import { PRODUCTS_TYPES } from './types';
 
 export function bindProducts(container: Container): void {
     container.bind<ProductRepositoryPort>(PRODUCTS_TYPES.ProductRepository)

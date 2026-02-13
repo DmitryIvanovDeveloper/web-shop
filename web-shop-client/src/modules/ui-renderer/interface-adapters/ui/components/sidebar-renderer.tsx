@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { DynamicRenderer } from './dynamic-renderer';
 import type { SidebarRendererPresenter } from '../../presenters/sidebar-renderer.presenter';
 import type { ActionContext } from '../../../domain/types';
+import { DynamicRenderer } from './dynamic-renderer';
 
 interface SidebarRendererProps {
   readonly presenter: SidebarRendererPresenter;

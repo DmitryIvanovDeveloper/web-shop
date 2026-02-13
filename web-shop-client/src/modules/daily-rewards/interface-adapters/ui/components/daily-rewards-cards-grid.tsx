@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import type { DailyRewardViewModel } from '../../view-models/daily-reward.view-model';
 import { DailyRewardCard } from './daily-reward-card';
 import { DailyRewardCardSkeleton } from './daily-reward-card-skeleton';
-import type { DailyRewardViewModel } from '../../view-models/daily-reward.view-model';
 
 export interface DailyRewardsCardsGridProps {
   rewards: readonly DailyRewardViewModel[]; 

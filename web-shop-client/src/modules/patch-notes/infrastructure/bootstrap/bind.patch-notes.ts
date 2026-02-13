@@ -1,5 +1,4 @@
 import type { Container } from 'inversify';
-import { PATCH_NOTES_TYPES } from './types';
 import { SupabasePatchNoteRepository } from '../repositories/supabase-patch-note.repository';
 import { PatchNoteSchedulerService } from '../repositories/patch-note-scheduler.service';
 import { CreatePatchNoteUseCase } from '../../application/use-cases/create-patch-note.use-case';
@@ -11,6 +10,7 @@ import { PatchNotesLocalizationChangedEventHandler } from '../../interface-adapt
 import { LocalizationLoadedEvent } from '../../../localization/domain/events/localization-loaded.event';
 import { LocalizationChangedEvent } from '../../../localization/domain/events/localization-changed.event';
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
+import { PATCH_NOTES_TYPES } from './types';
 
 export function bindPatchNotes(container: Container): void {
     container

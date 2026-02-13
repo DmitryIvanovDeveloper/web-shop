@@ -1,6 +1,6 @@
 import { injectable, inject } from 'inversify';
 import { IAsyncEventHandler } from '../../../infrastructure/events/events-handler.plugin';
-import { TranslationsConfigEvent } from '../../localization/domain/events/translations-config.event';
+import { TranslationsConfigEvent } from '@/modules/localization/domain/events/translations-config.event';
 import { ROOT_TYPES } from '../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../application/ports/logger.port';
 

@@ -1,5 +1,4 @@
 import { Container } from 'inversify';
-import { OFFERS_TYPES } from './types';
 import { RulesRepository } from '../repositories/rules.repository';
 import { OfferRepository } from '../repositories/offer.repository';
 import { PropertyReadersService } from '../services/property-readers.service';
@@ -18,6 +17,7 @@ import { LocalizationChangedEvent } from '../../../localization/domain/events/lo
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { UIComponentRegistry } from '../../../../infrastructure/services/ui-renderer/component-registry.service';
 import { OffersList } from '../../interface-adapters/ui/components/offers-list';
+import { OFFERS_TYPES } from './types';
 
 export function bindOffers(container: Container): void {
     container.bind(OFFERS_TYPES.RulesRepository).to(RulesRepository).inSingletonScope();

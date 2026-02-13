@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { SectionRenderer } from './section-renderer';
 import { OfferCard } from '../../../../../shared/components/molecules/offer-card';
 import { ProductsList } from '../../../../products/interface-adapters/ui/components/products-list';
 import { container } from '../../../../../infrastructure/bootstrap/container';
@@ -14,6 +13,7 @@ import { TYPES } from '../../../../../infrastructure/bootstrap/types';
 import { PageRendererPresenter } from '../../presenters/page-renderer.presenter';
 import type { PageRendererViewModel } from '../../view-models/page-renderer.view-model';
 import { selectionOverlay } from '../../../../../infrastructure/services/ui-renderer/selection-overlay.service';
+import { SectionRenderer } from './section-renderer';
 
 const isPreviewMode = (): boolean => {
   if (typeof window === 'undefined') return false;

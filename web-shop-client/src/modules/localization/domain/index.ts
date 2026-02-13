@@ -8,6 +8,3 @@ export { Translation } from './entities/translation.entity';
 export * from './errors/language.error';
 export * from './errors/translation.error';
 
-export { LanguageChangedEvent } from './events/language-changed.event';
-export { TranslationsUpdatedEvent } from './events/translations-updated.event';
-export { UserLanguageDetectedEvent } from './events/user-language-detected.event';

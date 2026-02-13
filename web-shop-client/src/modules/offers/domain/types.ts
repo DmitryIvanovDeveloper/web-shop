@@ -26,6 +26,7 @@ export interface Operation {
   readonly nextOperation?: Operation;
   readonly elseOperation?: Operation; }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface RuleSet extends Operation {}
 
 export interface OfferRuleTreeScenario {

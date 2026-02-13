@@ -1,9 +1,9 @@
 import { Container } from 'inversify';
 import type { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
 import { UserAuthenticatedEvent } from '../../../authentication/domain/events';
-import { PERSONAL_OFFERS_TYPES } from './types';
 import { PersonalOffersPresenter } from '../../interface-adapters/presenters/personal-offers.presenter';
 import { PersonalOffersUserAuthenticatedHandler } from '../../interface-adapters/handlers/user-authenticated-event.handler';
+import { PERSONAL_OFFERS_TYPES } from './types';
 
 export function bindPersonalOffers(container: Container): void {
   container.bind(PERSONAL_OFFERS_TYPES.Presenter).to(PersonalOffersPresenter).inSingletonScope();

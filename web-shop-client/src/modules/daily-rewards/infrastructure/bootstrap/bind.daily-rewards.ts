@@ -1,5 +1,4 @@
 import type { Container } from 'inversify';
-import { DAILY_REWARDS_TYPES } from './types';
 import { SupabaseDailyRewardRepository } from '../repositories/supabase-daily-reward.repository';
 import { SupabaseRewardClaimRepository } from '../repositories/supabase-reward-claim.repository';
 import { CheckDailyRewardAvailabilityUseCase } from '../../application/use-cases/check-daily-reward-availability.use-case';
@@ -11,6 +10,7 @@ import { DailyRewardsLocalizationChangedEventHandler } from '../../interface-ada
 import { LocalizationLoadedEvent } from '../../../localization/domain/events/localization-loaded.event';
 import { LocalizationChangedEvent } from '../../../localization/domain/events/localization-changed.event';
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
+import { DAILY_REWARDS_TYPES } from './types';
 
 export function bindDailyRewards(container: Container): void {
     container

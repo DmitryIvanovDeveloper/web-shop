@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
 import type { AppUser } from '../../domain/types';

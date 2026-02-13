@@ -8,12 +8,12 @@ import type { UIDescriptor } from '../../../shared/ui/ui-descriptor';
 import type { ComponentNode } from '../../../shared/ui/component-node';
 import type { ThemeConfig } from '../../../shared/ui/theme-config';
 import type { ActionContext } from '../../../shared/ui/action-context';
+import { ROOT_TYPES } from '../../bootstrap/types';
+import type { Logger } from '../../../application/ports/logger.port';
 import { UIComponentRegistry } from './component-registry.service';
 import { UIStyleBuilder } from './style-builder.service';
 import { UIActionHandler } from './action-handler.service';
 import { selectionOverlay } from './selection-overlay.service';
-import { ROOT_TYPES } from '../../bootstrap/types';
-import type { Logger } from '../../../application/ports/logger.port';
 
 @injectable()
 export class UIRendererService implements UIRendererPort {
