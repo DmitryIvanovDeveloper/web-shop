@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result, Success, Failure, isFailure } from '../../../../shared/result/result';
+import { Result } from '../../../../shared/result/result';
 import { DAILY_REWARDS_TYPES } from '../../infrastructure/bootstrap/types';
 import type { DailyRewardRepositoryPort } from '../ports/daily-reward-repository.port';
 import type { CheckDailyRewardAvailabilityInput, DailyRewardAvailabilityOutput } from '../types/daily-reward.types';
@@ -14,11 +14,11 @@ export class CheckDailyRewardAvailabilityUseCase {
   async execute(input: CheckDailyRewardAvailabilityInput): Promise<Result<DailyRewardAvailabilityOutput, Error>> {
     try {
                   const nextRewardResult = await this._dailyRewardRepository.findNextRewardAvailability(input.appId, input.userId);
-      if (isFailure(nextRewardResult)) {
-                return Failure.fail(nextRewardResult.error);
+      if (nextRewardResult.isFailure) {
+                return Result.error(nextRewardResult.error);
       }
 
-      const availability = nextRewardResult.data;
+      const availability = nextRewardResult.value!;
 
       const output: DailyRewardAvailabilityOutput = {
         canClaim: availability.canClaim,
@@ -28,9 +28,9 @@ export class CheckDailyRewardAvailabilityUseCase {
         nextClaimDate: availability.nextClaimDate
       };
 
-            return Success.ok(output);
+            return Result.ok(output);
     } catch (error) {
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 

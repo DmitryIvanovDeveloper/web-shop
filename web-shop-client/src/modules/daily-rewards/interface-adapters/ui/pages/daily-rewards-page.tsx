@@ -9,6 +9,7 @@ import { DailyRewardsCardsGrid } from '../components/daily-rewards-cards-grid';
 import { useAppId } from '../../../../../shared/hooks/use-app-context';
 import { DailyRewardsPresenter } from '../../presenters/daily-rewards-presenter';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface DailyRewardsPageProps {
   }
 

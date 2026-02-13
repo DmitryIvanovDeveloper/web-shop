@@ -1,12 +1,13 @@
 'use client';
 
+import { useCallback, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+
 import { container } from '../../src/infrastructure/bootstrap/container';
 import { APP_LAYOUT_TYPES } from '../../src/modules/app-layout/infrastructure/bootstrap/types';
 import { SidebarRendererPresenter } from '../../src/modules/app-layout/interface-adapters/presenters/sidebar-renderer.presenter';
 import { SidebarRenderer } from '../../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';
 import type { ActionContext } from '../../src/shared/ui/action-context';
-import { useCallback, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { PAGE_RENDERER_TYPES } from '../../src/modules/page-renderer/infrastructure/bootstrap/types';
 import { PageRendererPresenter } from '../../src/modules/page-renderer/interface-adapters/presenters/page-renderer.presenter';
 import type { PageRendererViewModel } from '../../src/modules/page-renderer/interface-adapters/view-models/page-renderer.view-model';
@@ -18,8 +19,7 @@ import { ProductsList } from '../../src/modules/products/interface-adapters/ui/c
 import { DailyRewardsPopup } from '../../src/modules/daily-rewards';
 import { DAILY_REWARDS_TYPES } from '../../src/modules/daily-rewards/infrastructure/bootstrap/types';
 import type { CheckDailyRewardAvailabilityUseCase } from '../../src/modules/daily-rewards/application/use-cases/check-daily-reward-availability.use-case';
-import { isSuccess } from '../../src/shared/result/result';
-import type { OfferCardTemplate } from '../../src/shared/config/app-config.types';
+import type { AppConfig, OfferCardTemplate } from '../../src/shared/config/app-config.types';
 
 type OfferCardWithFlags = OfferCardTemplate & {
   styles?: OfferCardTemplate['styles'] & {
@@ -45,21 +45,20 @@ export default function StorePage(): JSX.Element {
   const appId = searchParams.get('appId');
   const userId = searchParams.get('userId') || 'anonymous-user';
 
-  if (!appId) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">App ID Required</h1>
-          <p className="text-gray-600">Please specify ?appId=YOUR_APP_ID in the URL.</p>
-        </div>
-      </div>
-    );
-  }
-
+  // All hooks must be declared before any conditional returns
   const [previewMode, setPreviewMode] = useState(false);
   const [elementSelectionMode, setElementSelectionMode] = useState(false);
-  const [currentAppId, setCurrentAppId] = useState<string>(appId);
+  const [currentAppId, setCurrentAppId] = useState<string>(appId || '');
   const [showDailyRewardsPopup, setShowDailyRewardsPopup] = useState(false);
+
+  const [offerCardVm, setOfferCardVm] = useState<PageRendererViewModel>({
+    sections: [],
+    isLoading: false,
+    error: null,
+    selectedOfferCardId: null,
+    offerCards: []
+  });
+
   const applyElementSelectionMode = useCallback((enabled: boolean) => {
     setElementSelectionMode(enabled);
 
@@ -79,13 +78,6 @@ export default function StorePage(): JSX.Element {
       window.dispatchEvent(new CustomEvent('elementSelectionModeChanged', { detail: { enabled } }));
     }
   }, []);
-  const [offerCardVm, setOfferCardVm] = useState<PageRendererViewModel>({
-    sections: [],
-    isLoading: false,
-    error: null,
-    selectedOfferCardId: null,
-    offerCards: []
-  });
 
   const navigateWithQuery = (path: string) => {
     const currentSearch = searchParams.toString();
@@ -116,6 +108,7 @@ export default function StorePage(): JSX.Element {
         const isPreview = url.searchParams.get('previewMode') === 'true';
         setPreviewMode(isPreview);
       } catch (err) {
+        // Ignore URL parsing errors
       }
     }
   }, []);
@@ -137,6 +130,7 @@ export default function StorePage(): JSX.Element {
           }
         }
       } catch (error) {
+        // Ignore config loading errors
       }
     };
 
@@ -145,7 +139,7 @@ export default function StorePage(): JSX.Element {
     } else {
       setTimeout(() => loadAppConfig(), 0);
     }
-  }, [previewMode]);
+  }, [previewMode, appId]);
 
   useEffect(() => {
     if (!previewMode) return;
@@ -179,11 +173,11 @@ export default function StorePage(): JSX.Element {
             if (event.data.payload.selectedOfferCardId !== null) {
               presenter.setSelectedOfferCardId(event.data.payload.selectedOfferCardId);
             } else {
-              console.log('[StorePage] Clearing selected offer card ID (explicit null)');
               presenter.setSelectedOfferCardId(null);
             }
           }
         } catch (error) {
+          // Ignore message handling errors
         }
       } else if (event.data?.type === 'SHOW_AUTH_POPUP') {
         const visible = event.data.payload?.visible ?? false;
@@ -192,6 +186,7 @@ export default function StorePage(): JSX.Element {
             try {
               await loadAppConfigFromMessageUseCase.execute(event.data.payload.config);
             } catch (error) {
+              // Ignore config loading errors
             }
           }
 
@@ -213,18 +208,6 @@ export default function StorePage(): JSX.Element {
   const selectedOfferCard = offerCardVm.selectedOfferCardId && offerCardVm.offerCards.length > 0
     ? offerCardVm.offerCards.find(card => card.id === offerCardVm.selectedOfferCardId)
     : null;
-
-  useEffect(() => {
-    if (previewMode) {
-      console.log('[StorePage] Demo section debug:', {
-        previewMode,
-        selectedOfferCardId: offerCardVm.selectedOfferCardId,
-        offerCardsCount: offerCardVm.offerCards.length,
-        offerCardsIds: offerCardVm.offerCards.map(c => c.id),
-        selectedOfferCard: selectedOfferCard ? selectedOfferCard.name : null
-      });
-    }
-  }, [previewMode, offerCardVm.selectedOfferCardId, offerCardVm.offerCards, selectedOfferCard]);
 
   useEffect(() => {
     if (previewMode && selectedOfferCard && typeof window !== 'undefined') {
@@ -271,27 +254,39 @@ export default function StorePage(): JSX.Element {
           appId
         });
 
-        if (isSuccess(result) && result.data?.canClaim) {
+        if (result.isSuccess && result.value?.canClaim) {
           setTimeout(() => {
             setShowDailyRewardsPopup(true);
           }, 3000);
         } else {
           console.log('[store/page.tsx] No active reward available today, popup will NOT be shown', {
-            isSuccess: isSuccess(result),
-            canClaim: isSuccess(result) ? result.data?.canClaim : undefined,
-            error: !isSuccess(result) ? result.error?.message : undefined
+            isSuccess: result.isSuccess,
+            canClaim: result.isSuccess ? result.value?.canClaim : undefined,
+            error: !result.isSuccess ? result.error?.message : undefined
           });
         }
       } catch (error) {
+        // Ignore popup logic errors
       }
     };
 
     checkAndShowPopup();
   }, [previewMode, userId, appId]);
 
+  // Early return for missing appId - this must come after all hooks
+  if (!appId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">App ID Required</h1>
+          <p className="text-gray-600">Please specify ?appId=YOUR_APP_ID in the URL.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <main className="flex-1 overflow-y-auto w-full mx-auto px-4 md:px-8" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>
-      { }
       <DailyRewardsPopup
         userId={userId}
         isOpen={showDailyRewardsPopup}
@@ -299,8 +294,6 @@ export default function StorePage(): JSX.Element {
         autoShow={false}
       />
 
-
-      { }
       {previewMode && selectedOfferCard && (
         <div key="offer-card-demo-section" className="offer-card-demo-section" style={{ padding: '20px', marginBottom: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <h2 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: 'bold', width: '100%', textAlign: 'left' }}>
@@ -331,7 +324,6 @@ export default function StorePage(): JSX.Element {
         </div>
       )}
 
-      { }
       <div className="mt-12">
         <ProductsList />
       </div>

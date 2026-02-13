@@ -1,5 +1,5 @@
 import { injectable, inject } from 'inversify';
-import { Result } from '../../../../shared/domain/result/result';
+import { Result } from '../../../../shared/result/result';
 import type { PageConfigRepositoryPort } from '../../application/ports/page-config-repository.port';
 import type { PageConfig } from '../../domain/entities/page-config.entity';
 import type { PageSection } from '../../domain/entities/page-section';
@@ -25,11 +25,11 @@ function convertToComponentNode(json: any): ComponentNode | null {
     actions: json.actions
   });
   
-  if (result.isFailure()) {
+  if (result.isFailure) {
         return null;
   }
   
-  return result.data || null;
+  return result.value || null;
 }
 
 @injectable()

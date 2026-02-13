@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { SectionRenderer } from './section-renderer';
 import { OfferCard } from '../../../../../shared/components/molecules/offer-card';
 import { ProductsList } from '../../../../products/interface-adapters/ui/components/products-list';
 import { container } from '../../../../../infrastructure/bootstrap/container';
@@ -14,6 +13,7 @@ import { TYPES } from '../../../../../infrastructure/bootstrap/types';
 import { PageRendererPresenter } from '../../presenters/page-renderer.presenter';
 import type { PageRendererViewModel } from '../../view-models/page-renderer.view-model';
 import { selectionOverlay } from '../../../../../infrastructure/services/ui-renderer/selection-overlay.service';
+import { SectionRenderer } from './section-renderer';
 
 const isPreviewMode = (): boolean => {
   if (typeof window === 'undefined') return false;
@@ -582,7 +582,7 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
               topLabel="Limited Offer🎁"
               title="Offer #1"
               description="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-              mainImage={selectedOfferCard.media?.mainImage ?? 'https:              mainImageAlt={selectedOfferCard.media?.mainImageAlt ?? 'Offer card image'}
+              mainImage={selectedOfferCard.media?.mainImage ?? 'https://example.com/image.jpg'}              mainImageAlt={selectedOfferCard.media?.mainImageAlt ?? 'Offer card image'}
               discount="80%"
               originalPrice="24,99 $"
               currentPrice="14,99 $"

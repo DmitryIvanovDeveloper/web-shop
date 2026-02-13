@@ -1,5 +1,5 @@
 import { injectable, inject } from 'inversify';
-import { Result } from '../../../../shared/domain/result/result';
+import { Result } from '../../../../shared/result/result';
 import type { PageConfigRepositoryPort } from '../ports/page-config-repository.port';
 import type { EventBus } from '../../../../application/ports/event-bus.port';
 import type { Logger } from '../../../../application/ports/logger.port';
@@ -34,14 +34,14 @@ export class LoadPageConfigUseCase {
       isDraft
     );
     
-    if (result.isFailure()) {
+    if (result.isFailure) {
       this._logger.error('[LoadPageConfigUseCase] Failed to load', result.error);
       return Result.error(result.error);
     }
     
         await this._eventBus.publishAsync(
       new PageConfigLoadedEvent(
-        result.data || null,
+        result.value || null,
         input.appId,
         input.pageSlug
       )
@@ -49,7 +49,7 @@ export class LoadPageConfigUseCase {
     
     this._logger.info('[LoadPageConfigUseCase] Event published', {
       hasConfig: !!result.data,
-      sectionsCount: result.data?.sections.length || 0
+      sectionsCount: result.value?.sections.length || 0
     });
     
     return Result.ok(undefined);

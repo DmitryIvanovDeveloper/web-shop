@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
 import * as fs from 'fs';
 import * as path from 'path';
+import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
@@ -34,3 +34,4 @@ export async function GET() {
         return NextResponse.json({ error: 'Failed to load auth UI configuration' }, { status: 500 });
   }
 }
+

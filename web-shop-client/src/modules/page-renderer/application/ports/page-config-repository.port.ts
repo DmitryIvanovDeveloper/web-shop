@@ -1,4 +1,4 @@
-import type { Result } from '../../../../shared/domain/result/result';
+import type { Result } from '../../../shared/result/result';
 import type { PageConfig } from '../../domain/entities/page-config.entity';
 
 

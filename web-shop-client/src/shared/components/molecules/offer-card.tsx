@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import type { CSSProperties } from "react";
-import { Badge } from "../atoms/badge";
 import { ClipLoader } from "react-spinners";
+import { Badge } from "../atoms/badge";
 
 export interface BuyButtonStyle {
   readonly backgroundColor?: string;

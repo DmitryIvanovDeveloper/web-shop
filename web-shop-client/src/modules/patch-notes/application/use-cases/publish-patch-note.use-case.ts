@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Success, Failure, type Result } from '../../../../shared/result/result';
+import { Result } from '../../../../shared/result/result';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { EventBus } from '../../../../application/ports/event-bus.port';
 import type { PatchNoteRepositoryPort } from '../ports/patch-note-repository.port';
@@ -27,18 +27,18 @@ export class PublishPatchNoteUseCase {
         return findResult;
       }
 
-      if (!findResult.data) {
-        return Failure.fail(new PatchNoteNotFoundError(input.id));
+      if (!findResult.value) {
+        return Result.error(new PatchNoteNotFoundError(input.id));
       }
 
-      const patchNote = findResult.data;
+      const patchNote = findResult.value!;
 
             let publishedPatchNote;
       try {
         publishedPatchNote = patchNote.publish();
       } catch (error) {
         if (error instanceof InvalidPatchNoteStatusError) {
-          return Failure.fail(error);
+          return Result.error(error);
         }
         throw error;
       }
@@ -56,10 +56,10 @@ export class PublishPatchNoteUseCase {
         )
       );
 
-            return Success.ok(this.mapToOutput(saveResult.data));
+            return Result.ok(this.mapToOutput(saveResult.value!));
 
     } catch (error) {
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 

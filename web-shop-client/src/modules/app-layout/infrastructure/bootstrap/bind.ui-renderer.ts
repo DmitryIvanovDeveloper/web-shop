@@ -1,5 +1,4 @@
 import type { Container } from 'inversify';
-import { APP_LAYOUT_TYPES } from './types';
 import { SidebarRendererPresenter } from '../../interface-adapters/presenters/sidebar-renderer.presenter';
 import { AppLayoutConfigLoadedHandler } from '../../interface-adapters/handlers/app-config-loaded.handler';
 import { AppLayoutLocalizationLoadedEventHandler } from '../../interface-adapters/handlers/localization-loaded.handler';
@@ -8,6 +7,7 @@ import { AppConfigLoadedEvent } from '../../../../shared/events/app-config-event
 import { LocalizationLoadedEvent } from '../../../localization/domain/events/localization-loaded.event';
 import { LocalizationChangedEvent } from '../../../localization/domain/events/localization-changed.event';
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
+import { APP_LAYOUT_TYPES } from './types';
 
 export function bindAppLayout(container: Container): void {
     container

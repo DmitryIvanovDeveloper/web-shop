@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result, Success, Failure, isFailure } from '../../../../shared/result/result';
+import { Result } from '../../../../shared/result/result';
 import { DAILY_REWARDS_TYPES } from '../../infrastructure/bootstrap/types';
 import type { LoadDailyRewardsUseCase } from '../../application/use-cases/load-daily-rewards.use-case';
 import type { ClaimDailyRewardUseCase } from '../../application/use-cases/claim-daily-reward.use-case';
@@ -135,7 +135,7 @@ export class DailyRewardsPresenter {
     };
     const result = await this._loadDailyRewardsUseCase.execute(loadInput);
 
-    if (isFailure(result)) {
+    if (result.isFailure) {
       this._logger.error('[DailyRewardsPresenter] Failed to load rewards', { error: result.error });
       this._viewModel = {
         ...this._viewModel,
@@ -146,7 +146,7 @@ export class DailyRewardsPresenter {
       return;
     }
 
-    let rewards = result.data?.rewards ?? [];
+    let rewards = result.value?.rewards ?? [];
 
         if (input.userId) {
       try {
@@ -184,8 +184,8 @@ export class DailyRewardsPresenter {
           appId: input.appId
         });
 
-        if (!isFailure(availabilityResult)) {
-          const availability = availabilityResult.data;
+        if (availabilityResult.isSuccess) {
+          const availability = availabilityResult.value!;
           if (availability.nextClaimDate && !availability.canClaim && availability.reward) {
                         const nextRewardViewModel = viewModels.find(vm => vm.id === availability.reward?.id);
             if (nextRewardViewModel && nextRewardViewModel instanceof DailyRewardCardViewModelImpl) {
@@ -223,7 +223,7 @@ export class DailyRewardsPresenter {
         appId
       });
 
-      if (!isFailure(availabilityResult)) {
+      if (availabilityResult.isSuccess) {
         const availability = availabilityResult.data;
         const nextReward = availability.reward;
 
@@ -336,8 +336,8 @@ export class DailyRewardsPresenter {
           userId: input.userId,
           appId: input.appId
         });
-        if (!isFailure(availabilityResult) && availabilityResult.data.reward) {
-          rewardId = availabilityResult.data.reward.id;
+        if (!availabilityResult.isFailure && availabilityResult.value.reward) {
+          rewardId = availabilityResult.value.reward.id;
           this._logger.info('[DailyRewardsPresenter] Will claim reward', { rewardId });
         }
       } catch (error) {
@@ -363,16 +363,16 @@ export class DailyRewardsPresenter {
     try {
       const result = await this._claimDailyRewardUseCase.execute(input);
 
-      if (isFailure(result)) {
+      if (result.isFailure) {
                 this._logger.error('[DailyRewardsPresenter] Failed to claim reward', { 
           error: result.error,
           userId: input.userId,
           appId: input.appId
         });
 
-        const isAlreadyClaimedError = result.error.message.includes('already claimed') ||
-                                     result.error.message.includes('has already claimed') ||
-                                     result.error.name === 'RewardAlreadyClaimedTodayError';
+        const isAlreadyClaimedError = result.error!.message.includes('already claimed') ||
+                                     result.error!.message.includes('has already claimed') ||
+                                     result.error!.name === 'RewardAlreadyClaimedTodayError';
 
                 this._viewModel.rewards.forEach(reward => {
           if (reward instanceof DailyRewardCardViewModelImpl) {
@@ -396,12 +396,12 @@ export class DailyRewardsPresenter {
           this._viewModel = {
             ...this._viewModel,
             isLoading: false,
-            errorMessage: result.error.message || 'Failed to claim reward. Please try again.',
+            errorMessage: result.error!.message || 'Failed to claim reward. Please try again.',
           };
           this._notifySubscribers();
         }
       } else {
-                this._logger.info('[DailyRewardsPresenter] Successfully claimed reward', result.data);
+                this._logger.info('[DailyRewardsPresenter] Successfully claimed reward', result.value);
         
                 this._viewModel.rewards.forEach(reward => {
           if (reward instanceof DailyRewardCardViewModelImpl) {
@@ -409,8 +409,8 @@ export class DailyRewardsPresenter {
           }
         });
         
-                if (result.data.nextRewardId && result.data.nextClaimDate) {
-                    const nextRewardViewModel = this._viewModel.rewards.find(r => r.id === result.data.nextRewardId);
+                if (result.value.nextRewardId && result.value.nextClaimDate) {
+                    const nextRewardViewModel = this._viewModel.rewards.find(r => r.id === result.value.nextRewardId);
           if (nextRewardViewModel && nextRewardViewModel instanceof DailyRewardCardViewModelImpl) {
             const nextClaimDate = new Date(result.data.nextClaimDate);
             nextRewardViewModel.setNextClaimDate(nextClaimDate);

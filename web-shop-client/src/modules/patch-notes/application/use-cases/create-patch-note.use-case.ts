@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Success, Failure, type Result } from '../../../../shared/result/result';
+import { Result } from '../../../../shared/result/result';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { EventBus } from '../../../../application/ports/event-bus.port';
 import type { PatchNoteRepositoryPort } from '../ports/patch-note-repository.port';
@@ -29,7 +29,7 @@ export class CreatePatchNoteUseCase {
       );
 
       if (existingPatchNote instanceof Success && existingPatchNote.data) {
-        return Failure.fail(new PatchNoteAlreadyExistsError(input.version));
+        return Result.error(new PatchNoteAlreadyExistsError(input.version));
       }
 
             const patchNoteId = PatchNoteId.create();
@@ -57,10 +57,10 @@ export class CreatePatchNoteUseCase {
         new PatchNoteCreatedEvent(patchNoteId, input.version, input.title)
       );
 
-            return Success.ok(this.mapToOutput(saveResult.data));
+            return Result.ok(this.mapToOutput(saveResult.value!));
 
     } catch (error) {
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 

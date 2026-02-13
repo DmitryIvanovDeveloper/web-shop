@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result, isFailure, Success, Failure } from '../../../../shared/result/result';
+import { Result } from '../../../../shared/result/result';
 import type { TranslationRepositoryPort } from '../ports/translation-repository.port';
 import { LOCALIZATION_TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
@@ -40,15 +40,15 @@ export class LoadLocalizationUseCase {
 
             const translationsResult = await this._translationRepository.getTranslationsByLanguage(languageCode);
 
-      if (isFailure(translationsResult)) {
+      if (translationsResult.isFailure) {
         this._logger.error('[LoadLocalizationUseCase] Failed to load translations', {
           languageCode,
           error: translationsResult.error
         });
-        return Failure.fail(translationsResult.error);
+        return Result.error(translationsResult.error);
       }
 
-      const translationEntities = translationsResult.data;
+      const translationEntities = translationsResult.value!;
 
             const translations: Record<string, string> = {};
       for (const translation of translationEntities) {
@@ -75,11 +75,11 @@ export class LoadLocalizationUseCase {
         direction
       });
 
-      return Success.ok(response);
+      return Result.ok(response);
 
     } catch (error) {
       this._logger.error('[LoadLocalizationUseCase] Unexpected error loading localization', { error });
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 

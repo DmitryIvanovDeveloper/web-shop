@@ -1,7 +1,7 @@
-import { Result } from '../../../../shared/domain/result/result';
+import { Result } from '../../../../shared/result/result';
+import { AppLayoutError } from '../errors/ui-renderer.error';
 import type { ThemeConfig } from './theme-config.value-object';
 import type { ComponentNode } from './component-node.value-object';
-import { AppLayoutError } from '../errors/ui-renderer.error';
 
 export class PageConfig {
   private constructor(

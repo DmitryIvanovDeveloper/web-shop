@@ -1,5 +1,4 @@
-import type { Offer } from '../../domain/types';
-import type { ComparableValue } from '../../domain/types';
+import type { Offer, ComparableValue } from '../../domain/types';
 import type { UserOfferContextSnapshot } from '../../../user-offer-context/application/ports/context.types';
 
 export interface SelectOffersInput {

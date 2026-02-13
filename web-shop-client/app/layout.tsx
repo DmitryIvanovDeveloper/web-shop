@@ -1,12 +1,13 @@
 "use client";
 import '../src/env'; import 'reflect-metadata';
+import { useState, useEffect, useCallback } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+
 import { container } from '../src/infrastructure/bootstrap/container';
 import "./output.css";
 import { AuthModule } from '../src/modules/authentication/interface-adapters/ui/auth-module';
 import { PersonalOffersWidget } from '../src/modules/personal-offers/interface-adapters/ui/components/personal-offers-widget';
-import { useState, useEffect, useCallback } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { APP_LAYOUT_TYPES } from '../src/modules/app-layout/infrastructure/bootstrap/types';
 import { SidebarRendererPresenter } from '../src/modules/app-layout/interface-adapters/presenters/sidebar-renderer.presenter';
 import { SidebarRenderer } from '../src/modules/app-layout/interface-adapters/ui/components/sidebar-renderer';

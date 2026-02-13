@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
 import { container } from '../../../../infrastructure/bootstrap/container';
 import { AUTH_TYPES } from '../../infrastructure/bootstrap/types';
 import type { AppUser } from '../../domain/types';
@@ -126,16 +125,16 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 	
 		const getAppIdFromStorage = async () => {
 		const result = await sessionStorage.load();
-		if (result.isSuccess() && result.data) {
-			return result.data.appId;
+		if (result.isSuccess && result.value) {
+			return result.value.appId;
 		}
 		return null;
 	};
 
 	const getUserIdFromStorage = async () => {
 		const result = await sessionStorage.load();
-		if (result.isSuccess() && result.data) {
-			return result.data.userId;
+		if (result.isSuccess && result.value) {
+			return result.value.userId;
 		}
 		return null;
 	};
@@ -193,7 +192,7 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 				}, 1500);
 			} else {
 								setPopupState('error');
-				setErrorMessage(result.error || 'Authentication failed. Please try again.');
+				setErrorMessage(result.error?.message || 'Authentication failed. Please try again.');
 			}
 		} catch (error) {
 						setPopupState('error');

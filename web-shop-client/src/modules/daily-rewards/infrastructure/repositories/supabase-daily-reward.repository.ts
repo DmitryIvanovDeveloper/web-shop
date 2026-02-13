@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result, Success, Failure } from '../../../../shared/result/result';
+import { Result } from '../../../../shared/result/result';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { HttpClient } from '../../../../application/ports/http-client.port';
 import type { Logger } from '../../../../application/ports/logger.port';
@@ -55,7 +55,7 @@ export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort 
           statusText: response.statusText,
           appId
         });
-        return Failure.fail(new Error(`Failed to find rewards: ${response.status} ${response.statusText}`));
+        return Result.error(new Error(`Failed to find rewards: ${response.status} ${response.statusText}`));
       }
 
       const raw = response.data as DailyRewardsListApiResponseDto | DailyRewardApiDto[];
@@ -66,10 +66,10 @@ export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort 
         count: rewards.length
       });
 
-      return Success.ok(rewards);
+      return Result.ok(rewards);
     } catch (error) {
       this._logger.error('[SupabaseDailyRewardRepository] Unexpected error finding rewards', { error, appId });
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
@@ -84,7 +84,7 @@ export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort 
 
       if (response.status === 404) {
         this._logger.info('[SupabaseDailyRewardRepository] No active daily reward found', { appId });
-        return Success.ok(null);
+        return Result.ok(null);
       }
 
       if (response.status >= 400) {
@@ -93,7 +93,7 @@ export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort 
           statusText: response.statusText,
           appId
         });
-        return Failure.fail(new Error(`Failed to find active daily reward: ${response.status} ${response.statusText}`));
+        return Result.error(new Error(`Failed to find active daily reward: ${response.status} ${response.statusText}`));
       }
 
       const reward = this.mapApiDtoToEntity(response.data);
@@ -102,10 +102,10 @@ export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort 
         rewardId: reward.id.value
       });
 
-      return Success.ok(reward);
+      return Result.ok(reward);
     } catch (error) {
       this._logger.error('[SupabaseDailyRewardRepository] Unexpected error finding active daily reward', { error, appId });
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
@@ -161,7 +161,7 @@ export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort 
           appId,
           userId
         });
-        return Failure.fail(new Error(`Failed to find next reward availability: ${response.status} ${response.statusText}`));
+        return Result.error(new Error(`Failed to find next reward availability: ${response.status} ${response.statusText}`));
       }
 
       const data = response.data;
@@ -183,10 +183,10 @@ export class SupabaseDailyRewardRepository implements DailyRewardRepositoryPort 
         hasNextClaimDate: !!data.nextClaimDate
       });
 
-      return Success.ok(result);
+      return Result.ok(result);
     } catch (error) {
       this._logger.error('[SupabaseDailyRewardRepository] Unexpected error finding next reward availability', { error, appId, userId });
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 }

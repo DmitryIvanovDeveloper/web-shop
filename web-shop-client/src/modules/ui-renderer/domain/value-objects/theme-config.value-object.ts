@@ -1,4 +1,4 @@
-import { Result } from '../../../../shared/domain/result/result';
+import { Result } from '../../../../shared/result/result';
 import { UIRendererError } from '../errors/ui-renderer.error';
 
 export interface ColorConfig {

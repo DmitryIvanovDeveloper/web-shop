@@ -1,5 +1,5 @@
 import { injectable, inject } from 'inversify';
-import { Result, Success, Failure } from '../../../../shared/result/result';
+import { Result } from '../../../../shared/result/result';
 import type { TranslationRepositoryPort, Translation } from '../../application/ports/translation-repository.port';
 import type { HttpClient } from '../../../../application/ports/http-client.port';
 import type { Logger } from '../../../../application/ports/logger.port';
@@ -48,7 +48,7 @@ export class TranslationHttpRepository implements TranslationRepositoryPort {
             languageCode,
             attempt
           });
-          return Failure.fail(new Error(response.statusText || 'Failed to get translations'));
+          return Result.error(new Error(response.statusText || 'Failed to get translations'));
         }
 
         const translations = (Array.isArray(response.data) ? response.data : []).map((item: any) => ({
@@ -62,7 +62,7 @@ export class TranslationHttpRepository implements TranslationRepositoryPort {
           count: translations.length,
           attempt
         });
-        return Success.ok(translations);
+        return Result.ok(translations);
       } catch (error) {
         const isLastAttempt = attempt === maxRetries;
         const isNetworkError = this._isNetworkError(error);
@@ -83,7 +83,7 @@ export class TranslationHttpRepository implements TranslationRepositoryPort {
           languageCode,
           attempt
         });
-        return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+        return Result.error(error instanceof Error ? error : new Error('Unknown error'));
       }
     }
 
@@ -119,7 +119,7 @@ export class TranslationHttpRepository implements TranslationRepositoryPort {
           statusText: response.statusText,
           languageCode
         });
-        return Failure.fail(new Error(response.statusText || 'Failed to update translations'));
+        return Result.error(new Error(response.statusText || 'Failed to update translations'));
       }
 
       this._logger.info('[TranslationHttpRepository] Translations updated successfully', {
@@ -127,13 +127,13 @@ export class TranslationHttpRepository implements TranslationRepositoryPort {
         count: translations.length
       });
 
-      return Success.ok(undefined);
+      return Result.ok(undefined);
     } catch (error) {
       this._logger.error('[TranslationHttpRepository] Unexpected error updating translations', {
         languageCode,
         error
       });
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 

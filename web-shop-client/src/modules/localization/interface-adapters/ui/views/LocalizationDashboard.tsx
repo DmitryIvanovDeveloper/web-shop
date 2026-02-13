@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { container } from '../../../../../infrastructure/bootstrap/container';
 import { LOCALIZATION_TYPES } from '@/infrastructure/bootstrap/types';
+import { container } from '../../../../../infrastructure/bootstrap/container';
 import type { ChangeActiveLanguageUseCase } from '../../../application/use-cases/change-active-language.use-case';
 import type { UpdateTranslationsUseCase } from '../../../application/use-cases/update-translations.use-case';
 import type { GetLocalizationStatusUseCase } from '../../../application/use-cases/get-localization-status.use-case';
@@ -51,12 +51,12 @@ export const LocalizationDashboard: React.FC = () => {
                 const result = await getLocalizationStatusUseCase.execute();
 
         if (result.isSuccess) {
-          const { languages: loadedLanguages, activeLanguage: loadedActiveLanguage } = result.data;
+          const { languages: loadedLanguages, activeLanguage: loadedActiveLanguage } = result.value;
 
                               setLanguages(loadedLanguages);
           setActiveLanguage(loadedActiveLanguage);
         } else {
-                    setError(result.error.message);
+                    setError(result.error!.message);
         }
       } else {
                         const mockLanguages = [
@@ -141,7 +141,7 @@ export const LocalizationDashboard: React.FC = () => {
       });
 
       if (result.isSuccess) {
-        setActiveLanguage(result.data.language);
+        setActiveLanguage(result.value.language);
         await loadTranslationsForLanguage(languageCode);
 
                 setLanguages(prev => prev.map(lang =>

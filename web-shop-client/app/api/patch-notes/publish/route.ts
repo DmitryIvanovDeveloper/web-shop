@@ -21,14 +21,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const result = await useCase.execute({ id });
 
-    if (!result.success) {
+    if (!result.isSuccess) {
             return NextResponse.json(
-        { error: result.error.message },
+        { error: result.error!.message },
         { status: 400 }
       );
     }
 
-    return NextResponse.json(result.data);
+    return NextResponse.json(result.value);
 
   } catch (error) {
         return NextResponse.json(
@@ -37,5 +37,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 }
+
+
 
 

@@ -11,7 +11,6 @@ import { AuthUserAuthenticatedHandler } from '../../interface-adapters/handlers/
 import { AuthLocalizationLoadedEventHandler } from '../../interface-adapters/handlers/localization-loaded.handler';
 import { AuthLocalizationChangedEventHandler } from '../../interface-adapters/handlers/localization-changed.handler';
 import { IAsyncEventHandler } from '../../../../infrastructure/events/events-handler.plugin';
-import { AUTH_TYPES } from './types';
 import { AuthService } from '../../application/services/auth.service';
 import { AuthenticationRequiredEventHandler } from '../../interface-adapters/handlers/authentication-required.handler';
 import { AuthAppConfigLoadedHandler } from '../../interface-adapters/handlers/app-config-loaded.handler';
@@ -19,6 +18,7 @@ import { AppConfigLoadedEvent } from '../../../../shared/events/app-config-event
 import { LocalizationLoadedEvent } from '../../../localization/domain/events/localization-loaded.event';
 import { LocalizationChangedEvent } from '../../../localization/domain/events/localization-changed.event';
 import { AuthenticationRequiredEvent, UserAuthenticatedEvent } from '../../domain/events';
+import { AUTH_TYPES } from './types';
 
 export function bindAuthentication(container: Container): void {
     container

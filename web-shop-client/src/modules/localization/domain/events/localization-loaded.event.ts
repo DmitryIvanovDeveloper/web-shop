@@ -1,4 +1,4 @@
-import { IEvent } from '../../../../../application/ports/event-bus.port';
+import type { IEvent } from '@application/ports/event-bus.port';
 
 export interface TranslationMap {
   [key: string]: string;

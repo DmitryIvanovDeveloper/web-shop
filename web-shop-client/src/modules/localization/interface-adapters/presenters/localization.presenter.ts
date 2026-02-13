@@ -4,7 +4,7 @@ import type { Logger } from '../../../../application/ports/logger.port';
 import { LoadLocalizationUseCase, ChangeLocalizationUseCase } from '../../application/use-cases';
 import { LOCALIZATION_TYPES } from '../../infrastructure/bootstrap/types';
 import type { LocalizationViewModel } from '../view-models/localization.view-model';
-import { isFailure } from '../../../../shared/result/result';
+// Removed import - isFailure is now a getter on Result objects
 
 @injectable()
 export class LocalizationPresenter {
@@ -58,7 +58,7 @@ export class LocalizationPresenter {
     try {
       const result = await this._loadLocalizationUseCase.execute({ languageCode });
 
-      if (isFailure(result)) {
+      if (result.isFailure) {
         throw result.error;
       }
 
@@ -90,7 +90,7 @@ export class LocalizationPresenter {
     try {
       const result = await this._changeLocalizationUseCase.execute({ languageCode });
 
-      if (isFailure(result)) {
+      if (result.isFailure) {
         throw result.error;
       }
 

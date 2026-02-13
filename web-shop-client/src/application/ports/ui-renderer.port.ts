@@ -1,10 +1,10 @@
 
 
+import type { ComponentType } from 'react';
 import type { ComponentNode } from '../../shared/ui/component-node';
 import type { ThemeConfig } from '../../shared/ui/theme-config';
 import type { ActionContext } from '../../shared/ui/action-context';
 import type { UIDescriptor } from '../../shared/ui/ui-descriptor';
-import type { ComponentType } from 'react';
 
 export interface UIRendererPort {
 	

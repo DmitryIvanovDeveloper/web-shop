@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result, Success, Failure } from '../../../../shared/result/result';
+import { Result } from '../../../../shared/result/result';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { HttpClient } from '../../../../application/ports/http-client.port';
 import type { Logger } from '../../../../application/ports/logger.port';
@@ -61,16 +61,16 @@ export class SupabaseRewardClaimRepository implements RewardClaimRepositoryPort 
           claimId: claim.id.value
         });
         const errorData = response.data as any;
-        return Failure.fail(new Error(`Failed to save reward claim: ${errorData?.error || response.statusText}`));
+        return Result.error(new Error(`Failed to save reward claim: ${errorData?.error || response.statusText}`));
       }
 
       this._logger.info('[SupabaseRewardClaimRepository] Reward claim saved successfully via API', {
         claimId: claim.id.value
       });
-      return Success.ok(claim);
+      return Result.ok(claim);
     } catch (error) {
       this._logger.error('[SupabaseRewardClaimRepository] Unexpected error saving reward claim', { error, claimId: claim.id.value });
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
@@ -89,7 +89,7 @@ export class SupabaseRewardClaimRepository implements RewardClaimRepositoryPort 
 
       if (response.status === 404) {
         this._logger.info('[SupabaseRewardClaimRepository] No claims found for user', { userId });
-        return Success.ok(null);
+        return Result.ok(null);
       }
 
       if (response.status >= 400) {
@@ -97,12 +97,12 @@ export class SupabaseRewardClaimRepository implements RewardClaimRepositoryPort 
           status: response.status,
           userId
         });
-        return Failure.fail(new Error(`Failed to find last claim: ${response.statusText}`));
+        return Result.error(new Error(`Failed to find last claim: ${response.statusText}`));
       }
 
       const claims = response.data || [];
       if (claims.length === 0) {
-        return Success.ok(null);
+        return Result.ok(null);
       }
 
             const claim = this.mapApiDtoToEntity(claims[0]);
@@ -112,10 +112,10 @@ export class SupabaseRewardClaimRepository implements RewardClaimRepositoryPort 
         claimedAt: claim.claimedAt
       });
 
-      return Success.ok(claim);
+      return Result.ok(claim);
     } catch (error) {
       this._logger.error('[SupabaseRewardClaimRepository] Unexpected error finding last claim', { error, userId });
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 

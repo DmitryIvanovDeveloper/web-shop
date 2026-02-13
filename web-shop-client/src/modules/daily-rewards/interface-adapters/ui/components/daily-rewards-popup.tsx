@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react';
 import { Popup } from '../../../../../shared/components/molecules/popup';
 import { Grid } from '../../../../../shared/components/molecules/grid';
-import { DailyRewardCard } from './daily-reward-card';
-import { DailyRewardCardSkeleton } from './daily-reward-card-skeleton';
 import { container } from '../../../../../infrastructure/bootstrap/container';
 import { DAILY_REWARDS_TYPES } from '../../../infrastructure/bootstrap/types';
 import { useAppId } from '../../../../../shared/hooks/use-app-context';
 import type { DailyRewardsListPresenter } from '../../presenters/daily-rewards-list.presenter';
+import { DailyRewardCard } from './daily-reward-card';
+import { DailyRewardCardSkeleton } from './daily-reward-card-skeleton';
 
 export interface DailyRewardsPopupProps {
   readonly userId: string;

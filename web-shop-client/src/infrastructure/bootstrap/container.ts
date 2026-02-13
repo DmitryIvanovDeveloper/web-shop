@@ -8,7 +8,6 @@ import type { DatabaseClientPort } from '../../application/ports/database-client
 import { EventBus } from '../events/event-bus';
 import { AxiosHttpClient } from '../http/http-client';
 import { HttpClientMock } from '../http/http-client.mock';
-import { HttpClientMode, resolveHttpClientMode, TYPES } from './types';
 import { ConsoleLogger } from '../logging/console-logger';
 import { SupabaseClient } from '../database/supabase-client';
 import { bindAuthentication } from '../../modules/authentication/infrastructure/bootstrap/bind.authentication';
@@ -39,6 +38,7 @@ import { AppConfigLoadedEvent } from '../../shared/events/app-config-events';
 import type { AppContextPort } from '../../application/ports/app-context.port';
 import { UrlAppContextService } from '../app-context/url-app-context.service';
 import { GetAppContextUseCase } from '../../application/use-cases/get-app-context.use-case';
+import { HttpClientMode, resolveHttpClientMode, TYPES } from './types';
 
 const container = new Container();
 

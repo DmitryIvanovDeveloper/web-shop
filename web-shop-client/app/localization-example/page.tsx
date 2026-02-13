@@ -6,3 +6,4 @@ export default function LocalizationExamplePage() {
   return <LocalizationExample />;
 }
 
+

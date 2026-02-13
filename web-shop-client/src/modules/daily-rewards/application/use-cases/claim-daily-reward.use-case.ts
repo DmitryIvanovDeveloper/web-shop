@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result, Success, Failure, isFailure } from '../../../../shared/result/result';
+import { Result } from '../../../../shared/result/result';
 import { DAILY_REWARDS_TYPES } from '../../infrastructure/bootstrap/types';
 import type { DailyRewardRepositoryPort } from '../ports/daily-reward-repository.port';
 import type { RewardClaimRepositoryPort } from '../ports/reward-claim-repository.port';
@@ -18,24 +18,24 @@ export class ClaimDailyRewardUseCase {
   async execute(input: ClaimDailyRewardInput): Promise<Result<ClaimDailyRewardOutput, Error>> {
     try {
             const allRewardsResult = await this._dailyRewardRepository.findAllRewards(input.appId);
-      if (isFailure(allRewardsResult)) {
-        return Failure.fail(allRewardsResult.error);
+      if (allRewardsResult.isFailure) {
+        return Result.error(allRewardsResult.error);
       }
 
-      const allRewards = allRewardsResult.data;
+      const allRewards = allRewardsResult.value!;
       if (!allRewards || allRewards.length === 0) {
         return Failure.fail(new RewardNotAvailableError());
       }
 
             const lastClaimResult = await this._rewardClaimRepository.findLastClaimByUser(input.userId);
-      if (isFailure(lastClaimResult)) {
-        return Failure.fail(lastClaimResult.error);
+      if (lastClaimResult.isFailure) {
+        return Result.error(lastClaimResult.error);
       }
 
-      const lastClaim = lastClaimResult.data;
+      const lastClaim = lastClaimResult.value;
 
             if (lastClaim && lastClaim.isFromToday()) {
-        return Failure.fail(new RewardAlreadyClaimedTodayError(input.userId, lastClaim.claimedAt));
+        return Result.error(new RewardAlreadyClaimedTodayError(input.userId, lastClaim.claimedAt));
       }
 
       let reward;
@@ -50,7 +50,7 @@ export class ClaimDailyRewardUseCase {
 
                 if (!reward.canBeClaimedBy(input.userId, lastClaim?.claimedAt)) {
           if (lastClaim) {
-            return Failure.fail(new RewardAlreadyClaimedTodayError(input.userId, lastClaim.claimedAt));
+            return Result.error(new RewardAlreadyClaimedTodayError(input.userId, lastClaim.claimedAt));
           }
           return Failure.fail(new RewardNotAvailableError());
         }
@@ -74,7 +74,7 @@ export class ClaimDailyRewardUseCase {
 
                 if (!reward.canBeClaimedBy(input.userId, lastClaim?.claimedAt)) {
                     if (lastClaim) {
-            return Failure.fail(new RewardAlreadyClaimedTodayError(input.userId, lastClaim.claimedAt));
+            return Result.error(new RewardAlreadyClaimedTodayError(input.userId, lastClaim.claimedAt));
           }
                     return Failure.fail(new RewardNotAvailableError());
         }
@@ -89,8 +89,8 @@ export class ClaimDailyRewardUseCase {
       );
 
             const saveResult = await this._rewardClaimRepository.save(claim);
-      if (isFailure(saveResult)) {
-        return Failure.fail(saveResult.error);
+      if (saveResult.isFailure) {
+        return Result.error(saveResult.error);
       }
 
             let nextRewardId: string | null = null;
@@ -121,9 +121,9 @@ export class ClaimDailyRewardUseCase {
         nextClaimDate
       };
 
-      return Success.ok(output);
+      return Result.ok(output);
     } catch (error) {
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 }

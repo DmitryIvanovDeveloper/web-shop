@@ -2,7 +2,7 @@
 
 
 import { injectable, inject } from 'inversify';
-import { Result } from '../../../../shared/domain/result/result';
+import { Result } from '../../../../shared/result/result';
 import { AppUser } from '../../domain/types';
 import { AuthenticationError } from '../../domain/errors/authentication.error';
 import { AuthViewModel } from '../view-models/auth.view-model';
@@ -270,14 +270,14 @@ export class AuthPresenter {
 		const result = await this._tryAuthenticateUseCase.execute(appId, userId);
 		
 		console.log('[AuthPresenter] tryAuthenticate UseCase result:', {
-			isSuccess: result.isSuccess(),
-			hasData: !!result.data,
-			userId: result.data?.userId,
+			isSuccess: result.isSuccess,
+			hasData: !!result.value,
+			userId: result.value?.userId,
 			error: result.error?.message
 		});
 
-		if (result.isSuccess()) {
-						const viewModel = this.present(result.data);
+		if (result.isSuccess) {
+						const viewModel = this.present(result.value);
 						return viewModel;
 		}
 

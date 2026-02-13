@@ -1,11 +1,11 @@
 import { inject, injectable } from 'inversify';
 import { OFFERS_TYPES } from '../../infrastructure/bootstrap/types';
-import type { EvaluateOffersUseCase } from './evaluate-offers.use-case';
 import type { UserOfferContextReaderPort } from '../../../../modules/user-offer-context/application/ports/user-offer-context-reader.port';
 import type { ComparableValue } from '../../domain/types';
 import { USER_OFFER_CONTEXT_TYPES } from '../../../../modules/user-offer-context/infrastructure/bootstrap/types';
 import { ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
+import type { EvaluateOffersUseCase } from './evaluate-offers.use-case';
 import type {
   SelectOffersInput,
   SelectOffersOutput,

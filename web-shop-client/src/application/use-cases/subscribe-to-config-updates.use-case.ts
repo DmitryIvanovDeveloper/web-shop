@@ -1,10 +1,9 @@
 import { injectable, inject } from 'inversify';
-import type { ConfigSubscriptionPort } from '../ports/config-subscription.port';
+import type { ConfigSubscriptionPort, UnsubscribeFn } from '../ports/config-subscription.port';
 import type { EventBus } from '../ports/event-bus.port';
 import type { Logger } from '../ports/logger.port';
 import { TYPES } from '../../infrastructure/bootstrap/types';
 import { AppConfigLoadedEvent } from '../../shared/events/app-config-events';
-import type { UnsubscribeFn } from '../ports/config-subscription.port';
 
 
 @injectable()

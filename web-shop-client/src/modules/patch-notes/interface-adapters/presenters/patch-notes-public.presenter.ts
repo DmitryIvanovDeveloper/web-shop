@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Success, Failure } from '../../../../shared/result/result';
+// Removed import - Success and Failure are no longer used
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
 import { PATCH_NOTES_TYPES } from '../../infrastructure/bootstrap/types';
@@ -62,10 +62,10 @@ export class PatchNotesPublicPresenter {
     try {
       const result = await this._getPublishedPatchNotesUseCase.execute(appId);
                               if (result instanceof Failure) {
-        this._logger.error('[PatchNotesPublicPresenter] Failed to load published notes', result.error);
+        this._logger.error('[PatchNotesPublicPresenter] Failed to load published notes', result.error!);
         this.updateViewModel({
           status: 'error',
-          error: result.error.message
+          error: result.error!.message
         });
         return;
       }

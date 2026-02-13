@@ -1,11 +1,11 @@
 import type { PatchNoteId } from '../value-objects/patch-note-id';
 import type { Version } from '../value-objects/version';
-import type { ChangeItem } from './change-item';
 import {
   InvalidPatchNoteStatusError,
   InvalidScheduledDateError,
   PatchNoteValidationError
 } from '../errors/patch-note.error';
+import type { ChangeItem } from './change-item';
 
 export type PatchNoteStatus = 'draft' | 'published' | 'scheduled';
 
