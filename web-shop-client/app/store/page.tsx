@@ -18,7 +18,7 @@ import { ProductsList } from '../../src/modules/products/interface-adapters/ui/c
 import { DailyRewardsPopup } from '../../src/modules/daily-rewards';
 import { DAILY_REWARDS_TYPES } from '../../src/modules/daily-rewards/infrastructure/bootstrap/types';
 import type { CheckDailyRewardAvailabilityUseCase } from '../../src/modules/daily-rewards/application/use-cases/check-daily-reward-availability.use-case';
-import { isSuccess } from '../../src/shared/result/result';
+// Removed import - isSuccess is now a getter on Result objects
 import type { OfferCardTemplate } from '../../src/shared/config/app-config.types';
 
 type OfferCardWithFlags = OfferCardTemplate & {
@@ -271,15 +271,15 @@ export default function StorePage(): JSX.Element {
           appId
         });
 
-        if (isSuccess(result) && result.data?.canClaim) {
+        if (result.isSuccess && result.value?.canClaim) {
           setTimeout(() => {
             setShowDailyRewardsPopup(true);
           }, 3000);
         } else {
           console.log('[store/page.tsx] No active reward available today, popup will NOT be shown', {
-            isSuccess: isSuccess(result),
-            canClaim: isSuccess(result) ? result.data?.canClaim : undefined,
-            error: !isSuccess(result) ? result.error?.message : undefined
+            isSuccess: result.isSuccess,
+            canClaim: result.isSuccess ? result.value?.canClaim : undefined,
+            error: !result.isSuccess ? result.error?.message : undefined
           });
         }
       } catch (error) {

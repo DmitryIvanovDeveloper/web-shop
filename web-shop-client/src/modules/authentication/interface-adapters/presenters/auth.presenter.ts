@@ -271,13 +271,13 @@ export class AuthPresenter {
 		
 		console.log('[AuthPresenter] tryAuthenticate UseCase result:', {
 			isSuccess: result.isSuccess,
-			hasData: !!result.data,
-			userId: result.data?.userId,
+			hasData: !!result.value,
+			userId: result.value?.userId,
 			error: result.error?.message
 		});
 
 		if (result.isSuccess) {
-						const viewModel = this.present(result.data);
+						const viewModel = this.present(result.value);
 						return viewModel;
 		}
 

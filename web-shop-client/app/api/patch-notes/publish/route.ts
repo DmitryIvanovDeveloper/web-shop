@@ -28,7 +28,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    return NextResponse.json(result.data);
+    return NextResponse.json(result.value);
 
   } catch (error) {
         return NextResponse.json(

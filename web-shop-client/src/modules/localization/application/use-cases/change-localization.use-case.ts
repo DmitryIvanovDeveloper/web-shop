@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result, isFailure, Success, Failure } from '../../../../shared/result/result';
+import { Result } from '../../../../shared/result/result';
 import type { TranslationRepositoryPort } from '../ports/translation-repository.port';
 import { LOCALIZATION_TYPES } from '../../infrastructure/bootstrap/types';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
@@ -37,19 +37,19 @@ export class ChangeLocalizationUseCase {
       const { languageCode } = request;
 
             if (!/^[a-z]{2,3}$/.test(languageCode)) {
-        return Failure.fail(new Error(`Invalid language code format: ${languageCode}`));
+        return Result.error(new Error(`Invalid language code format: ${languageCode}`));
       }
 
       this._logger.info('[ChangeLocalizationUseCase] Loading translations for new language', { languageCode });
 
             const translationsResult = await this._translationRepository.getTranslationsByLanguage(languageCode);
 
-      if (isFailure(translationsResult)) {
+      if (translationsResult.isFailure) {
         this._logger.error('[ChangeLocalizationUseCase] Failed to load translations', {
           languageCode,
           error: translationsResult.error
         });
-        return Failure.fail(translationsResult.error);
+        return Result.error(translationsResult.error);
       }
 
       const translationEntities = translationsResult.value!;
@@ -91,11 +91,11 @@ export class ChangeLocalizationUseCase {
         direction
       });
 
-      return Success.ok(response);
+      return Result.ok(response);
 
     } catch (error) {
       this._logger.error('[ChangeLocalizationUseCase] Unexpected error changing localization', { error });
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 }

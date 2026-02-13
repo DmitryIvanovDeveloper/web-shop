@@ -127,7 +127,7 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 		const getAppIdFromStorage = async () => {
 		const result = await sessionStorage.load();
 		if (result.isSuccess && result.value) {
-			return result.data.appId;
+			return result.value.appId;
 		}
 		return null;
 	};
@@ -135,7 +135,7 @@ function AuthModuleContent({ children, renderSidebarButton = false, renderPopupC
 	const getUserIdFromStorage = async () => {
 		const result = await sessionStorage.load();
 		if (result.isSuccess && result.value) {
-			return result.data.userId;
+			return result.value.userId;
 		}
 		return null;
 	};

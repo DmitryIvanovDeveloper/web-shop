@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Result, Success, Failure } from '../../../../shared/result/result';
+import { Result } from '../../../../shared/result/result';
 import { TYPES, ROOT_TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../application/ports/logger.port';
 import type { BrowserLanguageDetectorPort } from '../../application/ports/browser-language-detector.port';
@@ -20,7 +20,7 @@ export class BrowserLanguageService implements BrowserLanguageDetectorPort {
             if (typeof navigator === 'undefined') {
         const error = new Error('Browser environment not available');
         this._logger.error('[BrowserLanguageService] Not in browser environment', { error });
-        return Failure.fail(error);
+        return Result.error(error);
       }
 
             const browserLang = navigator.language || navigator.languages?.[0] || 'en';
@@ -34,17 +34,17 @@ export class BrowserLanguageService implements BrowserLanguageDetectorPort {
         const languageCode = LanguageCode.create(browserLang.split('-')[0]);         this._logger.info('[BrowserLanguageService] Language code created', {
           languageCode: languageCode.value
         });
-        return Success.ok(languageCode);
+        return Result.ok(languageCode);
       } catch (error) {
         this._logger.warn('[BrowserLanguageService] Invalid language code from browser', {
           browserLang,
           error
         });
-        return Failure.fail(error instanceof Error ? error : new Error('Invalid language code'));
+        return Result.error(error instanceof Error ? error : new Error('Invalid language code'));
       }
     } catch (error) {
       this._logger.error('[BrowserLanguageService] Unexpected error detecting language', { error });
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 

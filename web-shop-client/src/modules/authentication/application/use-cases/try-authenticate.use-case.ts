@@ -35,17 +35,17 @@ export class TryAuthenticateUseCase {
       
       console.log('[TryAuthenticateUseCase] ensureUserExists result:', {
         isSuccess: result.isSuccess,
-        isFailure: result.isFailure(),
-        hasData: !!result.data,
+        isFailure: result.isFailure,
+        hasData: !!result.value,
         hasError: !!result.error,
         errorMessage: result.error?.message
       });
       
-      if (result.isFailure() || !result.data) {
+      if (result.isFailure || !result.value) {
                 return Result.error(new AuthenticationError(result.error?.message || 'Authentication failed'));
       }
 
-      const { user, isNew, lastActiveAt } = result.data;
+      const { user, isNew, lastActiveAt } = result.value;
                                                                                     
             try {
         await this._eventBus.publishAsync(

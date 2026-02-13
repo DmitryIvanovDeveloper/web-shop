@@ -51,7 +51,7 @@ export const LocalizationDashboard: React.FC = () => {
                 const result = await getLocalizationStatusUseCase.execute();
 
         if (result.isSuccess) {
-          const { languages: loadedLanguages, activeLanguage: loadedActiveLanguage } = result.data;
+          const { languages: loadedLanguages, activeLanguage: loadedActiveLanguage } = result.value;
 
                               setLanguages(loadedLanguages);
           setActiveLanguage(loadedActiveLanguage);
@@ -141,7 +141,7 @@ export const LocalizationDashboard: React.FC = () => {
       });
 
       if (result.isSuccess) {
-        setActiveLanguage(result.data.language);
+        setActiveLanguage(result.value.language);
         await loadTranslationsForLanguage(languageCode);
 
                 setLanguages(prev => prev.map(lang =>

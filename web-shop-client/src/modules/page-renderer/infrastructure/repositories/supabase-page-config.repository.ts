@@ -25,11 +25,11 @@ function convertToComponentNode(json: any): ComponentNode | null {
     actions: json.actions
   });
   
-  if (result.isFailure()) {
+  if (result.isFailure) {
         return null;
   }
   
-  return result.data || null;
+  return result.value || null;
 }
 
 @injectable()

@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Success, Failure, type Result } from '../../../../shared/result/result';
+import { Result } from '../../../../shared/result/result';
 import type { PatchNoteRepositoryPort } from '../ports/patch-note-repository.port';
 import type { PatchNoteOutput } from '../types/patch-note.types';
 import { PATCH_NOTES_TYPES } from '../../infrastructure/bootstrap/types';
@@ -29,10 +29,10 @@ export class GetPublishedPatchNotesUseCase {
 
       const outputs = sortedNotes.map((note: PatchNote) => this.mapToOutput(note));
 
-      return Success.ok(outputs);
+      return Result.ok(outputs);
 
     } catch (error) {
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 

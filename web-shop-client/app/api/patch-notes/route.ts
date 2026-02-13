@@ -3,7 +3,7 @@ import { container } from '../../../src/infrastructure/bootstrap/container';
 import { PATCH_NOTES_TYPES } from '../../../src/modules/patch-notes/infrastructure/bootstrap/types';
 import { CreatePatchNoteUseCase } from '../../../src/modules/patch-notes/application/use-cases/create-patch-note.use-case';
 import { GetPublishedPatchNotesUseCase } from '../../../src/modules/patch-notes/application/use-cases/get-published-patch-notes.use-case';
-import { Failure } from '../../../src/shared/result/result';
+// Removed import - Failure is no longer used
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {

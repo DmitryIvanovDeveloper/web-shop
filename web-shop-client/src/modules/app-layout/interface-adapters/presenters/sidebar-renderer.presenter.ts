@@ -606,7 +606,7 @@ export class SidebarRendererPresenter {
     if (Array.isArray(nodeData.children)) {
       for (const childData of nodeData.children) {
         const childResult = this._convertToComponentNode(childData);
-        if (childResult.isFailure()) {
+        if (childResult.isFailure) {
           return Result.error(childResult.error);
         }
         if (childResult.isSuccess) {

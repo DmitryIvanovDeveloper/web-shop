@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Success, Failure, type Result } from '../../../../shared/result/result';
+import { Result } from '../../../../shared/result/result';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { Logger } from '../../../../application/ports/logger.port';
 import type { PatchNoteSchedulerPort } from '../../application/ports/patch-note-scheduler.port';
@@ -31,7 +31,7 @@ export class PatchNoteSchedulerService implements PatchNoteSchedulerPort {
       const delay = publishDate.getTime() - now.getTime();
 
       if (delay <= 0) {
-        return Failure.fail(new Error('Publish date must be in the future'));
+        return Result.error(new Error('Publish date must be in the future'));
       }
 
             const timeoutId = setTimeout(async () => {
@@ -57,11 +57,11 @@ export class PatchNoteSchedulerService implements PatchNoteSchedulerPort {
       });
 
       this._logger.info('[PatchNoteSchedulerService] Publication scheduled successfully');
-      return Success.ok(undefined);
+      return Result.ok(undefined);
 
     } catch (error) {
       this._logger.error('[PatchNoteSchedulerService] Failed to schedule publication', { error });
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
@@ -81,11 +81,11 @@ export class PatchNoteSchedulerService implements PatchNoteSchedulerPort {
         });
       }
 
-      return Success.ok(undefined);
+      return Result.ok(undefined);
 
     } catch (error) {
       this._logger.error('[PatchNoteSchedulerService] Failed to cancel scheduled publication', { error });
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 

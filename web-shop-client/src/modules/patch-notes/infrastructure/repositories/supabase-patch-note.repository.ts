@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import { Success, Failure, type Result } from '../../../../shared/result/result';
+import { Result } from '../../../../shared/result/result';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { HttpClient } from '../../../../application/ports/http-client.port';
 import type { Logger } from '../../../../application/ports/logger.port';
@@ -47,7 +47,7 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
           status: response.status,
           statusText: response.statusText
         });
-        return Failure.fail(new Error(`Failed to fetch published patch notes: ${response.status} ${response.statusText}`));
+        return Result.error(new Error(`Failed to fetch published patch notes: ${response.status} ${response.statusText}`));
       }
 
       const patchNotes = (response.data || []).map((dto: PatchNoteApiDto) => this.mapApiDtoToEntity(dto));
@@ -57,10 +57,10 @@ export class SupabasePatchNoteRepository implements PatchNoteRepositoryPort {
         count: patchNotes.length
       });
 
-      return Success.ok(patchNotes);
+      return Result.ok(patchNotes);
     } catch (error) {
       this._logger.error('[SupabasePatchNoteRepository] Unexpected error fetching published patch notes', { error });
-      return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
