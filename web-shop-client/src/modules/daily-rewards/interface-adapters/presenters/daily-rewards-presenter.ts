@@ -185,7 +185,7 @@ export class DailyRewardsPresenter {
         });
 
         if (!isFailure(availabilityResult)) {
-          const availability = availabilityResult.data;
+          const availability = availabilityResult.value!;
           if (availability.nextClaimDate && !availability.canClaim && availability.reward) {
                         const nextRewardViewModel = viewModels.find(vm => vm.id === availability.reward?.id);
             if (nextRewardViewModel && nextRewardViewModel instanceof DailyRewardCardViewModelImpl) {
@@ -336,8 +336,8 @@ export class DailyRewardsPresenter {
           userId: input.userId,
           appId: input.appId
         });
-        if (!isFailure(availabilityResult) && availabilityResult.data.reward) {
-          rewardId = availabilityResult.data.reward.id;
+        if (!availabilityResult.isFailure && availabilityResult.value.reward) {
+          rewardId = availabilityResult.value.reward.id;
           this._logger.info('[DailyRewardsPresenter] Will claim reward', { rewardId });
         }
       } catch (error) {

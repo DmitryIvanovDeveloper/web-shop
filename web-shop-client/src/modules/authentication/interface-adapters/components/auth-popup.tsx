@@ -39,7 +39,7 @@ export function AuthPopup({
     try {
       const result = await useCase.execute(appId, userId);
       
-      if (result.isSuccess()) {
+      if (result.isSuccess) {
         const viewModel = presenter.present(result.data);
         setViewModel(viewModel);
         

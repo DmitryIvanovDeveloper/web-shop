@@ -1,0 +1,18 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "next/typescript"
+  ],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-require-imports": "off",
+    "prefer-const": "off",
+    "react/no-unescaped-entities": "off",
+
+    "import/no-unresolved": "error",
+    "import/no-duplicates": "error",
+    "import/order": ["error", {"groups": ["builtin", "external", "internal", "parent", "sibling", "index"]}],
+    "@typescript-eslint/no-import-type-side-effects": "error"
+  }
+}

@@ -27,3 +27,4 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Unexpected error while loading offer rule tree' }, { status: 500 });
   }
 }
+

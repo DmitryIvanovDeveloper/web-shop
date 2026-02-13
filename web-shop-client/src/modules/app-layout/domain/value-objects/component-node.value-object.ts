@@ -1,4 +1,4 @@
-import { Result } from '../../../../shared/domain/result/result';
+import { Result } from '../../../shared/result/result';
 import { AppLayoutError } from '../errors/ui-renderer.error';
 import type { StyleConfig, ActionsConfig } from '../types';
 

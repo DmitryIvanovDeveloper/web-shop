@@ -582,7 +582,7 @@ export function PageRenderer({ appId, pageSlug = 'home', theme, previewMode = fa
               topLabel="Limited Offer🎁"
               title="Offer #1"
               description="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-              mainImage={selectedOfferCard.media?.mainImage ?? 'https:              mainImageAlt={selectedOfferCard.media?.mainImageAlt ?? 'Offer card image'}
+              mainImage={selectedOfferCard.media?.mainImage ?? 'https://example.com/image.jpg'}              mainImageAlt={selectedOfferCard.media?.mainImageAlt ?? 'Offer card image'}
               discount="80%"
               originalPrice="24,99 $"
               currentPrice="14,99 $"

@@ -9,3 +9,4 @@ export async function GET() {
     envKeys: Object.keys(process.env).filter(key => key.includes('SUPABASE'))
   });
 }
+

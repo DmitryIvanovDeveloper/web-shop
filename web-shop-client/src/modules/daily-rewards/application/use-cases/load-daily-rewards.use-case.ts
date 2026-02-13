@@ -20,7 +20,7 @@ export class LoadDailyRewardsUseCase {
                 return Failure.fail(rewardsResult.error);
       }
 
-      const rewards = rewardsResult.data;
+      const rewards = rewardsResult.value!;
       const output: LoadDailyRewardsOutput = {
         rewards: rewards.map(reward => this.mapRewardToOutput(reward))
       };

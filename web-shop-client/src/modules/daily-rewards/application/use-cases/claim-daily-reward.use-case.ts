@@ -22,7 +22,7 @@ export class ClaimDailyRewardUseCase {
         return Failure.fail(allRewardsResult.error);
       }
 
-      const allRewards = allRewardsResult.data;
+      const allRewards = allRewardsResult.value!;
       if (!allRewards || allRewards.length === 0) {
         return Failure.fail(new RewardNotAvailableError());
       }
@@ -32,7 +32,7 @@ export class ClaimDailyRewardUseCase {
         return Failure.fail(lastClaimResult.error);
       }
 
-      const lastClaim = lastClaimResult.data;
+      const lastClaim = lastClaimResult.value;
 
             if (lastClaim && lastClaim.isFromToday()) {
         return Failure.fail(new RewardAlreadyClaimedTodayError(input.userId, lastClaim.claimedAt));

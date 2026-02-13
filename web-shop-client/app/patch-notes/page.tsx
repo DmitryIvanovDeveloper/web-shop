@@ -313,3 +313,4 @@ export default function PatchNotesPage(): JSX.Element {
     </main>
   );
 }
+

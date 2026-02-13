@@ -27,11 +27,11 @@ export class PublishPatchNoteUseCase {
         return findResult;
       }
 
-      if (!findResult.data) {
+      if (!findResult.value) {
         return Failure.fail(new PatchNoteNotFoundError(input.id));
       }
 
-      const patchNote = findResult.data;
+      const patchNote = findResult.value!;
 
             let publishedPatchNote;
       try {
@@ -56,7 +56,7 @@ export class PublishPatchNoteUseCase {
         )
       );
 
-            return Success.ok(this.mapToOutput(saveResult.data));
+            return Result.ok(this.mapToOutput(saveResult.value!));
 
     } catch (error) {
       return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));

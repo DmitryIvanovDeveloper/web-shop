@@ -18,7 +18,7 @@ export class CheckDailyRewardAvailabilityUseCase {
                 return Failure.fail(nextRewardResult.error);
       }
 
-      const availability = nextRewardResult.data;
+      const availability = nextRewardResult.value!;
 
       const output: DailyRewardAvailabilityOutput = {
         canClaim: availability.canClaim,

@@ -57,7 +57,7 @@ export class CreatePatchNoteUseCase {
         new PatchNoteCreatedEvent(patchNoteId, input.version, input.title)
       );
 
-            return Success.ok(this.mapToOutput(saveResult.data));
+            return Result.ok(this.mapToOutput(saveResult.value!));
 
     } catch (error) {
       return Failure.fail(error instanceof Error ? error : new Error('Unknown error'));

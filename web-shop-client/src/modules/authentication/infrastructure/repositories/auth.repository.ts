@@ -1,7 +1,7 @@
 
 
 import { injectable, inject } from 'inversify';
-import { Result } from '../../../../shared/domain/result/result';
+import { Result } from '../../../shared/result/result';
 import { AuthRepositoryPort } from '../../application/ports/auth-repository.port';
 import { AppUser } from '../../domain/types';
 import type { HttpClient } from '../../../../application/ports/http-client.port';

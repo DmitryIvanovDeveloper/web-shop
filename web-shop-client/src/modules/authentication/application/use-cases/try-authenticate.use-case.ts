@@ -1,7 +1,7 @@
 
 
 import { injectable, inject } from 'inversify';
-import { Result } from '../../../../shared/domain/result/result';
+import { Result } from '../../../../shared/result/result';
 import type { AuthRepositoryPort } from '../ports/auth-repository.port';
 import type { SessionStoragePort } from '../ports/session-storage.port';
 import type { AppUser } from '../../domain/types';
@@ -34,7 +34,7 @@ export class TryAuthenticateUseCase {
             const result = await this._authRepository.ensureUserExists(appId.trim(), userId.trim());
       
       console.log('[TryAuthenticateUseCase] ensureUserExists result:', {
-        isSuccess: result.isSuccess(),
+        isSuccess: result.isSuccess,
         isFailure: result.isFailure(),
         hasData: !!result.data,
         hasError: !!result.error,
@@ -62,9 +62,9 @@ export class TryAuthenticateUseCase {
 
       const successResult: Result<AppUser, AuthenticationError> = Result.ok<AppUser, AuthenticationError>(user);
       console.log('[TryAuthenticateUseCase] Returning success result:', {
-        isSuccess: successResult.isSuccess(),
-        hasData: !!successResult.data,
-        userId: successResult.data?.userId
+        isSuccess: successResult.isSuccess,
+        hasData: !!successResult.value,
+        userId: successResult.value?.userId
       });
       return successResult;
     } catch (error) {

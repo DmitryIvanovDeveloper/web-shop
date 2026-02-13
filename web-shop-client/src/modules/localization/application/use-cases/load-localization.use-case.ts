@@ -48,7 +48,7 @@ export class LoadLocalizationUseCase {
         return Failure.fail(translationsResult.error);
       }
 
-      const translationEntities = translationsResult.data;
+      const translationEntities = translationsResult.value!;
 
             const translations: Record<string, string> = {};
       for (const translation of translationEntities) {

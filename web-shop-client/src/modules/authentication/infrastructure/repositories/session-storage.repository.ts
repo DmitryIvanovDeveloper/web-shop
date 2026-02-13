@@ -1,7 +1,7 @@
 
 
 import { injectable } from 'inversify';
-import { Result } from '../../../../shared/domain/result/result';
+import { Result } from '../../../shared/result/result';
 import { SessionStoragePort } from '../../application/ports/session-storage.port';
 import { AppUser } from '../../domain/types';
 

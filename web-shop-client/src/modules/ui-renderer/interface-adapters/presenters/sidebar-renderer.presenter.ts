@@ -3,7 +3,7 @@ import type { UIRendererModuleConfig } from '../../../../shared/config/app-confi
 import { PageConfig } from '../../domain/value-objects/page-config.value-object';
 import { ThemeConfig } from '../../domain/value-objects/theme-config.value-object';
 import { ComponentNode } from '../../domain/value-objects/component-node.value-object';
-import { Result } from '../../../../shared/domain/result/result';
+import { Result } from '../../../../shared/result/result';
 import { UIRendererError } from '../../domain/errors/ui-renderer.error';
 import { TYPES } from '../../../../infrastructure/bootstrap/types';
 import type { EventBus } from '../../../../application/ports/event-bus.port';
@@ -117,27 +117,27 @@ export class SidebarRendererPresenter {
         spacing: layoutConfig.theme.spacing,
       });
 
-      if (!themeResult.isSuccess()) {
+      if (!themeResult.isSuccess) {
                 return null;
       }
 
       const componentNodeResult = this._convertToComponentNode(layoutConfig.layout);
-      if (!componentNodeResult.isSuccess()) {
+      if (!componentNodeResult.isSuccess) {
                 return null;
       }
 
       const pageConfigResult = PageConfig.create({
         type,
         version: layoutConfig.version,
-        theme: themeResult.data,
-        layout: componentNodeResult.data,
+        theme: themeResult.value!,
+        layout: componentNodeResult.value!,
       });
 
-      if (!pageConfigResult.isSuccess()) {
+      if (!pageConfigResult.isSuccess) {
                 return null;
       }
 
-      return pageConfigResult.data;
+      return pageConfigResult.value!;
     } catch (error) {
             return null;
     }
@@ -153,8 +153,8 @@ export class SidebarRendererPresenter {
         if (childResult.isFailure()) {
           return Result.error(childResult.error);
         }
-        if (childResult.isSuccess()) {
-          children.push(childResult.data);
+        if (childResult.isSuccess) {
+          children.push(childResult.value!);
         }
       }
     }
