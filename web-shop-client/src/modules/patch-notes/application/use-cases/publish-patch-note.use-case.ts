@@ -23,7 +23,7 @@ export class PublishPatchNoteUseCase {
             const patchNoteId = PatchNoteId.fromString(input.id);
       const findResult = await this._patchNoteRepository.findById(patchNoteId);
 
-      if (findResult instanceof Failure) {
+      if (!findResult.isSuccess) {
         return findResult;
       }
 
@@ -44,7 +44,7 @@ export class PublishPatchNoteUseCase {
       }
 
             const saveResult = await this._patchNoteRepository.save(publishedPatchNote);
-      if (saveResult instanceof Failure) {
+      if (!saveResult.isSuccess) {
         return saveResult;
       }
 

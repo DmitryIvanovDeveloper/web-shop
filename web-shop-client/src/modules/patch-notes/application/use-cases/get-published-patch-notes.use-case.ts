@@ -16,11 +16,11 @@ export class GetPublishedPatchNotesUseCase {
     try {
       const result = await this._patchNoteRepository.findPublished(appId);
 
-      if (result instanceof Failure) {
+      if (!result.isSuccess) {
         return result;
       }
 
-            const patchNotes: PatchNote[] = (result as Success<PatchNote[]>).data || [];
+            const patchNotes: PatchNote[] = result.value || [];
       const sortedNotes = patchNotes.sort((a: PatchNote, b: PatchNote) => {
         const dateA = a.publishedAt || new Date(0);
         const dateB = b.publishedAt || new Date(0);

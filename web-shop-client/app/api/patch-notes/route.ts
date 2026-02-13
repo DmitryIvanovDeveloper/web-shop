@@ -22,15 +22,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     );
 
         const result = await useCase.execute(appId);
-        if (result instanceof Failure) {
+        if (!result.isSuccess) {
             return NextResponse.json(
         { error: result.error!.message },
         { status: 500 }
       );
     }
 
-    const data = (result as any).data;
-        return NextResponse.json(data);
+    return NextResponse.json(result.value);
 
   } catch (error) {
         return NextResponse.json(
@@ -54,14 +53,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const result = await useCase.execute(body);
 
-    if (result instanceof Failure) {
+    if (!result.isSuccess) {
             return NextResponse.json(
         { error: result.error!.message },
         { status: 400 }
       );
     }
 
-    return NextResponse.json((result as any).data, { status: 201 });
+    return NextResponse.json(result.value, { status: 201 });
 
   } catch (error) {
         return NextResponse.json(

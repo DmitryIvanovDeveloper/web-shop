@@ -49,7 +49,7 @@ export class CreatePatchNoteUseCase {
       );
 
             const saveResult = await this._patchNoteRepository.save(patchNote);
-      if (saveResult instanceof Failure) {
+      if (!saveResult.isSuccess) {
         return saveResult;
       }
 
