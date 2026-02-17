@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+
 import { getSupabaseServerClient } from '../_lib/supabase-server-client';
 
 export const dynamic = 'force-dynamic';
@@ -61,7 +63,7 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json({ rewards: rewards || [] });
     }
-  } catch (error) {
+  } catch (_error) {
         return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

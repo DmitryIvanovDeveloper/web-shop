@@ -31,7 +31,7 @@ export async function GET() {
     } : null;
 
     return NextResponse.json(activeLanguage);
-  } catch (error) {
+  } catch (_error) {
         return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

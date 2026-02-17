@@ -70,7 +70,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             const lastClaimData = lastClaim[0];
       const lastClaimedReward = allRewards.find(r => r.id === lastClaimData.reward_id);
 
-      if (lastClaimedReward == null || lastClaimedReward.day_number == null) {
+      if (lastClaimedReward?.day_number == null) {
                 nextDayNumber = 1;
       } else {
                 nextDayNumber = lastClaimedReward.day_number + 1;
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       lastClaimRewardId: lastClaim?.[0]?.reward_id || null
     });
 
-  } catch (error) {
+  } catch (_error) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

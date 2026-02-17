@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
-import { NextRequest, NextResponse } from 'next/server';
+
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 export async function GET(_request: NextRequest) {
   try {
@@ -38,7 +40,7 @@ export async function GET(_request: NextRequest) {
     }));
 
     return NextResponse.json(apiTranslations);
-  } catch (error) {
+  } catch (_error) {
         return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

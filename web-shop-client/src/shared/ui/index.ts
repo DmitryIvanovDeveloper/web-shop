@@ -1,11 +1,11 @@
 
 
-export * from './ui-descriptor';
-export * from './component-node';
-export * from './theme-config';
-export * from './style-config';
-export * from './actions-config';
-export * from './action-context';
-export * from './component-types';
-export * from './builders';
+export type * from './ui-descriptor';
+export type * from './component-node';
+export type * from './theme-config';
+export type * from './style-config';
+export type * from './actions-config';
+export type * from './action-context';
+export type * from './component-types';
+export type * from './builders';
 
