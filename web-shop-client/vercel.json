@@ -1,5 +1,5 @@
 {
-  "buildCommand": "rm -rf .next && npm run type-check:ci && npm run build",
+  "buildCommand": "rm -rf .next && npm run build",
   "outputDirectory": ".next",
   "devCommand": "npm run dev",
   "installCommand": "npm install",

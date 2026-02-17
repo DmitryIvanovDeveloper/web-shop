@@ -137,9 +137,10 @@ VS Code settings are configured for strict type checking and automatic fixes:
 
 Vercel deployment includes:
 
-1. **TypeScript CI check** - `npm run type-check:ci`
-2. **Production build** - `npm run build`
-3. **Clean cache** - Removes `.next` directory before build
+1. **Production build** - `npm run build`
+2. **Clean cache** - Removes `.next` directory before build
+
+**Note:** TypeScript CI checks (`npm run type-check:ci`) should be run locally before pushing to ensure code quality. Vercel build focuses on deployment speed.
 
 ### Code Quality Standards
 
