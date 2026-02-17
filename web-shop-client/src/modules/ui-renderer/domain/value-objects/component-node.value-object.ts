@@ -21,7 +21,7 @@ export class ComponentNode {
     readonly actions?: ActionsConfig;
   }): Result<ComponentNode, UIRendererError> {
     if (!params.id || !params.type) {
-      return Result.error<ComponentNode, UIRendererError>(new UIRendererError('Invalid node', 'INVALID_CONFIG'));
+      return Result.error(new UIRendererError('Invalid node', 'INVALID_CONFIG'));
     }
 
     return Result.ok(

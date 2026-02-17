@@ -21,7 +21,7 @@ export class ComponentNode {
     readonly actions?: ActionsConfig;
   }): Result<ComponentNode, AppLayoutError> {
     if (!params.id || !params.type) {
-      return Result.error<ComponentNode, AppLayoutError>(new AppLayoutError('Invalid node', 'INVALID_CONFIG'));
+      return Result.error(new AppLayoutError('Invalid node', 'INVALID_CONFIG'));
     }
 
     return Result.ok(

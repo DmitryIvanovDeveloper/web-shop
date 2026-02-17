@@ -24,7 +24,7 @@ export class ThemeConfig {
       !params.colors.surface ||
       !params.colors.text
     ) {
-      return Result.error<ThemeConfig, UIRendererError>(
+      return Result.error(
         new UIRendererError('Missing required color keys', 'INVALID_CONFIG')
       );
     }

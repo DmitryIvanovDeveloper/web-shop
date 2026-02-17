@@ -37,7 +37,7 @@ export class ChangeLocalizationUseCase {
       const { languageCode } = request;
 
             if (!/^[a-z]{2,3}$/.test(languageCode)) {
-        return Result.error<ChangeLocalizationResponse, Error>(new Error(`Invalid language code format: ${languageCode}`));
+        return Result.error(new Error(`Invalid language code format: ${languageCode}`));
       }
 
       this._logger.info('[ChangeLocalizationUseCase] Loading translations for new language', { languageCode });
@@ -49,7 +49,7 @@ export class ChangeLocalizationUseCase {
           languageCode,
           error: translationsResult.error
         });
-        return Result.error<ChangeLocalizationResponse, Error>(translationsResult.error || new Error('Failed to update translations'));
+        return Result.error(translationsResult.error || new Error('Failed to update translations'));
       }
 
       const translationEntities = translationsResult.value!;
@@ -95,7 +95,7 @@ export class ChangeLocalizationUseCase {
 
     } catch (error) {
       this._logger.error('[ChangeLocalizationUseCase] Unexpected error changing localization', { error });
-      return Result.error<ChangeLocalizationResponse, Error>(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 }

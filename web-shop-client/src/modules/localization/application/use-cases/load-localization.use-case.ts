@@ -45,7 +45,7 @@ export class LoadLocalizationUseCase {
           languageCode,
           error: translationsResult.error
         });
-        return Result.error<LoadLocalizationResponse, Error>(translationsResult.error || new Error('Failed to load translations'));
+        return Result.error(translationsResult.error || new Error('Failed to load translations'));
       }
 
       const translationEntities = translationsResult.value!;
@@ -79,7 +79,7 @@ export class LoadLocalizationUseCase {
 
     } catch (error) {
       this._logger.error('[LoadLocalizationUseCase] Unexpected error loading localization', { error });
-      return Result.error<LoadLocalizationResponse, Error>(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 

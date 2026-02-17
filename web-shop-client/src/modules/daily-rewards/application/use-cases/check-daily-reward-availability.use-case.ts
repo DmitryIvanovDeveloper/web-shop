@@ -15,7 +15,7 @@ export class CheckDailyRewardAvailabilityUseCase {
     try {
                   const nextRewardResult = await this._dailyRewardRepository.findNextRewardAvailability(input.appId, input.userId);
       if (nextRewardResult.isFailure) {
-                return Result.error<DailyRewardAvailabilityOutput, Error>(nextRewardResult.error || new Error('Failed to check reward availability'));
+                return Result.error(nextRewardResult.error || new Error('Failed to check reward availability'));
       }
 
       const availability = nextRewardResult.value!;
@@ -30,7 +30,7 @@ export class CheckDailyRewardAvailabilityUseCase {
 
             return Result.ok(output);
     } catch (error) {
-      return Result.error<DailyRewardAvailabilityOutput, Error>(error instanceof Error ? error : new Error('Unknown error'));
+      return Result.error(error instanceof Error ? error : new Error('Unknown error'));
     }
   }
 
