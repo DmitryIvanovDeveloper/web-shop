@@ -19,13 +19,11 @@ export async function GET(
     console.log('Looking for offer file:', id, 'in paths:', possiblePaths);
 
     let fileContents = '';
-    let filePath = '';
 
     for (const testPath of possiblePaths) {
       try {
         fileContents = fs.readFileSync(testPath, 'utf8');
-        filePath = testPath;
-        console.log('Found offer file at:', filePath);
+        console.log('Found offer file at:', testPath);
         break;
       } catch (err) {
         console.log('Path not found:', testPath);

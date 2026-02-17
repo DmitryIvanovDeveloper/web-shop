@@ -11,13 +11,11 @@ export async function GET() {
     ];
 
     console.log('Current working directory:', process.cwd());
-        let filePath = '';
     let fileContents = '';
 
     for (const testPath of possiblePaths) {
       try {
                 fileContents = fs.readFileSync(testPath, 'utf8');
-        filePath = testPath;
                 break;
       } catch (err) {
                 continue;
