@@ -1,9 +1,14 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "rm -rf .next && npm run build",
   "outputDirectory": ".next",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
+  "functions": {
+    "**/*.ts": {
+      "maxDuration": 10
+    }
+  },
   "build": {
     "env": {
       "NEXT_PUBLIC_SUPABASE_URL": "https://qosblydpgejtnyvzctpg.supabase.co",
@@ -12,6 +17,9 @@
       "NEXT_PUBLIC_USE_SUPABASE_PURCHASE": "true",
       "NEXT_PUBLIC_PAYMENT_SERVICE_URL": "https://web-shop-payment.vercel.app"
     }
+  },
+  "env": {
+    "NODE_OPTIONS": "--max_old_space_size=4096"
   }
 }
 
