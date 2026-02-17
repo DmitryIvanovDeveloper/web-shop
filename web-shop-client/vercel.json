@@ -4,11 +4,6 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "functions": {
-    "**/*.ts": {
-      "maxDuration": 10
-    }
-  },
   "build": {
     "env": {
       "NEXT_PUBLIC_SUPABASE_URL": "https://qosblydpgejtnyvzctpg.supabase.co",
