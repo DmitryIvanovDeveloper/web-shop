@@ -18,7 +18,7 @@ export class PageConfig {
     readonly layout: ComponentNode;
   }): Result<PageConfig, AppLayoutError> {
     if (!params.type || !params.version) {
-      return Result.error(new AppLayoutError('Invalid config', 'INVALID_CONFIG'));
+      return Result.error<PageConfig, AppLayoutError>(new AppLayoutError('Invalid config', 'INVALID_CONFIG'));
     }
     return Result.ok(new PageConfig(params.type, params.version, params.theme, params.layout));
   }

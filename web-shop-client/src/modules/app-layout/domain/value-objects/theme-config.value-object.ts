@@ -24,7 +24,7 @@ export class ThemeConfig {
       !params.colors.surface ||
       !params.colors.text
     ) {
-      return Result.error(
+      return Result.error<ThemeConfig, AppLayoutError>(
         new AppLayoutError('Missing required color keys', 'INVALID_CONFIG')
       );
     }

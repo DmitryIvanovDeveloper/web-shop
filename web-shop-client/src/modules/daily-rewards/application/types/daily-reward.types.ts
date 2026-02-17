@@ -19,9 +19,9 @@ export interface LoadDailyRewardsInput {
 export interface DailyRewardAvailabilityOutput {
   canClaim: boolean;
   reward: DailyRewardOutput | null;
-  nextClaimDate?: Date;
-  lastClaimDate?: Date;
-  lastClaimRewardId?: string | null;
+  nextClaimDate: Date | null;
+  lastClaimDate: Date | null;
+  lastClaimRewardId: string | null;
 }
 
 export interface ClaimDailyRewardOutput {
@@ -29,7 +29,9 @@ export interface ClaimDailyRewardOutput {
   pointsAwarded: number;
   claimId: string;
   message: string;
-  nextRewardId?: string | null;   nextClaimDate?: Date | null; }
+  nextRewardId?: string | null;
+  nextClaimDate?: Date | null;
+}
 
 export interface LoadDailyRewardsOutput {
   rewards: DailyRewardOutput[];
