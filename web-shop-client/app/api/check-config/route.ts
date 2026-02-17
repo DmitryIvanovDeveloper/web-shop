@@ -38,17 +38,17 @@ export async function GET(request: Request) {
     }
 
         const patchNotesByStatus = {
-      total: patchNotes?.length || 0,
-      published: patchNotes?.filter(p => p.status === 'published').length || 0,
-      draft: patchNotes?.filter(p => p.status === 'draft').length || 0,
-      scheduled: patchNotes?.filter(p => p.status === 'scheduled').length || 0
+      total: patchNotes?.length ?? 0,
+      published: patchNotes?.filter(p => p.status === 'published').length ?? 0,
+      draft: patchNotes?.filter(p => p.status === 'draft').length ?? 0,
+      scheduled: patchNotes?.filter(p => p.status === 'scheduled').length ?? 0
     };
 
     return NextResponse.json({
-      configs: configs || [],
-      count: configs?.length || 0,
-      hasActiveConfig: configs?.some(c => c.is_active && !c.is_draft) || false,
-      patchNotes: patchNotes || [],
+      configs: configs ?? [],
+      count: configs?.length ?? 0,
+      hasActiveConfig: configs?.some(c => c.is_active != null && c.is_draft == null) ?? false,
+      patchNotes: patchNotes ?? [],
       patchNotesByStatus
     });
   } catch (error) {
