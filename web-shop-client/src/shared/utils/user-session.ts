@@ -8,7 +8,7 @@ export function getCurrentUserId(): string {
   
     const userId = localStorage.getItem('user_id');
   
-    return userId || '';
+    return userId ?? '';
 }
 
 
