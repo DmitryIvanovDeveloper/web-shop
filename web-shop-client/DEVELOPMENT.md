@@ -4,6 +4,18 @@
 
 This project uses multiple layers of type checking and linting to ensure code quality matches production deployment standards.
 
+## Setup
+
+After cloning the repository:
+
+```bash
+# Install dependencies
+npm install
+
+# Setup git hooks for pre-commit quality checks
+npm run setup:husky
+```
+
 ### TypeScript Configuration
 
 The project uses strict TypeScript settings to catch errors early:

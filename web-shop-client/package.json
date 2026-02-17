@@ -12,7 +12,7 @@
     "type-check:strict": "tsc --noEmit --strict --noUnusedLocals --noUnusedParameters --exactOptionalPropertyTypes",
     "type-check:ci": "tsc --noEmit --skipLibCheck false --incremental false",
     "pre-commit": "npm run type-check && npm run lint:strict",
-    "prepare": "husky install",
+    "setup:husky": "husky install",
     "lint-staged": "lint-staged",
     "test": "vitest run",
     "test:unit": "vitest run src/**/*.test.ts --exclude src/__tests__/integration/** --exclude src/__tests__/e2e/**",
