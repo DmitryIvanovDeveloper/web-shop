@@ -19,8 +19,8 @@ export class SupabaseClient implements DatabaseClientPort {
   }
 
   private _initializeClient(): void {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL'];
+    const supabaseKey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'];
 
     if (!supabaseUrl || !supabaseKey) {
       const errorMsg = 'Supabase URL and Anon Key must be provided. Check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables.';

@@ -64,7 +64,7 @@ export enum HttpClientMode {
 }
 
 export function resolveHttpClientMode(): HttpClientMode {
-    const value = process.env.NEXT_PUBLIC_HTTP_CLIENT?.toLowerCase();
+    const value = process.env['NEXT_PUBLIC_HTTP_CLIENT']?.toLowerCase();
   if (value === HttpClientMode.Mock) return HttpClientMode.Mock;
   return HttpClientMode.Axios;
 }

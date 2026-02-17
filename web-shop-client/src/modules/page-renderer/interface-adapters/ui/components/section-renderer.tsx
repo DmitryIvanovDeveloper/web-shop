@@ -99,7 +99,7 @@ export function SectionRenderer({ section, theme }: SectionRendererProps): JSX.E
       e.stopPropagation();
       
       if (window.parent && window.parent !== window) {
-        const builderOrigin = process.env.NEXT_PUBLIC_BUILDER_URL || '*';
+        const builderOrigin = process.env['NEXT_PUBLIC_BUILDER_URL'] || '*';
         
         if (window.parent && typeof window.parent.postMessage === 'function') {
           try {

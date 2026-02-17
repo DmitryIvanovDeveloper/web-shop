@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       allNavTranslations: allNavTranslations,
       expectedNavKeys: expectedNavKeys,
       missingNavKeys: missingNavKeys,
-      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL
+      supabaseUrl: process.env['NEXT_PUBLIC_SUPABASE_URL']
     });
 
     const translations = data.map(translation => ({

@@ -233,7 +233,7 @@ export default function StorePage(): JSX.Element {
     }
 
     if (window.parent && window.parent !== window) {
-      const targetOrigin = process.env.NEXT_PUBLIC_UI_BUILDER_URL || '*';
+      const targetOrigin = process.env['NEXT_PUBLIC_UI_BUILDER_URL'] || '*';
       window.parent.postMessage({ type: 'PREVIEW_READY' }, targetOrigin);
     }
   }, []);
