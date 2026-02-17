@@ -54,7 +54,7 @@ export function useBadgeStyles(): BadgeStyles {
         if (data.badges) {
           setBadgeStyles(data.badges);
         }
-      } catch (error) {
+      } catch (_error) {
       }
     };
 

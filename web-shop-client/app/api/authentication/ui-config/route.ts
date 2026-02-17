@@ -1,8 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
+
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+export function GET() {
   try {
         const possiblePaths = [
       path.join(process.cwd(), 'src', 'modules', 'authentication', 'infrastructure', 'configs', 'auth-ui.config.json'),
@@ -17,7 +18,7 @@ export async function GET() {
       try {
                 fileContents = fs.readFileSync(testPath, 'utf8');
                 break;
-      } catch (err) {
+      } catch (_err) {
                 continue;
       }
     }
@@ -28,7 +29,7 @@ export async function GET() {
 
     const authUIConfig = JSON.parse(fileContents);
         return NextResponse.json(authUIConfig);
-  } catch (error) {
+  } catch (_error) {
         return NextResponse.json({ error: 'Failed to load auth UI configuration' }, { status: 500 });
   }
 }

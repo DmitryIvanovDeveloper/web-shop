@@ -1,9 +1,10 @@
 
 
 import { NextResponse } from 'next/server';
+
 import appConfig from '../../../public/mocks/api/app-config.json';
 
-export async function GET(): Promise<NextResponse> {
+export function GET(): NextResponse {
 	return NextResponse.json(appConfig, {
 		headers: {
 			'Cache-Control': 'public, max-age=3600, s-maxage=3600',

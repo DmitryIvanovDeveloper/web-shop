@@ -6,14 +6,14 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const appId = searchParams.get('appId');
 
-    if (!appId) {
+    if (appId == null || appId.trim() === '') {
       return NextResponse.json({ error: 'appId query parameter is required' }, { status: 400 });
     }
 
     const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL'];
     const supabaseAnonKey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'];
 
-    if (!supabaseUrl || !supabaseAnonKey) {
+    if (supabaseUrl == null || supabaseAnonKey == null) {
       return NextResponse.json({ error: 'Supabase credentials not configured' }, { status: 500 });
     }
 
@@ -24,7 +24,7 @@ export async function GET(request: Request) {
       .select('*')
       .eq('app_id', appId);
 
-    if (configError) {
+    if (configError != null) {
       return NextResponse.json({ error: 'Failed to query app_configs', details: configError }, { status: 500 });
     }
 
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
       .select('*')
       .eq('app_id', appId);
 
-    if (patchNotesError) {
+    if (patchNotesError != null) {
       return NextResponse.json({ error: 'Failed to query patch_notes', details: patchNotesError }, { status: 500 });
     }
 

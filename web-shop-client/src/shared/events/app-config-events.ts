@@ -1,6 +1,6 @@
 
 
-import { IEvent } from '../../application/ports/event-bus.port';
+import type { IEvent } from '../../application/ports/event-bus.port';
 import type { AppConfig } from '../config/app-config.types';
 
 export class AppConfigLoadedEvent implements IEvent {

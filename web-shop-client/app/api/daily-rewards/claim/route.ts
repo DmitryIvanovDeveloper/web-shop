@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
@@ -107,7 +108,7 @@ export async function POST(_request: NextRequest): Promise<NextResponse> {
       nextRewardId,
       nextClaimDate: nextClaimDate?.toISOString() || null
     }, { status: 201 });
-  } catch (error) {
+  } catch (_error) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
