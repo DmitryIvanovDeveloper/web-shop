@@ -38,7 +38,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             return NextResponse.json({ error: 'Failed to check existing claims' }, { status: 500 });
     }
 
-    if (existingClaims && existingClaims.length > 0) {
+    if (existingClaims != null && existingClaims.length > 0) {
       return NextResponse.json({
         error: 'Daily reward already claimed today',
         lastClaim: existingClaims[0]
@@ -79,13 +79,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         const { data: allRewards, error: rewardsError } = await supabase
       .from('daily_rewards')
       .select('*')
-      .eq('app_id', reward.app_id || '')
+      .eq('app_id', reward.app_id ?? '')
       .order('day_number', { ascending: true, nullsFirst: false });
 
-    if (!rewardsError && allRewards && allRewards.length > 0) {
+    if (rewardsError == null && allRewards != null && allRewards.length > 0) {
             const claimedReward = allRewards.find(r => r.id === rewardId);
-      if (claimedReward) {
-        if (claimedReward.day_number !== null) {
+      if (claimedReward != null) {
+        if (claimedReward.day_number != null) {
                     const nextReward = allRewards.find(r => r.day_number === claimedReward.day_number + 1);
           if (nextReward) {
             nextRewardId = nextReward.id;
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         }
       }
 
-            if (nextRewardId) {
+            if (nextRewardId != null) {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         tomorrow.setHours(0, 0, 0, 0);
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({
       ...data,
       nextRewardId,
-      nextClaimDate: nextClaimDate?.toISOString() || null
+      nextClaimDate: nextClaimDate?.toISOString() ?? null
     }, { status: 201 });
   } catch (_error) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

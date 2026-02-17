@@ -117,9 +117,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({
       reward: nextReward,
       canClaim: canClaim,
-      nextClaimDate: nextClaimDate?.toISOString() || null,
-      lastClaimDate: lastClaim?.[0]?.claimed_at || null,
-      lastClaimRewardId: lastClaim?.[0]?.reward_id || null
+      nextClaimDate: nextClaimDate?.toISOString() ?? null,
+      lastClaimDate: lastClaim?.[0]?.claimed_at ?? null,
+      lastClaimRewardId: lastClaim?.[0]?.reward_id ?? null
     });
 
   } catch (_error) {

@@ -187,12 +187,12 @@ export function getSectionFields(
 	section: 'labels' | 'settings' | 'ui'
 ): readonly FieldSchema[] {
 	if (section === 'labels') {
-		return schema.labels?.fields || [];
+		return schema.labels?.fields ?? [];
 	}
 	if (section === 'settings') {
-		return schema.settings?.fields || [];
+		return schema.settings?.fields ?? [];
 	}
-	return schema.ui?.fields || [];
+	return schema.ui?.fields ?? [];
 }
 
 
