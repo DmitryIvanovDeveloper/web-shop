@@ -3,7 +3,7 @@ import { getSupabaseServerClient } from '../../_lib/supabase-server-client';
 import { transformSupabaseImageUrl } from '../../../../src/shared/utils/image-url-transformer';
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
