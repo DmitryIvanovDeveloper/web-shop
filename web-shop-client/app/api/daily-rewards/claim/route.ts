@@ -9,7 +9,7 @@ export async function POST(_request: NextRequest): Promise<NextResponse> {
     const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL'];
     const supabaseAnonKey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'];
 
-    if (!supabaseUrl || !supabaseAnonKey) {
+    if (supabaseUrl == null || supabaseAnonKey == null) {
       return NextResponse.json({ error: 'Supabase credentials not configured' }, { status: 500 });
     }
 
@@ -17,7 +17,7 @@ export async function POST(_request: NextRequest): Promise<NextResponse> {
     const body = await request.json();
     const { id, userId, rewardId, claimedAt, pointsAwarded } = body;
 
-    if (!userId || !rewardId || !pointsAwarded) {
+    if (userId == null || rewardId == null || pointsAwarded == null) {
       return NextResponse.json({
         error: 'Missing required fields: userId, rewardId, pointsAwarded'
       }, { status: 400 });
@@ -51,15 +51,15 @@ export async function POST(_request: NextRequest): Promise<NextResponse> {
       .eq('id', rewardId)
       .single();
 
-    if (rewardError || !reward) {
+    if (rewardError != null || reward == null) {
       return NextResponse.json({ error: 'Reward not found' }, { status: 404 });
     }
 
         const claimData = {
-      id: id || crypto.randomUUID(),
+      id: id ?? crypto.randomUUID(),
       user_id: userId,
       reward_id: rewardId,
-      claimed_at: claimedAt || new Date().toISOString(),
+      claimed_at: claimedAt ?? new Date().toISOString(),
       points_awarded: pointsAwarded
     };
 

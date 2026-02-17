@@ -53,7 +53,7 @@ export function useAppId(): string | null {
     return null;
   }
 
-  if (error || !appId) {
+  if (error != null || appId == null) {
     return null;
   }
 

@@ -9,7 +9,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
     const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL'];
     const supabaseAnonKey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'];
 
-    if (!supabaseUrl || !supabaseAnonKey) {
+    if (supabaseUrl == null || supabaseAnonKey == null) {
       return NextResponse.json({ error: 'Supabase credentials not configured' }, { status: 500 });
     }
 
@@ -42,7 +42,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
             return NextResponse.json({ error: 'Failed to fetch rewards' }, { status: 500 });
     }
 
-    if (!allRewards || allRewards.length === 0) {
+    if (allRewards == null || allRewards.length === 0) {
       return NextResponse.json({
         reward: null,
         canClaim: false,
@@ -64,13 +64,13 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
     }
 
         let nextDayNumber: number;
-    if (!lastClaim || lastClaim.length === 0) {
+    if (lastClaim == null || lastClaim.length === 0) {
             nextDayNumber = 1;
     } else {
             const lastClaimData = lastClaim[0];
       const lastClaimedReward = allRewards.find(r => r.id === lastClaimData.reward_id);
 
-      if (!lastClaimedReward || lastClaimedReward.day_number === null) {
+      if (lastClaimedReward == null || lastClaimedReward.day_number == null) {
                 nextDayNumber = 1;
       } else {
                 nextDayNumber = lastClaimedReward.day_number + 1;
@@ -79,13 +79,13 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
 
         const nextReward = allRewards.find(r => r.day_number === nextDayNumber);
 
-    if (!nextReward) {
+    if (nextReward == null) {
             return NextResponse.json({
         reward: null,
         canClaim: false,
         nextClaimDate: null,
-        lastClaimDate: lastClaim?.[0]?.claimed_at || null,
-        lastClaimRewardId: lastClaim?.[0]?.reward_id || null
+        lastClaimDate: lastClaim?.[0]?.claimed_at ?? null,
+        lastClaimRewardId: lastClaim?.[0]?.reward_id ?? null
       });
     }
 

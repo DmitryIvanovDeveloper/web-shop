@@ -16,7 +16,7 @@ function getGridTemplate(grid: string): string {
     '3-column': '1fr 1fr 1fr',
     '4-column': '1fr 1fr 1fr 1fr',
   };
-  return map[grid] || '1fr';
+  return map[grid] ?? '1fr';
 }
 
 const isPreviewMode = (): boolean => {
@@ -59,7 +59,7 @@ export function SectionRenderer({ section, theme }: SectionRendererProps): JSX.E
     };
   }, [section.id]);
 
-  const isEmpty = !section.components || section.components.length === 0;
+  const isEmpty = section.components == null || section.components.length === 0;
   const hasMinHeight = section.styles && 'minHeight' in section.styles;
   const defaultStylesForEmpty: React.CSSProperties = isEmpty && !hasMinHeight ? {
     minHeight: '150px',
@@ -68,9 +68,9 @@ export function SectionRenderer({ section, theme }: SectionRendererProps): JSX.E
 
   const sectionStyle: React.CSSProperties = {
     display: 'grid',
-    gridTemplateColumns: section.layout.customGrid || getGridTemplate(section.layout.grid),
-    gap: section.layout.gap || '1rem',
-    alignItems: section.layout.align || 'start',
+    gridTemplateColumns: section.layout.customGrid ?? getGridTemplate(section.layout.grid),
+    gap: section.layout.gap ?? '1rem',
+    alignItems: section.layout.align ?? 'start',
     ...defaultStylesForEmpty,
     ...(section.styles as React.CSSProperties),
   };

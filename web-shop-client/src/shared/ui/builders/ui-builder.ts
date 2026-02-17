@@ -13,7 +13,7 @@ export class UIBuilder {
 		const node: ComponentNode = {
 			id: this._generateId('container'),
 			type: UIComponents.Container,
-			props: props || {},
+			props: props ?? {},
 			children: []
 		};
 
@@ -30,7 +30,7 @@ export class UIBuilder {
 		const node: ComponentNode = {
 			id: this._generateId('grid'),
 			type: UIComponents.Grid,
-			props: props || {},
+			props: props ?? {},
 			children: []
 		};
 
@@ -44,7 +44,7 @@ export class UIBuilder {
 		const node: ComponentNode = {
 			id: this._generateId('data-grid'),
 			type: UIComponents.DataGrid,
-			props: props || {},
+			props: props ?? {},
 			children: []
 		};
 
@@ -142,7 +142,7 @@ export class UIBuilder {
 			return;
 		}
 
-		const children = [...(this._rootNode.children || []), node];
+		const children = [...(this._rootNode.children ?? []), node];
 		this._rootNode = {
 			...this._rootNode,
 			children
@@ -167,7 +167,7 @@ export class UIBuilder {
 			return updatedNode;
 		}
 
-		if (!node.children || node.children.length === 0) {
+		if (node.children == null || node.children.length === 0) {
 			return node;
 		}
 

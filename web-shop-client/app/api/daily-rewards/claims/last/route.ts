@@ -9,7 +9,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
     const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL'];
     const supabaseAnonKey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'];
 
-    if (!supabaseUrl || !supabaseAnonKey) {
+    if (supabaseUrl == null || supabaseAnonKey == null) {
       return NextResponse.json({ error: 'Supabase credentials not configured' }, { status: 500 });
     }
 
@@ -32,7 +32,7 @@ export async function GET(_request: NextRequest): Promise<NextResponse> {
             return NextResponse.json({ error: 'Failed to fetch last claim' }, { status: 500 });
     }
 
-    if (!data || data.length === 0) {
+    if (data == null || data.length === 0) {
       return NextResponse.json([], { status: 404 });
     }
 
